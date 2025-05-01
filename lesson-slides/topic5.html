@@ -1,46 +1,152 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <link rel="stylesheet" href="../dist/reveal.css">
-	<link rel="stylesheet" href="../dist/theme/black.css">
     <style>
-        .nav-links {
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #333333;
+            --accent: #2196F3;
+        }
+
+        body[data-theme="dark"] {
+            --bg-color: #1a1a1a;
+            --text-color: #ffffff;
+            --accent: #80FF00;
+        }
+
+        html, body, .reveal, .slides, section {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            /* justify-self: center;
+            justify-content: center; */
+        }
+
+        .slide-content {
+            height: 100vh;
+            display: flex !important;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 2rem;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        .next-btn {
+            position: absolute;
+            bottom: 30px;
+            padding: 12px 24px;
+            background: var(--accent);
+            color: var(--bg-color);
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: transform 0.3s ease;
+        }
+
+        .next-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .theme-toggle {
             position: fixed;
             top: 20px;
             right: 20px;
-            z-index: 100;
+            z-index: 1000;
+            padding: 10px 20px;
+            background: var(--accent);
+            color: var(--bg-color);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
         }
 
-        .nav-links a {
-            font-size: 16px;
-            color: rgb(117, 117, 248);
-            border: 2px solid rgb(117, 117, 248);
-            border-radius: 5px;
-            padding: 10px;
+        @media (max-width: 768px) {
+            .slide-content {
+                padding: 1rem;
+                font-size: 0.9em;
+            }
+            .next-btn {
+                bottom: 15px;
+                font-size: 1rem;
+            }
         }
     </style>
 </head>
-<body>
+<body data-theme="light"> <!-- Added initial theme -->
+    <button class="theme-toggle" onclick="toggleTheme()">Toggle Theme</button>
+    
     <div class="reveal">
         <div class="slides">
+            <!-- Slide 1 -->
             <section>
-                <h1>Topic 1</h1>
-                <p>Slide 1.1</p>
+                <div class="slide-content">
+                    <h1>First Slide</h1>
+                    <p>Content goes here</p>
+                    <button class="next-btn" onclick="Reveal.next()">Next →</button>
+                </div>
             </section>
+
+            <!-- Slide 2 -->
             <section>
-                <h2>Topic 1 Continued</h2>
-                <p>Slide 1.2</p>
+                <div class="slide-content">
+                    <h2>Second Slide</h2>
+                    <p>More content here</p>
+                    <button class="next-btn" onclick="Reveal.next()">Next →</button>
+                </div>
+            </section>
+
+            <!-- Slide 3 -->
+            <section>
+                <div class="slide-content">
+                    <h1>Final Slide</h1>
+                    <p>Last content section</p>
+                    <p>Last content section</p>
+                    <p>Last content section</p>
+                    <p>Last content section</p>
+                    <p>Last content section</p>
+                    <p>Last content section</p>
+                    <p>Last content section</p>
+                    <p>Last content section</p>
+                    <p>Last content section</p>
+                    <p>Last content section</p>
+                    <p>Last content section</p>
+                    <p>Last content section</p>
+                    <p>Last content section</p>
+                    <p>Last content section</p>
+                    <button class="next-btn" onclick="Reveal.slide(0)">Restart →</button>
+                </div>
             </section>
         </div>
     </div>
 
-    <div class="nav-links">
-        <a href="../index.html" target="_parent">Main Menu</a>   
-    </div>
-
     <script src="../dist/reveal.js"></script>
     <script>
-        Reveal.initialize();
+        Reveal.initialize({
+            controls: false,
+            progress: false,
+            center: true,
+            hash: true,
+            transition: 'slide',
+            width: '100%',
+            height: '100%',
+            margin: 0.1,
+            minScale: 0.2,
+            maxScale: 1.5,
+            disableLayout: true,
+            embedded: false,
+            touch: true
+        });
+
+        function toggleTheme() {
+            const currentTheme = document.body.getAttribute('data-theme');
+            document.body.setAttribute('data-theme', 
+                currentTheme === 'dark' ? 'light' : 'dark');
+        }
     </script>
 </body>
 </html>

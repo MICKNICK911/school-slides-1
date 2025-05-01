@@ -2,45 +2,133 @@
 <html>
 <head>
     <link rel="stylesheet" href="../dist/reveal.css">
-	<link rel="stylesheet" href="../dist/theme/black.css">
+    <link rel="stylesheet" href="../dist/theme/black.css">
     <style>
-        .nav-links {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 100;
+        /* Full viewport layout */
+        html, body, .reveal, .slides, section {
+            height: 100% !important;
+            margin: 0;
+            padding: 0;
         }
 
-        .nav-links a {
-            font-size: 16px;
-            color: rgb(117, 117, 248);
-            border: 2px solid rgb(117, 117, 248);
-            border-radius: 5px;
-            padding: 10px;
+        .y-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            height: 50vh;  /* Use 80% of viewport height */
+            padding: 2rem;
+            background: transparent;
+            justify-self: center;
         }
+
+        .y-column {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .y-title {
+            color: #FFD700;
+            font-size: 30px;
+            margin-bottom: 0px;
+            padding-bottom: 0px;
+            border-bottom: 2px solid #3498db;
+        }
+
+        .y-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            font-size: 25px;
+            line-height: 1.5;
+            color: #fff;
+        }
+
+        .heading {
+                color: rgb(94, 255, 0);
+                margin-top: 0px;
+            }
+
+        @media (max-width: 768px) {
+            .y-grid {
+                /* grid-template-columns: 1fr; */
+                height: auto;
+                min-height: 90vh;
+            }
+            .y-column {
+                padding: 1.5rem;
+            }
+
+            .heading {
+                color: rgb(255, 208, 0);
+                margin-top: 10px;
+            }
+        }
+        
+        /* Add this to your media query */
+     @media (max-width: 480px) {
+        .y-title {
+        font-size: 1.2rem;
+         }
+        .y-list {
+        font-size: 1rem;
+        }
+
+        .heading {
+            color: rgb(255, 208, 0);
+            margin-top: 10px;
+        }
+      }
     </style>
 </head>
 <body>
     <div class="reveal">
         <div class="slides">
-            <section>
-                <h1>Topic 1</h1>
-                <p>Slide 1.1</p>
-            </section>
-            <section>
-                <h2>Topic 1 Continued</h2>
-                <p>Slide 1.2</p>
+            <section data-background="#1a1a1a">
+                <div class="heading" style="font-size:50px; font-weight: bolder;">Y as a Vowel</div>
+                
+                <div class="y-grid">
+                    <!-- Short i Column -->
+                    <div class="y-column">
+                        <div class="y-title">Short i)</div>
+                        <ul class="y-list">
+                            <li>gym</li><li>myth</li><li>lynx</li><li>syrup</li><li>pyramid</li>
+                            <li>mystic</li><li>cynic</li><li>lyric</li><li>cyst</li><li>gymnast</li>
+                        </ul>
+                    </div>
+
+                    <!-- Long i Column -->
+                    <div class="y-column">
+                        <div class="y-title">Long i</div>
+                        <ul class="y-list">
+                            <li>fly</li><li>cry</li><li>my</li><li>sky</li><li>dry</li>
+                            <li>shy</li><li>ply</li><li>spy</li><li>try</li><li>fry</li>
+                        </ul>
+                    </div>
+
+                    <!-- Long e Column -->
+                    <div class="y-column">
+                        <div class="y-title">Long e</div>
+                        <ul class="y-list">
+                            <li>happy</li><li>sunny</li><li>baby</li><li>city</li><li>party</li>
+                            <li>funny</li><li>lucky</li><li>honey</li><li>silly</li><li>penny</li>
+                        </ul>
+                    </div>
+                </div>
             </section>
         </div>
     </div>
 
-    <div class="nav-links">
-        <a href="../index.html" target="_parent">Main Menu</a>   
-    </div>
-
     <script src="../dist/reveal.js"></script>
     <script>
-        Reveal.initialize();
+        Reveal.initialize({
+            controls: false,  // Remove default controls
+            center: true,
+            hash: true,
+            transition: 'fade'
+        });
     </script>
 </body>
 </html>
