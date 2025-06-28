@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Alphabet Sound Slides</title>
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #333333;
+            --btn-bg: #333333;
+            --btn-color: #ffffff;
+            --screen-bg: #f0f0f0;
+        }
+
+        .dark-mode {
+            --bg-color: #1a1a1a;
+            --text-color: #ffffff;
+            --btn-bg: #4a4a4a;
+            --screen-bg: #2a2a2a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        body {
+            overflow: hidden;
+            touch-action: pan-y;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        .container {
+            width: 100vw;
+            transition: transform 0.5s ease-in-out;
+        }
+
+        .screen {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            background-color: var(--screen-bg);
+        }
+
+        .letter-card {
+            text-align: center;
+            max-width: 90%;
+        }
+
+        .letter {
+            font-size: 120px;
+            font-weight: bold;
+            margin: 20px 0;
+            transition: font-size 0.2s ease;
+        }
+        
+        .letter.clicked { color: red}
+
+
+        .sound-image {
+            width: min(200px, 40vw);
+            height: min(200px, 40vw);
+            object-fit: cover;
+            border-radius: 12px;
+            margin: 15px 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .phonetic {
+            font-size: 24px;
+            color: #666;
+            margin: 10px 0;
+        }
+
+        .dark-mode .phonetic {
+            color: #999;
+        }
+
+        .nav-btn {
+            padding: 12px 24px;
+            margin: 10px;
+            cursor: pointer;
+            background-color: var(--btn-bg);
+            color: var(--btn-color);
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            touch-action: manipulation;
+        }
+
+        #themeToggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            background-color: var(--btn-bg);
+            color: var(--btn-color);
+            border: none;
+        }
+        
+        .controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        
+        .home-btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            background-color: var(--btn-bg);
+            color: var(--btn-color);
+            font-weight: bold;
+            border: none;
+        }
+
+        #caseToggle {
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            background-color: var(--btn-bg);
+            color: var(--btn-color);
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <button class="home-btn" onclick="instantRestart()" aria-label="Restart">↺</button>
+        <button id="caseToggle" onclick="toggleCase()" aria-label="Toggle Case">Aa</button>
+    </div>
+    
+    <button id="themeToggle" onclick="toggleTheme()" aria-label="Toggle Theme">🌓</button>
+
+    <div class="container" id="slider">
+        <!-- Letter A-Z -->
+        <div class="screen">
+            <div class="letter-card">
+                <div class="letter" data-upper="A" data-lower="a">A</div>
+                <img src="../assets/images/a.jpg" alt="Apple" class="sound-image">
+                <div class="phonetic">apple</div>
+            </div>
+        </div>
+
+        <div class="screen">
+            <div class="letter-card">
+                <div class="letter" data-upper="B" data-lower="b">B</div>
+                <img src=" ../assets/images/b1.jpg" alt="Ball" class="sound-image">
+                <div class="phonetic">ball</div>
+            </div>
+        </div>
+
+        <div class="screen">
+            <div class="letter-card">
+                <div class="letter" data-upper="C" data-lower="c">C</div>
+                <img src="../assets/images/c.jpg" alt="Cat" class="sound-image">
+                <div class="phonetic">cat</div>
+            </div>
+        </div>
+
+<!-- Letter D -->
+<div class="screen">
+<div class="letter-card">
+    <div class="letter" data-upper="D" data-lower="d">D</div>
+    <img src="../assets/images/d.jpg" alt="Dog" class="sound-image">
+    <div class="phonetic">dog</div>
+</div>
+</div>
+<!-- Letter E -->
+<div class="screen">
+<div class="letter-card">
+    <div class="letter" data-upper="E" data-lower="e">E</div>
+    <img src="../assets/images/e.jpg" alt="Egg" class="sound-image">
+    <div class="phonetic">egg</div>
+</div>
+</div>
+
+<!-- Letter F -->
+<div class="screen">
+<div class="letter-card">
+    <div class="letter" data-upper="F" data-lower="f">F</div>
+    <img src="../assets/images/f.jpg" alt="Fish" class="sound-image">
+    <div class="phonetic">fish</div>
+</div>
+</div>
+
+<!-- Letter G -->
+<div class="screen">
+<div class="letter-card">
+    <div class="letter" data-upper="G" data-lower="g">G</div>
+    <img src="../assets/images/g1.jpg" alt="Goat" class="sound-image">
+    <div class="phonetic">goat</div>
+</div>
+</div>
+
+<!-- Letter H -->
+<div class="screen">
+<div class="letter-card">
+    <div class="letter" data-upper="H" data-lower="h">H</div>
+    <img src="../assets/images/h.jpg" alt="House" class="sound-image">
+    <div class="phonetic">hat</div>
+</div>
+</div>
+
+<!-- Letter I -->
+<div class="screen">
+<div class="letter-card">
+    <div class="letter" data-upper="I" data-lower="i">I</div>
+    <img src="../assets/images/i.jpg" alt="Igloo" class="sound-image">
+    <div class="phonetic">igloo</div>
+</div>
+</div>
+
+<!-- Letter J -->
+<div class="screen">
+<div class="letter-card">
+    <div class="letter" data-upper="J" data-lower="j">J</div>
+    <img src="../assets/images/j.jpg" alt="Juice" class="sound-image">
+    <div class="phonetic">jug</div>
+</div>
+</div>
+
+<!-- Letter K -->
+<div class="screen">
+<div class="letter-card">
+    <div class="letter" data-upper="K" data-lower="k">K</div>
+    <img src="../assets/images/k.jpg" alt="Kite" class="sound-image">
+    <div class="phonetic">kite</div>
+</div>
+</div>
+
+<!-- Letter L -->
+<div class="screen">
+<div class="letter-card">
+    <div class="letter" data-upper="L" data-lower="l">L</div>
+    <img src="../assets/images/l.jpg" alt="lemon" class="sound-image">
+    <div class="phonetic">lion</div>
+</div>
+</div>
+
+<!-- Letter M -->
+<div class="screen">
+<div class="letter-card">
+    <div class="letter" data-upper="M" data-lower="m">M</div>
+    <img src="../assets/images/m.jpg" alt="Monkey" class="sound-image">
+    <div class="phonetic">mango</div>
+</div>
+</div>
+
+<!-- Letter N -->
+<div class="screen">
+<div class="letter-card">
+    <div class="letter" data-upper="N" data-lower="n">N</div>
+    <img src="../assets/images/n.jpg" alt="Nest" class="sound-image">
+    <div class="phonetic">net</div>
+</div>
+</div>
+
+<!-- Letter O -->
+<div class="screen">
+<div class="letter-card">
+    <div class="letter" data-upper="O" data-lower="o">O</div>
+    <img src="../assets/images/o.jpg" alt="Orange" class="sound-image">
+    <div class="phonetic">orange</div>
+</div>
+</div>
+
+<!-- Letter P -->
+<div class="screen">
+<div class="letter-card">
+    <div class="letter" data-upper="P" data-lower="p">P</div>
+    <img src="../assets/images/p1.jpg" alt="Pot" class="sound-image">
+    <div class="phonetic">pot</div>
+</div>
+</div>
+
+<!-- Letter Q -->
+<div class="screen">
+<div class="letter-card">
+    <div class="letter" data-upper="Q" data-lower="q">Q</div>
+    <img src="../assets/images/q.png" alt="Queen" class="sound-image">
+    <div class="phonetic">queen</div>
+</div>
+</div>
+
+<!-- Letter R -->
+<div class="screen">
+<div class="letter-card">
+    <div class="letter" data-upper="R" data-lower="r">R</div>
+    <img src="../assets/images/r.jpg" alt="Rat" class="sound-image">
+    <div class="phonetic">rat</div>
+</div>
+</div>
+
+<!-- Letter S -->
+<div class="screen">
+<div class="letter-card">
+    <div class="letter" data-upper="S" data-lower="s">S</div>
+    <img src="../assets/images/s.jpg" alt="Sun" class="sound-image">
+    <div class="phonetic">sun</div>
+</div>
+</div>
+
+<!-- Letter T -->
+<div class="screen">
+<div class="letter-card">
+    <div class="letter" data-upper="T" data-lower="t">T</div>
+    <img src="../assets/images/t.png" alt="Turtle" class="sound-image">
+    <div class="phonetic">tin</div>
+</div>
+</div>
+
+<!-- Letter U -->
+<div class="screen">
+<div class="letter-card">
+    <div class="letter" data-upper="U" data-lower="u">U</div>
+    <img src="../assets/images/u.jpg" alt="Umbrella" class="sound-image">
+    <div class="phonetic">umbrella</div>
+</div>
+</div>
+
+<!-- Letter V -->
+<div class="screen">
+<div class="letter-card">
+    <div class="letter" data-upper="V" data-lower="v">V</div>
+    <img src="../assets/images/v.jpg" alt="Van" class="sound-image">
+    <div class="phonetic">van</div>
+</div>
+</div>
+
+<!-- Letter W -->
+<div class="screen">
+<div class="letter-card">
+    <div class="letter" data-upper="W" data-lower="w">W</div>
+    <img src="../assets/images/w1.jpg" alt="Whale" class="sound-image">
+    <div class="phonetic">watermelon</div>
+</div>
+</div>
+
+<!-- Letter X -->
+<div class="screen">
+<div class="letter-card">
+    <div class="letter" data-upper="X" data-lower="x">X</div>
+    <img src="../assets/images/x.jpg" alt="Xylophone" class="sound-image">
+    <div class="phonetic">fo<span style="color: red;">x</span></div>
+</div>    
+</div>
+
+<!-- Letter Y -->
+<div class="screen">
+<div class="letter-card">
+    <div class="letter" data-upper="Y" data-lower="y">Y</div>
+    <img src="../assets/images/y.jpg" alt="Yacht" class="sound-image">
+    <div class="phonetic">yam</div>
+</div>
+</div>
+       
+        <div class="screen">
+            <div class="letter-card">
+                <div class="letter" data-upper="Z" data-lower="z">Z</div>
+                <img src="../assets/images/z.jpg" alt="Zebra" class="sound-image">
+                <div class="phonetic">zebra</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPosition = 0;
+        let isUppercase = true;
+        const slider = document.getElementById('slider');
+        const slides = document.querySelectorAll('.screen');
+        const letterElements = document.querySelectorAll('.letter');
+        const totalSlides = slides.length - 1;
+
+        function initSlider() {
+            slider.style.height = `${slides.length * 100}vh`;
+        }
+        initSlider();
+
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('theme', 
+                document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+        }
+
+        function toggleCase() {
+            isUppercase = !isUppercase;
+            localStorage.setItem('letterCase', isUppercase ? 'upper' : 'lower');
+            updateLetterCase();
+        }
+
+        function updateLetterCase() {
+            letterElements.forEach(el => {
+                el.textContent = isUppercase ? el.dataset.upper : el.dataset.lower;
+            });
+        }
+
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+        }
+        if (localStorage.getItem('letterCase') === 'lower') {
+            isUppercase = false;
+            updateLetterCase();
+        }
+
+        function navigate(position) {
+            currentPosition = Math.max(0, Math.min(position, totalSlides));
+            slider.style.transform = `translateY(-${currentPosition * 100}vh)`;
+        }
+
+        function nextSlide() {
+            navigate(currentPosition + 1);
+        }
+
+        function prevSlide() {
+            navigate(currentPosition - 1);
+        }
+
+        function instantRestart() {
+            slider.style.transition = 'none';
+            currentPosition = 0;
+            slider.style.transform = 'translateY(0)';
+            void slider.offsetHeight;
+            slider.style.transition = '';
+        }
+
+        let startY = 0;
+        const swipeThreshold = 50;
+
+        document.addEventListener('touchstart', e => {
+            startY = e.touches[0].clientY;
+        });
+
+        document.addEventListener('touchend', handleSwipe);
+        document.addEventListener('mousedown', e => {
+            startY = e.clientY;
+        });
+        document.addEventListener('mouseup', handleSwipe);
+
+        function handleSwipe(e) {
+            const endY = e.changedTouches?.[0].clientY || e.clientY;
+            const deltaY = endY - startY;
+
+            if (Math.abs(deltaY) > swipeThreshold) {
+                deltaY > 0 ? prevSlide() : nextSlide();
+            }
+        }
+
+        window.addEventListener('load', () => {
+            setTimeout(() => window.scrollTo(0, 1), 0);
+            updateLetterCase();
+        });
+        window.addEventListener('resize', () => setTimeout(() => window.scrollTo(0, 1), 0));
+        
+        
+        document.querySelectorAll('.letter').forEach(letter => {
+            letter.addEventListener('click', function() {
+                this.classList.toggle('clicked');
+            });
+        });
+    </script>
+</body>
+</html>
