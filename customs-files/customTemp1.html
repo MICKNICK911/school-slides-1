@@ -1266,14 +1266,14 @@
         <main class="results-container" id="resultsContainer">
             <div class="no-results">
                 <span>📖</span>
-                <h2>Phonics Explorer</h2>
+                <h2>Digital Notes</h2>
                 <p>Search for topics to see their details and examples</p>
                 <p>Try these examples:</p>
                 <div class="search-history">
-                    <div class="history-item">🔍 vowels</div>
-                    <div class="history-item">🔍 consonants</div>
-                    <div class="history-item">🔍 cvc</div>
-                    <div class="history-item">🔍 cvce</div>
+                    <div class="history-item">🔍 noun</div>
+                    <div class="history-item">🔍 pronoun</div>
+                    <div class="history-item">🔍 adjective</div>
+                    <div class="history-item">🔍 adverb</div>
                 </div>
             </div>
             
@@ -1305,31 +1305,43 @@
         
         // Predefined dictionary
         const DEFAULT_LESSONS = {
-            "vowels": {
-                "desc": "There are 5 Short vowels and 5 long vowels. Sometimes /y/ can act as a vowel.",
-                "ex": `a e i o u y`.trim().split(/[\s,\n]/).map(s => s.trim()),
-            },
-            "consonants": {
-                "desc": "There are 21 consonants.",
-                "ex": `b c d f g h j k l m n p q r s t v w x y z`.trim().split(/[\s,\n]/).map(s => s.trim()),
-            },
-            "cvc": {
-                "desc": "Consonant-Vowel-Consonant words are simple three-letter words that follow a consonant-vowel-consonant pattern.",
-                "ex": `cat dog pig sun bed map pen`.trim().split(/[\s,\n]/).map(s => s.trim()),
-            },
-            "cvce": {
-                "desc": "Consonant-Vowel-Consonant-Silent E words have a long vowel sound created by the silent 'e' at the end.",
-                "ex": `cake bike nose cube kite time`.trim().split(/[\s,\n]/).map(s => s.trim()),
-            },
-            "blends": {
-                "desc": "Consonant blends are two or more consonants grouped together, with each consonant sound heard.",
-                "ex": `bl cl fl gl pl sl br cr dr fr gr pr tr`.trim().split(/[\s,\n]/).map(s => s.trim()),
-            },
-            "digraphs": {
-                "desc": "Digraphs are two letters that combine to make a single sound.",
-                "ex": `sh ch th wh ph ck ng qu`.trim().split(/[\s,\n]/).map(s => s.trim()),
-            }
-        };
+    "noun": {
+        "desc": "A word that represents a person, place, thing, or idea. Can be subjects or objects in sentences.",
+        "ex": ["dog", "London", "book", "happiness", "teacher"]
+    },
+    "verb": {
+        "desc": "Expresses an action, occurrence, or state of being. Shows what the subject does or experiences.",
+        "ex": ["run", "think", "is", "become", "write"]
+    },
+    "adjective": {
+        "desc": "Describes or modifies nouns/pronouns. Provides qualities, quantities, or states.",
+        "ex": ["happy", "blue", "tall", "five", "beautiful"]
+    },
+    "adverb": {
+        "desc": "Modifies verbs, adjectives, or other adverbs. Often indicates manner, time, place, degree.",
+        "ex": ["quickly", "very", "here", "yesterday", "carefully"]
+    },
+    "pronoun": {
+        "desc": "Replaces nouns to avoid repetition. Refers to people, places, things without naming them.",
+        "ex": ["he", "it", "they", "this", "who"]
+    },
+    "preposition": {
+        "desc": "Shows relationships between nouns/pronouns and other words. Indicates time, location, direction.",
+        "ex": ["in", "on", "at", "with", "between"]
+    },
+    "conjunction": {
+        "desc": "Connects words, phrases, or clauses. Joins related ideas in a sentence.",
+        "ex": ["and", "but", "or", "because", "if"]
+    },
+    "interjection": {
+        "desc": "Expresses sudden emotion or reaction. Often stands alone with exclamation points.",
+        "ex": ["wow", "ouch", "hey", "oh", "bravo"]
+    },
+    "article": {
+        "desc": "Special adjectives that mark definiteness (the) or indefiniteness (a/an) of nouns.",
+        "ex": ["the", "a", "an"]
+    }
+};
 
         // Current dictionary
         let lessons = { ...DEFAULT_LESSONS };
