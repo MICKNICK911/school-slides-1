@@ -5,12 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Digital Notes</title>
     <style>
+    
         /* Prevent touch highlight */
-        * {
-            -webkit-tap-highlight-color: transparent;
-            -webkit-touch-callout: none;
-        }
-        
+    * {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    }
+    
         /* New splash screen styles */
         #splashScreen {
             position: fixed;
@@ -19,6 +20,8 @@
             width: 100%;
             height: 100%;
             background: linear-gradient(135deg, #ff9800, #ffc107);
+            
+
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -56,6 +59,7 @@
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
+            
             display: flex;
             justify-content: center;
             align-items: center;
@@ -243,7 +247,7 @@
             gap: 10px;
         }
 
-        .theme-toggle, .history-toggle, 
+        .theme-toggle, .case-toggle, .history-toggle, 
         .topics-toggle, .help-toggle, .load-toggle,
         .export-toggle, .slide-toggle {
             width: 44px;
@@ -260,7 +264,7 @@
             font-size: 18px;
         }
 
-        .theme-toggle:hover, 
+        .theme-toggle:hover, .case-toggle:hover, 
         .history-toggle:hover, .topics-toggle:hover,
         .help-toggle:hover, .load-toggle:hover,
         .export-toggle:hover, .slide-toggle:hover {
@@ -325,32 +329,6 @@
             font-size: 35px;
             margin-bottom: 25px;
             line-height: 1.7;
-            white-space: pre-line; /* Preserve line breaks */
-        }
-
-        /* Text formatting styles */
-        .formatted-text .bold {
-            font-weight: bold;
-        }
-
-        .formatted-text .italic {
-            font-style: italic;
-        }
-
-        .formatted-text .underline {
-            text-decoration: underline;
-        }
-
-        .formatted-text .highlight {
-            color: var(--primary-color);
-            font-weight: bold;
-        }
-
-        .formatted-text .bullet {
-            display: inline-block;
-            width: 1.5em;
-            color: var(--primary-color);
-            font-weight: bold;
         }
 
         .examples-grid {
@@ -384,6 +362,14 @@
             border-color: var(--primary-color);
             transform: scale(1.03);
         }
+
+        /*.uppercase {
+            text-transform: uppercase;
+        }*/
+
+        /*.lowercase {
+            text-transform: lowercase;
+        }*/
 
         .instructions {
             background: var(--card-bg);
@@ -435,6 +421,7 @@
 
         .history-panel {
             position: fixed;
+            /*top: var(--header-height);*/
             top: 0;
             right: 0;
             width: 300px;
@@ -513,6 +500,7 @@
         /* Topics Panel */
         .topics-panel {
             position: fixed;
+            /*top: var(--header-height);*/
             top: 0;
             left: 0;
             width: 300px;
@@ -1147,7 +1135,7 @@
                 gap: 5px;
             }
             
-            .theme-toggle, 
+            .theme-toggle, .case-toggle, 
             .history-toggle, .topics-toggle,
             .help-toggle, .load-toggle,
             .export-toggle, .slide-toggle {
@@ -1227,7 +1215,7 @@
             
             <div class="input-group">
                 <label for="builderDesc">Description:</label>
-                <textarea id="builderDesc" rows="3" placeholder="Enter description text (supports multi-line and formatting)"></textarea>
+                <textarea id="builderDesc" rows="3" placeholder="Enter description text"></textarea>
             </div>
             
             <div class="input-group">
@@ -1264,6 +1252,7 @@
         <p>You are now in slide mode. The control panel is hidden to maximize your viewing experience.</p>
         <p>Tap the <strong>top half</strong> of the screen to go to the next example.</p>
         <p>Tap the <strong>bottom half</strong> of the screen to go to the previous example.</p>
+        <p>Text case toggle applies to the slide content as well.</p>
         <button id="closeInstruction">Start Slideshow</button>
     </div>
     
@@ -1302,19 +1291,12 @@
                 <li><strong>📚 Topics</strong> - Click the topics button to browse all available topics</li>
                 <li><strong>🕒 History</strong> - View your recent searches with the history button</li>
                 <li><strong>🌙 Theme</strong> - Toggle between light and dark mode</li>
+                <!--<li><strong>🔤 Case</strong> - Switch between uppercase and lowercase text</li>-->
                 <li><strong>📂 Load</strong> - Import your own dictionary from a JSON file</li>
                 <li><strong>📝 Export</strong> - Create and export custom Notes</li>
                 <li><strong>❓ Help</strong> - Click the help button to see these instructions again</li>
             </ul>
             <p>You can click on examples to highlight them for better focus.</p>
-            <p><strong>Text Formatting Guide:</strong></p>
-            <ul>
-                <li><strong>*text*</strong> - <b>Bold text</b></li>
-                <li><strong>_text_</strong> - <i>Italic text</i></li>
-                <li><strong>-text-</strong> - <u>Underlined text</u></li>
-                <li><strong>(text)</strong> - <span class="highlight">Colored text</span></li>
-                <li><strong>+</strong> - Bullet point</li>
-            </ul>
             <p>Start exploring by searching for a topic or browsing the available topics!</p>
         </div>
     </div>
@@ -1345,6 +1327,7 @@
                     <div class="history-toggle" id="historyToggle" title="View History">
                         🕒
                     </div>
+                    
                     <div class="theme-toggle" id="themeToggle" title="Toggle Theme">
                         🌙
                     </div>
@@ -1353,6 +1336,10 @@
                     </div>
                     <div class="slide-toggle" id="slideToggle" title="Slide Show">
                         ▶️
+                    </div>
+                    
+                    <div class="case-toggle" id="caseToggle" title="Toggle Case" style="visibility: hidden;   height: 0px; width: 0px;">
+                        🔤
                     </div>
                 </div>
             </div>
@@ -1400,43 +1387,43 @@
         
         // Predefined dictionary
         const DEFAULT_LESSONS = {
-            "noun": {
-                "desc": "A word that represents a person, place, thing, or idea. Can be subjects or objects in sentences.\n\n*Examples*:\n- dog\n- London\n- book\n- happiness\n- teacher",
-                "ex": ["dog", "London", "book", "happiness", "teacher"]
-            },
-            "verb": {
-                "desc": "Expresses an action, occurrence, or state of being. Shows what the subject does or experiences.\n\n*Examples*:\n- run\n- think\n- is\n- become\n- write",
-                "ex": ["run", "think", "is", "become", "write"]
-            },
-            "adjective": {
-                "desc": "Describes or modifies nouns/pronouns. Provides qualities, quantities, or states.\n\n*Examples*:\n- happy\n- blue\n- tall\n- five\n- beautiful",
-                "ex": ["happy", "blue", "tall", "five", "beautiful"]
-            },
-            "adverb": {
-                "desc": "Modifies verbs, adjectives, or other adverbs. Often indicates manner, time, place, degree.\n\n*Examples*:\n- quickly\n- very\n- here\n- yesterday\n- carefully",
-                "ex": ["quickly", "very", "here", "yesterday", "carefully"]
-            },
-            "pronoun": {
-                "desc": "Replaces nouns to avoid repetition. Refers to people, places, things without naming them.\n\n*Examples*:\n- he\n- it\n- they\n- this\n- who",
-                "ex": ["he", "it", "they", "this", "who"]
-            },
-            "preposition": {
-                "desc": "Shows relationships between nouns/pronouns and other words. Indicates time, location, direction.\n\n*Examples*:\n- in\n- on\n- at\n- with\n- between",
-                "ex": ["in", "on", "at", "with", "between"]
-            },
-            "conjunction": {
-                "desc": "Connects words, phrases, or clauses. Joins related ideas in a sentence.\n\n*Examples*:\n- and\n- but\n- or\n- because\n- if",
-                "ex": ["and", "but", "or", "because", "if"]
-            },
-            "interjection": {
-                "desc": "Expresses sudden emotion or reaction. Often stands alone with exclamation points.\n\n*Examples*:\n- wow\n- ouch\n- hey\n- oh\n- bravo",
-                "ex": ["wow", "ouch", "hey", "oh", "bravo"]
-            },
-            "article": {
-                "desc": "Special adjectives that mark definiteness (the) or indefiniteness (a/an) of nouns.\n\n*Examples*:\n- the\n- a\n- an",
-                "ex": ["the", "a", "an"]
-            }
-        };
+    "noun": {
+        "desc": "A word that represents a person, place, thing, or idea. Can be subjects or objects in sentences.",
+        "ex": ["dog", "London", "book", "happiness", "teacher"]
+    },
+    "verb": {
+        "desc": "Expresses an action, occurrence, or state of being. Shows what the subject does or experiences.",
+        "ex": ["run", "think", "is", "become", "write"]
+    },
+    "adjective": {
+        "desc": "Describes or modifies nouns/pronouns. Provides qualities, quantities, or states.",
+        "ex": ["happy", "blue", "tall", "five", "beautiful"]
+    },
+    "adverb": {
+        "desc": "Modifies verbs, adjectives, or other adverbs. Often indicates manner, time, place, degree.",
+        "ex": ["quickly", "very", "here", "yesterday", "carefully"]
+    },
+    "pronoun": {
+        "desc": "Replaces nouns to avoid repetition. Refers to people, places, things without naming them.",
+        "ex": ["he", "it", "they", "this", "who"]
+    },
+    "preposition": {
+        "desc": "Shows relationships between nouns/pronouns and other words. Indicates time, location, direction.",
+        "ex": ["in", "on", "at", "with", "between"]
+    },
+    "conjunction": {
+        "desc": "Connects words, phrases, or clauses. Joins related ideas in a sentence.",
+        "ex": ["and", "but", "or", "because", "if"]
+    },
+    "interjection": {
+        "desc": "Expresses sudden emotion or reaction. Often stands alone with exclamation points.",
+        "ex": ["wow", "ouch", "hey", "oh", "bravo"]
+    },
+    "article": {
+        "desc": "Special adjectives that mark definiteness (the) or indefiniteness (a/an) of nouns.",
+        "ex": ["the", "a", "an"]
+    }
+};
 
         // Current dictionary
         let lessons = { ...DEFAULT_LESSONS };
@@ -1453,6 +1440,7 @@
         const searchBtn = document.getElementById('searchBtn');
         const resultsContainer = document.getElementById('resultsContainer');
         const themeToggle = document.getElementById('themeToggle');
+        const caseToggle = document.getElementById('caseToggle');
         const historyToggle = document.getElementById('historyToggle');
         const topicsToggle = document.getElementById('topicsToggle');
         const helpToggle = document.getElementById('helpToggle');
@@ -1492,6 +1480,7 @@
 
         // State
         let isDarkTheme = false;
+        let isUppercase = false;
         const searchHistory = JSON.parse(localStorage.getItem('dictionarySearchHistory')) || [];
         
         // Slideshow state
@@ -1513,32 +1502,6 @@
                     console.error('Failed to load saved Notes:', e);
                     showNotification('Error loading Notes', '❌', true);
                 }
-                
-                // Allow pressing Enter in builder inputs
-    [builderTopic, builderDesc, builderEx].forEach(input => {
-        input.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                builderAdd.click();
-            }
-        });
-    });
-
-    // ADD THIS NEW CODE FOR TEXTAREA LINE BREAKS:
-    builderDesc.addEventListener('keydown', function(e) {
-        // Allow Enter to create new lines in the description textarea
-        if (e.key === 'Enter' && e.target === builderDesc) {
-            e.preventDefault();
-            
-            const start = this.selectionStart;
-            const end = this.selectionEnd;
-            
-            this.value = this.value.substring(0, start) + '\n' + this.value.substring(end);
-            
-            this.selectionStart = this.selectionEnd = start + 1;
-        }
-    });
-
             }
             
             // Add dictionary load event listener
@@ -1601,6 +1564,12 @@
                 toggleTheme();
             }
             
+            // Set text case from localStorage if available
+            const savedCase = localStorage.getItem('dictionaryTextCase');
+            if (savedCase === 'uppercase') {
+                toggleCase();
+            }
+            
             // Check if instructions have been shown before
             const instructionsShown = localStorage.getItem('instructionsShown');
             if (!instructionsShown) {
@@ -1618,6 +1587,7 @@
             });
             
             themeToggle.addEventListener('click', toggleTheme);
+            caseToggle.addEventListener('click', toggleCase);
             historyToggle.addEventListener('click', toggleHistoryPanel);
             topicsToggle.addEventListener('click', toggleTopicsPanel);
             helpToggle.addEventListener('click', toggleInstructionsModal);
@@ -1669,32 +1639,6 @@
             
             // Render topics list
             renderTopicsList();
-        }
-        
-        // Format text with custom markers
-        function formatText(text) {
-            if (!text) return '';
-            
-            // Preserve line breaks and escape HTML
-            let formatted = text.replace(/\n/g, '<br>');
-            
-            // Process bullets (lines starting with +)
-            formatted = formatted.replace(/^(\s*)\+\s(.*?)(<br>|$)/gm, '$1<span class="bullet">•</span> $2$3');
-            
-            // Formatting patterns
-            const patterns = [
-                { regex: /\*(.*?)\*/g, replacement: '<span class="bold">$1</span>' },
-                { regex: /_(.*?)_/g, replacement: '<span class="italic">$1</span>' },
-                { regex: /-(.*?)-/g, replacement: '<span class="underline">$1</span>' },
-                { regex: /\((.*?)\)/g, replacement: '<span class="highlight">$1</span>' }
-            ];
-            
-            // Apply formatting patterns
-            patterns.forEach(pattern => {
-                formatted = formatted.replace(pattern.regex, pattern.replacement);
-            });
-            
-            return `<div class="formatted-text">${formatted}</div>`;
         }
         
         // Add entry to builder dictionary
@@ -1897,12 +1841,14 @@
                 return;
             }
             
+            const caseClass = isUppercase ? 'uppercase' : 'lowercase';
+            
             resultsContainer.innerHTML = `
                 <div class="entry-card">
                     <div class="entry-header">
-                        <h1>${term}</h1>
+                        <h1 class="${caseClass}">${term}</h1>
                     </div>
-                    <div class="entry-desc">${formatText(topic.desc)}</div>
+                    <p class="entry-desc ${caseClass}">${topic.desc}</p>
                     
                     <h3>Examples & Word Bank:</h3>
                     <div class="examples-grid">
@@ -1927,6 +1873,26 @@
             document.body.classList.toggle('dark-theme', isDarkTheme);
             themeToggle.textContent = isDarkTheme ? '☀️' : '🌙';
             localStorage.setItem('dictionaryTheme', isDarkTheme ? 'dark' : 'light');
+        }
+
+        // Toggle text case
+        function toggleCase() {
+            
+            //isUppercase = !isUppercase;
+            
+            // Update all text elements
+            //const textElements = document.querySelectorAll('h1, h2, h3, p, .example-item');
+            //textElements.forEach(el => {
+               // if (isUppercase) {
+                  //  el.classList.add('uppercase');
+                 //   el.classList.remove('lowercase');
+               // } else {
+                //    el.classList.add('lowercase');
+               //     el.classList.remove('uppercase');
+              //  }
+           // });
+            
+           // localStorage.setItem('dictionaryTextCase', isUppercase ? 'uppercase' : 'lowercase');
         }
 
         // Toggle history panel
@@ -2054,6 +2020,15 @@
             const examples = lessons[currentSlideshow].ex;
             slideshowContent.textContent = examples[currentSlideIndex];
             slideshowIndicator.textContent = `${currentSlideIndex + 1}/${examples.length}`;
+            
+            // Apply text case
+            if (isUppercase) {
+                slideshowContent.classList.add('uppercase');
+                slideshowContent.classList.remove('lowercase');
+            } else {
+                slideshowContent.classList.add('lowercase');
+                slideshowContent.classList.remove('uppercase');
+            }
         }
         
         function nextSlide() {
