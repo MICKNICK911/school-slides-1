@@ -27,6 +27,19 @@
             transition: opacity 0.8s ease, transform 0.8s ease;
         }
         
+        .bullet-line {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: -25px;
+}
+
+.bullet {
+    display: flex;
+    margin-right: -20px;
+    color: var(--primary-color);
+    font-size: 20px;
+}
+        
         .splash-content {
             text-align: center;
             padding: 30px;
@@ -1312,8 +1325,8 @@
                 <li><strong>*text*</strong> - <b>Bold text</b></li>
                 <li><strong>_text_</strong> - <i>Italic text</i></li>
                 <li><strong>-text-</strong> - <u>Underlined text</u></li>
-                <li><strong>(text)</strong> - <span class="highlight">Colored text</span></li>
-                <li><strong>+</strong> - Bullet point</li>
+                <li><strong>[text]</strong> - <span class="highlight">Colored text</span></li>
+                <li><strong>+ text</strong> - Bullet point (must be at start of line with space after +)</li>
             </ul>
             <p>Start exploring by searching for a topic or browsing the available topics!</p>
         </div>
@@ -1673,29 +1686,34 @@
         
         // Format text with custom markers
         function formatText(text) {
-            if (!text) return '';
-            
-            // Preserve line breaks and escape HTML
-            let formatted = text.replace(/\n/g, '<br>');
-            
-            // Process bullets (lines starting with +)
-            formatted = formatted.replace(/^(\s*)\+\s(.*?)(<br>|$)/gm, '$1<span class="bullet">•</span> $2$3');
-            
-            // Formatting patterns
-            const patterns = [
-                { regex: /\*(.*?)\*/g, replacement: '<span class="bold">$1</span>' },
-                { regex: /_(.*?)_/g, replacement: '<span class="italic">$1</span>' },
-                { regex: /-(.*?)-/g, replacement: '<span class="underline">$1</span>' },
-                { regex: /[(.*?)]/g, replacement: '<span class="highlight">$1</span>' }
-            ];
-            
-            // Apply formatting patterns
-            patterns.forEach(pattern => {
-                formatted = formatted.replace(pattern.regex, pattern.replacement);
-            });
-            
-            return `<div class="formatted-text">${formatted}</div>`;
+    if (!text) return '';
+    
+    // Split text into lines
+    const lines = text.split('\n');
+    const formattedLines = lines.map(line => {
+        // Check for bullet points
+        if (line.trim().startsWith('+')) {
+            return `<div class="bullet-line"><span class="bullet">•</span> ${line.substring(1)}</div>`;
         }
+        
+        // Apply inline formatting
+        let formattedLine = line;
+        const patterns = [
+            { regex: /\*(.*?)\*/g, replacement: '<span class="bold">$1</span>' },
+            { regex: /_(.*?)_/g, replacement: '<span class="italic">$1</span>' },
+            { regex: /-(.*?)-/g, replacement: '<span class="underline">$1</span>' },
+            { regex: /\[(.*?)\]/g, replacement: '<span class="highlight">$1</span>' }
+        ];
+        
+        patterns.forEach(pattern => {
+            formattedLine = formattedLine.replace(pattern.regex, pattern.replacement);
+        });
+        
+        return formattedLine;
+    });
+    
+    return `<div class="formatted-text">${formattedLines.join('<br>')}</div>`;
+}
         
         // Add entry to builder dictionary
         function addBuilderEntry() {
