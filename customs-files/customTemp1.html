@@ -1686,7 +1686,7 @@
                 { regex: /\*(.*?)\*/g, replacement: '<span class="bold">$1</span>' },
                 { regex: /_(.*?)_/g, replacement: '<span class="italic">$1</span>' },
                 { regex: /-(.*?)-/g, replacement: '<span class="underline">$1</span>' },
-                { regex: /\((.*?)\)/g, replacement: '<span class="highlight">$1</span>' }
+                { regex: /[(.*?)]/g, replacement: '<span class="highlight">$1</span>' }
             ];
             
             // Apply formatting patterns
@@ -1702,6 +1702,32 @@
             const topic = builderTopic.value.trim();
             const desc = builderDesc.value.trim();
             const ex = builderEx.value.trim();
+            
+            // Allow pressing Enter in builder inputs
+    [builderTopic, builderDesc, builderEx].forEach(input => {
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                builderAdd.click();
+            }
+        });
+    });
+
+    // ADD THIS NEW CODE FOR TEXTAREA LINE BREAKS:
+    builderDesc.addEventListener('keydown', function(e) {
+        // Allow Enter to create new lines in the description textarea
+        if (e.key === 'Enter' && e.target === builderDesc) {
+            e.preventDefault();
+            
+            const start = this.selectionStart;
+            const end = this.selectionEnd;
+            
+            this.value = this.value.substring(0, start) + '\n' + this.value.substring(end);
+            
+            this.selectionStart = this.selectionEnd = start + 1;
+        }
+    });
+
             
             if (!topic || !desc || !ex) {
                 alert('Please fill in all fields');
