@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Quiz Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .quiz-container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .question {
+            font-size: 1.2em;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        .options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .option {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .option:hover {
+            background-color: #2980b9;
+        }
+        .feedback {
+            margin: 15px 0;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .correct {
+            background-color: #2ecc71;
+            color: white;
+        }
+        .incorrect {
+            background-color: #e74c3c;
+            color: white;
+        }
+        .score {
+            text-align: center;
+            font-size: 1.2em;
+            margin: 20px 0;
+        }
+        .next-btn {
+            background-color: #2c3e50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: block;
+            margin: 0 auto;
+        }
+        .next-btn:hover {
+            background-color: #1a252f;
+        }
+        .results {
+            text-align: center;
+            font-size: 1.3em;
+            margin: 20px 0;
+        }
+        .restart-btn {
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: block;
+            margin: 20px auto;
+        }
+        .restart-btn:hover {
+            background-color: #219653;
+        }
+        .progress {
+            height: 5px;
+            background-color: #ecf0f1;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: #3498db;
+            width: 0%;
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <div class="quiz-container">
+        <h1>🧮 Math Quiz Game</h1>
+        <div class="progress">
+            <div class="progress-bar" id="progress"></div>
+        </div>
+        <div id="quiz">
+            <div class="question" id="question"></div>
+            <div class="options" id="options"></div>
+            <div class="feedback" id="feedback"></div>
+            <div class="score" id="score"></div>
+            <button class="next-btn" id="next-btn">Next Question</button>
+        </div>
+        <div id="results" style="display: none;">
+            <div class="results" id="final-result"></div>
+            <button class="restart-btn" id="restart-btn">Restart Quiz</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Quiz data
+            const questions = [
+                {
+                    question: "What is 15 + 27?",
+                    options: ["32", "42", "38", "45"],
+                    answer: "42"
+                },
+                {
+                    question: "What is 7 × 8?",
+                    options: ["49", "56", "64", "54"],
+                    answer: "56"
+                },
+                {
+                    question: "What is 144 ÷ 12?",
+                    options: ["10", "11", "12", "13"],
+                    answer: "12"
+                },
+                {
+                    question: "What is 5² + 3³?",
+                    options: ["34", "52", "28", "16"],
+                    answer: "52"
+                },
+                {
+                    question: "What is 3/4 of 64?",
+                    options: ["48", "42", "52", "56"],
+                    answer: "48"
+                },
+                {
+                    question: "What is 0.5 × 0.2?",
+                    options: ["0.1", "0.01", "1.0", "0.001"],
+                    answer: "0.1"
+                },
+                {
+                    question: "What is the square root of 81?",
+                    options: ["7", "8", "9", "10"],
+                    answer: "9"
+                },
+                {
+                    question: "What is 25% of 200?",
+                    options: ["25", "50", "75", "100"],
+                    answer: "50"
+                },
+                {
+                    question: "Solve for x: 2x + 5 = 17",
+                    options: ["6", "7", "8", "9"],
+                    answer: "6"
+                },
+                {
+                    question: "What is the next number in the sequence: 2, 4, 8, 16, ___?",
+                    options: ["20", "24", "32", "64"],
+                    answer: "32"
+                }
+            ];
+
+            // Quiz variables
+            let currentQuestion = 0;
+            let score = 0;
+            let selectedOption = null;
+            let quizCompleted = false;
+
+            // DOM elements
+            const questionElement = document.getElementById('question');
+            const optionsElement = document.getElementById('options');
+            const feedbackElement = document.getElementById('feedback');
+            const scoreElement = document.getElementById('score');
+            const nextButton = document.getElementById('next-btn');
+            const quizElement = document.getElementById('quiz');
+            const resultsElement = document.getElementById('results');
+            const finalResultElement = document.getElementById('final-result');
+            const restartButton = document.getElementById('restart-btn');
+            const progressBar = document.getElementById('progress');
+
+            // Initialize the quiz
+            function initQuiz() {
+                currentQuestion = 0;
+                score = 0;
+                quizCompleted = false;
+                quizElement.style.display = 'block';
+                resultsElement.style.display = 'none';
+                loadQuestion();
+            }
+
+            // Load a question
+            function loadQuestion() {
+                feedbackElement.textContent = '';
+                feedbackElement.className = 'feedback';
+                nextButton.style.display = 'none';
+                selectedOption = null;
+
+                // Update progress bar
+                progressBar.style.width = `${(currentQuestion / questions.length) * 100}%`;
+
+                // Display current question
+                const q = questions[currentQuestion];
+                questionElement.textContent = q.question;
+
+                // Display options
+                optionsElement.innerHTML = '';
+                q.options.forEach((option, index) => {
+                    const button = document.createElement('button');
+                    button.className = 'option';
+                    button.textContent = option;
+                    button.onclick = () => selectOption(button, option);
+                    optionsElement.appendChild(button);
+                });
+
+                // Update score display
+                scoreElement.textContent = `Score: ${score}/${currentQuestion}`;
+            }
+
+            // Select an option
+            function selectOption(button, option) {
+                if (selectedOption !== null) return;
+
+                selectedOption = option;
+                const q = questions[currentQuestion];
+
+                // Highlight all options
+                const allButtons = document.querySelectorAll('.option');
+                allButtons.forEach(btn => {
+                    btn.style.backgroundColor = '#3498db';
+                    btn.disabled = true;
+                });
+
+                // Highlight selected option
+                button.style.backgroundColor = '#f39c12';
+
+                // Check answer
+                if (option === q.answer) {
+                    feedbackElement.textContent = '✅ Correct!';
+                    feedbackElement.className = 'feedback correct';
+                    score++;
+                } else {
+                    feedbackElement.textContent = `❌ Incorrect! The correct answer is ${q.answer}`;
+                    feedbackElement.className = 'feedback incorrect';
+                }
+
+                // Update score display
+                scoreElement.textContent = `Score: ${score}/${currentQuestion + 1}`;
+                nextButton.style.display = 'block';
+            }
+
+            // Move to next question
+            function nextQuestion() {
+                currentQuestion++;
+                if (currentQuestion < questions.length) {
+                    loadQuestion();
+                } else {
+                    endQuiz();
+                }
+            }
+
+            // End the quiz
+            function endQuiz() {
+                quizCompleted = true;
+                quizElement.style.display = 'none';
+                resultsElement.style.display = 'block';
+                progressBar.style.width = '100%';
+
+                const percentage = (score / questions.length) * 100;
+                let message = '';
+
+                if (percentage >= 90) {
+                    message = `🌟 Excellent! You scored ${score}/${questions.length} - Math Genius!`;
+                } else if (percentage >= 70) {
+                    message = `👍 Great Job! You scored ${score}/${questions.length} - Well done!`;
+                } else if (percentage >= 50) {
+                    message = `😊 Good Effort! You scored ${score}/${questions.length} - Keep practicing!`;
+                } else {
+                    message = `📖 Keep learning! You scored ${score}/${questions.length} - You'll improve!`;
+                }
+
+                finalResultElement.textContent = message;
+            }
+
+            // Event listeners
+            nextButton.addEventListener('click', nextQuestion);
+            restartButton.addEventListener('click', initQuiz);
+
+            // Start the quiz
+            initQuiz();
+        });
+    </script>
+</body>
+</html>
