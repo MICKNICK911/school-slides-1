@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preschool Flashcards</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f0f0;
+            overflow: hidden; /* Prevent scrolling */
+        }
+
+        #flashcard-container {
+            width: 90%; /* Adjust as needed */
+            max-width: 800px; /* Max width for larger screens */
+            height: 90vh; /* Occupy most of the viewport height */
+            display: flex;
+            flex-direction: column;
+            border: 5px solid #4CAF50; /* Green border */
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            overflow: hidden; /* Crucial for image sizing */
+        }
+
+        .half {
+            flex: 1; /* Each half takes equal space */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+        }
+
+        #top-half {
+            background-color: #81C784; /* Lighter green */
+            color: white;
+            font-size: 5vw; /* Responsive font size */
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            box-sizing: border-box; /* Include padding in element's total width and height */
+            overflow: hidden; /* Prevent text overflow */
+        }
+
+        #top-half:active {
+            background-color: #66BB6A; /* Darker green on click */
+        }
+
+        #bottom-half {
+            background-color: #E8F5E9; /* Very light green/off-white */
+            overflow: hidden; /* Crucial for image sizing */
+        }
+
+        #bottom-half:active {
+            background-color: #DCEDC8; /* Slightly darker on click */
+        }
+
+        #vocabulary-word {
+            /* Specific styling for the word itself if needed */
+            word-wrap: break-word; /* Break long words */
+            max-width: 90%; /* Prevent words from touching edges */
+        }
+
+        #word-image {
+            max-width: 100%; /* Image fills the container width */
+            max-height: 100%; /* Image fills the container height */
+            object-fit: contain; /* Ensures the whole image is visible, scales down */
+            display: block; /* Remove extra space below image */
+        }
+
+        /* Media Queries for smaller screens */
+        @media (max-width: 600px) {
+            #flashcard-container {
+                width: 98%;
+                height: 95vh;
+            }
+
+            #top-half {
+                font-size: 8vw; /* Larger font on small screens */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="flashcard-container">
+        <div id="top-half" class="half">
+            <span id="vocabulary-word"></span>
+        </div>
+        <div id="bottom-half" class="half">
+            <img id="word-image" src="" alt="Image for vocabulary word">
+        </div>
+    </div>
+
+    <script>
+        const vocabulary = [
+            { word: "Apple", image: "https://via.placeholder.com/300/FF0000/FFFFFF?text=Apple" },
+            { word: "Ball", image: "https://via.placeholder.com/300/0000FF/FFFFFF?text=Ball" },
+            { word: "Cat", image: "https://via.placeholder.com/300/FFFF00/000000?text=Cat" },
+            { word: "Dog", image: "https://via.placeholder.com/300/8B4513/FFFFFF?text=Dog" },
+            { word: "Elephant", image: "https://via.placeholder.com/300/A9A9A9/FFFFFF?text=Elephant" },
+            { word: "Fish", image: "https://via.placeholder.com/300/008080/FFFFFF?text=Fish" },
+            { word: "Grape", image: "https://via.placeholder.com/300/800080/FFFFFF?text=Grape" },
+            { word: "Hat", image: "https://via.placeholder.com/300/696969/FFFFFF?text=Hat" },
+            { word: "Ice Cream", image: "https://via.placeholder.com/300/FFC0CB/000000?text=Ice+Cream" },
+            { word: "Jump", image: "https://via.placeholder.com/300/00FF00/000000?text=Jump" }
+            // You can add more words here with actual image paths
+            // { word: "Lion", image: "images/lion.png" }
+        ];
+
+        let currentCardIndex = 0;
+
+        const vocabularyWordElement = document.getElementById('vocabulary-word');
+        const wordImageElement = document.getElementById('word-image');
+        const topHalf = document.getElementById('top-half');
+        const bottomHalf = document.getElementById('bottom-half');
+
+        function displayCard(index) {
+            if (index >= 0 && index < vocabulary.length) {
+                vocabularyWordElement.textContent = vocabulary[index].word;
+                wordImageElement.src = vocabulary[index].image;
+                wordImageElement.alt = `Image of ${vocabulary[index].word}`;
+                currentCardIndex = index;
+            }
+        }
+
+        function showNextCard() {
+            displayCard((currentCardIndex + 1) % vocabulary.length); // Loop back to start
+        }
+
+        function showPreviousCard() {
+            displayCard((currentCardIndex - 1 + vocabulary.length) % vocabulary.length); // Loop back to end
+        }
+
+        // Event Listeners for click/tap
+        topHalf.addEventListener('click', showNextCard);
+        bottomHalf.addEventListener('click', showPreviousCard);
+
+        // Optional: Add keyboard navigation (for desktop)
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'ArrowRight' || event.key === ' ' || event.key === 'Enter') {
+                showNextCard();
+            } else if (event.key === 'ArrowLeft') {
+                showPreviousCard();
+            }
+        });
+
+        // Initial display
+        displayCard(currentCardIndex);
+
+        // Service Worker registration (for offline capability)
+        // Note: For actual offline functionality, you'll need actual image files
+        // and ideally a separate service-worker.js to cache them.
+        // For this single-file mockup, image URLs are placeholders.
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/offline-worker.js') // Point to a separate service worker file
+                    .then(registration => {
+                        console.log('Service Worker registered:', registration);
+                    })
+                    .catch(error => {
+                        console.log('Service Worker registration failed:', error);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>
