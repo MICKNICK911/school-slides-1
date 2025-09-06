@@ -1315,19 +1315,19 @@
                 <li><strong>📚 Topics</strong> - Click the topics button to browse all available topics</li>
                 <li><strong>🕒 History</strong> - View your recent searches with the history button</li>
                 <li><strong>🌙 Theme</strong> - Toggle between light and dark mode</li>
-                <li><strong>📂 Load</strong> - Import your own dictionary from a JSON file</li>
-                <li><strong>📝 Export</strong> - Create and export custom Notes</li>
+                <li><strong>📂 Load</strong> - Import your notes from a JSON file</li>
+                <!--<li><strong>📝 Export</strong> - Create and export custom Notes</li>-->
                 <li><strong>❓ Help</strong> - Click the help button to see these instructions again</li>
             </ul>
             <p>You can click on examples to highlight them for better focus.</p>
-            <p><strong>Text Formatting Guide:</strong></p>
+            <!--<p><strong>Text Formatting Guide:</strong></p>
             <ul>
                 <li><strong>*text*</strong> - <b>Bold text</b></li>
                 <li><strong>_text_</strong> - <i>Italic text</i></li>
                 <li><strong>-text-</strong> - <u>Underlined text</u></li>
                 <li><strong>[text]</strong> - <span class="highlight">Colored text</span></li>
                 <li><strong>+ text</strong> - Bullet point (must be at start of line with space after +)</li>
-            </ul>
+            </ul>-->
             <p>Start exploring by searching for a topic or browsing the available topics!</p>
         </div>
     </div>
@@ -1337,7 +1337,7 @@
             <div class="header-content">
                 <div class="logo" id="appLogo">
                     <span>📚</span>
-                    <span>Digital Notes</span>
+                    <span>Digital Notes - CHIS</span>
                 </div>
                 <div class="search-container">
                     <input type="text" id="searchInput" placeholder="Search for a topic (e.g. vowels, consonants)">
@@ -1349,7 +1349,7 @@
                     <div class="load-toggle" id="loadToggle" title="Load Dictionary">
                         📂
                     </div>
-                    <div class="export-toggle" id="exportToggle" title="Create Dictionary">
+                    <div class="export-toggle" id="exportToggle" title="Create Dictionary" style="display: none;">
                         📝
                     </div>
                     <div class="topics-toggle" id="topicsToggle" title="Browse Topics">
@@ -1413,41 +1413,9 @@
         
         // Predefined dictionary
         const DEFAULT_LESSONS = {
-            "noun": {
-                "desc": "A word that represents a person, place, thing, or idea. Can be subjects or objects in sentences.\n\n*[Examples]*:\n+ dog\n+ London\n+ book\n+ happiness\n+ teacher",
-                "ex": ["dog", "London", "book", "happiness", "teacher"]
-            },
-            "verb": {
-                "desc": "Expresses an action, occurrence, or state of being. Shows what the subject does or experiences.\n\n*[Examples]*:\n+ run\n+ think\n+ is\n+ become\n+ write",
-                "ex": ["run", "think", "is", "become", "write"]
-            },
-            "adjective": {
-                "desc": "Describes or modifies nouns/pronouns. Provides qualities, quantities, or states.\n\n*[Examples]*:\n+ happy\n+ blue\n+ tall\n+ five\n+ beautiful",
-                "ex": ["happy", "blue", "tall", "five", "beautiful"]
-            },
-            "adverb": {
-                "desc": "Modifies verbs, adjectives, or other adverbs. Often indicates manner, time, place, degree.\n\n*[Examples]*:\n+ quickly\n+ very\n+ here\n+ yesterday\n+ carefully",
-                "ex": ["quickly", "very", "here", "yesterday", "carefully"]
-            },
-            "pronoun": {
-                "desc": "Replaces nouns to avoid repetition. Refers to people, places, things without naming them.\n\n*[Examples]*:\n+ he\n+ it\n+ they\n+ this\n+ who",
-                "ex": ["he", "it", "they", "this", "who"]
-            },
-            "preposition": {
-                "desc": "Shows relationships between nouns/pronouns and other words. Indicates time, location, direction.\n\n*[Examples]*:\n+ in\n+ on\n+ at\n+ with\n+ between",
-                "ex": ["in", "on", "at", "with", "between"]
-            },
-            "conjunction": {
-                "desc": "Connects words, phrases, or clauses. Joins related ideas in a sentence.\n\n*Examples*:\n+ and\n+ but\n+ or\n+ because\n+ if",
-                "ex": ["and", "but", "or", "because", "if"]
-            },
-            "interjection": {
-                "desc": "Expresses sudden emotion or reaction. Often stands alone with exclamation points.\n\n*[Examples]*:\n+ wow\n+ ouch\n+ hey\n+ oh\n+ bravo",
-                "ex": ["wow", "ouch", "hey", "oh", "bravo"]
-            },
-            "article": {
-                "desc": "[_Special adjectives_] that mark definiteness _(the)_ or indefiniteness _(a/an)_ of nouns.\n\n*[Examples]*:\n+ the\n+ a\n+ an",
-                "ex": ["the", "a", "an"]
+            "Note Not Found": {
+                "desc": "Kindly press import button 📂 to load your note file to display notes here.\n If you do not have the note file, contact your teacher for the note file.",
+                "ex": ["Not Found"]
             }
         };
 
@@ -1517,7 +1485,10 @@
         // Initialize
         function init() {
             // Try to load saved dictionary from localStorage
-            const savedDictionary = localStorage.getItem('customDictionary');
+            //const savedDictionary = localStorage.getItem('customDictionary');
+            
+            const savedDictionary = false;
+            
             if (savedDictionary) {
                 try {
                     lessons = JSON.parse(savedDictionary);
