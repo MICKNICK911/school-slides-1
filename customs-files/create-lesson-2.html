@@ -380,7 +380,7 @@
         }
         
         .markdown-preview .example-item:before {
-            content: "+";
+            content: "";
             position: absolute;
             left: 0;
             color: var(--secondary);
@@ -389,19 +389,36 @@
         
         .markdown-bold {
             font-weight: bold;
+            color: var(--dark);
         }
         
         .markdown-italic {
             font-style: italic;
+            color: var(--gray);
         }
         
         .markdown-underline {
             text-decoration: underline;
+            color: var(--markdown-blue);
         }
         
         .markdown-colored {
-            color: var(--markdown-blue);
+            color: var(--markdown-green);
             font-weight: 500;
+        }
+        
+        .markdown-bullet {
+            display: block;
+            padding-left: 20px;
+            text-indent: -15px;
+            margin: 5px 0;
+        }
+        
+        .markdown-bullet:before {
+            content: "• ";
+            color: var(--markdown-red);
+            font-weight: bold;
+            margin-right: 5px;
         }
         
         @media (max-width: 900px) {
@@ -941,6 +958,9 @@
             
             // Replace [text] with colored text
             text = text.replace(/\[(.*?)\]/g, '<span class="markdown-colored">$1</span>');
+            
+            // Replace + at start of line with bullet point
+            text = text.replace(/^\+ (.*)$/gm, '<div class="markdown-bullet">$1</div>');
             
             return text;
         }
