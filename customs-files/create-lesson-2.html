@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Novel Writer's Dictionary Builder</title>
+    <title>Enhanced Lesson Builder</title>
     <style>
         :root {
             --primary: #4285f4;
@@ -13,9 +13,6 @@
             --light: #f8f9fa;
             --dark: #202124;
             --gray: #5f6368;
-            --dark-bg: #2d2d30;
-            --dark-surface: #1e1e1e;
-            --dark-text: #e0e0e0;
         }
         
         * {
@@ -30,16 +27,10 @@
             color: var(--dark);
             line-height: 1.6;
             padding: 20px;
-            transition: all 0.3s ease;
-        }
-        
-        body.dark-mode {
-            background-color: var(--dark-bg);
-            color: var(--dark-text);
         }
         
         .container {
-            max-width: 1400px;
+            max-width: 1200px;
             margin: 0 auto;
             background: white;
             border-radius: 10px;
@@ -48,12 +39,6 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 30px;
-            transition: all 0.3s ease;
-        }
-        
-        body.dark-mode .container {
-            background: var(--dark-surface);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
         }
         
         h1 {
@@ -61,44 +46,12 @@
             margin-bottom: 20px;
             text-align: center;
             grid-column: 1 / -1;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .theme-toggle {
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 24px;
-            padding: 5px;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background-color 0.3s;
-        }
-        
-        .theme-toggle:hover {
-            background-color: rgba(0,0,0,0.1);
-        }
-        
-        body.dark-mode .theme-toggle:hover {
-            background-color: rgba(255,255,255,0.1);
         }
         
         .input-section, .preview-section {
             background: var(--light);
             padding: 20px;
             border-radius: 8px;
-            transition: all 0.3s ease;
-        }
-        
-        body.dark-mode .input-section, 
-        body.dark-mode .preview-section {
-            background: #252526;
         }
         
         .input-group {
@@ -110,11 +63,6 @@
             margin-bottom: 8px;
             font-weight: 600;
             color: var(--dark);
-            transition: all 0.3s ease;
-        }
-        
-        body.dark-mode label {
-            color: var(--dark-text);
         }
         
         input[type="text"], textarea, select {
@@ -124,15 +72,6 @@
             border-radius: 5px;
             font-size: 16px;
             transition: border 0.3s;
-            font-family: inherit;
-        }
-        
-        body.dark-mode input[type="text"],
-        body.dark-mode textarea,
-        body.dark-mode select {
-            background: #3c3c3c;
-            color: var(--dark-text);
-            border-color: #555;
         }
         
         input[type="text"]:focus, textarea:focus, select:focus {
@@ -219,23 +158,12 @@
             background-color: white;
             max-height: 300px;
             overflow-y: auto;
-            transition: all 0.3s ease;
-        }
-        
-        body.dark-mode .dictionary-preview {
-            background: #3c3c3c;
-            border-color: #555;
         }
         
         .dictionary-preview h2 {
             margin-bottom: 15px;
             color: var(--dark);
             font-size: 20px;
-            transition: all 0.3s ease;
-        }
-        
-        body.dark-mode .dictionary-preview h2 {
-            color: var(--dark-text);
         }
         
         pre {
@@ -245,13 +173,6 @@
             padding: 15px;
             border-radius: 5px;
             border: 1px solid #eee;
-            transition: all 0.3s ease;
-        }
-        
-        body.dark-mode pre {
-            background-color: #2d2d2d;
-            color: var(--dark-text);
-            border-color: #555;
         }
         
         .entry-count {
@@ -259,11 +180,6 @@
             font-size: 14px;
             color: #666;
             text-align: right;
-            transition: all 0.3s ease;
-        }
-        
-        body.dark-mode .entry-count {
-            color: #aaa;
         }
         
         .entries-list {
@@ -277,20 +193,11 @@
             border-bottom: 1px solid #eee;
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
-            transition: all 0.3s ease;
-        }
-        
-        body.dark-mode .entry-item {
-            border-bottom-color: #444;
+            align-items: center;
         }
         
         .entry-item:hover {
             background-color: rgba(66, 133, 244, 0.05);
-        }
-        
-        body.dark-mode .entry-item:hover {
-            background-color: rgba(66, 133, 244, 0.1);
         }
         
         .entry-info {
@@ -300,31 +207,18 @@
         .entry-topic {
             font-weight: 600;
             color: var(--primary);
-            margin-bottom: 8px;
         }
         
         .entry-desc {
             font-size: 14px;
             color: var(--gray);
             margin: 5px 0;
-            white-space: pre-line;
-            transition: all 0.3s ease;
-        }
-        
-        body.dark-mode .entry-desc {
-            color: #bbb;
         }
         
         .entry-examples {
             font-size: 13px;
             color: var(--dark);
             font-style: italic;
-            white-space: pre-line;
-            transition: all 0.3s ease;
-        }
-        
-        body.dark-mode .entry-examples {
-            color: #ccc;
         }
         
         .entry-actions {
@@ -356,22 +250,12 @@
             width: 90%;
             max-width: 500px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-            transition: all 0.3s ease;
-        }
-        
-        body.dark-mode .modal-content {
-            background-color: var(--dark-surface);
         }
         
         .modal-title {
             margin-bottom: 20px;
             color: var(--dark);
             font-size: 1.3rem;
-            transition: all 0.3s ease;
-        }
-        
-        body.dark-mode .modal-title {
-            color: var(--dark-text);
         }
         
         .modal-actions {
@@ -387,13 +271,6 @@
             border: 1px solid #ddd;
             border-radius: 4px;
             font-size: 16px;
-            transition: all 0.3s ease;
-        }
-        
-        body.dark-mode .filename-input {
-            background: #3c3c3c;
-            color: var(--dark-text);
-            border-color: #555;
         }
         
         .filename-input:focus {
@@ -424,11 +301,6 @@
             text-align: center;
             padding: 30px;
             color: var(--gray);
-            transition: all 0.3s ease;
-        }
-        
-        body.dark-mode .empty-state {
-            color: #888;
         }
         
         .file-input-container {
@@ -447,59 +319,16 @@
             cursor: pointer;
         }
         
-        .full-width-textarea {
-            min-height: 120px;
-            resize: vertical;
-        }
-        
-        .examples-textarea {
-            min-height: 100px;
-            resize: vertical;
-        }
-        
-        .character-count {
-            font-size: 12px;
-            color: #888;
-            text-align: right;
-            margin-top: 5px;
-        }
-        
-        body.dark-mode .character-count {
-            color: #aaa;
-        }
-        
-        .shortcut-hint {
-            font-size: 12px;
-            color: #888;
-            margin-top: 5px;
-        }
-        
-        body.dark-mode .shortcut-hint {
-            color: #aaa;
-        }
-        
         @media (max-width: 900px) {
             .container {
                 grid-template-columns: 1fr;
-            }
-            
-            .entry-item {
-                flex-direction: column;
-            }
-            
-            .entry-actions {
-                margin-top: 10px;
-                align-self: flex-end;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>
-            Novel Writer's Dictionary Builder
-            <button class="theme-toggle" id="themeToggle">🌙</button>
-        </h1>
+        <h1>Enhanced Lesson Builder</h1>
         
         <div class="input-section">
             <h2>Manage Entries</h2>
@@ -513,20 +342,17 @@
             
             <div class="input-group">
                 <label for="topic">Topic:</label>
-                <input type="text" id="topic" placeholder="Enter topic name (e.g., Character Names)">
-                <div class="shortcut-hint">Press Enter to move to Description field</div>
+                <input type="text" id="topic" placeholder="Enter topic name (e.g., topic1)">
             </div>
             
             <div class="input-group">
                 <label for="desc">Description:</label>
-                <textarea id="desc" rows="6" class="full-width-textarea" placeholder="Enter detailed description text (Press Enter for new line)"></textarea>
-                <div class="character-count" id="descCount">0 characters</div>
+                <textarea id="desc" rows="3" placeholder="Enter description text"></textarea>
             </div>
             
             <div class="input-group">
                 <label for="ex">Examples (comma separated):</label>
-                <textarea id="ex" rows="4" class="examples-textarea" placeholder="Enter examples separated by commas (Press Enter for new line)"></textarea>
-                <div class="character-count" id="exCount">0 characters</div>
+                <input type="text" id="ex" placeholder="Enter examples (e.g., a,b,c)">
             </div>
             
             <div class="button-group">
@@ -625,13 +451,10 @@
         let importData = null;
         
         // DOM elements
-        const themeToggle = document.getElementById('themeToggle');
         const editIdSelect = document.getElementById('editId');
         const topicInput = document.getElementById('topic');
         const descInput = document.getElementById('desc');
         const exInput = document.getElementById('ex');
-        const descCount = document.getElementById('descCount');
-        const exCount = document.getElementById('exCount');
         const addBtn = document.getElementById('addBtn');
         const updateBtn = document.getElementById('updateBtn');
         const cancelBtn = document.getElementById('cancelBtn');
@@ -660,31 +483,6 @@
             updatePreview();
             loadFromLocalStorage();
             attachEventListeners();
-            updateCharacterCounts();
-            
-            // Check for dark mode preference
-            if (localStorage.getItem('darkMode') === 'enabled') {
-                document.body.classList.add('dark-mode');
-                themeToggle.textContent = '☀️';
-            }
-        }
-        
-        // Toggle dark mode
-        function toggleDarkMode() {
-            document.body.classList.toggle('dark-mode');
-            if (document.body.classList.contains('dark-mode')) {
-                localStorage.setItem('darkMode', 'enabled');
-                themeToggle.textContent = '☀️';
-            } else {
-                localStorage.setItem('darkMode', null);
-                themeToggle.textContent = '🌙';
-            }
-        }
-        
-        // Update character counts
-        function updateCharacterCounts() {
-            descCount.textContent = `${descInput.value.length} characters`;
-            exCount.textContent = `${exInput.value.length} characters`;
         }
         
         // Load data from localStorage if available
@@ -705,11 +503,6 @@
         
         // Attach event listeners
         function attachEventListeners() {
-            themeToggle.addEventListener('click', toggleDarkMode);
-            
-            descInput.addEventListener('input', updateCharacterCounts);
-            exInput.addEventListener('input', updateCharacterCounts);
-            
             addBtn.addEventListener('click', addEntry);
             updateBtn.addEventListener('click', updateEntry);
             cancelBtn.addEventListener('click', cancelEdit);
@@ -740,29 +533,15 @@
                 if (e.target === importModal) hideImportModal();
             });
             
-            // Special keyboard handling
-            topicInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    descInput.focus();
-                }
-            });
-            
-            // Allow Ctrl+Enter to submit in textareas
-            descInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' && e.ctrlKey) {
-                    e.preventDefault();
-                    if (updateBtn.disabled) addBtn.click();
-                    else updateBtn.click();
-                }
-            });
-            
-            exInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' && e.ctrlKey) {
-                    e.preventDefault();
-                    if (updateBtn.disabled) addBtn.click();
-                    else updateBtn.click();
-                }
+            // Allow pressing Enter in inputs
+            [topicInput, descInput, exInput].forEach(input => {
+                input.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (updateBtn.disabled) addBtn.click();
+                        else updateBtn.click();
+                    }
+                });
             });
             
             filenameInput.addEventListener('keypress', (e) => {
@@ -776,8 +555,8 @@
             const desc = descInput.value.trim();
             const ex = exInput.value.trim();
             
-            if (!topic || !desc) {
-                showNotification('Please fill in topic and description fields', 'error');
+            if (!topic || !desc || !ex) {
+                showNotification('Please fill in all fields', 'error');
                 return;
             }
             
@@ -789,7 +568,7 @@
             // Create entry
             dictionary[topic] = {
                 desc: desc,
-                ex: ex.split(',').map(item => item.trim()).filter(item => item.length > 0)
+                ex: ex.split(',').map(item => item.trim())
             };
             
             // Update UI
@@ -811,8 +590,8 @@
             const desc = descInput.value.trim();
             const ex = exInput.value.trim();
             
-            if (!topic || !desc) {
-                showNotification('Please fill in topic and description fields', 'error');
+            if (!topic || !desc || !ex) {
+                showNotification('Please fill in all fields', 'error');
                 return;
             }
             
@@ -824,7 +603,7 @@
             // Create/update entry
             dictionary[topic] = {
                 desc: desc,
-                ex: ex.split(',').map(item => item.trim()).filter(item => item.length > 0)
+                ex: ex.split(',').map(item => item.trim())
             };
             
             // Update UI
@@ -854,7 +633,6 @@
             topicInput.value = selectedTopic;
             descInput.value = entry.desc;
             exInput.value = entry.ex.join(', ');
-            updateCharacterCounts();
             
             // Set edit mode
             currentEditId = selectedTopic;
@@ -879,7 +657,6 @@
             topicInput.value = '';
             descInput.value = '';
             exInput.value = '';
-            updateCharacterCounts();
             topicInput.focus();
         }
         
