@@ -217,14 +217,12 @@
             font-size: 14px;
             color: var(--gray);
             margin: 5px 0;
-            white-space: pre-line;
         }
         
         .entry-examples {
             font-size: 13px;
             color: var(--dark);
             font-style: italic;
-            white-space: pre-line;
         }
         
         .entry-actions {
@@ -369,7 +367,6 @@
         .markdown-preview .desc {
             margin-bottom: 15px;
             font-size: 1.1em;
-            white-space: pre-line;
         }
         
         .markdown-preview .examples {
@@ -380,7 +377,6 @@
             margin-bottom: 8px;
             position: relative;
             padding-left: 20px;
-            white-space: pre-line;
         }
         
         .markdown-preview .example-item:before {
@@ -425,12 +421,6 @@
             margin-right: 5px;
         }
         
-        .help-text {
-            font-size: 12px;
-            color: var(--gray);
-            margin-top: 5px;
-        }
-        
         @media (max-width: 900px) {
             .container {
                 grid-template-columns: 1fr;
@@ -459,14 +449,12 @@
             
             <div class="input-group">
                 <label for="desc">Description:</label>
-                <textarea id="desc" rows="4" placeholder="Enter description text. Press Enter for new line."></textarea>
-                <div class="help-text">Press Enter to create a new line</div>
+                <textarea id="desc" rows="3" placeholder="Enter description text"></textarea>
             </div>
             
             <div class="input-group">
-                <label for="ex">Examples:</label>
-                <textarea id="ex" rows="3" placeholder="Enter examples, one per line. Press Enter for new line."></textarea>
-                <div class="help-text">Press Enter to create a new line. Each line will be treated as a separate example.</div>
+                <label for="ex">Examples (comma separated):</label>
+                <input type="text" id="ex" placeholder="Enter examples (e.g., a,b,c)">
             </div>
             
             <div class="button-group">
@@ -667,21 +655,10 @@
                 if (e.target === importModal) hideImportModal();
             });
             
-            // Allow pressing Enter in inputs (but not in textareas)
-            [topicInput].forEach(input => {
+            // Allow pressing Enter in inputs
+            [topicInput, descInput, exInput].forEach(input => {
                 input.addEventListener('keypress', (e) => {
                     if (e.key === 'Enter') {
-                        e.preventDefault();
-                        if (updateBtn.disabled) addBtn.click();
-                        else updateBtn.click();
-                    }
-                });
-            });
-            
-            // For textareas, use Ctrl+Enter to submit
-            [descInput, exInput].forEach(textarea => {
-                textarea.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter' && e.ctrlKey) {
                         e.preventDefault();
                         if (updateBtn.disabled) addBtn.click();
                         else updateBtn.click();
@@ -728,10 +705,10 @@
                 return;
             }
             
-            // Create entry - split examples by new lines
+            // Create entry
             dictionary[topic] = {
                 desc: desc,
-                ex: ex.split('\n').map(item => item.trim()).filter(item => item.length > 0)
+                ex: ex.split(',').map(item => item.trim())
             };
             
             // Update UI
@@ -763,10 +740,10 @@
                 delete dictionary[currentEditId];
             }
             
-            // Create/update entry - split examples by new lines
+            // Create/update entry
             dictionary[topic] = {
                 desc: desc,
-                ex: ex.split('\n').map(item => item.trim()).filter(item => item.length > 0)
+                ex: ex.split(',').map(item => item.trim())
             };
             
             // Update UI
@@ -792,10 +769,10 @@
             const entry = dictionary[selectedTopic];
             if (!entry) return;
             
-            // Populate form - join examples with new lines
+            // Populate form
             topicInput.value = selectedTopic;
             descInput.value = entry.desc;
-            exInput.value = entry.ex.join('\n');
+            exInput.value = entry.ex.join(', ');
             
             // Set edit mode
             currentEditId = selectedTopic;
@@ -1101,7 +1078,7 @@
         // Show notification
         function showNotification(message, type = 'success') {
             notification.textContent = message;
-            notification.style.backgroundColor = type === 'success' ? 'var(--secondary)' : 'var(--danger');
+            notification.style.backgroundColor = type === 'success' ? 'var(--secondary)' : 'var(--danger)';
             notification.classList.add('show');
             
             setTimeout(() => {
