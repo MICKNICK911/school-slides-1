@@ -444,17 +444,17 @@
             
             <div class="input-group">
                 <label for="topic">Topic:</label>
-                <input type="text" id="topic" placeholder="Enter topic name (e.g., topic1)">
+                <input type="text" id="topic">
             </div>
             
             <div class="input-group">
                 <label for="desc">Description:</label>
-                <textarea id="desc" rows="3" placeholder="Enter description text"></textarea>
+                <textarea id="desc" rows="3"></textarea>
             </div>
             
             <div class="input-group">
                 <label for="ex">Examples (comma separated):</label>
-                <input type="text" id="ex" placeholder="Enter examples (e.g., a,b,c)">
+                <input type="text" id="ex">
             </div>
             
             <div class="button-group">
@@ -655,16 +655,25 @@
                 if (e.target === importModal) hideImportModal();
             });
             
-            // Allow pressing Enter in inputs
-            [topicInput, descInput, exInput].forEach(input => {
-                input.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') {
-                        e.preventDefault();
-                        if (updateBtn.disabled) addBtn.click();
-                        else updateBtn.click();
-                    }
-                });
+            // Allow pressing Enter in inputs (but not in description)
+            topicInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (updateBtn.disabled) addBtn.click();
+                    else updateBtn.click();
+                }
             });
+            
+            exInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (updateBtn.disabled) addBtn.click();
+                    else updateBtn.click();
+                }
+            });
+            
+            // For description, allow Enter to create new lines
+            // No special handling needed - the textarea already supports this
             
             filenameInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') confirmExport.click();
