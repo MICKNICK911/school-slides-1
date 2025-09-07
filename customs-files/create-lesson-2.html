@@ -13,6 +13,10 @@
             --light: #f8f9fa;
             --dark: #202124;
             --gray: #5f6368;
+            --code-bg: #f1f3f4;
+            --markdown-blue: #1a73e8;
+            --markdown-green: #0b8043;
+            --markdown-red: #d93025;
         }
         
         * {
@@ -319,6 +323,87 @@
             cursor: pointer;
         }
         
+        .preview-tabs {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 15px;
+        }
+        
+        .tab-button {
+            padding: 8px 16px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--gray);
+            border-bottom: 3px solid transparent;
+        }
+        
+        .tab-button.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .markdown-preview {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+        }
+        
+        .markdown-preview .topic {
+            font-size: 1.4em;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid var(--primary);
+        }
+        
+        .markdown-preview .desc {
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+        
+        .markdown-preview .examples {
+            margin-left: 20px;
+        }
+        
+        .markdown-preview .example-item {
+            margin-bottom: 8px;
+            position: relative;
+            padding-left: 20px;
+        }
+        
+        .markdown-preview .example-item:before {
+            content: "+";
+            position: absolute;
+            left: 0;
+            color: var(--secondary);
+            font-weight: bold;
+        }
+        
+        .markdown-bold {
+            font-weight: bold;
+        }
+        
+        .markdown-italic {
+            font-style: italic;
+        }
+        
+        .markdown-underline {
+            text-decoration: underline;
+        }
+        
+        .markdown-colored {
+            color: var(--markdown-blue);
+            font-weight: 500;
+        }
+        
         @media (max-width: 900px) {
             .container {
                 grid-template-columns: 1fr;
@@ -397,8 +482,18 @@
             <div class="entry-count" id="entryCount">0 entries</div>
             
             <div class="dictionary-preview">
-                <h2>Raw JSON Preview</h2>
-                <pre id="preview">No entries yet</pre>
+                <div class="preview-tabs">
+                    <button class="tab-button active" data-tab="markdown">Markdown Preview</button>
+                    <button class="tab-button" data-tab="raw">Raw JSON</button>
+                </div>
+                
+                <div id="markdown-preview" class="tab-content active markdown-preview">
+                    No entries yet
+                </div>
+                
+                <div id="raw-preview" class="tab-content">
+                    <pre id="preview">No entries yet</pre>
+                </div>
             </div>
         </div>
     </div>
@@ -462,6 +557,7 @@
         const clearBtn = document.getElementById('clearBtn');
         const importFile = document.getElementById('importFile');
         const preview = document.getElementById('preview');
+        const markdownPreview = document.getElementById('markdown-preview');
         const entryCount = document.getElementById('entryCount');
         const entriesList = document.getElementById('entriesList');
         const searchInput = document.getElementById('searchInput');
@@ -477,6 +573,7 @@
         const replaceData = document.getElementById('replaceData');
         const mergeData = document.getElementById('mergeData');
         const notification = document.getElementById('notification');
+        const tabButtons = document.querySelectorAll('.tab-button');
         
         // Initialize the application
         function init() {
@@ -511,6 +608,14 @@
             importFile.addEventListener('change', handleFileImport);
             searchInput.addEventListener('input', updateEntriesList);
             editIdSelect.addEventListener('change', loadEntryForEdit);
+            
+            // Tab buttons
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const tab = button.dataset.tab;
+                    switchTab(tab);
+                });
+            });
             
             // Export modal events
             confirmExport.addEventListener('click', confirmExportAction);
@@ -547,6 +652,24 @@
             filenameInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') confirmExport.click();
             });
+        }
+        
+        // Switch between tabs
+        function switchTab(tabName) {
+            // Update tab buttons
+            tabButtons.forEach(button => {
+                if (button.dataset.tab === tabName) {
+                    button.classList.add('active');
+                } else {
+                    button.classList.remove('active');
+                }
+            });
+            
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(`${tabName}-preview`).classList.add('active');
         }
         
         // Add entry to dictionary
@@ -805,12 +928,48 @@
             });
         }
         
-        // Update the preview panel
+        // Process markdown formatting in text
+        function processMarkdown(text) {
+            // Replace *text* with bold
+            text = text.replace(/\*(.*?)\*/g, '<span class="markdown-bold">$1</span>');
+            
+            // Replace _text_ with italic
+            text = text.replace(/_(.*?)_/g, '<span class="markdown-italic">$1</span>');
+            
+            // Replace -text- with underline
+            text = text.replace(/-(.*?)-/g, '<span class="markdown-underline">$1</span>');
+            
+            // Replace [text] with colored text
+            text = text.replace(/\[(.*?)\]/g, '<span class="markdown-colored">$1</span>');
+            
+            return text;
+        }
+        
+        // Update the preview panels
         function updatePreview() {
+            // Update raw JSON preview
             if (Object.keys(dictionary).length === 0) {
                 preview.textContent = 'No entries yet';
+                markdownPreview.innerHTML = 'No entries yet';
             } else {
                 preview.textContent = JSON.stringify(dictionary, null, 2);
+                
+                // Generate markdown preview
+                let markdownHTML = '';
+                for (const [topic, data] of Object.entries(dictionary)) {
+                    markdownHTML += `
+                        <div class="topic">${processMarkdown(topic)}</div>
+                        <div class="desc">${processMarkdown(data.desc)}</div>
+                        <div class="examples">
+                    `;
+                    
+                    data.ex.forEach(example => {
+                        markdownHTML += `<div class="example-item">${processMarkdown(example)}</div>`;
+                    });
+                    
+                    markdownHTML += `</div><hr style="margin: 20px 0; border: none; border-top: 1px solid #eee;">`;
+                }
+                markdownPreview.innerHTML = markdownHTML;
             }
             entryCount.textContent = `${Object.keys(dictionary).length} entries`;
         }
