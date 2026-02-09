@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Digital Notes</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+    <!-- Splash Screen -->
+    <div id="splashScreen">
+        <div class="splash-content">
+            <div class="splash-logo">
+                <div class="splash-logo-inner"></div>
+            </div>
+            <h1 class="splash-title">Enhanced Digital Notes</h1>
+            <p class="splash-subtitle">Interactive Learning Platform</p>
+            <div class="loading-bar">
+                <div class="loading-progress" id="loadingProgress"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Notification -->
+    <div class="dictionary-notification" id="dictionaryNotification">
+        <span id="notificationIcon">✅</span>
+        <span id="notificationText">Notes loaded successfully!</span>
+    </div>
+
+    <!-- Hidden file input -->
+    <input type="file" id="dictionaryFileInput" accept=".json" style="display:none;">
+
+    <!-- Dictionary Builder -->
+    <div class="builder-container" id="builderContainer">
+        <div class="builder-header">
+            <div class="builder-title">
+                <span>📝</span>
+                <h2>Create Notes</h2>
+            </div>
+            <div class="builder-actions">
+                <button class="builder-btn builder-cancel" id="builderCancel">Cancel</button>
+                <button class="builder-btn builder-export" id="builderExport">Export as JSON</button>
+            </div>
+        </div>
+        
+        <div class="builder-form">
+            <div class="input-group">
+                <label for="builderTopic">Topic:</label>
+                <input type="text" id="builderTopic" placeholder="Enter topic name">
+            </div>
+            
+            <div class="input-group">
+                <label for="builderDesc">Description:</label>
+                <textarea id="builderDesc" rows="4" placeholder="Enter description (supports formatting)"></textarea>
+            </div>
+            
+            <div class="input-group">
+                <label for="builderEx">Examples (comma separated):</label>
+                <input type="text" id="builderEx" placeholder="e.g. a,e,i,o,u">
+            </div>
+            
+            <button class="builder-add" id="builderAdd">+ Add Entry</button>
+            
+            <div class="builder-preview">
+                <div class="preview-header">
+                    <h3 class="preview-title">Preview</h3>
+                    <button class="preview-clear" id="previewClear">Clear All</button>
+                </div>
+                <pre class="preview-content" id="builderPreview">No entries yet</pre>
+                <div class="entry-count" id="builderEntryCount">0 entries</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slideshow -->
+    <div class="slideshow-overlay" id="slideshowOverlay">
+        <div class="slideshow-close" id="slideshowClose">❌</div>
+        <div class="slideshow-top" id="slideshowTop"></div>
+        <div class="slideshow-content" id="slideshowContent"></div>
+        <div class="slideshow-bottom" id="slideshowBottom"></div>
+        <div class="slideshow-indicator" id="slideshowIndicator">1/5</div>
+    </div>
+
+    <div class="instruction-modal" id="instructionModal">
+        <h2>Slide Mode Instructions</h2>
+        <ul>
+            <li>Tap <strong>top half</strong> → next example</li>
+            <li>Tap <strong>bottom half</strong> → previous example</li>
+            <li>Tap any <strong>word</strong> to highlight / remove highlight</li>
+            <li>Press ESC or close button to exit</li>
+        </ul>
+        <button id="closeInstruction">Start Slideshow</button>
+    </div>
+
+    <!-- History Panel -->
+    <div class="history-panel" id="historyPanel">
+        <div class="history-header">
+            <h2>📜 Search History</h2>
+            <div class="close-history" id="closeHistory">❌</div>
+        </div>
+        <div class="history-list" id="historyList"></div>
+    </div>
+
+    <!-- Topics Panel -->
+    <div class="topics-panel" id="topicsPanel">
+        <div class="topics-header">
+            <h2>📚 All Topics</h2>
+            <div class="close-topics" id="closeTopics">❌</div>
+        </div>
+        <div class="topics-list" id="topicsList"></div>
+    </div>
+
+    <!-- Instructions Modal -->
+    <div class="instructions-modal" id="instructionsModal">
+        <div class="modal-header">
+            <h2><span>❓</span> How to Use This App</h2>
+            <div class="close-modal" id="closeModal">✕</div>
+        </div>
+        <div class="modal-content">
+            <p>Welcome to Enhanced Digital Notes!</p>
+            <ul>
+                <li><strong>Search</strong> any topic</li>
+                <li><strong>Topics</strong> → browse all available topics</li>
+                <li><strong>History</strong> → see recent searches</li>
+                <li><strong>Theme</strong> → light/dark mode</li>
+                <li><strong>Load</strong> → import JSON file</li>
+                <li><strong>Create</strong> → make your own notes</li>
+                <li><strong>Slideshow</strong> → presentation mode</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container" id="appContainer">
+        <header>
+            <div class="header-content">
+                <div class="logo" id="appLogo">
+                    <span>📚</span>
+                    <span>Enhanced Digital Notes</span>
+                </div>
+                <div class="search-container">
+                    <input type="text" id="searchInput" placeholder="Search for a topic...">
+                    <button class="search-btn" id="searchBtn">🔍</button>
+                </div>
+                <div class="controls">
+                    <div class="load-toggle" id="loadToggle" title="Load JSON">📂</div>
+                    <div class="export-toggle" id="exportToggle" title="Create Notes">📝</div>
+                    <div class="topics-toggle" id="topicsToggle" title="Browse Topics">📚</div>
+                    <div class="history-toggle" id="historyToggle" title="History">🕒</div>
+                    <div class="theme-toggle" id="themeToggle" title="Toggle Theme">🌙</div>
+                    <div class="case-toggle" id="caseToggle" title="Aa">Aa</div>
+                    <div class="help-toggle" id="helpToggle" title="Help">❓</div>
+                    <div class="slide-toggle" id="slideToggle" title="Slideshow">▶️</div>
+                </div>
+            </div>
+        </header>
+
+        <main class="results-container" id="resultsContainer"></main>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module">
+        import { initApp } from './js/main.js';
+
+        // Splash screen timing
+        const splash = document.getElementById('splashScreen');
+        const progress = document.getElementById('loadingProgress');
+        progress.style.width = '100%';
+
+        setTimeout(() => {
+            splash.style.opacity = '0';
+            splash.style.pointerEvents = 'none';
+            setTimeout(() => {
+                splash.style.display = 'none';
+                initApp();
+            }, 800);
+        }, 3800);
+    </script>
+</body>
+</html>
