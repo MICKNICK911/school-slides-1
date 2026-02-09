@@ -1,5 +1,5 @@
 // scripts/modules/notes.js
-import { saveUserNote, deleteUserNote, loadUserNotes, exportTableData, importTableData } from './database.js';
+import { saveUserNote, deleteUserNote, loadUserNotes, exportTableData, importTableData } from './dataManager.js';
 import { showNotification, processMarkdown, debounce } from './utils.js';
 
 let notes = {};
@@ -55,7 +55,7 @@ function handleTableChange(event) {
             updateNotesList();
             updateNotesPreview();
             updateNotesCountBadge();
-            updateRawPreview(); // Update the raw data preview tab
+            updateRawPreview();
         });
     }
 }
@@ -100,14 +100,14 @@ async function addNote() {
         return;
     }
     
-    // Generate a unique ID for the note (using timestamp + random string)
+    // Generate a unique ID for the note
     const noteId = `note_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
     const noteData = {
         title: title,
         content: content,
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
     };
     
     try {
@@ -118,17 +118,7 @@ async function addNote() {
         document.getElementById('noteTitle').focus();
     } catch (error) {
         console.error('Error saving note:', error);
-        showNotification('Failed to save note. Please check your connection.', 'error');
-        
-        // Store locally for offline sync
-        const pendingKey = `pending_note_${currentTableId}_${noteId}`;
-        localStorage.setItem(pendingKey, JSON.stringify({
-            type: 'note',
-            action: 'add',
-            tableId: currentTableId,
-            noteId: noteId,
-            data: noteData
-        }));
+        showNotification('Failed to save note. Please try again.', 'error');
     }
 }
 
@@ -209,8 +199,8 @@ function updateNoteDropdown() {
     
     // Sort notes by update date (newest first)
     const sortedNotes = Object.entries(notes).sort((a, b) => {
-        const dateA = a[1].updatedAt?.toDate ? a[1].updatedAt.toDate() : new Date(a[1].updatedAt || a[1].createdAt || 0);
-        const dateB = b[1].updatedAt?.toDate ? b[1].updatedAt.toDate() : new Date(b[1].updatedAt || b[1].createdAt || 0);
+        const dateA = new Date(a[1].updatedAt || a[1].createdAt || 0);
+        const dateB = new Date(b[1].updatedAt || b[1].createdAt || 0);
         return dateB - dateA;
     });
     
@@ -248,14 +238,14 @@ function updateNotesList() {
     
     // Sort by update date
     const sortedNotes = filteredNotes.sort((a, b) => {
-        const dateA = a[1].updatedAt?.toDate ? a[1].updatedAt.toDate() : new Date(a[1].updatedAt || a[1].createdAt || 0);
-        const dateB = b[1].updatedAt?.toDate ? b[1].updatedAt.toDate() : new Date(b[1].updatedAt || b[1].createdAt || 0);
+        const dateA = new Date(a[1].updatedAt || a[1].createdAt || 0);
+        const dateB = new Date(b[1].updatedAt || b[1].createdAt || 0);
         return dateB - dateA;
     });
     
     // Create HTML for notes list
     const notesHTML = sortedNotes.map(([noteId, note]) => {
-        const updatedDate = note.updatedAt?.toDate ? note.updatedAt.toDate() : new Date(note.updatedAt || note.createdAt || Date.now());
+        const updatedDate = new Date(note.updatedAt || note.createdAt || Date.now());
         const dateStr = updatedDate.toLocaleDateString() + ' ' + updatedDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         
         // Preview snippet (first 100 chars)
@@ -309,14 +299,14 @@ function updateNotesPreview() {
     
     // Sort by update date
     const sortedNotes = Object.entries(notes).sort((a, b) => {
-        const dateA = a[1].updatedAt?.toDate ? a[1].updatedAt.toDate() : new Date(a[1].updatedAt || a[1].createdAt || 0);
-        const dateB = b[1].updatedAt?.toDate ? b[1].updatedAt.toDate() : new Date(b[1].updatedAt || b[1].createdAt || 0);
+        const dateA = new Date(a[1].updatedAt || a[1].createdAt || 0);
+        const dateB = new Date(b[1].updatedAt || b[1].createdAt || 0);
         return dateB - dateA;
     });
     
     let markdownHTML = '';
     sortedNotes.forEach(([noteId, note]) => {
-        const updatedDate = note.updatedAt?.toDate ? note.updatedAt.toDate() : new Date(note.updatedAt || note.createdAt || Date.now());
+        const updatedDate = new Date(note.updatedAt || note.createdAt || Date.now());
         const dateStr = updatedDate.toLocaleDateString() + ' at ' + updatedDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         
         markdownHTML += `
@@ -589,18 +579,9 @@ function cleanupNotes() {
     document.getElementById('notesCount').textContent = '0';
 }
 
-// Initialize on load
-document.addEventListener('DOMContentLoaded', () => {
-    // Note: This will be called from app.js when user logs in
-    console.log('Notes module loaded');
-});
-
-// Export for testing and debugging
-if (typeof window !== 'undefined') {
-    window.notesModule = {
-        initNotes,
-        cleanupNotes,
-        getNotes: () => notes,
-        getCurrentNoteId: () => currentNoteId
-    };
+// Helper function to show import modal
+function showImportModal(importData, type = 'notes') {
+    window.pendingImportData = importData;
+    window.pendingImportType = type;
+    document.getElementById('importModal').style.display = 'flex';
 }

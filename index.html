@@ -5,204 +5,146 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Enhanced Multi-Table Lesson Builder</title>
     <link rel="stylesheet" href="styles/main.css">
-    
-    <!-- Firebase SDKs (Compat version for broader browser support) -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    
-    <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📚</text></svg>">
-    <meta name="description" content="Enhanced Multi-Table Lesson Builder with Firebase integration">
-    <meta name="theme-color" content="#4285f4">
+    <meta name="description" content="Enhanced Multi-Table Lesson Builder - Local Storage Version">
 </head>
 <body>
-    <!-- Login Screen (Shown Initially) -->
-    <div class="modal" id="loginModal" style="display: flex;" aria-hidden="false" aria-labelledby="loginTitle" role="dialog">
-        <div class="modal-content">
-            <h2 class="modal-title" id="loginTitle">Welcome to Lesson Builder</h2>
-            <div class="input-group">
-                <label for="loginEmail" class="required">Email:</label>
-                <input type="email" id="loginEmail" class="filename-input" placeholder="your@email.com" required aria-required="true" autocomplete="email">
-            </div>
-            <div class="input-group">
-                <label for="loginPassword" class="required">Password:</label>
-                <input type="password" id="loginPassword" class="filename-input" placeholder="••••••••" required aria-required="true" autocomplete="current-password">
-            </div>
-            <div id="loginMessage" class="message" role="alert" aria-live="polite"></div>
-            <div class="modal-actions">
-                <button id="signInBtn" class="btn btn-primary" aria-label="Sign in to your account">
-                    <span class="btn-icon">→</span> Sign In
-                </button>
-                <button id="signUpBtn" class="btn btn-secondary" aria-label="Create a new account">
-                    <span class="btn-icon">+</span> Sign Up
-                </button>
-            </div>
-            <p class="login-hint" aria-hidden="true">
-                Note: For testing, sign up first. Password must be at least 6 characters.
-            </p>
-        </div>
-    </div>
-
-    <!-- Main Application Container (Hidden until login) -->
-    <div id="appContainer" style="display: none;" aria-hidden="true">
+    <!-- Main Application -->
+    <div id="appContainer">
         <div class="container">
-            <!-- Header with Table Management -->
-            <header class="app-header" role="banner">
+            <!-- Header -->
+            <header class="app-header">
                 <h1>
-                    <span role="img" aria-label="Books">📚</span> Enhanced Multi-Table Builder
-                    <span id="userEmail" class="user-email" aria-label="Current user email"></span>
-                    <button id="signOutBtn" class="btn btn-danger btn-sm" aria-label="Sign out from current account">
-                        <span class="btn-icon">←</span> Sign Out
-                    </button>
+                    Enhanced Multi-Table Builder
+                    <span class="user-email">(Local Mode)</span>
                 </h1>
                 
-                <!-- Table Management Bar -->
-                <div class="table-management-bar" role="toolbar" aria-label="Table management toolbar">
+                <!-- Table Management -->
+                <div class="table-management-bar">
                     <div class="table-selector">
-                        <label for="currentTable" class="required">Active Table:</label>
-                        <select id="currentTable" class="table-dropdown" aria-label="Select active table" required>
+                        <label for="currentTable">Active Table:</label>
+                        <select id="currentTable" class="table-dropdown">
                             <option value="">-- Select a Table --</option>
-                            <!-- Tables will be populated dynamically -->
                         </select>
-                        <button id="newTableBtn" class="btn btn-primary btn-sm" aria-label="Create new table">
+                        <button id="newTableBtn" class="btn btn-primary btn-sm">
                             <span class="btn-icon">+</span> New Table
                         </button>
-                        <button id="renameTableBtn" class="btn btn-secondary btn-sm" disabled aria-label="Rename current table">
+                        <button id="renameTableBtn" class="btn btn-secondary btn-sm" disabled>
                             <span class="btn-icon">✎</span> Rename
                         </button>
-                        <button id="deleteTableBtn" class="btn btn-danger btn-sm" disabled aria-label="Delete current table">
+                        <button id="deleteTableBtn" class="btn btn-danger btn-sm" disabled>
                             <span class="btn-icon">×</span> Delete
                         </button>
                     </div>
                     <div class="table-stats">
-                        <span id="tableStats" aria-live="polite">No table selected</span>
+                        <span id="tableStats">No table selected</span>
                     </div>
                 </div>
             </header>
 
-            <!-- Content Columns: Dictionary & Notes -->
-            <div class="content-columns" role="main">
-                <!-- Left Column: Dictionary Management -->
-                <div class="column" role="region" aria-labelledby="dictionaryTitle">
+            <!-- Content Columns -->
+            <div class="content-columns">
+                <!-- Dictionary Column -->
+                <div class="column">
                     <div class="input-section">
-                        <h2 id="dictionaryTitle">
-                            <span role="img" aria-label="Dictionary">📖</span> Dictionary in 
-                            <span id="currentTableName" class="table-name" aria-live="polite">No Table</span>
-                        </h2>
+                        <h2>Dictionary in <span id="currentTableName" class="table-name">No Table</span></h2>
                         
                         <div class="input-group">
                             <label for="editId">Select Entry to Edit:</label>
-                            <select id="editId" disabled aria-label="Select dictionary entry to edit">
+                            <select id="editId" disabled>
                                 <option value="">-- Select a Table First --</option>
                             </select>
                         </div>
                         
                         <div class="input-group">
-                            <label for="topic" class="required">Topic:</label>
-                            <input type="text" id="topic" disabled placeholder="Select or create a table first" required>
+                            <label for="topic">Topic:</label>
+                            <input type="text" id="topic" disabled placeholder="Select or create a table first">
                         </div>
                         
                         <div class="input-group">
-                            <label for="desc" class="required">Description:</label>
-                            <textarea id="desc" rows="3" disabled placeholder="Enter description" required></textarea>
+                            <label for="desc">Description:</label>
+                            <textarea id="desc" rows="3" disabled></textarea>
                         </div>
                         
                         <div class="input-group">
-                            <label for="ex" class="required">Examples (comma separated):</label>
-                            <input type="text" id="ex" disabled placeholder="Example 1, Example 2" required>
-                            <div class="input-hint">Separate multiple examples with commas</div>
+                            <label for="ex">Examples (comma separated):</label>
+                            <input type="text" id="ex" disabled>
                         </div>
                         
-                        <div class="button-group" role="group" aria-label="Dictionary entry actions">
-                            <button id="addBtn" class="btn btn-primary" disabled aria-label="Add new dictionary entry">
+                        <div class="button-group">
+                            <button id="addBtn" class="btn btn-primary" disabled>
                                 <span class="btn-icon">+</span> Add Entry
                             </button>
-                            <button id="updateBtn" class="btn btn-secondary" disabled aria-label="Update selected entry">
+                            <button id="updateBtn" class="btn btn-secondary" disabled>
                                 <span class="btn-icon">↻</span> Update Entry
                             </button>
-                            <button id="cancelBtn" class="btn btn-outline" disabled aria-label="Cancel editing">
+                            <button id="cancelBtn" class="btn btn-outline" disabled>
                                 Cancel Edit
                             </button>
                         </div>
                         
-                        <!-- Dictionary Import/Export -->
-                        <div class="button-group" role="group" aria-label="Dictionary file operations">
+                        <div class="button-group">
                             <div class="file-input-container">
-                                <button class="btn btn-primary" id="importDictBtn" disabled aria-label="Import dictionary from file">
+                                <button class="btn btn-primary" id="importDictBtn" disabled>
                                     <span class="btn-icon">↑</span> Import Dictionary
                                 </button>
-                                <input type="file" id="importDictFile" class="file-input" accept=".json" 
-                                       aria-label="Select dictionary JSON file" disabled>
+                                <input type="file" id="importDictFile" class="file-input" accept=".json" disabled>
                             </div>
-                            <button id="exportDictBtn" class="btn btn-secondary" disabled aria-label="Export dictionary to file">
+                            <button id="exportDictBtn" class="btn btn-secondary" disabled>
                                 <span class="btn-icon">↓</span> Export Dictionary
                             </button>
-                            <button id="clearDictBtn" class="btn btn-danger" disabled aria-label="Clear all dictionary entries">
+                            <button id="clearDictBtn" class="btn btn-danger" disabled>
                                 <span class="btn-icon">×</span> Clear Dictionary
                             </button>
                         </div>
                     </div>
                 </div>
 
-                <!-- Right Column: Note Management -->
-                <div class="column" role="region" aria-labelledby="notesTitle">
+                <!-- Notes Column -->
+                <div class="column">
                     <div class="input-section">
-                        <h2 id="notesTitle">
-                            <span role="img" aria-label="Notes">📝</span> Notes in 
-                            <span id="currentTableNameNotes" class="table-name" aria-live="polite">No Table</span>
-                        </h2>
+                        <h2>Notes in <span id="currentTableNameNotes" class="table-name">No Table</span></h2>
                         
                         <div class="input-group">
                             <label for="noteId">Select Note to Edit:</label>
-                            <select id="noteId" disabled aria-label="Select note to edit">
+                            <select id="noteId" disabled>
                                 <option value="">-- Select a Table First --</option>
                             </select>
                         </div>
                         
                         <div class="input-group">
-                            <label for="noteTitle" class="required">Note Title:</label>
-                            <input type="text" id="noteTitle" disabled placeholder="Enter note title" required>
+                            <label for="noteTitle">Note Title:</label>
+                            <input type="text" id="noteTitle" disabled>
                         </div>
                         
                         <div class="input-group">
-                            <label for="noteContent" class="required">Content:</label>
+                            <label for="noteContent">Content (Markdown Supported):</label>
                             <textarea id="noteContent" rows="6" disabled 
-                                      placeholder="Use *bold*, _italic_, -underline-, [colored], and + for bullets
-Example:
-*Important term* - explanation
-+ First point
-+ Second point
-[Special note]" 
-                                      required></textarea>
-                            <div class="input-hint">Markdown formatting is supported</div>
+                                placeholder="Use *bold*, _italic_, -underline-, [colored], and + for bullets"></textarea>
                         </div>
                         
-                        <div class="button-group" role="group" aria-label="Note actions">
-                            <button id="addNoteBtn" class="btn btn-primary" disabled aria-label="Save new note">
+                        <div class="button-group">
+                            <button id="addNoteBtn" class="btn btn-primary" disabled>
                                 <span class="btn-icon">+</span> Save Note
                             </button>
-                            <button id="updateNoteBtn" class="btn btn-secondary" disabled aria-label="Update selected note">
+                            <button id="updateNoteBtn" class="btn btn-secondary" disabled>
                                 <span class="btn-icon">↻</span> Update Note
                             </button>
-                            <button id="cancelNoteBtn" class="btn btn-outline" disabled aria-label="Cancel note editing">
+                            <button id="cancelNoteBtn" class="btn btn-outline" disabled>
                                 Cancel
                             </button>
                         </div>
                         
-                        <!-- Notes Import/Export -->
-                        <div class="button-group" role="group" aria-label="Note file operations">
+                        <div class="button-group">
                             <div class="file-input-container">
-                                <button class="btn btn-primary" id="importNotesBtn" disabled aria-label="Import notes from file">
+                                <button class="btn btn-primary" id="importNotesBtn" disabled>
                                     <span class="btn-icon">↑</span> Import Notes
                                 </button>
-                                <input type="file" id="importNotesFile" class="file-input" accept=".json" 
-                                       aria-label="Select notes JSON file" disabled>
+                                <input type="file" id="importNotesFile" class="file-input" accept=".json" disabled>
                             </div>
-                            <button id="exportNotesBtn" class="btn btn-secondary" disabled aria-label="Export notes to file">
+                            <button id="exportNotesBtn" class="btn btn-secondary" disabled>
                                 <span class="btn-icon">↓</span> Export Notes
                             </button>
-                            <button id="clearNotesBtn" class="btn btn-danger" disabled aria-label="Clear all notes">
+                            <button id="clearNotesBtn" class="btn btn-danger" disabled>
                                 <span class="btn-icon">×</span> Clear Notes
                             </button>
                         </div>
@@ -211,78 +153,50 @@ Example:
             </div>
 
             <!-- Preview Section -->
-            <section class="preview-section" role="region" aria-labelledby="previewTitle">
+            <section class="preview-section">
                 <div class="preview-header">
-                    <h2 id="previewTitle">
-                        <span role="img" aria-label="Preview">🔍</span> Preview: 
-                        <span id="previewTableName" aria-live="polite">No Table Selected</span>
-                    </h2>
-                    <div class="preview-tabs" role="tablist" aria-label="Preview content type">
-                        <button class="tab-button active" data-tab="dictionary-preview" role="tab" 
-                                aria-selected="true" aria-controls="dictionary-preview">
-                            Dictionary
-                        </button>
-                        <button class="tab-button" data-tab="notes-preview" role="tab" 
-                                aria-selected="false" aria-controls="notes-preview">
-                            Notes
-                        </button>
-                        <button class="tab-button" data-tab="raw-data" role="tab" 
-                                aria-selected="false" aria-controls="raw-data">
-                            Raw Data
-                        </button>
+                    <h2>Preview: <span id="previewTableName">No Table Selected</span></h2>
+                    <div class="preview-tabs">
+                        <button class="tab-button active" data-tab="dictionary-preview">Dictionary</button>
+                        <button class="tab-button" data-tab="notes-preview">Notes</button>
+                        <button class="tab-button" data-tab="raw-data">Raw Data</button>
                     </div>
                 </div>
                 
-                <!-- Search Areas -->
                 <div class="search-areas">
                     <div class="search-box">
-                        <input type="text" id="searchDictInput" disabled 
-                               placeholder="Search dictionary entries..." 
-                               aria-label="Search dictionary entries">
+                        <input type="text" id="searchDictInput" disabled placeholder="Search dictionary entries...">
                     </div>
                     <div class="search-box">
-                        <input type="text" id="searchNotesInput" disabled 
-                               placeholder="Search notes..." 
-                               aria-label="Search notes">
+                        <input type="text" id="searchNotesInput" disabled placeholder="Search notes...">
                     </div>
                 </div>
                 
-                <!-- Content Lists -->
                 <div class="content-lists">
-                    <div class="list-container" role="region" aria-labelledby="dictListTitle">
-                        <h3 id="dictListTitle">
-                            Dictionary Entries 
-                            <span id="dictCount" class="count-badge" aria-live="polite">0</span>
-                        </h3>
-                        <div class="entries-list" id="entriesList" role="list" aria-label="Dictionary entries list">
-                            <div class="empty-state" role="listitem">Select a table to view entries</div>
+                    <div class="list-container">
+                        <h3>Dictionary Entries <span id="dictCount" class="count-badge">0</span></h3>
+                        <div class="entries-list" id="entriesList">
+                            <div class="empty-state">Select a table to view entries</div>
                         </div>
                     </div>
                     
-                    <div class="list-container" role="region" aria-labelledby="notesListTitle">
-                        <h3 id="notesListTitle">
-                            Notes 
-                            <span id="notesCount" class="count-badge" aria-live="polite">0</span>
-                        </h3>
-                        <div class="entries-list" id="notesList" role="list" aria-label="Notes list">
-                            <div class="empty-state" role="listitem">Select a table to view notes</div>
+                    <div class="list-container">
+                        <h3>Notes <span id="notesCount" class="count-badge">0</span></h3>
+                        <div class="entries-list" id="notesList">
+                            <div class="empty-state">Select a table to view notes</div>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Preview Panels -->
                 <div class="preview-panels">
-                    <div id="dictionary-preview" class="tab-content active markdown-preview" 
-                         role="tabpanel" aria-labelledby="dictPreviewTab">
+                    <div id="dictionary-preview" class="tab-content active markdown-preview">
                         Select a table to preview dictionary entries
                     </div>
-                    <div id="notes-preview" class="tab-content markdown-preview" 
-                         role="tabpanel" aria-labelledby="notesPreviewTab" hidden>
+                    <div id="notes-preview" class="tab-content markdown-preview">
                         Select a table to preview notes
                     </div>
-                    <div id="raw-data" class="tab-content" 
-                         role="tabpanel" aria-labelledby="rawDataTab" hidden>
-                        <pre id="preview" role="textbox" aria-label="Raw JSON data">Select a table to view data</pre>
+                    <div id="raw-data" class="tab-content">
+                        <pre id="preview">Select a table to view data</pre>
                     </div>
                 </div>
             </section>
@@ -290,116 +204,72 @@ Example:
     </div>
 
     <!-- Modals -->
-    <!-- Table Creation Modal -->
-    <div class="modal" id="tableModal" aria-hidden="true" aria-labelledby="tableModalTitle" role="dialog" hidden>
+    <div class="modal" id="tableModal">
         <div class="modal-content">
             <h3 class="modal-title" id="tableModalTitle">Create New Table</h3>
             <div class="input-group">
-                <label for="tableName" class="required">Table Name:</label>
-                <input type="text" id="tableName" class="filename-input" 
-                       placeholder="e.g., Math Vocabulary, History Notes" required>
-                <div id="tableNameError" class="error-message" role="alert" aria-live="polite"></div>
+                <label for="tableName">Table Name:</label>
+                <input type="text" id="tableName" class="filename-input" placeholder="e.g., Math Vocabulary, History Notes">
+                <div id="tableNameError" class="error-message"></div>
             </div>
             <div class="modal-actions">
-                <button id="cancelTableBtn" class="btn btn-danger" aria-label="Cancel table creation">
-                    Cancel
-                </button>
-                <button id="confirmTableBtn" class="btn btn-primary" aria-label="Confirm table action">
-                    Create Table
-                </button>
+                <button id="cancelTableBtn" class="btn btn-danger">Cancel</button>
+                <button id="confirmTableBtn" class="btn btn-primary">Create Table</button>
             </div>
         </div>
     </div>
 
-    <!-- Export Modal -->
-    <div class="modal" id="exportModal" aria-hidden="true" aria-labelledby="exportModalTitle" role="dialog" hidden>
+    <div class="modal" id="exportModal">
         <div class="modal-content">
-            <h3 class="modal-title" id="exportModalTitle">Save Dictionary</h3>
+            <h3 class="modal-title">Save Dictionary</h3>
             <div class="input-group">
-                <label for="filename" class="required">File name:</label>
-                <input type="text" id="filename" class="filename-input" value="dictionary.json" 
-                       placeholder="Enter filename" required>
+                <label for="filename">File name:</label>
+                <input type="text" id="filename" class="filename-input" value="dictionary.json">
             </div>
             <div class="modal-actions">
-                <button id="cancelExport" class="btn btn-danger" aria-label="Cancel export">
-                    Cancel
-                </button>
-                <button id="confirmExport" class="btn btn-primary" aria-label="Confirm export">
-                    Save
-                </button>
+                <button id="cancelExport" class="btn btn-danger">Cancel</button>
+                <button id="confirmExport" class="btn btn-primary">Save</button>
             </div>
         </div>
     </div>
 
-    <!-- Delete Confirmation Modal -->
-    <div class="modal" id="deleteModal" aria-hidden="true" aria-labelledby="deleteModalTitle" role="dialog" hidden>
+    <div class="modal" id="deleteModal">
         <div class="modal-content">
-            <h3 class="modal-title" id="deleteModalTitle">Confirm Deletion</h3>
+            <h3 class="modal-title">Confirm Deletion</h3>
             <p>Are you sure you want to delete the entry "<span id="deleteTopic"></span>"?</p>
             <div class="modal-actions">
-                <button id="cancelDelete" class="btn btn-secondary" aria-label="Cancel deletion">
-                    Cancel
-                </button>
-                <button id="confirmDelete" class="btn btn-danger" aria-label="Confirm deletion">
-                    Delete
-                </button>
+                <button id="cancelDelete" class="btn btn-secondary">Cancel</button>
+                <button id="confirmDelete" class="btn btn-danger">Delete</button>
             </div>
         </div>
     </div>
 
-    <!-- Import Options Modal -->
-    <div class="modal" id="importModal" aria-hidden="true" aria-labelledby="importModalTitle" role="dialog" hidden>
+    <div class="modal" id="importModal">
         <div class="modal-content">
-            <h3 class="modal-title" id="importModalTitle">Import Options</h3>
+            <h3 class="modal-title">Import Options</h3>
             <p>How would you like to import the data?</p>
             <div class="modal-actions">
-                <button id="replaceData" class="btn btn-danger" aria-label="Replace current data with imported data">
-                    Replace Current Data
-                </button>
-                <button id="mergeData" class="btn btn-primary" aria-label="Merge imported data with current data">
-                    Merge with Current Data
-                </button>
+                <button id="replaceData" class="btn btn-danger">Replace Current Data</button>
+                <button id="mergeData" class="btn btn-primary">Merge with Current Data</button>
             </div>
         </div>
     </div>
 
-    <!-- Table Delete Confirmation Modal -->
-    <div class="modal" id="confirmTableDeleteModal" aria-hidden="true" aria-labelledby="tableDeleteTitle" role="dialog" hidden>
+    <div class="modal" id="confirmTableDeleteModal">
         <div class="modal-content">
-            <h3 class="modal-title" id="tableDeleteTitle">Delete Table</h3>
+            <h3 class="modal-title">Delete Table</h3>
             <p>Are you sure you want to delete the table "<span id="deleteTableName"></span>"?</p>
-            <p class="warning-text" role="alert"><strong>Warning:</strong> This will permanently delete ALL dictionary entries and notes in this table. This action cannot be undone!</p>
+            <p class="warning-text">This will permanently delete ALL dictionary entries and notes in this table.</p>
             <div class="modal-actions">
-                <button id="cancelTableDelete" class="btn btn-secondary" aria-label="Cancel table deletion">
-                    Cancel
-                </button>
-                <button id="confirmTableDelete" class="btn btn-danger" aria-label="Confirm table deletion">
-                    Delete Table
-                </button>
+                <button id="cancelTableDelete" class="btn btn-secondary">Cancel</button>
+                <button id="confirmTableDelete" class="btn btn-danger">Delete Table</button>
             </div>
         </div>
     </div>
 
-    <!-- Notification System -->
-    <div class="notification" id="notification" role="alert" aria-live="polite" aria-atomic="true"></div>
+    <div class="notification" id="notification"></div>
 
-    <!-- Loader for initial load -->
-    <div id="appLoader" class="loader-overlay" style="display: none;">
-        <div class="loader">
-            <div class="loader-spinner"></div>
-            <p>Loading application...</p>
-        </div>
-    </div>
-
-    <!-- Scripts (ES6 Modules) -->
+    <!-- Scripts -->
     <script type="module" src="scripts/app.js"></script>
-    
-    <!-- No-JS fallback -->
-    <noscript>
-        <div class="noscript-warning">
-            <h2>JavaScript Required</h2>
-            <p>This application requires JavaScript to function. Please enable JavaScript in your browser settings.</p>
-        </div>
-    </noscript>
 </body>
 </html>

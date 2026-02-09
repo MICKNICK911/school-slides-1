@@ -1,5 +1,5 @@
-import { saveDictionaryEntry, deleteDictionaryEntry, loadDictionaryEntries, 
-         exportTableData, importTableData } from './database.js';
+// scripts/modules/dictionary.js
+import { saveDictionaryEntry, deleteDictionaryEntry, loadDictionaryEntries, exportTableData, importTableData } from './dataManager.js';
 import { showNotification, processMarkdown } from './utils.js';
 
 let dictionary = {};
@@ -16,7 +16,8 @@ export function initDictionary() {
     
     return {
         getDictionary: () => dictionary,
-        getCurrentEditId: () => currentEditId
+        getCurrentEditId: () => currentEditId,
+        cleanup: cleanupDictionary
     };
 }
 
@@ -100,7 +101,7 @@ async function addEntry() {
     const entryData = {
         desc: desc,
         ex: ex.split(',').map(item => item.trim()),
-        createdAt: new Date()
+        createdAt: new Date().toISOString()
     };
     
     try {
@@ -108,16 +109,7 @@ async function addEntry() {
         showNotification('Entry added successfully');
         clearDictionaryForm();
     } catch (error) {
-        showNotification('Failed to save entry. Check connection.', 'error');
-        // Store locally for sync later
-        const pendingKey = `pending_${currentTableId}_${Date.now()}`;
-        localStorage.setItem(pendingKey, JSON.stringify({
-            type: 'dictionary',
-            action: 'add',
-            tableId: currentTableId,
-            topic,
-            data: entryData
-        }));
+        showNotification('Failed to save entry. Please try again.', 'error');
     }
 }
 
@@ -137,7 +129,7 @@ async function updateEntry() {
     const entryData = {
         desc: desc,
         ex: ex.split(',').map(item => item.trim()),
-        updatedAt: new Date()
+        updatedAt: new Date().toISOString()
     };
     
     try {
@@ -440,4 +432,10 @@ export function cleanupDictionary() {
     dictionary = {};
     currentEditId = null;
     currentTableId = null;
+}
+
+// Helper function to show import modal
+function showImportModal(importData) {
+    window.pendingImportData = importData;
+    document.getElementById('importModal').style.display = 'flex';
 }

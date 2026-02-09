@@ -1,5 +1,5 @@
 // scripts/modules/uiManager.js
-import { showNotification as showNotif } from './utils.js';
+import { showNotification as uiShowNotification } from './utils.js';
 
 // UI State Management
 let currentTab = 'dictionary-preview';

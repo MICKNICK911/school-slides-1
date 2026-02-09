@@ -1,30 +1,27 @@
 // scripts/app.js
-import { signUp, signIn, signOut, getCurrentUser, initAuth } from './modules/auth.js';
-import { initTableManager, cleanupTableManager } from './modules/tableManager.js';
-import { initDictionary, cleanupDictionary } from './modules/dictionary.js';
-import { initNotes, cleanupNotes } from './modules/notes.js';
+import { initTableManager } from './modules/tableManager.js';
+import { initDictionary } from './modules/dictionary.js';
+import { initNotes } from './modules/notes.js';
 import { initUI, showModal, hideModal, showNotification, updateUIForTable } from './modules/uiManager.js';
-import { isValidEmail } from './modules/utils.js';
 
 // Application state
 let appState = {
     initialized: false,
     modules: {
-        auth: null,
         tableManager: null,
         dictionary: null,
         notes: null
     },
     currentTableId: null,
-    currentTableName: null,
-    pendingOperations: []
+    currentTableName: null
 };
 
 // Initialize application when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
     try {
         initializeApp();
-        console.log('Application initialized successfully');
+        console.log('Application initialized successfully (Local Mode)');
+        showNotification('Welcome to Enhanced Multi-Table Builder!', 'success');
     } catch (error) {
         console.error('Failed to initialize application:', error);
         showNotification('Failed to initialize application. Please refresh the page.', 'error');
@@ -38,41 +35,33 @@ function initializeApp() {
         return;
     }
     
-    // Initialize UI first
+    // Initialize UI
     initUI();
-    
-    // Initialize authentication (DON'T AWAIT - it's synchronous now)
-    initAuth();
     
     // Set up global error handling
     setupErrorHandling();
     
-    // Set up event listeners IMMEDIATELY
+    // Set up event listeners
     setupEventListeners();
     
     // Set up inter-module communication
     setupModuleCommunication();
     
-    appState.initialized = true;
+    // Initialize modules immediately
+    initializeUserModules();
     
-    // Show welcome message if no user is logged in
-    if (!getCurrentUser()) {
-        showNotification('Welcome! Please sign in or create an account.', 'info');
-    }
+    appState.initialized = true;
 }
 
 // Setup global error handling
 function setupErrorHandling() {
-    // Unhandled promise rejections
     window.addEventListener('unhandledrejection', (event) => {
         console.error('Unhandled promise rejection:', event.reason);
         showNotification('An unexpected error occurred', 'error');
     });
     
-    // Global error handler
     window.addEventListener('error', (event) => {
         console.error('Global error:', event.error);
-        // Don't show notification for network errors to avoid spam
         if (!event.message.includes('Failed to fetch')) {
             showNotification('A system error occurred', 'error');
         }
@@ -81,9 +70,6 @@ function setupErrorHandling() {
 
 // Setup event listeners
 function setupEventListeners() {
-    // Authentication event listeners
-    setupAuthEventListeners();
-    
     // Modal event listeners
     setupModalEventListeners();
     
@@ -95,50 +81,6 @@ function setupEventListeners() {
     
     // Window event listeners
     setupWindowEventListeners();
-}
-
-function setupAuthEventListeners() {
-    // Sign up button
-    const signUpBtn = document.getElementById('signUpBtn');
-    const signInBtn = document.getElementById('signInBtn');
-    const signOutBtn = document.getElementById('signOutBtn');
-    
-    if (signUpBtn) {
-        signUpBtn.addEventListener('click', handleSignUp);
-        console.log('Sign Up button listener added');
-    } else {
-        console.error('Sign Up button not found!');
-    }
-    
-    if (signInBtn) {
-        signInBtn.addEventListener('click', handleSignIn);
-        console.log('Sign In button listener added');
-    } else {
-        console.error('Sign In button not found!');
-    }
-    
-    if (signOutBtn) {
-        signOutBtn.addEventListener('click', handleSignOut);
-        console.log('Sign Out button listener added');
-    }
-    
-    // Enter key in login form
-    const loginEmail = document.getElementById('loginEmail');
-    const loginPassword = document.getElementById('loginPassword');
-    
-    if (loginEmail && loginPassword) {
-        const handleEnterKey = (e) => {
-            if (e.key === 'Enter') {
-                handleSignIn();
-            }
-        };
-        
-        loginEmail.addEventListener('keypress', handleEnterKey);
-        loginPassword.addEventListener('keypress', handleEnterKey);
-    }
-    
-    // Listen for auth state changes (from auth module)
-    window.addEventListener('authStateChanged', handleAuthStateChange);
 }
 
 function setupModalEventListeners() {
@@ -219,23 +161,10 @@ function setupWindowEventListeners() {
     
     // Before unload (save state)
     window.addEventListener('beforeunload', handleBeforeUnload);
-    
-    // Visibility change (tab switching)
-    document.addEventListener('visibilitychange', handleVisibilityChange);
 }
 
 // Setup inter-module communication
 function setupModuleCommunication() {
-    // Auth state change → Initialize/Cleanup modules
-    window.addEventListener('authStateChanged', (event) => {
-        const user = event.detail.user;
-        if (user) {
-            initializeUserModules(user.uid);
-        } else {
-            cleanupUserModules();
-        }
-    });
-    
     // Table change → Update UI and notify modules
     window.addEventListener('tableChanged', (event) => {
         const { tableId, tableName } = event.detail;
@@ -277,105 +206,6 @@ function setupModuleCommunication() {
 }
 
 // Event Handlers
-async function handleSignUp() {
-    console.log('Sign Up button clicked');
-    
-    const email = document.getElementById('loginEmail').value.trim();
-    const password = document.getElementById('loginPassword').value.trim();
-    const messageEl = document.getElementById('loginMessage');
-    
-    if (messageEl) messageEl.textContent = '';
-    
-    // Validation
-    if (!email || !password) {
-        if (messageEl) messageEl.textContent = 'Please enter email and password.';
-        return;
-    }
-    
-    if (!isValidEmail(email)) {
-        if (messageEl) messageEl.textContent = 'Please enter a valid email address.';
-        return;
-    }
-    
-    if (password.length < 6) {
-        if (messageEl) messageEl.textContent = 'Password must be at least 6 characters.';
-        return;
-    }
-    
-    try {
-        console.log('Attempting sign up for:', email);
-        await signUp(email, password);
-        console.log('Sign up successful');
-        // Success handled by auth state change listener
-    } catch (error) {
-        // Error displayed by auth module
-        console.error('Sign up error:', error);
-    }
-}
-
-async function handleSignIn() {
-    console.log('Sign In button clicked');
-    
-    const email = document.getElementById('loginEmail').value.trim();
-    const password = document.getElementById('loginPassword').value.trim();
-    const messageEl = document.getElementById('loginMessage');
-    
-    if (messageEl) messageEl.textContent = '';
-    
-    if (!email || !password) {
-        if (messageEl) messageEl.textContent = 'Please enter email and password.';
-        return;
-    }
-    
-    try {
-        console.log('Attempting sign in for:', email);
-        await signIn(email, password);
-        console.log('Sign in successful');
-        // Success handled by auth state change listener
-    } catch (error) {
-        // Error displayed by auth module
-        console.error('Sign in error:', error);
-    }
-}
-
-async function handleSignOut() {
-    console.log('Sign Out button clicked');
-    try {
-        await signOut();
-        // Success handled by auth state change listener
-    } catch (error) {
-        console.error('Sign out error:', error);
-        showNotification('Error signing out', 'error');
-    }
-}
-
-function handleAuthStateChange(event) {
-    console.log('Auth state changed:', event.detail);
-    const user = event.detail.user;
-    
-    if (user) {
-        // User signed in
-        console.log('User signed in:', user.email);
-        const userEmailEl = document.getElementById('userEmail');
-        if (userEmailEl) {
-            userEmailEl.textContent = `(${user.email})`;
-        }
-        
-        // Initialize user-specific modules
-        initializeUserModules(user.uid);
-    } else {
-        // User signed out
-        console.log('User signed out');
-        const userEmailEl = document.getElementById('userEmail');
-        if (userEmailEl) {
-            userEmailEl.textContent = '';
-        }
-        
-        // Cleanup user-specific modules
-        cleanupUserModules();
-    }
-}
-
 async function handleTableSelectionChange(event) {
     const tableId = event.target.value;
     
@@ -476,7 +306,7 @@ async function handleFileImport(event, type) {
     if (!file) return;
     
     // Store file and type for import modal
-    appState.pendingImport = { file, type };
+    window.pendingImport = { file, type };
     
     // Show import options modal
     showModal('importModal', {
@@ -486,12 +316,12 @@ async function handleFileImport(event, type) {
 }
 
 async function handleImportAction(action) {
-    if (!appState.pendingImport || !appState.currentTableId) {
+    if (!window.pendingImport || !appState.currentTableId) {
         showNotification('No import data or table selected', 'error');
         return;
     }
     
-    const { file, type } = appState.pendingImport;
+    const { file, type } = window.pendingImport;
     
     try {
         const text = await file.text();
@@ -509,7 +339,7 @@ async function handleImportAction(action) {
         showNotification('Failed to import file', 'error');
     } finally {
         // Clear pending import
-        appState.pendingImport = null;
+        window.pendingImport = null;
         
         // Reset file inputs
         document.querySelectorAll('.file-input').forEach(input => {
@@ -659,12 +489,9 @@ function handleOnlineStatusChange() {
     const isOnline = navigator.onLine;
     
     if (isOnline) {
-        showNotification('Back online. Syncing data...', 'info');
-        
-        // Try to process pending operations
-        processPendingOperations();
+        showNotification('Back online', 'info');
     } else {
-        showNotification('You are offline. Changes will be saved locally.', 'warning');
+        showNotification('You are offline. Changes saved locally.', 'warning');
     }
 }
 
@@ -676,84 +503,7 @@ function handleBeforeUnload(event) {
         // Standard confirmation dialog
         event.preventDefault();
         event.returnValue = '';
-        
-        // Alternatively, save to localStorage
-        saveAppState();
     }
-}
-
-function handleVisibilityChange() {
-    if (!document.hidden) {
-        // Tab became active again, check for updates
-        console.log('App became visible');
-        
-        // Refresh data if online
-        if (navigator.onLine) {
-            refreshData();
-        }
-    }
-}
-
-// Module Management
-async function initializeUserModules(userId) {
-    try {
-        console.log('Initializing modules for user:', userId);
-        
-        // Initialize table manager
-        appState.modules.tableManager = initTableManager();
-        
-        // Initialize dictionary module
-        appState.modules.dictionary = initDictionary();
-        
-        // Initialize notes module
-        appState.modules.notes = initNotes();
-        
-        // Process any pending operations
-        processPendingOperations();
-        
-        showNotification('Welcome back! Your data has been loaded.', 'success');
-        
-    } catch (error) {
-        console.error('Failed to initialize user modules:', error);
-        showNotification('Failed to load your data. Please refresh.', 'error');
-    }
-}
-
-function cleanupUserModules() {
-    console.log('Cleaning up user modules');
-    
-    // Cleanup modules in reverse order
-    if (appState.modules.notes && appState.modules.notes.cleanup) {
-        appState.modules.notes.cleanup();
-    }
-    
-    if (appState.modules.dictionary && appState.modules.dictionary.cleanup) {
-        appState.modules.dictionary.cleanup();
-    }
-    
-    if (appState.modules.tableManager && appState.modules.tableManager.cleanup) {
-        appState.modules.tableManager.cleanup();
-    }
-    
-    // Reset module references
-    appState.modules = {
-        auth: appState.modules.auth, // Keep auth module
-        tableManager: null,
-        dictionary: null,
-        notes: null
-    };
-    
-    // Reset table state
-    appState.currentTableId = null;
-    appState.currentTableName = null;
-    
-    // Clear UI
-    updateUIForTable(false);
-    
-    // Clear any pending operations
-    appState.pendingOperations = [];
-    
-    showNotification('Signed out successfully', 'info');
 }
 
 // Utility Functions
@@ -774,76 +524,26 @@ function checkForUnsavedChanges() {
     return isEditingDictionary || isEditingNotes;
 }
 
-function saveAppState() {
+// Module Management
+function initializeUserModules() {
     try {
-        const stateToSave = {
-            currentTableId: appState.currentTableId,
-            currentTableName: appState.currentTableName,
-            timestamp: new Date().toISOString()
-        };
+        console.log('Initializing modules for local user');
         
-        localStorage.setItem('app_state_backup', JSON.stringify(stateToSave));
+        // Initialize table manager
+        appState.modules.tableManager = initTableManager();
+        
+        // Initialize dictionary module
+        appState.modules.dictionary = initDictionary();
+        
+        // Initialize notes module
+        appState.modules.notes = initNotes();
+        
+        showNotification('Welcome! All data is stored locally in your browser.', 'success');
+        
     } catch (error) {
-        console.error('Failed to save app state:', error);
+        console.error('Failed to initialize modules:', error);
+        showNotification('Failed to initialize. Please refresh.', 'error');
     }
-}
-
-function restoreAppState() {
-    try {
-        const savedState = localStorage.getItem('app_state_backup');
-        if (savedState) {
-            const state = JSON.parse(savedState);
-            
-            // Restore table selection if user is logged in
-            if (getCurrentUser() && state.currentTableId) {
-                const tableSelect = document.getElementById('currentTable');
-                if (tableSelect) {
-                    tableSelect.value = state.currentTableId;
-                    tableSelect.dispatchEvent(new Event('change'));
-                }
-            }
-            
-            // Clear backup
-            localStorage.removeItem('app_state_backup');
-        }
-    } catch (error) {
-        console.error('Failed to restore app state:', error);
-    }
-}
-
-async function processPendingOperations() {
-    if (!appState.pendingOperations.length || !navigator.onLine) {
-        return;
-    }
-    
-    console.log('Processing pending operations:', appState.pendingOperations.length);
-    
-    // Process operations in order
-    for (const operation of appState.pendingOperations) {
-        try {
-            // Dispatch appropriate event based on operation type
-            window.dispatchEvent(new CustomEvent('processPendingOperation', {
-                detail: operation
-            }));
-            
-            // Remove from pending list (in real implementation, you'd track success)
-            appState.pendingOperations = appState.pendingOperations.filter(op => op !== operation);
-            
-        } catch (error) {
-            console.error('Failed to process pending operation:', error);
-        }
-    }
-}
-
-async function refreshData() {
-    if (!appState.currentTableId || !navigator.onLine) {
-        return;
-    }
-    
-    console.log('Refreshing data for current table');
-    
-    // Dispatch refresh events to modules
-    window.dispatchEvent(new CustomEvent('refreshData'));
 }
 
 // Public API for other modules
@@ -853,14 +553,11 @@ window.app = {
         id: appState.currentTableId,
         name: appState.currentTableName
     }),
-    getUser: () => getCurrentUser(),
+    getUser: () => ({ id: 'local_user', name: 'Local User' }),
     showNotification,
     showModal,
-    hideModal,
-    addPendingOperation: (operation) => {
-        appState.pendingOperations.push(operation);
-    }
+    hideModal
 };
 
 // Initialize
-console.log('App script loaded');
+console.log('App script loaded (Local Storage Mode - No Login Required)');

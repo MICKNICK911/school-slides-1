@@ -54,9 +54,7 @@ export function formatDate(date, includeTime = true) {
     if (!date) return 'Unknown date';
     
     let dateObj;
-    if (date.toDate) {
-        dateObj = date.toDate(); // Firebase Timestamp
-    } else if (date instanceof Date) {
+    if (date instanceof Date) {
         dateObj = date;
     } else {
         dateObj = new Date(date);
