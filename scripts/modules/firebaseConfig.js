@@ -1,101 +1,108 @@
-// scripts/modules/firebaseConfig.js
-import firebase from 'firebase/compat/app';
-import 'firebase/compat/auth';
-import 'firebase/compat/firestore';
+// scripts/modules/auth.js
+import { auth, getFirebaseErrorMessage } from './firebaseConfig.js';
+import { showNotification } from './uiManager.js';
 
-// ============================================
-// FIREBASE CONFIGURATION
-// ============================================
-// REPLACE WITH YOUR FIREBASE CONFIG FROM FIREBASE CONSOLE
-const firebaseConfig = {
-  apiKey: "AIzaSyCw1UnzkY4Eq_ImEnRDRFYmUMhSc95T-NU",
-  authDomain: "lesson-notes-2025.firebaseapp.com",
-  projectId: "lesson-notes-2025",
-  storageBucket: "lesson-notes-2025.firebasestorage.app",
-  messagingSenderId: "757231923808",
-  appId: "1:757231923808:web:3c72026662c8a296134905"
-};
-// ============================================
+// Auth state
+let currentUser = null;
 
-// Check if Firebase app already exists
-let app;
-let auth;
-let db;
-
-try {
-    // Check for existing Firebase app
-    if (!firebase.apps.length) {
-        app = firebase.initializeApp(firebaseConfig);
-    } else {
-        app = firebase.app();
-    }
-    
-    auth = firebase.auth();
-    db = firebase.firestore();
-    
-    // Enable offline persistence
-    db.enablePersistence().catch((err) => {
-        console.warn('Firebase persistence failed:', err.code);
-    });
-    
-    console.log('Firebase initialized successfully');
-    
-} catch (error) {
-    console.error('Firebase initialization error:', error);
-    throw new Error(`Firebase failed to initialize: ${error.message}`);
-}
-
-// Export services
-export { firebase, app, auth, db };
-
-// Firebase error message helper
-export const getFirebaseErrorMessage = (error) => {
-    const errorMessages = {
-        // Authentication errors
-        'auth/invalid-email': 'Please enter a valid email address.',
-        'auth/user-disabled': 'This account has been disabled.',
-        'auth/user-not-found': 'No account found with this email.',
-        'auth/wrong-password': 'Incorrect password.',
-        'auth/email-already-in-use': 'This email is already registered.',
-        'auth/weak-password': 'Password should be at least 6 characters.',
-        'auth/operation-not-allowed': 'Email/password accounts are not enabled.',
-        'auth/too-many-requests': 'Too many attempts. Please try again later.',
-        'auth/network-request-failed': 'Network error. Please check your connection.',
-        
-        // Firestore errors
-        'permission-denied': 'You don\'t have permission to access this data.',
-        'unauthenticated': 'Please sign in to continue.',
-        'failed-precondition': 'Database operation failed.',
-        'already-exists': 'This item already exists.',
-        'not-found': 'Item not found.',
-        'resource-exhausted': 'Too many requests. Please try again later.',
-        'cancelled': 'Operation was cancelled.',
-        'deadline-exceeded': 'Operation timeout. Please try again.',
-    };
-    
-    return errorMessages[error?.code] || error?.message || 'An unexpected error occurred';
-};
-
-// Test Firebase connection
-export const testFirebaseConnection = async () => {
+// Initialize authentication
+export const initAuth = () => {
     try {
-        if (!auth || !db) {
-            return { success: false, message: 'Firebase not initialized' };
-        }
+        auth.onAuthStateChanged((user) => {
+            currentUser = user;
+            
+            // Update UI
+            const loginModal = document.getElementById('loginModal');
+            const appContainer = document.getElementById('appContainer');
+            
+            if (user) {
+                // User is signed in
+                loginModal.style.display = 'none';
+                appContainer.style.display = 'block';
+                document.getElementById('userEmail').textContent = `(${user.email})`;
+                
+                showNotification(`Welcome back, ${user.email.split('@')[0]}!`, 'success');
+            } else {
+                // User is signed out
+                loginModal.style.display = 'flex';
+                appContainer.style.display = 'none';
+                document.getElementById('userEmail').textContent = '';
+                
+                // Clear form
+                document.getElementById('loginEmail').value = '';
+                document.getElementById('loginPassword').value = '';
+                document.getElementById('loginMessage').textContent = '';
+            }
+            
+            // Dispatch event
+            window.dispatchEvent(new CustomEvent('authStateChanged', {
+                detail: { user }
+            }));
+        });
         
-        return {
-            success: true,
-            auth: true,
-            firestore: true,
-            projectId: firebaseConfig.projectId,
-            timestamp: new Date().toISOString()
-        };
+        console.log('Auth initialized');
+    } catch (error) {
+        console.error('Auth init error:', error);
+    }
+};
+
+// Sign up
+export const signUp = async (email, password) => {
+    const messageEl = document.getElementById('loginMessage');
+    
+    try {
+        messageEl.textContent = 'Creating account...';
+        messageEl.style.color = 'var(--primary)';
+        
+        await auth.createUserWithEmailAndPassword(email, password);
+        
+        messageEl.textContent = 'Account created successfully!';
+        messageEl.style.color = 'var(--secondary)';
         
     } catch (error) {
-        return { 
-            success: false, 
-            error: error.message,
-            timestamp: new Date().toISOString()
-        };
+        const errorMessage = getFirebaseErrorMessage(error);
+        messageEl.textContent = errorMessage;
+        messageEl.style.color = 'var(--danger)';
+        throw new Error(errorMessage);
     }
 };
+
+// Sign in
+export const signIn = async (email, password) => {
+    const messageEl = document.getElementById('loginMessage');
+    
+    try {
+        messageEl.textContent = 'Signing in...';
+        messageEl.style.color = 'var(--primary)';
+        
+        await auth.signInWithEmailAndPassword(email, password);
+        
+        messageEl.textContent = 'Sign in successful!';
+        messageEl.style.color = 'var(--secondary)';
+        
+        // Clear message after delay
+        setTimeout(() => {
+            messageEl.textContent = '';
+        }, 2000);
+        
+    } catch (error) {
+        const errorMessage = getFirebaseErrorMessage(error);
+        messageEl.textContent = errorMessage;
+        messageEl.style.color = 'var(--danger)';
+        throw new Error(errorMessage);
+    }
+};
+
+// Sign out
+export const signOut = async () => {
+    try {
+        await auth.signOut();
+    } catch (error) {
+        const errorMessage = getFirebaseErrorMessage(error);
+        showNotification(`Sign out failed: ${errorMessage}`, 'error');
+        throw new Error(errorMessage);
+    }
+};
+
+// Get current user
+export const getCurrentUser = () => currentUser;

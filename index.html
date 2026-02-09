@@ -173,9 +173,11 @@
                         
                         <div class="button-group">
                             <div class="file-input-container">
-                                <button class="btn btn-primary" id="importNotesBtn" disabled>
-                                    <span class="btn-icon">↑</span> Import Notes
-                                </button>
+                                <div class="preview-tabs">
+                                    <button class="tab-button active" data-tab="dictionary">Dictionary</button>
+                                    <button class="tab-button" data-tab="notes">Notes</button>
+                                    <button class="tab-button" data-tab="raw-data">Raw Data</button>
+                                </div>
                                 <input type="file" id="importNotesFile" class="file-input" accept=".json" disabled>
                             </div>
                             <button id="exportNotesBtn" class="btn btn-secondary" disabled>
@@ -191,12 +193,23 @@
 
             <!-- Preview Section -->
             <section class="preview-section">
-                <div class="preview-header">
+                <!-- <div class="preview-header">
                     <h2>Preview: <span id="previewTableName">No Table Selected</span></h2>
                     <div class="preview-tabs">
                         <button class="tab-button active" data-tab="dictionary">Dictionary</button>
                         <button class="tab-button" data-tab="notes">Notes</button>
                         <button class="tab-button" data-tab="raw-data">Raw Data</button>
+                    </div>
+                </div> -->
+                <div class="preview-panels">
+                    <div id="dictionary" class="tab-content active markdown-preview">
+                        Select a table to preview dictionary entries
+                    </div>
+                    <div id="notes" class="tab-content markdown-preview">
+                        Select a table to preview notes
+                    </div>
+                    <div id="raw-data" class="tab-content">
+                        <pre id="preview">Select a table to view data</pre>
                     </div>
                 </div>
                 

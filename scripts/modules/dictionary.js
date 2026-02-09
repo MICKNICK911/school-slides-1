@@ -1,39 +1,32 @@
 // scripts/modules/dictionary.js
-import { saveDictionaryEntry, deleteDictionaryEntry, loadDictionaryEntries, 
-         exportTableData, importTableData } from './database.js';
-import { showNotification, processMarkdown } from './utils.js';
-import { showModal, hideModal } from './uiManager.js';
+import { db } from './firebaseConfig.js';
+import { getCurrentUser } from './auth.js';
+import { showNotification } from './uiManager.js';
+import { processMarkdown } from './utils.js';
 
 let dictionary = {};
-let currentEditId = null;
-let unsubscribeDictionary = null;
 let currentTableId = null;
-let searchTerm = '';
+let unsubscribeDictionary = null;
 
 // Initialize dictionary module
 export function initDictionary() {
-    setupEventListeners();
+    console.log('Initializing dictionary module...');
     
     // Listen for table changes
     window.addEventListener('tableChanged', handleTableChange);
     
     // Listen for delete events
-    window.addEventListener('deleteDictionaryEntry', handleDeleteEntry);
-    window.addEventListener('clearDictionary', handleClearDictionary);
+    window.addEventListener('deleteItem', handleDeleteItem);
     
-    // Listen for import events
-    window.addEventListener('dictionaryImport', handleDictionaryImport);
+    // Listen for export events
+    window.addEventListener('exportData', handleExport);
     
-    const module = {
-        getDictionary: () => dictionary,
-        getCurrentEditId: () => currentEditId,
-        cleanup: cleanupDictionary
+    // Set up event listeners
+    setupEventListeners();
+    
+    return {
+        getDictionary: () => dictionary
     };
-    
-    // Store reference globally for other modules
-    window.dictionaryModule = module;
-    
-    return module;
 }
 
 // Handle table change
@@ -48,10 +41,9 @@ function handleTableChange(event) {
     
     // Clear current dictionary
     dictionary = {};
-    currentEditId = null;
     currentTableId = tableId;
     
-    // Reset form
+    // Reset UI
     clearDictionaryForm();
     updateEditDropdown();
     updateEntriesList();
@@ -59,20 +51,44 @@ function handleTableChange(event) {
     
     // If new table selected, load its dictionary
     if (tableId) {
-        unsubscribeDictionary = loadDictionaryEntries(tableId, (entries) => {
-            dictionary = entries;
-            updateEditDropdown();
-            updateEntriesList();
-            updateDictionaryPreview();
-            updateCountBadge();
-        });
-    } else {
-        // No table selected
-        updateCountBadge();
+        loadDictionaryEntries(tableId);
     }
 }
 
-// Setup event listeners
+// Load dictionary entries for a table
+function loadDictionaryEntries(tableId) {
+    const user = getCurrentUser();
+    if (!user || !tableId) return;
+    
+    try {
+        unsubscribeDictionary = db.collection('users').doc(user.uid)
+            .collection('tables').doc(tableId)
+            .collection('dictionary')
+            .onSnapshot((snapshot) => {
+                dictionary = {};
+                snapshot.forEach(doc => {
+                    dictionary[doc.id] = doc.data();
+                });
+                
+                updateEditDropdown();
+                updateEntriesList();
+                updateDictionaryPreview();
+                updateCountBadge();
+                
+            }, (error) => {
+                console.error('Error loading dictionary:', error);
+                dictionary = {};
+                updateEditDropdown();
+                updateEntriesList();
+                updateDictionaryPreview();
+                updateCountBadge();
+            });
+    } catch (error) {
+        console.error('Error setting up dictionary listener:', error);
+    }
+}
+
+// Set up event listeners
 function setupEventListeners() {
     // Form buttons
     document.getElementById('addBtn').addEventListener('click', addEntry);
@@ -80,24 +96,29 @@ function setupEventListeners() {
     document.getElementById('cancelBtn').addEventListener('click', cancelEdit);
     document.getElementById('editId').addEventListener('change', loadEntryForEdit);
     
-    // Import/Export buttons
-    document.getElementById('exportDictBtn').addEventListener('click', exportDictionary);
+    // Clear button
     document.getElementById('clearDictBtn').addEventListener('click', clearDictionary);
     
     // Search
-    const searchInput = document.getElementById('searchDictInput');
-    if (searchInput) {
-        searchInput.addEventListener('input', (e) => {
-            searchTerm = e.target.value.toLowerCase();
-            updateEntriesList();
-        });
-    }
+    document.getElementById('searchDictInput').addEventListener('input', updateEntriesList);
     
-    // Keyboard shortcuts
-    document.addEventListener('keydown', handleKeyboardShortcuts);
+    // Import
+    document.getElementById('importDictBtn').addEventListener('click', () => {
+        document.getElementById('importDictFile').click();
+    });
+    
+    document.getElementById('importDictFile').addEventListener('change', handleImport);
+    
+    // Export
+    document.getElementById('exportDictBtn').addEventListener('click', () => {
+        const tableName = document.getElementById('currentTableName').textContent
+            .replace(/\s+/g, '_').toLowerCase();
+        document.getElementById('filename').value = `${tableName}_dictionary.json`;
+        document.getElementById('exportModal').style.display = 'flex';
+    });
 }
 
-// Add new dictionary entry
+// Add new entry
 async function addEntry() {
     if (!currentTableId) {
         showNotification('Please select a table first', 'error');
@@ -114,7 +135,13 @@ async function addEntry() {
     }
     
     if (dictionary[topic]) {
-        showNotification('Topic already exists in this table. Edit the existing one.', 'error');
+        showNotification('Topic already exists. Edit the existing one.', 'error');
+        return;
+    }
+    
+    const user = getCurrentUser();
+    if (!user) {
+        showNotification('Please sign in first', 'error');
         return;
     }
     
@@ -126,25 +153,37 @@ async function addEntry() {
     };
     
     try {
-        await saveDictionaryEntry(currentTableId, topic, entryData);
+        await db.collection('users').doc(user.uid)
+            .collection('tables').doc(currentTableId)
+            .collection('dictionary').doc(topic)
+            .set(entryData);
+        
         showNotification('Entry added successfully');
         clearDictionaryForm();
+        
     } catch (error) {
         console.error('Error adding entry:', error);
-        showNotification('Failed to save entry. Check connection.', 'error');
+        showNotification('Failed to save entry', 'error');
     }
 }
 
-// Update existing entry
+// Update entry
 async function updateEntry() {
-    if (!currentTableId || !currentEditId) return;
+    if (!currentTableId) return;
     
+    const selectedTopic = document.getElementById('editId').value;
     const newTopic = document.getElementById('topic').value.trim();
     const desc = document.getElementById('desc').value.trim();
     const ex = document.getElementById('ex').value.trim();
     
     if (!newTopic || !desc) {
         showNotification('Please fill in topic and description', 'error');
+        return;
+    }
+    
+    const user = getCurrentUser();
+    if (!user) {
+        showNotification('Please sign in first', 'error');
         return;
     }
     
@@ -155,14 +194,22 @@ async function updateEntry() {
     };
     
     try {
-        // If topic name changed, delete old and create new
-        if (currentEditId !== newTopic) {
-            await deleteDictionaryEntry(currentTableId, currentEditId);
+        // If topic changed, delete old and create new
+        if (selectedTopic !== newTopic) {
+            await db.collection('users').doc(user.uid)
+                .collection('tables').doc(currentTableId)
+                .collection('dictionary').doc(selectedTopic)
+                .delete();
         }
         
-        await saveDictionaryEntry(currentTableId, newTopic, entryData);
+        await db.collection('users').doc(user.uid)
+            .collection('tables').doc(currentTableId)
+            .collection('dictionary').doc(newTopic)
+            .set(entryData, { merge: true });
+        
         showNotification('Entry updated successfully');
         cancelEdit();
+        
     } catch (error) {
         console.error('Error updating entry:', error);
         showNotification('Update failed', 'error');
@@ -184,24 +231,21 @@ function loadEntryForEdit() {
     document.getElementById('desc').value = entry.desc || '';
     document.getElementById('ex').value = entry.ex ? entry.ex.join(', ') : '';
     
-    currentEditId = selectedTopic;
     document.getElementById('addBtn').disabled = true;
     document.getElementById('updateBtn').disabled = false;
     document.getElementById('cancelBtn').disabled = false;
-    document.getElementById('topic').focus();
 }
 
-// Cancel edit mode
+// Cancel edit
 function cancelEdit() {
     clearDictionaryForm();
     document.getElementById('editId').value = "";
-    currentEditId = null;
     document.getElementById('addBtn').disabled = false;
     document.getElementById('updateBtn').disabled = true;
     document.getElementById('cancelBtn').disabled = true;
 }
 
-// Clear dictionary form
+// Clear form
 function clearDictionaryForm() {
     document.getElementById('topic').value = '';
     document.getElementById('desc').value = '';
@@ -224,10 +268,10 @@ function updateEditDropdown() {
     });
 }
 
-// Update entries list with search filtering
+// Update entries list
 function updateEntriesList() {
+    const searchTerm = document.getElementById('searchDictInput').value.toLowerCase();
     const container = document.getElementById('entriesList');
-    if (!container) return;
     
     // Filter entries
     const filteredEntries = Object.entries(dictionary).filter(([topic, data]) => {
@@ -268,7 +312,7 @@ function updateEntriesList() {
     
     container.innerHTML = entriesHTML;
     
-    // Add event listeners to action buttons
+    // Add event listeners
     container.querySelectorAll('.edit-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const topic = btn.dataset.topic;
@@ -280,15 +324,17 @@ function updateEntriesList() {
     container.querySelectorAll('.delete-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const topic = btn.dataset.topic;
-            showDeleteConfirmation(topic, 'dictionary');
+            document.getElementById('deleteTopic').textContent = topic;
+            document.getElementById('deleteModal').dataset.type = 'dictionary';
+            document.getElementById('deleteModal').dataset.itemId = topic;
+            document.getElementById('deleteModal').style.display = 'flex';
         });
     });
 }
 
-// Update dictionary preview
+// Update preview
 function updateDictionaryPreview() {
-    const container = document.getElementById('dictionary-preview');
-    if (!container) return;
+    const container = document.getElementById('dictionary');
     
     if (Object.keys(dictionary).length === 0) {
         container.innerHTML = '<div class="empty-state">No dictionary entries in this table</div>';
@@ -318,53 +364,33 @@ function updateDictionaryPreview() {
 
 // Update count badge
 function updateCountBadge() {
-    const countElement = document.getElementById('dictCount');
-    if (countElement) {
-        countElement.textContent = Object.keys(dictionary).length;
-    }
+    document.getElementById('dictCount').textContent = Object.keys(dictionary).length;
 }
 
-// Export dictionary
-async function exportDictionary() {
-    if (!currentTableId) {
-        showNotification('Please select a table first', 'error');
-        return;
-    }
+// Handle delete item
+async function handleDeleteItem(event) {
+    const { type, itemId } = event.detail;
+    
+    if (type !== 'dictionary' || !currentTableId || !itemId) return;
+    
+    const user = getCurrentUser();
+    if (!user) return;
     
     try {
-        const data = await exportTableData(currentTableId);
-        const exportData = {
-            dictionary: data.dictionary || {},
-            metadata: {
-                exportedAt: new Date().toISOString(),
-                tableId: currentTableId,
-                tableName: document.getElementById('currentTableName')?.textContent || 'Unknown',
-                count: Object.keys(dictionary).length
-            }
-        };
+        await db.collection('users').doc(user.uid)
+            .collection('tables').doc(currentTableId)
+            .collection('dictionary').doc(itemId)
+            .delete();
         
-        const jsonStr = JSON.stringify(exportData, null, 2);
-        const blob = new Blob([jsonStr], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
+        showNotification('Entry deleted');
         
-        const a = document.createElement('a');
-        const tableName = (document.getElementById('currentTableName')?.textContent || 'dictionary')
-            .replace(/\s+/g, '_').toLowerCase();
-        a.href = url;
-        a.download = `${tableName}_dictionary_${new Date().toISOString().split('T')[0]}.json`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        
-        showNotification('Dictionary exported successfully');
     } catch (error) {
-        console.error('Export error:', error);
-        showNotification('Failed to export dictionary', 'error');
+        console.error('Error deleting entry:', error);
+        showNotification('Delete failed', 'error');
     }
 }
 
-// Clear dictionary (all entries in current table)
+// Clear dictionary
 async function clearDictionary() {
     if (!currentTableId) return;
     
@@ -374,139 +400,141 @@ async function clearDictionary() {
         return;
     }
     
-    if (!confirm(`Are you sure you want to clear ALL ${entryCount} dictionary entries in this table? This cannot be undone.`)) {
+    if (!confirm(`Are you sure you want to clear ALL ${entryCount} dictionary entries? This cannot be undone.`)) {
         return;
     }
     
+    const user = getCurrentUser();
+    if (!user) return;
+    
     try {
         const entries = Object.keys(dictionary);
         const deletePromises = entries.map(topic => 
-            deleteDictionaryEntry(currentTableId, topic)
+            db.collection('users').doc(user.uid)
+                .collection('tables').doc(currentTableId)
+                .collection('dictionary').doc(topic)
+                .delete()
         );
         
         await Promise.all(deletePromises);
         showNotification('Dictionary cleared successfully');
+        
     } catch (error) {
         console.error('Error clearing dictionary:', error);
         showNotification('Failed to clear dictionary', 'error');
     }
 }
 
-// Handle dictionary import
-async function handleDictionaryImport(event) {
-    const { data: importData, action } = event.detail;
+// Handle import
+async function handleImport(event) {
+    const file = event.target.files[0];
+    if (!file || !currentTableId) return;
     
-    if (!currentTableId || !importData) return;
+    const user = getCurrentUser();
+    if (!user) return;
     
     try {
-        const result = await importTableData(currentTableId, { dictionary: importData.dictionary });
-        showNotification(`Imported ${result.importedEntries} dictionary entries (${action})`);
+        const text = await file.text();
+        const importData = JSON.parse(text);
+        
+        if (!importData.dictionary) {
+            showNotification('Invalid import file', 'error');
+            return;
+        }
+        
+        // Show import options
+        document.getElementById('importModal').style.display = 'flex';
+        
+        // Store import data for later
+        window.pendingImport = {
+            data: importData.dictionary,
+            type: 'dictionary'
+        };
+        
     } catch (error) {
         console.error('Import error:', error);
-        showNotification('Failed to import dictionary', 'error');
+        showNotification('Invalid JSON file', 'error');
+    } finally {
+        event.target.value = '';
     }
 }
 
-// Show delete confirmation
-function showDeleteConfirmation(topic, type) {
-    document.getElementById('deleteTopic').textContent = topic;
-    document.getElementById('deleteModal').dataset.type = type;
-    document.getElementById('deleteModal').dataset.topic = topic;
-    showModal('deleteModal');
-}
-
-// Handle delete entry from event
-async function handleDeleteEntry(event) {
-    const { topic } = event.detail;
+// Handle export
+async function handleExport(event) {
+    const { filename } = event.detail;
     
-    if (!currentTableId || !topic) return;
+    if (!currentTableId || !filename) return;
     
     try {
-        await deleteDictionaryEntry(currentTableId, topic);
-        showNotification('Entry deleted');
-    } catch (error) {
-        console.error('Delete error:', error);
-        showNotification('Delete failed', 'error');
-    }
-}
-
-// Handle clear dictionary from event
-async function handleClearDictionary() {
-    if (!currentTableId) return;
-    
-    const entryCount = Object.keys(dictionary).length;
-    if (entryCount === 0) return;
-    
-    try {
-        const entries = Object.keys(dictionary);
-        const deletePromises = entries.map(topic => 
-            deleteDictionaryEntry(currentTableId, topic)
-        );
+        const exportData = {
+            dictionary: dictionary,
+            metadata: {
+                exportedAt: new Date().toISOString(),
+                tableId: currentTableId,
+                tableName: document.getElementById('currentTableName').textContent
+            }
+        };
         
-        await Promise.all(deletePromises);
-        showNotification('Dictionary cleared successfully');
+        const jsonStr = JSON.stringify(exportData, null, 2);
+        const blob = new Blob([jsonStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        showNotification('Dictionary exported successfully');
+        
     } catch (error) {
-        console.error('Error clearing dictionary:', error);
-        showNotification('Failed to clear dictionary', 'error');
+        console.error('Export error:', error);
+        showNotification('Failed to export', 'error');
     }
 }
 
-// Handle keyboard shortcuts
-function handleKeyboardShortcuts(e) {
-    // Only process if we're in dictionary context
-    const topicFocused = document.activeElement.id === 'topic';
-    const descFocused = document.activeElement.id === 'desc';
-    const exFocused = document.activeElement.id === 'ex';
+// Listen for import data
+window.addEventListener('importData', async (event) => {
+    const { action } = event.detail;
     
-    if (!topicFocused && !descFocused && !exFocused) return;
+    if (!window.pendingImport || !currentTableId) return;
     
-    // Ctrl/Cmd + Enter to save
-    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-        e.preventDefault();
-        if (!document.getElementById('updateBtn').disabled) {
-            document.getElementById('updateBtn').click();
-        } else if (!document.getElementById('addBtn').disabled) {
-            document.getElementById('addBtn').click();
+    const user = getCurrentUser();
+    if (!user) return;
+    
+    try {
+        const importData = window.pendingImport.data;
+        const batch = db.batch();
+        const dictRef = db.collection('users').doc(user.uid)
+            .collection('tables').doc(currentTableId)
+            .collection('dictionary');
+        
+        // If replace, delete existing entries
+        if (action === 'replace') {
+            const existingEntries = Object.keys(dictionary);
+            existingEntries.forEach(topic => {
+                batch.delete(dictRef.doc(topic));
+            });
         }
+        
+        // Import new entries
+        Object.entries(importData).forEach(([topic, data]) => {
+            batch.set(dictRef.doc(topic), {
+                ...data,
+                updatedAt: new Date()
+            });
+        });
+        
+        await batch.commit();
+        
+        showNotification(`Dictionary imported successfully (${action})`);
+        
+    } catch (error) {
+        console.error('Import error:', error);
+        showNotification('Import failed', 'error');
+    } finally {
+        delete window.pendingImport;
     }
-    
-    // Escape to cancel edit
-    if (e.key === 'Escape' && !document.getElementById('cancelBtn').disabled) {
-        document.getElementById('cancelBtn').click();
-    }
-}
-
-// Cleanup on logout
-export function cleanupDictionary() {
-    if (unsubscribeDictionary) {
-        unsubscribeDictionary();
-        unsubscribeDictionary = null;
-    }
-    
-    dictionary = {};
-    currentEditId = null;
-    currentTableId = null;
-    searchTerm = '';
-    
-    // Clear UI
-    const container = document.getElementById('entriesList');
-    if (container) {
-        container.innerHTML = '<div class="empty-state">Select a table to view entries</div>';
-    }
-    
-    const preview = document.getElementById('dictionary-preview');
-    if (preview) {
-        preview.innerHTML = 'Select a table to preview dictionary entries';
-    }
-    
-    const countElement = document.getElementById('dictCount');
-    if (countElement) {
-        countElement.textContent = '0';
-    }
-    
-    // Clear form
-    clearDictionaryForm();
-}
-
-// Initialize on load
-console.log('Dictionary module loaded');
+});
