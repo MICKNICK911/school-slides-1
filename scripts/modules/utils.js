@@ -27,6 +27,14 @@ export function processMarkdown(text) {
     // Handle line breaks
     processed = processed.replace(/\n/g, '<br>');
     
+    // Escape HTML to prevent XSS
+    processed = processed
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    
     return processed;
 }
 
@@ -109,16 +117,17 @@ export function sanitizeInput(input) {
     if (typeof input !== 'string') return input;
     
     return input
+        .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#x27;')
-        .replace(/\//g, '&#x2F;');
+        .replace(/'/g, '&#039;');
 }
 
 // Get file extension
 export function getFileExtension(filename) {
-    return filename.slice((filename.lastIndexOf('.') - 1 >>> 0) + 2).toLowerCase();
+    const lastDot = filename.lastIndexOf('.');
+    return lastDot === -1 ? '' : filename.slice(lastDot + 1).toLowerCase();
 }
 
 // Validate JSON file
@@ -128,7 +137,7 @@ export function validateJsonFile(file, maxSizeMB = 5) {
     }
     
     if (getFileExtension(file.name) !== 'json') {
-        return { valid: false, error: 'File must be JSON format' };
+        return { valid: false, error: 'File must be JSON format (.json)' };
     }
     
     if (file.size > maxSizeMB * 1024 * 1024) {
@@ -179,43 +188,6 @@ export function isOnline() {
     return navigator.onLine;
 }
 
-// Queue for offline operations
-export class OfflineQueue {
-    constructor(storageKey = 'offline_queue') {
-        this.storageKey = storageKey;
-    }
-    
-    add(operation) {
-        const queue = this.getQueue();
-        queue.push({
-            ...operation,
-            id: generateId('offline_'),
-            timestamp: new Date().toISOString(),
-            retryCount: 0
-        });
-        this.saveQueue(queue);
-    }
-    
-    getQueue() {
-        const queueJson = localStorage.getItem(this.storageKey);
-        return queueJson ? JSON.parse(queueJson) : [];
-    }
-    
-    saveQueue(queue) {
-        localStorage.setItem(this.storageKey, JSON.stringify(queue));
-    }
-    
-    remove(operationId) {
-        const queue = this.getQueue();
-        const filtered = queue.filter(op => op.id !== operationId);
-        this.saveQueue(filtered);
-    }
-    
-    clear() {
-        localStorage.removeItem(this.storageKey);
-    }
-}
-
 // Error handler with logging
 export function handleError(error, context = '') {
     console.error(`Error ${context}:`, error);
@@ -237,6 +209,34 @@ export function promiseWithTimeout(promise, timeoutMs, errorMessage = 'Operation
     ]);
 }
 
+// Generate a random color for UI elements
+export function generateRandomColor() {
+    const colors = [
+        '#4285f4', '#34a853', '#fbbc05', '#ea4335', '#8e44ad', 
+        '#2ecc71', '#e74c3c', '#3498db', '#f39c12', '#1abc9c'
+    ];
+    return colors[Math.floor(Math.random() * colors.length)];
+}
+
+// Format file size
+export function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+// Validate JSON string
+export function isValidJSON(str) {
+    try {
+        JSON.parse(str);
+        return true;
+    } catch (e) {
+        return false;
+    }
+}
+
 // Export all utilities for global access if needed
 if (typeof window !== 'undefined') {
     window.utils = {
@@ -254,9 +254,11 @@ if (typeof window !== 'undefined') {
         parseExamples,
         showNotification,
         isOnline,
-        OfflineQueue,
         handleError,
-        promiseWithTimeout
+        promiseWithTimeout,
+        generateRandomColor,
+        formatFileSize,
+        isValidJSON
     };
 }
 
@@ -275,7 +277,9 @@ export default {
     parseExamples,
     showNotification,
     isOnline,
-    OfflineQueue,
     handleError,
-    promiseWithTimeout
+    promiseWithTimeout,
+    generateRandomColor,
+    formatFileSize,
+    isValidJSON
 };

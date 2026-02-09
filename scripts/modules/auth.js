@@ -1,7 +1,6 @@
 // scripts/modules/auth.js
 import { auth, db, firebase, getFirebaseErrorMessage } from './firebaseConfig.js';
-import { showNotification } from './uiManager.js';
-import { isOnline } from './utils.js';
+import { showNotification } from './utils.js';
 
 // Auth state management
 let currentUser = null;
@@ -16,7 +15,7 @@ export const initAuth = () => {
     }
     
     try {
-        // Set up auth state observer - FIXED: No Promise needed
+        // Set up auth state observer
         auth.onAuthStateChanged(
             (user) => {
                 handleAuthStateChange(user);
@@ -90,11 +89,9 @@ const updateAuthUI = (user) => {
             // User is signed in
             loginModal.style.display = 'none';
             loginModal.setAttribute('aria-hidden', 'true');
-            loginModal.hidden = true;
             
             appContainer.style.display = 'block';
             appContainer.setAttribute('aria-hidden', 'false');
-            appContainer.hidden = false;
             
             // Update user email display
             if (userEmail) {
@@ -114,11 +111,9 @@ const updateAuthUI = (user) => {
             // User is signed out
             loginModal.style.display = 'flex';
             loginModal.setAttribute('aria-hidden', 'false');
-            loginModal.hidden = false;
             
             appContainer.style.display = 'none';
             appContainer.setAttribute('aria-hidden', 'true');
-            appContainer.hidden = true;
             
             window.userWelcomed = false;
             
@@ -129,7 +124,10 @@ const updateAuthUI = (user) => {
             
             if (loginEmail) loginEmail.value = '';
             if (loginPassword) loginPassword.value = '';
-            if (loginMessage) loginMessage.textContent = '';
+            if (loginMessage) {
+                loginMessage.textContent = '';
+                loginMessage.style.color = '';
+            }
             
             // Focus on email input
             setTimeout(() => {
@@ -216,10 +214,6 @@ export const signUp = async (email, password) => {
         throw new Error('Please enter both email and password');
     }
     
-    if (!isOnline()) {
-        throw new Error('You are offline. Please connect to the internet to sign up.');
-    }
-    
     const messageEl = document.getElementById('loginMessage');
     
     try {
@@ -227,7 +221,6 @@ export const signUp = async (email, password) => {
         if (messageEl) {
             messageEl.textContent = 'Creating account...';
             messageEl.style.color = 'var(--primary)';
-            messageEl.className = 'message';
         }
         
         const userCredential = await auth.createUserWithEmailAndPassword(email, password);
@@ -282,10 +275,6 @@ export const signIn = async (email, password) => {
         throw new Error('Please enter both email and password');
     }
     
-    if (!isOnline()) {
-        throw new Error('You are offline. Please connect to the internet to sign in.');
-    }
-    
     const messageEl = document.getElementById('loginMessage');
     
     try {
@@ -293,7 +282,6 @@ export const signIn = async (email, password) => {
         if (messageEl) {
             messageEl.textContent = 'Signing in...';
             messageEl.style.color = 'var(--primary)';
-            messageEl.className = 'message';
         }
         
         const userCredential = await auth.signInWithEmailAndPassword(email, password);
@@ -432,17 +420,8 @@ export default {
     cleanupAuth
 };
 
-// Initialize auth on module load
+// Make auth module available globally for debugging
 if (typeof window !== 'undefined') {
-    // Set up auth state persistence
-    if (auth && auth.setPersistence) {
-        auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
-            .catch(error => {
-                console.warn('Auth persistence error:', error);
-            });
-    }
-    
-    // Make auth module available globally for debugging
     window.authModule = {
         initAuth,
         signUp,

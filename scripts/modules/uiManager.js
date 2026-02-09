@@ -13,6 +13,11 @@ export function initUI() {
     initNotifications();
     initKeyboardShortcuts();
     initResponsiveDesign();
+    initExportModal();
+    initDeleteModal();
+    initImportModal();
+    initTableModal();
+    initTableDeleteModal();
 }
 
 // Tab Management
@@ -32,8 +37,10 @@ export function initTabs() {
 
 export function switchTab(tabName) {
     // Validate tab exists
-    const tabContent = document.getElementById(`${tabName}-preview`) || 
-                      document.getElementById(`${tabName}`);
+    let tabContent = document.getElementById(tabName);
+    if (!tabContent) {
+        tabContent = document.getElementById(`${tabName}-preview`);
+    }
     
     if (!tabContent) {
         console.warn(`Tab "${tabName}" not found`);
@@ -63,7 +70,7 @@ export function switchTab(tabName) {
 }
 
 // Modal Management
-export function initModals() {
+function initModals() {
     // Close modals when clicking outside
     document.querySelectorAll('.modal').forEach(modal => {
         modal.addEventListener('click', (e) => {
@@ -79,154 +86,169 @@ export function initModals() {
             hideModal(activeModal);
         }
     });
-    
-    // Initialize specific modals
-    initExportModal();
-    initDeleteModal();
-    initImportModal();
-    initTableModal();
 }
 
 function initExportModal() {
-    const exportModal = document.getElementById('exportModal');
     const cancelBtn = document.getElementById('cancelExport');
     const confirmBtn = document.getElementById('confirmExport');
     const filenameInput = document.getElementById('filename');
     
-    if (!exportModal || !cancelBtn || !confirmBtn || !filenameInput) return;
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', () => hideModal('exportModal'));
+    }
     
-    cancelBtn.addEventListener('click', () => hideModal('exportModal'));
-    
-    confirmBtn.addEventListener('click', () => {
-        const filename = filenameInput.value.trim();
-        if (!filename) {
-            showNotification('Please enter a filename', 'error');
-            return;
-        }
+    if (confirmBtn && filenameInput) {
+        confirmBtn.addEventListener('click', () => {
+            const filename = filenameInput.value.trim();
+            if (!filename) {
+                showNotification('Please enter a filename', 'error');
+                return;
+            }
+            
+            // Validate filename
+            if (/[<>:"/\\|?*]/.test(filename)) {
+                showNotification('Filename contains invalid characters', 'error');
+                return;
+            }
+            
+            const finalFilename = filename.endsWith('.json') ? filename : `${filename}.json`;
+            
+            // Dispatch event for app.js to handle
+            window.dispatchEvent(new CustomEvent('exportConfirmed', {
+                detail: { filename: finalFilename }
+            }));
+            
+            hideModal('exportModal');
+        });
         
-        // Validate filename
-        if (/[<>:"/\\|?*]/.test(filename)) {
-            showNotification('Filename contains invalid characters', 'error');
-            return;
-        }
-        
-        const finalFilename = filename.endsWith('.json') ? filename : `${filename}.json`;
-        
-        // Dispatch event for other modules to handle
-        window.dispatchEvent(new CustomEvent('exportConfirmed', {
-            detail: { filename: finalFilename, modalType: 'export' }
-        }));
-        
-        hideModal('exportModal');
-    });
-    
-    // Enter key in filename input
-    filenameInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            confirmBtn.click();
-        }
-    });
+        // Enter key in filename input
+        filenameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                confirmBtn.click();
+            }
+        });
+    }
 }
 
 function initDeleteModal() {
-    const deleteModal = document.getElementById('deleteModal');
     const cancelBtn = document.getElementById('cancelDelete');
     const confirmBtn = document.getElementById('confirmDelete');
     
-    if (!deleteModal || !cancelBtn || !confirmBtn) return;
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', () => hideModal('deleteModal'));
+    }
     
-    cancelBtn.addEventListener('click', () => hideModal('deleteModal'));
-    confirmBtn.addEventListener('click', () => {
-        const type = deleteModal.dataset.type;
-        const itemId = deleteModal.dataset.topic || deleteModal.dataset.noteId;
-        
-        if (!type || !itemId) {
-            console.error('Delete modal missing data');
+    if (confirmBtn) {
+        confirmBtn.addEventListener('click', () => {
+            const modal = document.getElementById('deleteModal');
+            const type = modal.dataset.type;
+            const itemId = modal.dataset.topic || modal.dataset.noteId;
+            
+            if (!type || !itemId) {
+                console.error('Delete modal missing data');
+                hideModal('deleteModal');
+                return;
+            }
+            
+            // Dispatch event for app.js to handle
+            window.dispatchEvent(new CustomEvent('deleteConfirmed', {
+                detail: { type, itemId }
+            }));
+            
             hideModal('deleteModal');
-            return;
-        }
-        
-        // Dispatch event for appropriate module to handle
-        window.dispatchEvent(new CustomEvent('deleteConfirmed', {
-            detail: { type, itemId }
-        }));
-        
-        hideModal('deleteModal');
-    });
+        });
+    }
 }
 
 function initImportModal() {
-    const importModal = document.getElementById('importModal');
     const replaceBtn = document.getElementById('replaceData');
     const mergeBtn = document.getElementById('mergeData');
     
-    if (!importModal || !replaceBtn || !mergeBtn) return;
+    if (replaceBtn) {
+        replaceBtn.addEventListener('click', () => {
+            window.dispatchEvent(new CustomEvent('importOptionSelected', {
+                detail: { action: 'replace' }
+            }));
+            hideModal('importModal');
+        });
+    }
     
-    // Close when clicking outside is already handled
-    
-    replaceBtn.addEventListener('click', () => {
-        window.dispatchEvent(new CustomEvent('importOptionSelected', {
-            detail: { action: 'replace' }
-        }));
-        hideModal('importModal');
-    });
-    
-    mergeBtn.addEventListener('click', () => {
-        window.dispatchEvent(new CustomEvent('importOptionSelected', {
-            detail: { action: 'merge' }
-        }));
-        hideModal('importModal');
-    });
+    if (mergeBtn) {
+        mergeBtn.addEventListener('click', () => {
+            window.dispatchEvent(new CustomEvent('importOptionSelected', {
+                detail: { action: 'merge' }
+            }));
+            hideModal('importModal');
+        });
+    }
 }
 
 function initTableModal() {
-    const tableModal = document.getElementById('tableModal');
     const cancelBtn = document.getElementById('cancelTableBtn');
     const confirmBtn = document.getElementById('confirmTableBtn');
     const tableNameInput = document.getElementById('tableName');
-    const errorElement = document.getElementById('tableNameError');
     
-    if (!tableModal || !cancelBtn || !confirmBtn || !tableNameInput) return;
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', () => hideModal('tableModal'));
+    }
     
-    cancelBtn.addEventListener('click', () => hideModal('tableModal'));
+    if (confirmBtn && tableNameInput) {
+        confirmBtn.addEventListener('click', async () => {
+            const tableName = tableNameInput.value.trim();
+            const action = confirmBtn.dataset.action;
+            const tableId = confirmBtn.dataset.tableId;
+            const errorElement = document.getElementById('tableNameError');
+            
+            if (errorElement) errorElement.textContent = '';
+            
+            // Validate table name
+            if (!tableName) {
+                if (errorElement) errorElement.textContent = 'Table name is required';
+                return;
+            }
+            
+            if (tableName.length < 2) {
+                if (errorElement) errorElement.textContent = 'Table name must be at least 2 characters';
+                return;
+            }
+            
+            if (tableName.length > 50) {
+                if (errorElement) errorElement.textContent = 'Table name must be less than 50 characters';
+                return;
+            }
+            
+            // Dispatch event for app.js to handle
+            window.dispatchEvent(new CustomEvent('tableActionConfirmed', {
+                detail: { action, tableName, tableId }
+            }));
+            
+            hideModal('tableModal');
+            tableNameInput.value = '';
+        });
+        
+        // Enter key in table name input
+        tableNameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                confirmBtn.click();
+            }
+        });
+    }
+}
+
+function initTableDeleteModal() {
+    const cancelBtn = document.getElementById('cancelTableDelete');
+    const confirmBtn = document.getElementById('confirmTableDelete');
     
-    confirmBtn.addEventListener('click', async () => {
-        const tableName = tableNameInput.value.trim();
-        const action = confirmBtn.dataset.action;
-        const tableId = confirmBtn.dataset.tableId;
-        
-        if (errorElement) errorElement.textContent = '';
-        
-        // Validate table name
-        if (!tableName) {
-            if (errorElement) errorElement.textContent = 'Table name is required';
-            return;
-        }
-        
-        if (tableName.length < 2) {
-            if (errorElement) errorElement.textContent = 'Table name must be at least 2 characters';
-            return;
-        }
-        
-        if (tableName.length > 50) {
-            if (errorElement) errorElement.textContent = 'Table name must be less than 50 characters';
-            return;
-        }
-        
-        // Dispatch event for table manager to handle
-        window.dispatchEvent(new CustomEvent('tableActionConfirmed', {
-            detail: { action, tableName, tableId }
-        }));
-        
-        hideModal('tableModal');
-    });
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', () => hideModal('confirmTableDeleteModal'));
+    }
     
-    // Enter key in table name input
-    tableNameInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            confirmBtn.click();
-        }
-    });
+    if (confirmBtn) {
+        confirmBtn.addEventListener('click', () => {
+            window.dispatchEvent(new CustomEvent('confirmTableDelete'));
+            hideModal('confirmTableDeleteModal');
+        });
+    }
 }
 
 // Modal show/hide functions
@@ -278,13 +300,6 @@ export function hideModal(modalId) {
         // Clear any input errors
         const errorEl = modal.querySelector('.error-message');
         if (errorEl) errorEl.textContent = '';
-        
-        // Clear inputs if specified in data attribute
-        if (modal.dataset.clearOnClose === 'true') {
-            modal.querySelectorAll('input, textarea').forEach(input => {
-                input.value = '';
-            });
-        }
     }
     
     if (activeModal === modalId) {
@@ -297,7 +312,7 @@ export function hideModal(modalId) {
 }
 
 // Notification System
-export function initNotifications() {
+function initNotifications() {
     // Auto-hide notifications on click
     const notification = document.getElementById('notification');
     if (notification) {
@@ -404,7 +419,8 @@ function initKeyboardShortcuts() {
                 // Clear search inputs
                 document.querySelectorAll('.search-box input').forEach(input => {
                     input.value = '';
-                    input.dispatchEvent(new Event('input', { bubbles: true }));
+                    const event = new Event('input', { bubbles: true });
+                    input.dispatchEvent(event);
                 });
             }
         }
@@ -427,73 +443,20 @@ function initResponsiveDesign() {
 function handleResize() {
     const width = window.innerWidth;
     const container = document.querySelector('.container');
-    const contentColumns = document.querySelector('.content-columns');
     
-    if (!container || !contentColumns) return;
+    if (!container) return;
     
     // Adjust layout for mobile
     if (width < 768) {
         container.style.padding = '15px';
-        contentColumns.style.gap = '15px';
     } else {
         container.style.padding = '30px';
-        contentColumns.style.gap = '30px';
     }
     
     // Dispatch resize event for other components
     window.dispatchEvent(new CustomEvent('appResize', {
         detail: { width }
     }));
-}
-
-// Form Validation Helpers
-export function validateForm(formId) {
-    const form = document.getElementById(formId);
-    if (!form) return { valid: true, errors: [] };
-    
-    const inputs = form.querySelectorAll('input[required], textarea[required], select[required]');
-    const errors = [];
-    
-    inputs.forEach(input => {
-        if (!input.value.trim()) {
-            errors.push({
-                field: input.id,
-                message: `${input.labels?.[0]?.textContent || 'This field'} is required`
-            });
-            
-            // Add error styling
-            input.classList.add('error');
-        } else {
-            input.classList.remove('error');
-        }
-    });
-    
-    return {
-        valid: errors.length === 0,
-        errors
-    };
-}
-
-// Loading State Management
-export function setLoading(elementId, isLoading, text = 'Loading...') {
-    const element = document.getElementById(elementId);
-    if (!element) return;
-    
-    if (isLoading) {
-        const originalText = element.textContent;
-        element.dataset.originalText = originalText;
-        element.textContent = text;
-        element.disabled = true;
-        element.classList.add('loading');
-    } else {
-        const originalText = element.dataset.originalText;
-        if (originalText) {
-            element.textContent = originalText;
-            delete element.dataset.originalText;
-        }
-        element.disabled = false;
-        element.classList.remove('loading');
-    }
 }
 
 // Update UI based on table selection
@@ -515,18 +478,15 @@ export function updateUIForTable(hasTable) {
     const searchInputs = document.querySelectorAll('.search-box input');
     searchInputs.forEach(input => {
         input.disabled = !hasTable;
-        input.placeholder = hasTable ? 
-            input.dataset.defaultPlaceholder || 'Search...' : 
-            'Select a table first';
+        if (!hasTable) {
+            input.placeholder = 'Select a table first';
+        }
     });
     
     // Update selects
     const selects = document.querySelectorAll('select:not(#currentTable)');
     selects.forEach(select => {
         select.disabled = !hasTable;
-        if (!hasTable) {
-            select.innerHTML = '<option value="">-- Select a Table First --</option>';
-        }
     });
     
     // Update placeholders
@@ -586,8 +546,6 @@ if (typeof window !== 'undefined') {
         hideModal,
         showNotification,
         hideNotification,
-        validateForm,
-        setLoading,
         updateUIForTable,
         updatePreviewHeader,
         clearAllForms,
@@ -603,8 +561,6 @@ export default {
     hideModal,
     showNotification,
     hideNotification,
-    validateForm,
-    setLoading,
     updateUIForTable,
     updatePreviewHeader,
     clearAllForms

@@ -1,6 +1,8 @@
+// scripts/modules/tableManager.js
 import { db } from './firebaseConfig.js';
 import { getCurrentUser } from './auth.js';
 import { showNotification } from './utils.js';
+import { showModal, hideModal } from './uiManager.js';
 
 let currentTableId = null;
 let currentTableName = '';
@@ -8,67 +10,97 @@ let tables = {};
 let tableListener = null;
 
 // Initialize table management
-export function initTableManager(onTableChanged) {
+export function initTableManager() {
+    const user = getCurrentUser();
+    if (!user) {
+        console.error('No user logged in');
+        return null;
+    }
+    
     setupTableEventListeners();
-    loadUserTables(onTableChanged);
-    return {
+    loadUserTables();
+    
+    const manager = {
         getCurrentTableId: () => currentTableId,
         getCurrentTableName: () => currentTableName,
-        getTables: () => tables
+        getTables: () => ({ ...tables }),
+        createTable,
+        renameTable,
+        deleteTable,
+        cleanup: cleanupTableManager
     };
+    
+    // Store reference globally for other modules
+    window.tableManager = manager;
+    
+    return manager;
 }
 
 // Load all tables for current user
-function loadUserTables(onTableChanged) {
+function loadUserTables() {
     const user = getCurrentUser();
-    if (!user) return;
+    if (!user) {
+        console.error('No user logged in for table loading');
+        return;
+    }
 
     // Unsubscribe from previous listener
-    if (tableListener) tableListener();
+    if (tableListener) {
+        tableListener();
+        tableListener = null;
+    }
 
     // Listen for real-time updates to user's tables
-    tableListener = db.collection('users').doc(user.uid).collection('tables')
-        .orderBy('createdAt', 'desc')
-        .onSnapshot((snapshot) => {
-            tables = {};
-            const tableOptions = ['<option value="">-- Select a Table --</option>'];
-            
-            snapshot.forEach(doc => {
-                const tableData = doc.data();
-                tables[doc.id] = {
-                    id: doc.id,
-                    name: tableData.name,
-                    createdAt: tableData.createdAt?.toDate() || new Date(),
-                    updatedAt: tableData.updatedAt?.toDate() || new Date(),
-                    entryCount: tableData.entryCount || 0,
-                    noteCount: tableData.noteCount || 0
-                };
+    try {
+        tableListener = db.collection('users').doc(user.uid).collection('tables')
+            .orderBy('createdAt', 'desc')
+            .onSnapshot((snapshot) => {
+                tables = {};
+                const tableOptions = ['<option value="">-- Select a Table --</option>'];
                 
-                const isSelected = doc.id === currentTableId;
-                tableOptions.push(
-                    `<option value="${doc.id}" ${isSelected ? 'selected' : ''}>${tableData.name}</option>`
-                );
+                snapshot.forEach(doc => {
+                    const tableData = doc.data();
+                    tables[doc.id] = {
+                        id: doc.id,
+                        name: tableData.name || 'Unnamed Table',
+                        createdAt: tableData.createdAt?.toDate() || new Date(),
+                        updatedAt: tableData.updatedAt?.toDate() || new Date(),
+                        entryCount: tableData.entryCount || 0,
+                        noteCount: tableData.noteCount || 0
+                    };
+                    
+                    const isSelected = doc.id === currentTableId;
+                    tableOptions.push(
+                        `<option value="${doc.id}" ${isSelected ? 'selected' : ''}>${tableData.name || 'Unnamed Table'}</option>`
+                    );
+                });
+                
+                updateTableDropdown(tableOptions);
+                
+                // If current table was deleted, clear selection
+                if (currentTableId && !tables[currentTableId]) {
+                    clearTableSelection();
+                    dispatchTableChanged(null, null);
+                }
+                
+                updateTableStats();
+                
+            }, (error) => {
+                console.error('Error loading tables:', error);
+                showNotification('Failed to load tables', 'error');
             });
-            
-            updateTableDropdown(tableOptions);
-            
-            // If current table was deleted, clear selection
-            if (currentTableId && !tables[currentTableId]) {
-                clearTableSelection();
-                onTableChanged(null, null);
-            }
-            
-            updateTableStats();
-        }, (error) => {
-            console.error('Error loading tables:', error);
-            showNotification('Failed to load tables', 'error');
-        });
+    } catch (error) {
+        console.error('Error setting up table listener:', error);
+        showNotification('Failed to load tables', 'error');
+    }
 }
 
 // Create new table
 export async function createTable(tableName) {
     const user = getCurrentUser();
-    if (!user) throw new Error('User not authenticated');
+    if (!user) {
+        throw new Error('User not authenticated');
+    }
     
     // Validate table name
     if (!tableName || tableName.trim().length < 2) {
@@ -79,8 +111,10 @@ export async function createTable(tableName) {
         throw new Error('Table name must be less than 50 characters');
     }
     
+    const trimmedName = tableName.trim();
+    
     // Check for duplicate table names (case-insensitive)
-    const tableNameLower = tableName.toLowerCase();
+    const tableNameLower = trimmedName.toLowerCase();
     const duplicate = Object.values(tables).find(
         table => table.name.toLowerCase() === tableNameLower
     );
@@ -93,14 +127,14 @@ export async function createTable(tableName) {
         const tableRef = db.collection('users').doc(user.uid).collection('tables').doc();
         
         await tableRef.set({
-            name: tableName.trim(),
+            name: trimmedName,
             createdAt: new Date(),
             updatedAt: new Date(),
             entryCount: 0,
             noteCount: 0
         });
         
-        showNotification(`Table "${tableName}" created successfully`);
+        showNotification(`Table "${trimmedName}" created successfully`);
         return tableRef.id;
     } catch (error) {
         console.error('Error creating table:', error);
@@ -110,7 +144,9 @@ export async function createTable(tableName) {
 
 // Rename table
 export async function renameTable(tableId, newName) {
-    if (!tableId || !newName) throw new Error('Invalid parameters');
+    if (!tableId || !newName) {
+        throw new Error('Invalid parameters');
+    }
     
     // Validate new name
     if (newName.trim().length < 2) {
@@ -122,15 +158,19 @@ export async function renameTable(tableId, newName) {
     }
     
     const user = getCurrentUser();
-    if (!user) throw new Error('User not authenticated');
+    if (!user) {
+        throw new Error('User not authenticated');
+    }
+    
+    const trimmedName = newName.trim();
     
     try {
         await db.collection('users').doc(user.uid).collection('tables').doc(tableId).update({
-            name: newName.trim(),
+            name: trimmedName,
             updatedAt: new Date()
         });
         
-        showNotification(`Table renamed to "${newName}"`);
+        showNotification(`Table renamed to "${trimmedName}"`);
     } catch (error) {
         console.error('Error renaming table:', error);
         throw new Error(`Failed to rename table: ${error.message}`);
@@ -139,10 +179,14 @@ export async function renameTable(tableId, newName) {
 
 // Delete table and all its contents
 export async function deleteTable(tableId) {
-    if (!tableId) throw new Error('No table selected');
+    if (!tableId) {
+        throw new Error('No table selected');
+    }
     
     const user = getCurrentUser();
-    if (!user) throw new Error('User not authenticated');
+    if (!user) {
+        throw new Error('User not authenticated');
+    }
     
     const tableName = tables[tableId]?.name || 'Unknown Table';
     
@@ -173,7 +217,7 @@ export async function deleteTable(tableId) {
 }
 
 // Select a table
-export function selectTable(tableId) {
+function selectTable(tableId) {
     if (!tableId) {
         clearTableSelection();
         return null;
@@ -189,7 +233,9 @@ export function selectTable(tableId) {
     currentTableName = table.name;
     
     // Update UI
-    document.getElementById('currentTable').value = tableId;
+    const tableSelect = document.getElementById('currentTable');
+    if (tableSelect) tableSelect.value = tableId;
+    
     document.getElementById('currentTableName').textContent = table.name;
     document.getElementById('currentTableNameNotes').textContent = table.name;
     document.getElementById('previewTableName').textContent = table.name;
@@ -198,6 +244,9 @@ export function selectTable(tableId) {
     enableTableControls(true);
     
     updateTableStats();
+    
+    // Dispatch table changed event
+    dispatchTableChanged(tableId, table.name);
     
     return table;
 }
@@ -208,7 +257,9 @@ function clearTableSelection() {
     currentTableName = '';
     
     // Update UI
-    document.getElementById('currentTable').value = '';
+    const tableSelect = document.getElementById('currentTable');
+    if (tableSelect) tableSelect.value = '';
+    
     document.getElementById('currentTableName').textContent = 'No Table';
     document.getElementById('currentTableNameNotes').textContent = 'No Table';
     document.getElementById('previewTableName').textContent = 'No Table Selected';
@@ -217,17 +268,25 @@ function clearTableSelection() {
     enableTableControls(false);
     
     updateTableStats();
+    
+    // Dispatch table changed event
+    dispatchTableChanged(null, null);
 }
 
 // Update table dropdown
 function updateTableDropdown(options) {
     const select = document.getElementById('currentTable');
-    select.innerHTML = options.join('');
-    
-    // Enable/disable table action buttons
-    const hasTables = Object.keys(tables).length > 0;
-    document.getElementById('renameTableBtn').disabled = !hasTables || !currentTableId;
-    document.getElementById('deleteTableBtn').disabled = !hasTables || !currentTableId;
+    if (select) {
+        select.innerHTML = options.join('');
+        
+        // Enable/disable table action buttons
+        const hasTables = Object.keys(tables).length > 0;
+        const renameBtn = document.getElementById('renameTableBtn');
+        const deleteBtn = document.getElementById('deleteTableBtn');
+        
+        if (renameBtn) renameBtn.disabled = !hasTables || !currentTableId;
+        if (deleteBtn) deleteBtn.disabled = !hasTables || !currentTableId;
+    }
 }
 
 // Enable/disable form controls based on table selection
@@ -247,30 +306,34 @@ function enableTableControls(enabled) {
             
             // Update placeholders for inputs
             if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
-                element.placeholder = enabled ? 
-                    (id === 'topic' ? 'Enter topic...' : 
-                     id === 'noteTitle' ? 'Enter note title...' : '') : 
-                    'Select or create a table first';
+                if (!enabled) {
+                    element.placeholder = 'Select or create a table first';
+                }
             }
         }
     });
     
-    // Update select placeholder
+    // Update select placeholders
     const editSelect = document.getElementById('editId');
     const noteSelect = document.getElementById('noteId');
     
-    if (enabled) {
-        editSelect.innerHTML = '<option value="">-- Create New Entry --</option>';
-        noteSelect.innerHTML = '<option value="">-- Create New Note --</option>';
-    } else {
-        editSelect.innerHTML = '<option value="">-- Select a Table First --</option>';
-        noteSelect.innerHTML = '<option value="">-- Select a Table First --</option>';
+    if (editSelect) {
+        editSelect.innerHTML = enabled ? 
+            '<option value="">-- Create New Entry --</option>' : 
+            '<option value="">-- Select a Table First --</option>';
+    }
+    
+    if (noteSelect) {
+        noteSelect.innerHTML = enabled ? 
+            '<option value="">-- Create New Note --</option>' : 
+            '<option value="">-- Select a Table First --</option>';
     }
 }
 
 // Update table statistics display
 function updateTableStats() {
     const statsElement = document.getElementById('tableStats');
+    if (!statsElement) return;
     
     if (!currentTableId) {
         statsElement.textContent = `No table selected (${Object.keys(tables).length} tables total)`;
@@ -283,96 +346,121 @@ function updateTableStats() {
         return;
     }
     
+    const createdDate = table.createdAt.toLocaleDateString();
     statsElement.textContent = 
         `${table.name} • ${table.entryCount || 0} entries • ${table.noteCount || 0} notes • ` +
-        `Created: ${table.createdAt.toLocaleDateString()}`;
+        `Created: ${createdDate}`;
+}
+
+// Dispatch table changed event
+function dispatchTableChanged(tableId, tableName) {
+    window.dispatchEvent(new CustomEvent('tableChanged', {
+        detail: { tableId, tableName }
+    }));
 }
 
 // Setup event listeners for table interactions
 function setupTableEventListeners() {
     // Table selection
-    document.getElementById('currentTable').addEventListener('change', (e) => {
-        const tableId = e.target.value;
-        if (tableId) {
-            selectTable(tableId);
-            
-            // Notify other modules
-            window.dispatchEvent(new CustomEvent('tableChanged', {
-                detail: { tableId, tableName: currentTableName }
-            }));
-        } else {
-            clearTableSelection();
-            window.dispatchEvent(new CustomEvent('tableChanged', {
-                detail: { tableId: null, tableName: null }
-            }));
-        }
-    });
+    const tableSelect = document.getElementById('currentTable');
+    if (tableSelect) {
+        tableSelect.addEventListener('change', (e) => {
+            const tableId = e.target.value;
+            if (tableId) {
+                selectTable(tableId);
+            } else {
+                clearTableSelection();
+            }
+        });
+    }
     
     // New table button
-    document.getElementById('newTableBtn').addEventListener('click', showCreateTableModal);
+    const newTableBtn = document.getElementById('newTableBtn');
+    if (newTableBtn) {
+        newTableBtn.addEventListener('click', () => {
+            showModal('tableModal', {
+                title: 'Create New Table',
+                actionText: 'Create Table'
+            });
+        });
+    }
     
     // Rename table button
-    document.getElementById('renameTableBtn').addEventListener('click', () => {
-        if (currentTableId) {
-            showRenameTableModal(currentTableId, currentTableName);
-        }
-    });
+    const renameTableBtn = document.getElementById('renameTableBtn');
+    if (renameTableBtn) {
+        renameTableBtn.addEventListener('click', () => {
+            if (currentTableId) {
+                showModal('tableModal', {
+                    title: 'Rename Table',
+                    actionText: 'Rename Table'
+                });
+                
+                // Set current name in input
+                const tableNameInput = document.getElementById('tableName');
+                if (tableNameInput) {
+                    tableNameInput.value = currentTableName;
+                    
+                    // Set action and tableId on confirm button
+                    const confirmBtn = document.getElementById('confirmTableBtn');
+                    if (confirmBtn) {
+                        confirmBtn.dataset.action = 'rename';
+                        confirmBtn.dataset.tableId = currentTableId;
+                    }
+                }
+            }
+        });
+    }
     
     // Delete table button
-    document.getElementById('deleteTableBtn').addEventListener('click', () => {
-        if (currentTableId) {
-            showDeleteTableConfirmation(currentTableId, currentTableName);
-        }
-    });
+    const deleteTableBtn = document.getElementById('deleteTableBtn');
+    if (deleteTableBtn) {
+        deleteTableBtn.addEventListener('click', () => {
+            if (currentTableId) {
+                const deleteTableNameEl = document.getElementById('deleteTableName');
+                if (deleteTableNameEl) {
+                    deleteTableNameEl.textContent = currentTableName;
+                }
+                showModal('confirmTableDeleteModal');
+            }
+        });
+    }
     
     // Table modal events
-    document.getElementById('cancelTableBtn').addEventListener('click', hideTableModal);
-    document.getElementById('confirmTableBtn').addEventListener('click', handleTableAction);
+    const cancelTableBtn = document.getElementById('cancelTableBtn');
+    const confirmTableBtn = document.getElementById('confirmTableBtn');
+    
+    if (cancelTableBtn) {
+        cancelTableBtn.addEventListener('click', () => hideModal('tableModal'));
+    }
+    
+    if (confirmTableBtn) {
+        confirmTableBtn.addEventListener('click', handleTableAction);
+    }
     
     // Table delete confirmation events
-    document.getElementById('cancelTableDelete').addEventListener('click', hideDeleteTableModal);
-    document.getElementById('confirmTableDelete').addEventListener('click', confirmTableDelete);
-}
-
-// Show create table modal
-function showCreateTableModal() {
-    document.getElementById('tableModalTitle').textContent = 'Create New Table';
-    document.getElementById('tableName').value = '';
-    document.getElementById('tableNameError').textContent = '';
-    document.getElementById('confirmTableBtn').textContent = 'Create Table';
-    document.getElementById('confirmTableBtn').dataset.action = 'create';
+    const cancelTableDelete = document.getElementById('cancelTableDelete');
+    const confirmTableDelete = document.getElementById('confirmTableDelete');
     
-    document.getElementById('tableModal').style.display = 'flex';
-    document.getElementById('tableName').focus();
-}
-
-// Show rename table modal
-function showRenameTableModal(tableId, currentName) {
-    document.getElementById('tableModalTitle').textContent = 'Rename Table';
-    document.getElementById('tableName').value = currentName;
-    document.getElementById('tableNameError').textContent = '';
-    document.getElementById('confirmTableBtn').textContent = 'Rename Table';
-    document.getElementById('confirmTableBtn').dataset.action = 'rename';
-    document.getElementById('confirmTableBtn').dataset.tableId = tableId;
+    if (cancelTableDelete) {
+        cancelTableDelete.addEventListener('click', () => hideModal('confirmTableDeleteModal'));
+    }
     
-    document.getElementById('tableModal').style.display = 'flex';
-    document.getElementById('tableName').focus();
-    document.getElementById('tableName').select();
-}
-
-// Show delete table confirmation
-function showDeleteTableConfirmation(tableId, tableName) {
-    document.getElementById('deleteTableName').textContent = tableName;
-    document.getElementById('confirmTableDeleteModal').style.display = 'flex';
+    if (confirmTableDelete) {
+        confirmTableDelete.addEventListener('click', confirmTableDeleteAction);
+    }
 }
 
 // Handle table action (create or rename)
 async function handleTableAction() {
     const action = this.dataset.action;
-    const tableName = document.getElementById('tableName').value.trim();
+    const tableNameInput = document.getElementById('tableName');
     const errorElement = document.getElementById('tableNameError');
     
-    errorElement.textContent = '';
+    if (!tableNameInput) return;
+    
+    const tableName = tableNameInput.value.trim();
+    
+    if (errorElement) errorElement.textContent = '';
     
     try {
         if (action === 'create') {
@@ -382,32 +470,32 @@ async function handleTableAction() {
             await renameTable(tableId, tableName);
         }
         
-        hideTableModal();
+        hideModal('tableModal');
+        
+        // Clear the input
+        tableNameInput.value = '';
+        
     } catch (error) {
-        errorElement.textContent = error.message;
+        if (errorElement) {
+            errorElement.textContent = error.message;
+        }
     }
 }
 
 // Confirm table deletion
-async function confirmTableDelete() {
-    const tableId = currentTableId;
-    if (!tableId) return;
+async function confirmTableDeleteAction() {
+    if (!currentTableId) return;
     
     try {
-        await deleteTable(tableId);
-        hideDeleteTableModal();
+        await deleteTable(currentTableId);
+        hideModal('confirmTableDeleteModal');
+        
+        // Clear selection
+        clearTableSelection();
+        
     } catch (error) {
         showNotification(error.message, 'error');
     }
-}
-
-// Hide modals
-function hideTableModal() {
-    document.getElementById('tableModal').style.display = 'none';
-}
-
-function hideDeleteTableModal() {
-    document.getElementById('confirmTableDeleteModal').style.display = 'none';
 }
 
 // Cleanup on logout
@@ -423,3 +511,6 @@ export function cleanupTableManager() {
     
     clearTableSelection();
 }
+
+// Initialize on load
+console.log('Table manager module loaded');

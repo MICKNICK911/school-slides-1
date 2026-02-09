@@ -1,5 +1,5 @@
 // scripts/app.js
-import { signUp, signIn, signOut, getCurrentUser, initAuth } from './modules/auth.js';
+import { initAuth, getCurrentUser, signUp, signIn, signOut } from './modules/auth.js';
 import { initTableManager, cleanupTableManager } from './modules/tableManager.js';
 import { initDictionary, cleanupDictionary } from './modules/dictionary.js';
 import { initNotes, cleanupNotes } from './modules/notes.js';
@@ -9,55 +9,74 @@ import { isValidEmail } from './modules/utils.js';
 // Application state
 let appState = {
     initialized: false,
+    currentTableId: null,
+    currentTableName: null,
+    user: null,
     modules: {
         auth: null,
         tableManager: null,
         dictionary: null,
         notes: null
     },
-    currentTableId: null,
-    currentTableName: null,
-    pendingOperations: []
+    pendingOperations: [],
+    offlineMode: false
 };
 
-// Initialize application when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
+// Initialize application
+document.addEventListener('DOMContentLoaded', async () => {
     try {
-        initializeApp();
-        console.log('Application initialized successfully');
+        console.log('Initializing application...');
+        await initializeApp();
     } catch (error) {
         console.error('Failed to initialize application:', error);
-        showNotification('Failed to initialize application. Please refresh the page.', 'error');
+        showNotification('Failed to initialize application. Please refresh.', 'error');
+        
+        // Show error in UI
+        const loginMessage = document.getElementById('loginMessage');
+        if (loginMessage) {
+            loginMessage.textContent = 'App initialization failed. Please refresh.';
+            loginMessage.style.color = 'var(--danger)';
+        }
     }
 });
 
 // Main initialization function
-function initializeApp() {
+async function initializeApp() {
     if (appState.initialized) {
         console.warn('App already initialized');
         return;
     }
     
-    // Initialize UI first
-    initUI();
-    
-    // Initialize authentication (DON'T AWAIT - it's synchronous now)
-    initAuth();
-    
-    // Set up global error handling
-    setupErrorHandling();
-    
-    // Set up event listeners IMMEDIATELY
-    setupEventListeners();
-    
-    // Set up inter-module communication
-    setupModuleCommunication();
-    
-    appState.initialized = true;
-    
-    // Show welcome message if no user is logged in
-    if (!getCurrentUser()) {
-        showNotification('Welcome! Please sign in or create an account.', 'info');
+    try {
+        // Initialize UI first
+        initUI();
+        
+        // Initialize authentication
+        initAuth();
+        
+        // Set up global error handling
+        setupErrorHandling();
+        
+        // Set up event listeners
+        setupEventListeners();
+        
+        // Set up inter-module communication
+        setupModuleCommunication();
+        
+        // Check online status
+        checkOnlineStatus();
+        
+        appState.initialized = true;
+        console.log('Application initialized successfully');
+        
+        // Show welcome message
+        if (!getCurrentUser()) {
+            showNotification('Welcome to Lesson Builder! Sign in or create an account.', 'info');
+        }
+        
+    } catch (error) {
+        console.error('Error during app initialization:', error);
+        throw error;
     }
 }
 
@@ -66,16 +85,38 @@ function setupErrorHandling() {
     // Unhandled promise rejections
     window.addEventListener('unhandledrejection', (event) => {
         console.error('Unhandled promise rejection:', event.reason);
-        showNotification('An unexpected error occurred', 'error');
+        showNotification('An unexpected error occurred. Please try again.', 'error');
+        event.preventDefault();
     });
     
     // Global error handler
     window.addEventListener('error', (event) => {
         console.error('Global error:', event.error);
         // Don't show notification for network errors to avoid spam
-        if (!event.message.includes('Failed to fetch')) {
+        if (!event.message?.includes('Failed to fetch') && !event.message?.includes('Network')) {
             showNotification('A system error occurred', 'error');
         }
+        event.preventDefault();
+    });
+}
+
+// Check online status
+function checkOnlineStatus() {
+    appState.offlineMode = !navigator.onLine;
+    
+    if (appState.offlineMode) {
+        showNotification('You are offline. Changes will be saved locally.', 'warning');
+    }
+    
+    window.addEventListener('online', () => {
+        appState.offlineMode = false;
+        showNotification('Back online. Syncing data...', 'info');
+        syncPendingOperations();
+    });
+    
+    window.addEventListener('offline', () => {
+        appState.offlineMode = true;
+        showNotification('You are offline. Changes will be saved locally.', 'warning');
     });
 }
 
@@ -105,21 +146,18 @@ function setupAuthEventListeners() {
     
     if (signUpBtn) {
         signUpBtn.addEventListener('click', handleSignUp);
-        console.log('Sign Up button listener added');
     } else {
         console.error('Sign Up button not found!');
     }
     
     if (signInBtn) {
         signInBtn.addEventListener('click', handleSignIn);
-        console.log('Sign In button listener added');
     } else {
         console.error('Sign In button not found!');
     }
     
     if (signOutBtn) {
         signOutBtn.addEventListener('click', handleSignOut);
-        console.log('Sign Out button listener added');
     }
     
     // Enter key in login form
@@ -129,7 +167,9 @@ function setupAuthEventListeners() {
     if (loginEmail && loginPassword) {
         const handleEnterKey = (e) => {
             if (e.key === 'Enter') {
-                handleSignIn();
+                if (signInBtn && !signInBtn.disabled) {
+                    handleSignIn();
+                }
             }
         };
         
@@ -137,25 +177,16 @@ function setupAuthEventListeners() {
         loginPassword.addEventListener('keypress', handleEnterKey);
     }
     
-    // Listen for auth state changes (from auth module)
+    // Listen for auth state changes
     window.addEventListener('authStateChanged', handleAuthStateChange);
 }
 
 function setupModalEventListeners() {
-    // Table delete confirmation
-    const confirmTableDelete = document.getElementById('confirmTableDelete');
-    const cancelTableDelete = document.getElementById('cancelTableDelete');
-    
-    if (confirmTableDelete) {
-        confirmTableDelete.addEventListener('click', handleConfirmTableDelete);
-    }
-    
-    if (cancelTableDelete) {
-        cancelTableDelete.addEventListener('click', () => hideModal('confirmTableDeleteModal'));
-    }
-    
-    // New table button
+    // Table management buttons
     const newTableBtn = document.getElementById('newTableBtn');
+    const renameTableBtn = document.getElementById('renameTableBtn');
+    const deleteTableBtn = document.getElementById('deleteTableBtn');
+    
     if (newTableBtn) {
         newTableBtn.addEventListener('click', () => {
             showModal('tableModal', {
@@ -165,21 +196,28 @@ function setupModalEventListeners() {
         });
     }
     
-    // Rename table button
-    const renameTableBtn = document.getElementById('renameTableBtn');
     if (renameTableBtn) {
         renameTableBtn.addEventListener('click', handleRenameTable);
     }
     
-    // Delete table button
-    const deleteTableBtn = document.getElementById('deleteTableBtn');
     if (deleteTableBtn) {
         deleteTableBtn.addEventListener('click', handleDeleteTable);
+    }
+    
+    // Table delete confirmation
+    const cancelTableDelete = document.getElementById('cancelTableDelete');
+    const confirmTableDelete = document.getElementById('confirmTableDelete');
+    
+    if (cancelTableDelete) {
+        cancelTableDelete.addEventListener('click', () => hideModal('confirmTableDeleteModal'));
+    }
+    
+    if (confirmTableDelete) {
+        confirmTableDelete.addEventListener('click', handleConfirmTableDelete);
     }
 }
 
 function setupTableEventListeners() {
-    // Table selection change
     const tableSelect = document.getElementById('currentTable');
     if (tableSelect) {
         tableSelect.addEventListener('change', handleTableSelectionChange);
@@ -187,7 +225,23 @@ function setupTableEventListeners() {
 }
 
 function setupImportExportEventListeners() {
-    // File import handlers
+    // File imports
+    const importDictBtn = document.getElementById('importDictBtn');
+    const importNotesBtn = document.getElementById('importNotesBtn');
+    
+    if (importDictBtn) {
+        importDictBtn.addEventListener('click', () => {
+            document.getElementById('importDictFile').click();
+        });
+    }
+    
+    if (importNotesBtn) {
+        importNotesBtn.addEventListener('click', () => {
+            document.getElementById('importNotesFile').click();
+        });
+    }
+    
+    // File input handlers
     const importDictFile = document.getElementById('importDictFile');
     const importNotesFile = document.getElementById('importNotesFile');
     
@@ -197,6 +251,18 @@ function setupImportExportEventListeners() {
     
     if (importNotesFile) {
         importNotesFile.addEventListener('change', (e) => handleFileImport(e, 'notes'));
+    }
+    
+    // Export buttons
+    const exportDictBtn = document.getElementById('exportDictBtn');
+    const exportNotesBtn = document.getElementById('exportNotesBtn');
+    
+    if (exportDictBtn) {
+        exportDictBtn.addEventListener('click', () => showExportModal('dictionary'));
+    }
+    
+    if (exportNotesBtn) {
+        exportNotesBtn.addEventListener('click', () => showExportModal('notes'));
     }
     
     // Clear buttons
@@ -213,15 +279,21 @@ function setupImportExportEventListeners() {
 }
 
 function setupWindowEventListeners() {
-    // Online/offline detection
-    window.addEventListener('online', handleOnlineStatusChange);
-    window.addEventListener('offline', handleOnlineStatusChange);
-    
     // Before unload (save state)
-    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('beforeunload', (e) => {
+        if (hasUnsavedChanges()) {
+            e.preventDefault();
+            e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+            saveAppState();
+        }
+    });
     
-    // Visibility change (tab switching)
-    document.addEventListener('visibilitychange', handleVisibilityChange);
+    // Visibility change
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden && navigator.onLine) {
+            refreshData();
+        }
+    });
 }
 
 // Setup inter-module communication
@@ -229,6 +301,8 @@ function setupModuleCommunication() {
     // Auth state change → Initialize/Cleanup modules
     window.addEventListener('authStateChanged', (event) => {
         const user = event.detail.user;
+        appState.user = user;
+        
         if (user) {
             initializeUserModules(user.uid);
         } else {
@@ -250,36 +324,10 @@ function setupModuleCommunication() {
             detail: { tableId, tableName }
         }));
     });
-    
-    // Export confirmed → Handle export
-    window.addEventListener('exportConfirmed', async (event) => {
-        const { filename, modalType } = event.detail;
-        await handleExport(filename, modalType);
-    });
-    
-    // Delete confirmed → Handle deletion
-    window.addEventListener('deleteConfirmed', async (event) => {
-        const { type, itemId } = event.detail;
-        await handleDeletion(type, itemId);
-    });
-    
-    // Import option selected → Handle import
-    window.addEventListener('importOptionSelected', async (event) => {
-        const { action } = event.detail;
-        await handleImportAction(action);
-    });
-    
-    // Table action confirmed → Handle table creation/renaming
-    window.addEventListener('tableActionConfirmed', async (event) => {
-        const { action, tableName, tableId } = event.detail;
-        await handleTableAction(action, tableName, tableId);
-    });
 }
 
 // Event Handlers
 async function handleSignUp() {
-    console.log('Sign Up button clicked');
-    
     const email = document.getElementById('loginEmail').value.trim();
     const password = document.getElementById('loginPassword').value.trim();
     const messageEl = document.getElementById('loginMessage');
@@ -288,24 +336,31 @@ async function handleSignUp() {
     
     // Validation
     if (!email || !password) {
-        if (messageEl) messageEl.textContent = 'Please enter email and password.';
+        if (messageEl) {
+            messageEl.textContent = 'Please enter email and password.';
+            messageEl.style.color = 'var(--danger)';
+        }
         return;
     }
     
     if (!isValidEmail(email)) {
-        if (messageEl) messageEl.textContent = 'Please enter a valid email address.';
+        if (messageEl) {
+            messageEl.textContent = 'Please enter a valid email address.';
+            messageEl.style.color = 'var(--danger)';
+        }
         return;
     }
     
     if (password.length < 6) {
-        if (messageEl) messageEl.textContent = 'Password must be at least 6 characters.';
+        if (messageEl) {
+            messageEl.textContent = 'Password must be at least 6 characters.';
+            messageEl.style.color = 'var(--danger)';
+        }
         return;
     }
     
     try {
-        console.log('Attempting sign up for:', email);
         await signUp(email, password);
-        console.log('Sign up successful');
         // Success handled by auth state change listener
     } catch (error) {
         // Error displayed by auth module
@@ -314,8 +369,6 @@ async function handleSignUp() {
 }
 
 async function handleSignIn() {
-    console.log('Sign In button clicked');
-    
     const email = document.getElementById('loginEmail').value.trim();
     const password = document.getElementById('loginPassword').value.trim();
     const messageEl = document.getElementById('loginMessage');
@@ -323,14 +376,15 @@ async function handleSignIn() {
     if (messageEl) messageEl.textContent = '';
     
     if (!email || !password) {
-        if (messageEl) messageEl.textContent = 'Please enter email and password.';
+        if (messageEl) {
+            messageEl.textContent = 'Please enter email and password.';
+            messageEl.style.color = 'var(--danger)';
+        }
         return;
     }
     
     try {
-        console.log('Attempting sign in for:', email);
         await signIn(email, password);
-        console.log('Sign in successful');
         // Success handled by auth state change listener
     } catch (error) {
         // Error displayed by auth module
@@ -339,10 +393,8 @@ async function handleSignIn() {
 }
 
 async function handleSignOut() {
-    console.log('Sign Out button clicked');
     try {
         await signOut();
-        // Success handled by auth state change listener
     } catch (error) {
         console.error('Sign out error:', error);
         showNotification('Error signing out', 'error');
@@ -350,29 +402,20 @@ async function handleSignOut() {
 }
 
 function handleAuthStateChange(event) {
-    console.log('Auth state changed:', event.detail);
     const user = event.detail.user;
     
     if (user) {
         // User signed in
-        console.log('User signed in:', user.email);
         const userEmailEl = document.getElementById('userEmail');
         if (userEmailEl) {
             userEmailEl.textContent = `(${user.email})`;
         }
-        
-        // Initialize user-specific modules
-        initializeUserModules(user.uid);
     } else {
         // User signed out
-        console.log('User signed out');
         const userEmailEl = document.getElementById('userEmail');
         if (userEmailEl) {
             userEmailEl.textContent = '';
         }
-        
-        // Cleanup user-specific modules
-        cleanupUserModules();
     }
 }
 
@@ -411,8 +454,7 @@ async function handleRenameTable() {
     
     showModal('tableModal', {
         title: 'Rename Table',
-        actionText: 'Rename Table',
-        content: `Current name: ${appState.currentTableName}`
+        actionText: 'Rename Table'
     });
     
     // Set current name in input
@@ -448,9 +490,9 @@ async function handleConfirmTableDelete() {
     if (!appState.currentTableId) return;
     
     try {
-        // Call table manager to delete table
-        if (appState.modules.tableManager && appState.modules.tableManager.deleteTable) {
-            await appState.modules.tableManager.deleteTable(appState.currentTableId);
+        // Get table manager from window
+        if (window.tableManager && window.tableManager.deleteTable) {
+            await window.tableManager.deleteTable(appState.currentTableId);
             showNotification(`Table "${appState.currentTableName}" deleted successfully`);
         }
         
@@ -518,26 +560,41 @@ async function handleImportAction(action) {
     }
 }
 
-async function handleExport(filename, type) {
+function showExportModal(type) {
+    const tableName = document.getElementById('currentTableName').textContent
+        .replace(/\s+/g, '_').toLowerCase();
+    
+    const defaultName = type === 'dictionary' 
+        ? `${tableName}_dictionary.json` 
+        : `${tableName}_notes.json`;
+    
+    document.getElementById('filename').value = defaultName;
+    document.getElementById('exportModal').dataset.exportType = type;
+    showModal('exportModal');
+}
+
+async function handleExport(filename) {
     if (!appState.currentTableId) {
         showNotification('Please select a table first', 'error');
         return;
     }
     
+    const exportType = document.getElementById('exportModal').dataset.exportType;
+    
     try {
-        // Get data from appropriate module
         let data;
-        if (type === 'dictionary' && appState.modules.dictionary) {
-            data = appState.modules.dictionary.getDictionary();
-        } else if (type === 'notes' && appState.modules.notes) {
-            data = appState.modules.notes.getNotes();
+        
+        if (exportType === 'dictionary' && window.dictionaryModule) {
+            data = window.dictionaryModule.getDictionary();
+        } else if (exportType === 'notes' && window.notesModule) {
+            data = window.notesModule.getNotes();
         } else {
             // Export all table data
             data = {
                 tableId: appState.currentTableId,
                 tableName: appState.currentTableName,
-                dictionary: appState.modules.dictionary?.getDictionary() || {},
-                notes: appState.modules.notes?.getNotes() || {},
+                dictionary: window.dictionaryModule?.getDictionary() || {},
+                notes: window.notesModule?.getNotes() || {},
                 exportedAt: new Date().toISOString()
             };
         }
@@ -570,13 +627,11 @@ async function handleDeletion(type, itemId) {
     }
     
     try {
-        if (type === 'dictionary' && appState.modules.dictionary) {
-            // Dictionary module handles its own deletions via event listener
+        if (type === 'dictionary' && window.dictionaryModule) {
             window.dispatchEvent(new CustomEvent('deleteDictionaryEntry', {
                 detail: { topic: itemId }
             }));
-        } else if (type === 'notes' && appState.modules.notes) {
-            // Notes module handles its own deletions via event listener
+        } else if (type === 'notes' && window.notesModule) {
             window.dispatchEvent(new CustomEvent('deleteNote', {
                 detail: { noteId: itemId }
             }));
@@ -589,20 +644,20 @@ async function handleDeletion(type, itemId) {
 
 async function handleTableAction(action, tableName, tableId) {
     try {
-        if (action === 'create' && appState.modules.tableManager) {
-            const newTableId = await appState.modules.tableManager.createTable(tableName);
+        if (action === 'create' && window.tableManager) {
+            const newTableId = await window.tableManager.createTable(tableName);
             
             // Select the new table
             if (newTableId) {
                 const tableSelect = document.getElementById('currentTable');
                 if (tableSelect) {
                     tableSelect.value = newTableId;
-                    tableSelect.dispatchEvent(new Event('change'));
+                    handleTableSelectionChange({ target: tableSelect });
                 }
             }
             
-        } else if (action === 'rename' && appState.modules.tableManager) {
-            await appState.modules.tableManager.renameTable(tableId, tableName);
+        } else if (action === 'rename' && window.tableManager) {
+            await window.tableManager.renameTable(tableId, tableName);
             
             // Update current table name
             appState.currentTableName = tableName;
@@ -627,23 +682,15 @@ async function handleClearContent(type) {
     }
     
     const contentType = type === 'dictionary' ? 'dictionary entries' : 'notes';
-    const count = type === 'dictionary' 
-        ? Object.keys(appState.modules.dictionary?.getDictionary() || {}).length
-        : Object.keys(appState.modules.notes?.getNotes() || {}).length;
     
-    if (count === 0) {
-        showNotification(`No ${contentType} to clear`, 'info');
-        return;
-    }
-    
-    if (!confirm(`Are you sure you want to clear all ${count} ${contentType} in this table? This cannot be undone.`)) {
+    if (!confirm(`Are you sure you want to clear ALL ${contentType} in this table? This cannot be undone.`)) {
         return;
     }
     
     try {
-        if (type === 'dictionary' && appState.modules.dictionary) {
+        if (type === 'dictionary' && window.dictionaryModule) {
             window.dispatchEvent(new CustomEvent('clearDictionary'));
-        } else if (type === 'notes' && appState.modules.notes) {
+        } else if (type === 'notes' && window.notesModule) {
             window.dispatchEvent(new CustomEvent('clearNotes'));
         }
         
@@ -652,45 +699,6 @@ async function handleClearContent(type) {
     } catch (error) {
         console.error('Clear error:', error);
         showNotification(`Failed to clear ${contentType}`, 'error');
-    }
-}
-
-function handleOnlineStatusChange() {
-    const isOnline = navigator.onLine;
-    
-    if (isOnline) {
-        showNotification('Back online. Syncing data...', 'info');
-        
-        // Try to process pending operations
-        processPendingOperations();
-    } else {
-        showNotification('You are offline. Changes will be saved locally.', 'warning');
-    }
-}
-
-function handleBeforeUnload(event) {
-    // Check for unsaved changes
-    const hasUnsavedChanges = checkForUnsavedChanges();
-    
-    if (hasUnsavedChanges) {
-        // Standard confirmation dialog
-        event.preventDefault();
-        event.returnValue = '';
-        
-        // Alternatively, save to localStorage
-        saveAppState();
-    }
-}
-
-function handleVisibilityChange() {
-    if (!document.hidden) {
-        // Tab became active again, check for updates
-        console.log('App became visible');
-        
-        // Refresh data if online
-        if (navigator.onLine) {
-            refreshData();
-        }
     }
 }
 
@@ -708,8 +716,8 @@ async function initializeUserModules(userId) {
         // Initialize notes module
         appState.modules.notes = initNotes();
         
-        // Process any pending operations
-        processPendingOperations();
+        // Sync any pending operations
+        syncPendingOperations();
         
         showNotification('Welcome back! Your data has been loaded.', 'success');
         
@@ -722,22 +730,21 @@ async function initializeUserModules(userId) {
 function cleanupUserModules() {
     console.log('Cleaning up user modules');
     
-    // Cleanup modules in reverse order
-    if (appState.modules.notes && appState.modules.notes.cleanup) {
+    // Cleanup modules
+    if (appState.modules.notes && typeof appState.modules.notes.cleanup === 'function') {
         appState.modules.notes.cleanup();
     }
     
-    if (appState.modules.dictionary && appState.modules.dictionary.cleanup) {
+    if (appState.modules.dictionary && typeof appState.modules.dictionary.cleanup === 'function') {
         appState.modules.dictionary.cleanup();
     }
     
-    if (appState.modules.tableManager && appState.modules.tableManager.cleanup) {
+    if (appState.modules.tableManager && typeof appState.modules.tableManager.cleanup === 'function') {
         appState.modules.tableManager.cleanup();
     }
     
     // Reset module references
     appState.modules = {
-        auth: appState.modules.auth, // Keep auth module
         tableManager: null,
         dictionary: null,
         notes: null
@@ -757,8 +764,7 @@ function cleanupUserModules() {
 }
 
 // Utility Functions
-function checkForUnsavedChanges() {
-    // Check form inputs
+function hasUnsavedChanges() {
     const forms = ['topic', 'desc', 'ex', 'noteTitle', 'noteContent'];
     for (const formId of forms) {
         const element = document.getElementById(formId);
@@ -767,7 +773,6 @@ function checkForUnsavedChanges() {
         }
     }
     
-    // Check edit states
     const isEditingDictionary = document.getElementById('updateBtn')?.disabled === false;
     const isEditingNotes = document.getElementById('updateNoteBtn')?.disabled === false;
     
@@ -788,51 +793,22 @@ function saveAppState() {
     }
 }
 
-function restoreAppState() {
-    try {
-        const savedState = localStorage.getItem('app_state_backup');
-        if (savedState) {
-            const state = JSON.parse(savedState);
-            
-            // Restore table selection if user is logged in
-            if (getCurrentUser() && state.currentTableId) {
-                const tableSelect = document.getElementById('currentTable');
-                if (tableSelect) {
-                    tableSelect.value = state.currentTableId;
-                    tableSelect.dispatchEvent(new Event('change'));
-                }
-            }
-            
-            // Clear backup
-            localStorage.removeItem('app_state_backup');
-        }
-    } catch (error) {
-        console.error('Failed to restore app state:', error);
-    }
-}
-
-async function processPendingOperations() {
+function syncPendingOperations() {
     if (!appState.pendingOperations.length || !navigator.onLine) {
         return;
     }
     
-    console.log('Processing pending operations:', appState.pendingOperations.length);
+    console.log('Syncing pending operations:', appState.pendingOperations.length);
     
-    // Process operations in order
-    for (const operation of appState.pendingOperations) {
-        try {
-            // Dispatch appropriate event based on operation type
-            window.dispatchEvent(new CustomEvent('processPendingOperation', {
-                detail: operation
-            }));
-            
-            // Remove from pending list (in real implementation, you'd track success)
-            appState.pendingOperations = appState.pendingOperations.filter(op => op !== operation);
-            
-        } catch (error) {
-            console.error('Failed to process pending operation:', error);
-        }
-    }
+    // Process pending operations
+    appState.pendingOperations.forEach(operation => {
+        window.dispatchEvent(new CustomEvent('syncPendingOperation', {
+            detail: operation
+        }));
+    });
+    
+    // Clear pending operations
+    appState.pendingOperations = [];
 }
 
 async function refreshData() {
@@ -845,6 +821,27 @@ async function refreshData() {
     // Dispatch refresh events to modules
     window.dispatchEvent(new CustomEvent('refreshData'));
 }
+
+// Global event listeners for inter-module communication
+window.addEventListener('exportConfirmed', (event) => {
+    const { filename } = event.detail;
+    handleExport(filename);
+});
+
+window.addEventListener('deleteConfirmed', (event) => {
+    const { type, itemId } = event.detail;
+    handleDeletion(type, itemId);
+});
+
+window.addEventListener('importOptionSelected', (event) => {
+    const { action } = event.detail;
+    handleImportAction(action);
+});
+
+window.addEventListener('tableActionConfirmed', (event) => {
+    const { action, tableName, tableId } = event.detail;
+    handleTableAction(action, tableName, tableId);
+});
 
 // Public API for other modules
 window.app = {
@@ -863,4 +860,4 @@ window.app = {
 };
 
 // Initialize
-console.log('App script loaded');
+console.log('App module loaded');

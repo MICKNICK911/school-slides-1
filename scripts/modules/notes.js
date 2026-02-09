@@ -1,6 +1,7 @@
 // scripts/modules/notes.js
 import { saveUserNote, deleteUserNote, loadUserNotes, exportTableData, importTableData } from './database.js';
 import { showNotification, processMarkdown, debounce } from './utils.js';
+import { showModal, hideModal } from './uiManager.js';
 
 let notes = {};
 let currentNoteId = null;
@@ -15,14 +16,23 @@ export function initNotes() {
     // Listen for table changes
     window.addEventListener('tableChanged', handleTableChange);
     
-    // Handle delete confirmation for notes
-    window.confirmNoteDelete = confirmNoteDeleteAction;
+    // Listen for delete events
+    window.addEventListener('deleteNote', handleDeleteNote);
+    window.addEventListener('clearNotes', handleClearNotes);
     
-    return {
+    // Listen for import events
+    window.addEventListener('notesImport', handleNotesImport);
+    
+    const module = {
         getNotes: () => notes,
         getCurrentNoteId: () => currentNoteId,
         cleanup: cleanupNotes
     };
+    
+    // Store reference globally for other modules
+    window.notesModule = module;
+    
+    return module;
 }
 
 // Handle table change event
@@ -55,7 +65,7 @@ function handleTableChange(event) {
             updateNotesList();
             updateNotesPreview();
             updateNotesCountBadge();
-            updateRawPreview(); // Update the raw data preview tab
+            updateRawPreview();
         });
     }
 }
@@ -68,18 +78,19 @@ function setupEventListeners() {
     document.getElementById('cancelNoteBtn').addEventListener('click', cancelNoteEdit);
     document.getElementById('noteId').addEventListener('change', loadNoteForEdit);
     
-    // Import/Export buttons
+    // Export button
     document.getElementById('exportNotesBtn').addEventListener('click', exportNotes);
     document.getElementById('clearNotesBtn').addEventListener('click', clearNotes);
-    document.getElementById('importNotesFile').addEventListener('change', handleNotesImport);
     
     // Search with debounce for performance
     const searchInput = document.getElementById('searchNotesInput');
-    const debouncedSearch = debounce((e) => {
-        noteSearchTerm = e.target.value.toLowerCase();
-        updateNotesList();
-    }, 300);
-    searchInput.addEventListener('input', debouncedSearch);
+    if (searchInput) {
+        const debouncedSearch = debounce((e) => {
+            noteSearchTerm = e.target.value.toLowerCase();
+            updateNotesList();
+        }, 300);
+        searchInput.addEventListener('input', debouncedSearch);
+    }
     
     // Keyboard shortcuts
     document.addEventListener('keydown', handleNoteKeyboardShortcuts);
@@ -95,20 +106,13 @@ async function addNote() {
     const title = document.getElementById('noteTitle').value.trim();
     const content = document.getElementById('noteContent').value.trim();
     
-    if (!title || !content) {
-        showNotification('Please fill in both title and content', 'error');
+    if (!title) {
+        showNotification('Please enter a title', 'error');
         return;
     }
     
-    // Generate a unique ID for the note (using timestamp + random string)
+    // Generate a unique ID for the note
     const noteId = `note_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
-    const noteData = {
-        title: title,
-        content: content,
-        createdAt: new Date(),
-        updatedAt: new Date()
-    };
     
     try {
         await saveUserNote(currentTableId, noteId, title, content);
@@ -119,16 +123,6 @@ async function addNote() {
     } catch (error) {
         console.error('Error saving note:', error);
         showNotification('Failed to save note. Please check your connection.', 'error');
-        
-        // Store locally for offline sync
-        const pendingKey = `pending_note_${currentTableId}_${noteId}`;
-        localStorage.setItem(pendingKey, JSON.stringify({
-            type: 'note',
-            action: 'add',
-            tableId: currentTableId,
-            noteId: noteId,
-            data: noteData
-        }));
     }
 }
 
@@ -139,8 +133,8 @@ async function updateNote() {
     const title = document.getElementById('noteTitle').value.trim();
     const content = document.getElementById('noteContent').value.trim();
     
-    if (!title || !content) {
-        showNotification('Please fill in both title and content', 'error');
+    if (!title) {
+        showNotification('Please enter a title', 'error');
         return;
     }
     
@@ -226,13 +220,14 @@ function updateNoteDropdown() {
 // Update the notes list with search filtering
 function updateNotesList() {
     const container = document.getElementById('notesList');
+    if (!container) return;
     
     // Filter notes based on search term
     const filteredNotes = Object.entries(notes).filter(([noteId, note]) => {
         if (!noteSearchTerm) return true;
         
-        const titleMatch = note.title?.toLowerCase().includes(noteSearchTerm) || false;
-        const contentMatch = note.content?.toLowerCase().includes(noteSearchTerm) || false;
+        const titleMatch = (note.title || '').toLowerCase().includes(noteSearchTerm);
+        const contentMatch = (note.content || '').toLowerCase().includes(noteSearchTerm);
         
         return titleMatch || contentMatch;
     });
@@ -301,6 +296,7 @@ function updateNotesList() {
 // Update notes preview in markdown format
 function updateNotesPreview() {
     const container = document.getElementById('notes-preview');
+    if (!container) return;
     
     if (Object.keys(notes).length === 0) {
         container.innerHTML = '<div class="empty-state">No notes in this table</div>';
@@ -332,19 +328,21 @@ function updateNotesPreview() {
 
 // Update notes count badge
 function updateNotesCountBadge() {
-    const count = Object.keys(notes).length;
-    document.getElementById('notesCount').textContent = count;
+    const countElement = document.getElementById('notesCount');
+    if (countElement) {
+        countElement.textContent = Object.keys(notes).length;
+    }
 }
 
-// Update raw data preview (shared between dictionary and notes)
+// Update raw data preview
 function updateRawPreview() {
     const container = document.getElementById('preview');
     const activeTab = document.querySelector('.tab-button.active')?.dataset.tab;
     
-    if (activeTab === 'raw-data') {
+    if (activeTab === 'raw-data' && container) {
         const allData = {
             tableId: currentTableId,
-            tableName: document.getElementById('currentTableName').textContent,
+            tableName: document.getElementById('currentTableName')?.textContent || 'No Table',
             dictionary: window.dictionaryModule?.getDictionary() || {},
             notes: notes,
             metadata: {
@@ -369,14 +367,13 @@ async function exportNotes() {
     
     try {
         const data = await exportTableData(currentTableId);
-        // Only export notes if that's what we want, or export everything
         const exportData = {
-            notes: data.notes,
+            notes: data.notes || {},
             metadata: {
                 exportedAt: new Date().toISOString(),
                 tableId: currentTableId,
-                tableName: document.getElementById('currentTableName').textContent,
-                exportType: 'notes'
+                tableName: document.getElementById('currentTableName')?.textContent || 'Unknown',
+                count: Object.keys(notes).length
             }
         };
         
@@ -385,7 +382,7 @@ async function exportNotes() {
         const url = URL.createObjectURL(blob);
         
         const a = document.createElement('a');
-        const tableName = document.getElementById('currentTableName').textContent
+        const tableName = (document.getElementById('currentTableName')?.textContent || 'notes')
             .replace(/[^a-z0-9]/gi, '_').toLowerCase();
         a.href = url;
         a.download = `${tableName}_notes_${new Date().toISOString().split('T')[0]}.json`;
@@ -430,85 +427,31 @@ async function clearNotes() {
 
 // Handle notes import
 async function handleNotesImport(event) {
-    if (!currentTableId) {
-        showNotification('Please select a table first', 'error');
-        return;
-    }
+    const { data: importData, action } = event.detail;
     
-    const file = event.target.files[0];
-    if (!file) return;
-    
-    // Check file size (limit to 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-        showNotification('File too large. Maximum size is 5MB.', 'error');
-        event.target.value = '';
-        return;
-    }
-    
-    const reader = new FileReader();
-    reader.onload = async function(e) {
-        try {
-            const importData = JSON.parse(e.target.result);
-            
-            // Validate import data structure
-            if (!importData.notes && !importData.dictionary) {
-                showNotification('Invalid import file: No notes data found', 'error');
-                return;
-            }
-            
-            // Determine import type
-            const hasNotes = !!importData.notes;
-            const hasDictionary = !!importData.dictionary;
-            
-            if (hasNotes && hasDictionary) {
-                // Show import options modal
-                showImportModal(importData, 'mixed');
-            } else if (hasNotes) {
-                // Import notes only
-                await importNotesData(importData);
-            } else {
-                showNotification('File does not contain notes data', 'error');
-            }
-        } catch (error) {
-            console.error('Error parsing import file:', error);
-            showNotification('Invalid JSON file format', 'error');
-        }
-    };
-    
-    reader.onerror = () => {
-        showNotification('Error reading file', 'error');
-    };
-    
-    reader.readAsText(file);
-    
-    // Reset file input
-    event.target.value = '';
-}
-
-// Import notes data
-async function importNotesData(importData) {
-    if (!importData.notes) return;
+    if (!currentTableId || !importData) return;
     
     try {
         const result = await importTableData(currentTableId, { notes: importData.notes });
-        showNotification(`Successfully imported ${result.importedNotes} notes`);
+        showNotification(`Imported ${result.importedNotes} notes (${action})`);
     } catch (error) {
-        console.error('Error importing notes:', error);
-        showNotification(`Import failed: ${error.message}`, 'error');
+        console.error('Import error:', error);
+        showNotification('Failed to import notes', 'error');
     }
 }
 
 // Show note delete confirmation
 function showNoteDeleteConfirmation(noteId, noteTitle) {
-    // Use the existing delete modal
     document.getElementById('deleteTopic').textContent = noteTitle;
     document.getElementById('deleteModal').dataset.type = 'note';
     document.getElementById('deleteModal').dataset.noteId = noteId;
-    document.getElementById('deleteModal').style.display = 'flex';
+    showModal('deleteModal');
 }
 
-// Global note delete confirmation handler
-async function confirmNoteDeleteAction(noteId) {
+// Handle delete note from event
+async function handleDeleteNote(event) {
+    const { noteId } = event.detail;
+    
     if (!currentTableId || !noteId) return;
     
     try {
@@ -522,6 +465,26 @@ async function confirmNoteDeleteAction(noteId) {
     } catch (error) {
         console.error('Error deleting note:', error);
         showNotification('Delete failed', 'error');
+    }
+}
+
+// Handle clear notes from event
+async function handleClearNotes() {
+    if (!currentTableId) return;
+    
+    const noteCount = Object.keys(notes).length;
+    if (noteCount === 0) return;
+    
+    try {
+        const deletePromises = Object.keys(notes).map(noteId => 
+            deleteUserNote(currentTableId, noteId)
+        );
+        
+        await Promise.all(deletePromises);
+        showNotification(`Successfully deleted ${noteCount} notes`);
+    } catch (error) {
+        console.error('Error clearing notes:', error);
+        showNotification('Failed to clear notes', 'error');
     }
 }
 
@@ -563,8 +526,8 @@ function handleNoteKeyboardShortcuts(e) {
     }
 }
 
-// Cleanup on logout or table change
-function cleanupNotes() {
+// Cleanup on logout
+export function cleanupNotes() {
     if (unsubscribeNotes) {
         unsubscribeNotes();
         unsubscribeNotes = null;
@@ -586,21 +549,14 @@ function cleanupNotes() {
         preview.innerHTML = 'Select a table to preview notes';
     }
     
-    document.getElementById('notesCount').textContent = '0';
+    const countElement = document.getElementById('notesCount');
+    if (countElement) {
+        countElement.textContent = '0';
+    }
+    
+    // Clear form
+    clearNoteForm();
 }
 
 // Initialize on load
-document.addEventListener('DOMContentLoaded', () => {
-    // Note: This will be called from app.js when user logs in
-    console.log('Notes module loaded');
-});
-
-// Export for testing and debugging
-if (typeof window !== 'undefined') {
-    window.notesModule = {
-        initNotes,
-        cleanupNotes,
-        getNotes: () => notes,
-        getCurrentNoteId: () => currentNoteId
-    };
-}
+console.log('Notes module loaded');

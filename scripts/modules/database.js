@@ -1,11 +1,16 @@
+// scripts/modules/database.js
 import { db } from './firebaseConfig.js';
 import { getCurrentUser } from './auth.js';
 
 // Get reference to current table
 function getCurrentTableRef(tableId, subcollection = '') {
     const user = getCurrentUser();
-    if (!user) throw new Error('No user logged in');
-    if (!tableId) throw new Error('No table selected');
+    if (!user) {
+        throw new Error('No user logged in');
+    }
+    if (!tableId) {
+        throw new Error('No table selected');
+    }
     
     const baseRef = db.collection('users').doc(user.uid).collection('tables').doc(tableId);
     return subcollection ? baseRef.collection(subcollection) : baseRef;
@@ -32,6 +37,7 @@ async function updateTableCounters(tableId, dictDelta = 0, notesDelta = 0) {
         await tableRef.update(updates);
     } catch (error) {
         console.error('Error updating table counters:', error);
+        // Non-critical error, don't throw
     }
 }
 
@@ -44,11 +50,13 @@ export async function saveDictionaryEntry(tableId, topic, data) {
         const existing = await entryRef.get();
         const isUpdate = existing.exists;
         
-        await entryRef.set({
+        const entryData = {
             ...data,
             updatedAt: new Date(),
-            createdAt: isUpdate ? existing.data().createdAt : new Date()
-        });
+            createdAt: isUpdate ? (existing.data().createdAt || new Date()) : new Date()
+        };
+        
+        await entryRef.set(entryData);
         
         // Update table counter if new entry
         if (!isUpdate) {
@@ -80,22 +88,31 @@ export async function deleteDictionaryEntry(tableId, topic) {
 }
 
 export function loadDictionaryEntries(tableId, callback) {
-    if (!tableId) return () => {};
+    if (!tableId) {
+        console.error('No table ID provided for loading dictionary');
+        return () => {};
+    }
     
-    const entriesRef = getCurrentTableRef(tableId, 'dictionary');
-    
-    const unsubscribe = entriesRef.onSnapshot((snapshot) => {
-        const entries = {};
-        snapshot.forEach(doc => {
-            entries[doc.id] = doc.data();
+    try {
+        const entriesRef = getCurrentTableRef(tableId, 'dictionary');
+        
+        const unsubscribe = entriesRef.onSnapshot((snapshot) => {
+            const entries = {};
+            snapshot.forEach(doc => {
+                entries[doc.id] = doc.data();
+            });
+            callback(entries);
+        }, (error) => {
+            console.error('Error loading dictionary:', error);
+            callback({});
         });
-        callback(entries);
-    }, (error) => {
-        console.error('Error loading dictionary:', error);
+        
+        return unsubscribe;
+    } catch (error) {
+        console.error('Error setting up dictionary listener:', error);
         callback({});
-    });
-    
-    return unsubscribe;
+        return () => {};
+    }
 }
 
 // Notes Operations (now table-specific)
@@ -107,12 +124,14 @@ export async function saveUserNote(tableId, noteId, title, content) {
         const existing = await noteRef.get();
         const isUpdate = existing.exists;
         
-        await noteRef.set({
-            title,
-            content,
+        const noteData = {
+            title: title || 'Untitled Note',
+            content: content || '',
             updatedAt: new Date(),
-            createdAt: isUpdate ? existing.data().createdAt : new Date()
-        });
+            createdAt: isUpdate ? (existing.data().createdAt || new Date()) : new Date()
+        };
+        
+        await noteRef.set(noteData);
         
         // Update table counter if new note
         if (!isUpdate) {
@@ -144,27 +163,38 @@ export async function deleteUserNote(tableId, noteId) {
 }
 
 export function loadUserNotes(tableId, callback) {
-    if (!tableId) return () => {};
+    if (!tableId) {
+        console.error('No table ID provided for loading notes');
+        return () => {};
+    }
     
-    const notesRef = getCurrentTableRef(tableId, 'notes').orderBy('updatedAt', 'desc');
-    
-    const unsubscribe = notesRef.onSnapshot((snapshot) => {
-        const notes = {};
-        snapshot.forEach(doc => {
-            notes[doc.id] = { id: doc.id, ...doc.data() };
+    try {
+        const notesRef = getCurrentTableRef(tableId, 'notes').orderBy('updatedAt', 'desc');
+        
+        const unsubscribe = notesRef.onSnapshot((snapshot) => {
+            const notes = {};
+            snapshot.forEach(doc => {
+                notes[doc.id] = { id: doc.id, ...doc.data() };
+            });
+            callback(notes);
+        }, (error) => {
+            console.error('Error loading notes:', error);
+            callback({});
         });
-        callback(notes);
-    }, (error) => {
-        console.error('Error loading notes:', error);
+        
+        return unsubscribe;
+    } catch (error) {
+        console.error('Error setting up notes listener:', error);
         callback({});
-    });
-    
-    return unsubscribe;
+        return () => {};
+    }
 }
 
 // Export/Import operations for specific table
 export async function exportTableData(tableId) {
-    if (!tableId) throw new Error('No table selected');
+    if (!tableId) {
+        throw new Error('No table selected');
+    }
     
     try {
         const [dictSnapshot, notesSnapshot] = await Promise.all([
@@ -177,7 +207,8 @@ export async function exportTableData(tableId) {
             notes: {},
             metadata: {
                 exportedAt: new Date().toISOString(),
-                tableId: tableId
+                tableId: tableId,
+                exportType: 'full'
             }
         };
         
@@ -198,7 +229,9 @@ export async function exportTableData(tableId) {
 
 // Import data into table
 export async function importTableData(tableId, importData) {
-    if (!tableId) throw new Error('No table selected');
+    if (!tableId) {
+        throw new Error('No table selected');
+    }
     
     try {
         const batch = db.batch();
@@ -209,7 +242,7 @@ export async function importTableData(tableId, importData) {
         let newNotes = 0;
         
         // Import dictionary entries
-        if (importData.dictionary) {
+        if (importData.dictionary && typeof importData.dictionary === 'object') {
             Object.entries(importData.dictionary).forEach(([topic, entryData]) => {
                 const docRef = dictRef.doc(topic);
                 batch.set(docRef, {
@@ -222,7 +255,7 @@ export async function importTableData(tableId, importData) {
         }
         
         // Import notes
-        if (importData.notes) {
+        if (importData.notes && typeof importData.notes === 'object') {
             Object.entries(importData.notes).forEach(([noteId, noteData]) => {
                 const docRef = notesRef.doc(noteId);
                 batch.set(docRef, {
@@ -247,3 +280,41 @@ export async function importTableData(tableId, importData) {
         throw error;
     }
 }
+
+// Get table metadata
+export async function getTableMetadata(tableId) {
+    if (!tableId) {
+        throw new Error('No table selected');
+    }
+    
+    try {
+        const tableRef = getCurrentTableRef(tableId);
+        const doc = await tableRef.get();
+        
+        if (!doc.exists) {
+            throw new Error('Table not found');
+        }
+        
+        return doc.data();
+    } catch (error) {
+        console.error('Error getting table metadata:', error);
+        throw error;
+    }
+}
+
+// Export for testing and debugging
+if (typeof window !== 'undefined') {
+    window.databaseModule = {
+        saveDictionaryEntry,
+        deleteDictionaryEntry,
+        loadDictionaryEntries,
+        saveUserNote,
+        deleteUserNote,
+        loadUserNotes,
+        exportTableData,
+        importTableData,
+        getTableMetadata
+    };
+}
+
+console.log('Database module loaded');

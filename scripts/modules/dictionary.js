@@ -1,11 +1,14 @@
+// scripts/modules/dictionary.js
 import { saveDictionaryEntry, deleteDictionaryEntry, loadDictionaryEntries, 
          exportTableData, importTableData } from './database.js';
 import { showNotification, processMarkdown } from './utils.js';
+import { showModal, hideModal } from './uiManager.js';
 
 let dictionary = {};
 let currentEditId = null;
 let unsubscribeDictionary = null;
 let currentTableId = null;
+let searchTerm = '';
 
 // Initialize dictionary module
 export function initDictionary() {
@@ -14,10 +17,23 @@ export function initDictionary() {
     // Listen for table changes
     window.addEventListener('tableChanged', handleTableChange);
     
-    return {
+    // Listen for delete events
+    window.addEventListener('deleteDictionaryEntry', handleDeleteEntry);
+    window.addEventListener('clearDictionary', handleClearDictionary);
+    
+    // Listen for import events
+    window.addEventListener('dictionaryImport', handleDictionaryImport);
+    
+    const module = {
         getDictionary: () => dictionary,
-        getCurrentEditId: () => currentEditId
+        getCurrentEditId: () => currentEditId,
+        cleanup: cleanupDictionary
     };
+    
+    // Store reference globally for other modules
+    window.dictionaryModule = module;
+    
+    return module;
 }
 
 // Handle table change
@@ -67,10 +83,15 @@ function setupEventListeners() {
     // Import/Export buttons
     document.getElementById('exportDictBtn').addEventListener('click', exportDictionary);
     document.getElementById('clearDictBtn').addEventListener('click', clearDictionary);
-    document.getElementById('importDictFile').addEventListener('change', handleDictionaryImport);
     
     // Search
-    document.getElementById('searchDictInput').addEventListener('input', updateEntriesList);
+    const searchInput = document.getElementById('searchDictInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            searchTerm = e.target.value.toLowerCase();
+            updateEntriesList();
+        });
+    }
     
     // Keyboard shortcuts
     document.addEventListener('keydown', handleKeyboardShortcuts);
@@ -87,8 +108,8 @@ async function addEntry() {
     const desc = document.getElementById('desc').value.trim();
     const ex = document.getElementById('ex').value.trim();
     
-    if (!topic || !desc || !ex) {
-        showNotification('Please fill in all fields', 'error');
+    if (!topic || !desc) {
+        showNotification('Please fill in topic and description', 'error');
         return;
     }
     
@@ -99,8 +120,9 @@ async function addEntry() {
     
     const entryData = {
         desc: desc,
-        ex: ex.split(',').map(item => item.trim()),
-        createdAt: new Date()
+        ex: ex ? ex.split(',').map(item => item.trim()).filter(item => item.length > 0) : [],
+        createdAt: new Date(),
+        updatedAt: new Date()
     };
     
     try {
@@ -108,16 +130,8 @@ async function addEntry() {
         showNotification('Entry added successfully');
         clearDictionaryForm();
     } catch (error) {
+        console.error('Error adding entry:', error);
         showNotification('Failed to save entry. Check connection.', 'error');
-        // Store locally for sync later
-        const pendingKey = `pending_${currentTableId}_${Date.now()}`;
-        localStorage.setItem(pendingKey, JSON.stringify({
-            type: 'dictionary',
-            action: 'add',
-            tableId: currentTableId,
-            topic,
-            data: entryData
-        }));
     }
 }
 
@@ -129,14 +143,14 @@ async function updateEntry() {
     const desc = document.getElementById('desc').value.trim();
     const ex = document.getElementById('ex').value.trim();
     
-    if (!newTopic || !desc || !ex) {
-        showNotification('Please fill in all fields', 'error');
+    if (!newTopic || !desc) {
+        showNotification('Please fill in topic and description', 'error');
         return;
     }
     
     const entryData = {
         desc: desc,
-        ex: ex.split(',').map(item => item.trim()),
+        ex: ex ? ex.split(',').map(item => item.trim()).filter(item => item.length > 0) : [],
         updatedAt: new Date()
     };
     
@@ -150,6 +164,7 @@ async function updateEntry() {
         showNotification('Entry updated successfully');
         cancelEdit();
     } catch (error) {
+        console.error('Error updating entry:', error);
         showNotification('Update failed', 'error');
     }
 }
@@ -166,7 +181,7 @@ function loadEntryForEdit() {
     if (!entry) return;
     
     document.getElementById('topic').value = selectedTopic;
-    document.getElementById('desc').value = entry.desc;
+    document.getElementById('desc').value = entry.desc || '';
     document.getElementById('ex').value = entry.ex ? entry.ex.join(', ') : '';
     
     currentEditId = selectedTopic;
@@ -211,21 +226,20 @@ function updateEditDropdown() {
 
 // Update entries list with search filtering
 function updateEntriesList() {
-    const searchTerm = document.getElementById('searchDictInput').value.toLowerCase();
     const container = document.getElementById('entriesList');
+    if (!container) return;
     
     // Filter entries
     const filteredEntries = Object.entries(dictionary).filter(([topic, data]) => {
         if (!searchTerm) return true;
         
-        const searchInDesc = data.desc.toLowerCase().includes(searchTerm);
-        const searchInExamples = data.ex?.some(ex => 
+        const searchInTopic = topic.toLowerCase().includes(searchTerm);
+        const searchInDesc = (data.desc || '').toLowerCase().includes(searchTerm);
+        const searchInExamples = (data.ex || []).some(ex => 
             ex.toLowerCase().includes(searchTerm)
-        ) || false;
+        );
         
-        return topic.toLowerCase().includes(searchTerm) || 
-               searchInDesc || 
-               searchInExamples;
+        return searchInTopic || searchInDesc || searchInExamples;
     });
     
     // Display results
@@ -242,8 +256,8 @@ function updateEntriesList() {
         <div class="entry-item">
             <div class="entry-info">
                 <div class="entry-topic">${topic}</div>
-                <div class="entry-desc">${data.desc}</div>
-                <div class="entry-examples">Examples: ${data.ex?.join(', ') || 'None'}</div>
+                <div class="entry-desc">${data.desc || ''}</div>
+                <div class="entry-examples">Examples: ${(data.ex || []).join(', ') || 'None'}</div>
             </div>
             <div class="entry-actions">
                 <button class="btn btn-warning edit-btn" data-topic="${topic}">Edit</button>
@@ -274,6 +288,7 @@ function updateEntriesList() {
 // Update dictionary preview
 function updateDictionaryPreview() {
     const container = document.getElementById('dictionary-preview');
+    if (!container) return;
     
     if (Object.keys(dictionary).length === 0) {
         container.innerHTML = '<div class="empty-state">No dictionary entries in this table</div>';
@@ -281,26 +296,32 @@ function updateDictionaryPreview() {
     }
     
     let markdownHTML = '';
-    for (const [topic, data] of Object.entries(dictionary)) {
+    Object.entries(dictionary).forEach(([topic, data]) => {
         markdownHTML += `
             <div class="topic">${processMarkdown(topic)}</div>
-            <div class="desc">${processMarkdown(data.desc)}</div>
-            <div class="examples">
+            <div class="desc">${processMarkdown(data.desc || '')}</div>
         `;
         
-        data.ex?.forEach(example => {
-            markdownHTML += `<div class="example-item">${processMarkdown(example)}</div>`;
-        }) || '';
+        if (data.ex && data.ex.length > 0) {
+            markdownHTML += `<div class="examples">`;
+            data.ex.forEach(example => {
+                markdownHTML += `<div class="example-item">${processMarkdown(example)}</div>`;
+            });
+            markdownHTML += `</div>`;
+        }
         
-        markdownHTML += `</div><hr style="margin: 20px 0;">`;
-    }
+        markdownHTML += `<hr style="margin: 20px 0;">`;
+    });
+    
     container.innerHTML = markdownHTML;
 }
 
 // Update count badge
 function updateCountBadge() {
-    const count = Object.keys(dictionary).length;
-    document.getElementById('dictCount').textContent = count;
+    const countElement = document.getElementById('dictCount');
+    if (countElement) {
+        countElement.textContent = Object.keys(dictionary).length;
+    }
 }
 
 // Export dictionary
@@ -312,12 +333,22 @@ async function exportDictionary() {
     
     try {
         const data = await exportTableData(currentTableId);
-        const jsonStr = JSON.stringify(data, null, 2);
+        const exportData = {
+            dictionary: data.dictionary || {},
+            metadata: {
+                exportedAt: new Date().toISOString(),
+                tableId: currentTableId,
+                tableName: document.getElementById('currentTableName')?.textContent || 'Unknown',
+                count: Object.keys(dictionary).length
+            }
+        };
+        
+        const jsonStr = JSON.stringify(exportData, null, 2);
         const blob = new Blob([jsonStr], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         
         const a = document.createElement('a');
-        const tableName = document.getElementById('currentTableName').textContent
+        const tableName = (document.getElementById('currentTableName')?.textContent || 'dictionary')
             .replace(/\s+/g, '_').toLowerCase();
         a.href = url;
         a.download = `${tableName}_dictionary_${new Date().toISOString().split('T')[0]}.json`;
@@ -328,6 +359,7 @@ async function exportDictionary() {
         
         showNotification('Dictionary exported successfully');
     } catch (error) {
+        console.error('Export error:', error);
         showNotification('Failed to export dictionary', 'error');
     }
 }
@@ -336,7 +368,13 @@ async function exportDictionary() {
 async function clearDictionary() {
     if (!currentTableId) return;
     
-    if (!confirm('Are you sure you want to clear ALL dictionary entries in this table? This cannot be undone.')) {
+    const entryCount = Object.keys(dictionary).length;
+    if (entryCount === 0) {
+        showNotification('No entries to clear', 'info');
+        return;
+    }
+    
+    if (!confirm(`Are you sure you want to clear ALL ${entryCount} dictionary entries in this table? This cannot be undone.`)) {
         return;
     }
     
@@ -349,41 +387,24 @@ async function clearDictionary() {
         await Promise.all(deletePromises);
         showNotification('Dictionary cleared successfully');
     } catch (error) {
+        console.error('Error clearing dictionary:', error);
         showNotification('Failed to clear dictionary', 'error');
     }
 }
 
 // Handle dictionary import
 async function handleDictionaryImport(event) {
-    if (!currentTableId) {
-        showNotification('Please select a table first', 'error');
-        return;
+    const { data: importData, action } = event.detail;
+    
+    if (!currentTableId || !importData) return;
+    
+    try {
+        const result = await importTableData(currentTableId, { dictionary: importData.dictionary });
+        showNotification(`Imported ${result.importedEntries} dictionary entries (${action})`);
+    } catch (error) {
+        console.error('Import error:', error);
+        showNotification('Failed to import dictionary', 'error');
     }
-    
-    const file = event.target.files[0];
-    if (!file) return;
-    
-    const reader = new FileReader();
-    reader.onload = async function(e) {
-        try {
-            const importData = JSON.parse(e.target.result);
-            
-            // Validate import data
-            if (!importData.dictionary && !importData.notes) {
-                showNotification('Invalid import file: No dictionary data found', 'error');
-                return;
-            }
-            
-            // Show import options modal
-            showImportModal(importData);
-        } catch (error) {
-            showNotification('Invalid JSON file', 'error');
-        }
-    };
-    reader.readAsText(file);
-    
-    // Reset file input
-    event.target.value = '';
 }
 
 // Show delete confirmation
@@ -391,13 +412,57 @@ function showDeleteConfirmation(topic, type) {
     document.getElementById('deleteTopic').textContent = topic;
     document.getElementById('deleteModal').dataset.type = type;
     document.getElementById('deleteModal').dataset.topic = topic;
-    document.getElementById('deleteModal').style.display = 'flex';
+    showModal('deleteModal');
+}
+
+// Handle delete entry from event
+async function handleDeleteEntry(event) {
+    const { topic } = event.detail;
+    
+    if (!currentTableId || !topic) return;
+    
+    try {
+        await deleteDictionaryEntry(currentTableId, topic);
+        showNotification('Entry deleted');
+    } catch (error) {
+        console.error('Delete error:', error);
+        showNotification('Delete failed', 'error');
+    }
+}
+
+// Handle clear dictionary from event
+async function handleClearDictionary() {
+    if (!currentTableId) return;
+    
+    const entryCount = Object.keys(dictionary).length;
+    if (entryCount === 0) return;
+    
+    try {
+        const entries = Object.keys(dictionary);
+        const deletePromises = entries.map(topic => 
+            deleteDictionaryEntry(currentTableId, topic)
+        );
+        
+        await Promise.all(deletePromises);
+        showNotification('Dictionary cleared successfully');
+    } catch (error) {
+        console.error('Error clearing dictionary:', error);
+        showNotification('Failed to clear dictionary', 'error');
+    }
 }
 
 // Handle keyboard shortcuts
 function handleKeyboardShortcuts(e) {
+    // Only process if we're in dictionary context
+    const topicFocused = document.activeElement.id === 'topic';
+    const descFocused = document.activeElement.id === 'desc';
+    const exFocused = document.activeElement.id === 'ex';
+    
+    if (!topicFocused && !descFocused && !exFocused) return;
+    
     // Ctrl/Cmd + Enter to save
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
         if (!document.getElementById('updateBtn').disabled) {
             document.getElementById('updateBtn').click();
         } else if (!document.getElementById('addBtn').disabled) {
@@ -411,25 +476,6 @@ function handleKeyboardShortcuts(e) {
     }
 }
 
-// Global delete confirmation handler
-window.confirmDeleteAction = async function() {
-    const modal = document.getElementById('deleteModal');
-    const topic = modal.dataset.topic;
-    const type = modal.dataset.type;
-    
-    if (type === 'dictionary' && currentTableId) {
-        try {
-            await deleteDictionaryEntry(currentTableId, topic);
-            showNotification('Entry deleted');
-        } catch (error) {
-            showNotification('Delete failed', 'error');
-        }
-    }
-    
-    // Hide modal
-    modal.style.display = 'none';
-};
-
 // Cleanup on logout
 export function cleanupDictionary() {
     if (unsubscribeDictionary) {
@@ -440,4 +486,27 @@ export function cleanupDictionary() {
     dictionary = {};
     currentEditId = null;
     currentTableId = null;
+    searchTerm = '';
+    
+    // Clear UI
+    const container = document.getElementById('entriesList');
+    if (container) {
+        container.innerHTML = '<div class="empty-state">Select a table to view entries</div>';
+    }
+    
+    const preview = document.getElementById('dictionary-preview');
+    if (preview) {
+        preview.innerHTML = 'Select a table to preview dictionary entries';
+    }
+    
+    const countElement = document.getElementById('dictCount');
+    if (countElement) {
+        countElement.textContent = '0';
+    }
+    
+    // Clear form
+    clearDictionaryForm();
 }
+
+// Initialize on load
+console.log('Dictionary module loaded');
