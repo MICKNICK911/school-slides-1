@@ -365,5 +365,27 @@
     <script src="scripts/slideshow.js"></script>
     <script src="scripts/builder.js"></script>
     <script src="scripts/app.js"></script>
+    <!-- Add this script to handle splash screen timeout -->
+<script>
+    // Fallback timeout to hide splash screen if something goes wrong
+    setTimeout(() => {
+        const splashScreen = document.getElementById('splashScreen');
+        const loginScreen = document.getElementById('loginScreen');
+        
+        if (splashScreen && splashScreen.style.display !== 'none') {
+            console.log('Fallback: Hiding splash screen');
+            splashScreen.style.opacity = '0';
+            setTimeout(() => {
+                splashScreen.style.display = 'none';
+                
+                // Show login screen if it's not already shown
+                if (loginScreen && loginScreen.style.display !== 'flex') {
+                    loginScreen.style.display = 'flex';
+                }
+            }, 800);
+        }
+    }, 8000); // 8 second fallback timeout
+</script>
+
 </body>
 </html>

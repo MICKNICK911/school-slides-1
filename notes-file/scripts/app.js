@@ -2,32 +2,100 @@ class AppManager {
     constructor() {
         this.loadToggle = document.getElementById('loadToggle');
         this.dictionaryFileInput = document.getElementById('dictionaryFileInput');
+        this.splashScreen = document.getElementById('splashScreen');
+        this.loadingProgress = document.getElementById('loadingProgress');
         
         this.init();
     }
     
     init() {
+        console.log('AppManager initialized');
+        
+        // Start loading animation immediately
+        if (this.loadingProgress) {
+            this.loadingProgress.style.width = '100%';
+        }
+        
+        // Check if user is already logged in
+        if (window.authManager && window.authManager.isAuthenticated && window.authManager.isAuthenticated()) {
+            console.log('User is already authenticated');
+            // User is already logged in, proceed to main app
+            this.showMainApp();
+        } else {
+            console.log('No user authenticated, showing login screen');
+            // Show login screen immediately (hide splash screen)
+            this.hideSplashScreen();
+        }
+        
+        // Dictionary load event listener
+        if (this.loadToggle) {
+            this.loadToggle.addEventListener('click', () => {
+                this.dictionaryFileInput.click();
+            });
+        }
+        
+        if (this.dictionaryFileInput) {
+            this.dictionaryFileInput.addEventListener('change', (e) => this.handleFileSelect(e));
+        }
+        
+        // Load custom dictionary from localStorage
+        this.loadSavedDictionary();
+        
         // Check if instructions have been shown before
         const instructionsShown = localStorage.getItem('instructionsShown');
         if (!instructionsShown) {
-            // Show instructions after splash screen
+            // Show instructions after app loads
             setTimeout(() => {
                 if (window.uiManager) {
                     window.uiManager.toggleInstructionsModal();
                 }
                 localStorage.setItem('instructionsShown', 'true');
-            }, 3000);
+            }, 1000);
         }
-        
-        // Dictionary load event listener
-        this.loadToggle.addEventListener('click', () => {
-            this.dictionaryFileInput.click();
-        });
-        
-        this.dictionaryFileInput.addEventListener('change', (e) => this.handleFileSelect(e));
-        
-        // Load custom dictionary from localStorage
-        this.loadSavedDictionary();
+    }
+    
+    showMainApp() {
+        console.log('Showing main app');
+        // Hide splash screen and show app
+        setTimeout(() => {
+            if (this.splashScreen) {
+                this.splashScreen.style.opacity = '0';
+                this.splashScreen.style.pointerEvents = 'none';
+                
+                // Remove splash screen after transition completes
+                setTimeout(() => {
+                    this.splashScreen.style.display = 'none';
+                    const appContainer = document.getElementById('appContainer');
+                    if (appContainer) {
+                        appContainer.style.display = 'block';
+                    }
+                    
+                    // Initialize UI components
+                    if (window.uiManager) {
+                        window.uiManager.init();
+                    }
+                    
+                    // Show welcome notification
+                    window.utils.showNotification('Welcome to Enhanced Digital Notes!', '📚');
+                    
+                }, 800);
+            }
+        }, 1500);
+    }
+    
+    hideSplashScreen() {
+        console.log('Hiding splash screen');
+        // Hide splash screen immediately
+        setTimeout(() => {
+            if (this.splashScreen) {
+                this.splashScreen.style.opacity = '0';
+                this.splashScreen.style.pointerEvents = 'none';
+                
+                setTimeout(() => {
+                    this.splashScreen.style.display = 'none';
+                }, 800);
+            }
+        }, 1000);
     }
     
     async handleFileSelect(event) {
@@ -96,16 +164,55 @@ class AppManager {
     }
 }
 
-// Initialize App Manager
-let appManager;
+// Initialize App Manager when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    appManager = new AppManager();
-    window.appManager = appManager;
+    console.log('DOM Content Loaded - Initializing AppManager');
+    try {
+        // Initialize all managers in correct order
+        if (!window.utils) {
+            console.error('Utils not loaded');
+            return;
+        }
+        
+        // Initialize AppManager
+        const appManager = new AppManager();
+        window.appManager = appManager;
+        
+        // Make sure splash screen eventually hides even if auth fails
+        setTimeout(() => {
+            const splashScreen = document.getElementById('splashScreen');
+            if (splashScreen && splashScreen.style.display !== 'none') {
+                console.log('Forcing splash screen hide');
+                splashScreen.style.opacity = '0';
+                splashScreen.style.pointerEvents = 'none';
+                setTimeout(() => {
+                    splashScreen.style.display = 'none';
+                }, 800);
+            }
+        }, 10000); // 10 second timeout
+        
+    } catch (error) {
+        console.error('Error initializing AppManager:', error);
+        // Force hide splash screen on error
+        const splashScreen = document.getElementById('splashScreen');
+        if (splashScreen) {
+            splashScreen.style.display = 'none';
+        }
+    }
 });
 
 // Handle page unload
 window.addEventListener('beforeunload', () => {
     if (window.appManager) {
         window.appManager.saveState();
+    }
+});
+
+// Global error handler to prevent app from getting stuck
+window.addEventListener('error', (event) => {
+    console.error('Global error:', event.error);
+    const splashScreen = document.getElementById('splashScreen');
+    if (splashScreen && splashScreen.style.display !== 'none') {
+        splashScreen.style.display = 'none';
     }
 });

@@ -26,6 +26,33 @@ class AuthManager {
     }
     
     init() {
+        
+    console.log('AuthManager initializing...');
+    
+    // First, check auth state before setting up listeners
+    const user = this.auth.currentUser;
+    if (user) {
+        console.log('User already authenticated:', user.email);
+        this.currentUser = user;
+        this.onLoginSuccess(user);
+    } else {
+        console.log('No user authenticated');
+        this.showLoginScreen();
+    }
+    
+    // Then set up the auth state listener for future changes
+    this.auth.onAuthStateChanged((user) => {
+        console.log('Auth state changed:', user ? user.email : 'No user');
+        if (user) {
+            this.currentUser = user;
+            this.onLoginSuccess(user);
+        } else {
+            this.showLoginScreen();
+        }
+    });
+    
+    // ... rest of the init method remains the same
+
         // Check auth state
         this.auth.onAuthStateChanged((user) => {
             if (user) {
@@ -303,6 +330,11 @@ class AuthManager {
             }, 800);
         }, 2000);
     }
+    
+    // Add this method to AuthManager class
+isAuthenticated() {
+    return this.currentUser !== null;
+}
     
     getCurrentUser() {
         return this.currentUser;
