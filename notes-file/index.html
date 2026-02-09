@@ -4,12 +4,75 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Enhanced Digital Notes</title>
-    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="styles/main.css">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
 </head>
 <body>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-screen">
+        <div class="login-container">
+            <div class="login-header">
+                <div class="login-logo">
+                    <div class="login-logo-inner">📚</div>
+                </div>
+                <h1>Enhanced Digital Notes</h1>
+                <p>Interactive Learning Platform</p>
+            </div>
+            
+            <div class="login-form" id="loginForm">
+                <h2>Sign In</h2>
+                <div class="form-group">
+                    <input type="email" id="loginEmail" placeholder="Email" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" id="loginPassword" placeholder="Password" required>
+                </div>
+                <button id="loginBtn" class="btn-primary">Sign In</button>
+                <button id="showRegister" class="btn-secondary">Create Account</button>
+                <div class="login-links">
+                    <a href="#" id="forgotPassword">Forgot Password?</a>
+                </div>
+                <div class="login-error" id="loginError"></div>
+            </div>
+            
+            <div class="login-form" id="registerForm" style="display: none;">
+                <h2>Create Account</h2>
+                <div class="form-group">
+                    <input type="text" id="registerName" placeholder="Full Name" required>
+                </div>
+                <div class="form-group">
+                    <input type="email" id="registerEmail" placeholder="Email" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" id="registerPassword" placeholder="Password (min. 6 characters)" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" id="registerConfirmPassword" placeholder="Confirm Password" required>
+                </div>
+                <button id="registerBtn" class="btn-primary">Create Account</button>
+                <button id="showLogin" class="btn-secondary">Back to Sign In</button>
+                <div class="login-error" id="registerError"></div>
+            </div>
+            
+            <div class="login-form" id="resetForm" style="display: none;">
+                <h2>Reset Password</h2>
+                <div class="form-group">
+                    <input type="email" id="resetEmail" placeholder="Enter your email" required>
+                </div>
+                <button id="resetBtn" class="btn-primary">Send Reset Link</button>
+                <button id="cancelReset" class="btn-secondary">Cancel</button>
+                <div class="login-error" id="resetError"></div>
+                <div class="login-success" id="resetSuccess"></div>
+            </div>
+        </div>
+    </div>
 
     <!-- Splash Screen -->
-    <div id="splashScreen">
+    <div id="splashScreen" class="splash-screen">
         <div class="splash-content">
             <div class="splash-logo">
                 <div class="splash-logo-inner"></div>
@@ -21,164 +84,286 @@
             </div>
         </div>
     </div>
-
-    <!-- Overlay -->
-    <div class="overlay" id="overlay"></div>
-
-    <!-- Notification -->
-    <div class="dictionary-notification" id="dictionaryNotification">
-        <span id="notificationIcon">✅</span>
-        <span id="notificationText">Notes loaded successfully!</span>
-    </div>
-
-    <!-- Hidden file input -->
-    <input type="file" id="dictionaryFileInput" accept=".json" style="display:none;">
-
-    <!-- Dictionary Builder -->
-    <div class="builder-container" id="builderContainer">
-        <div class="builder-header">
-            <div class="builder-title">
-                <span>📝</span>
-                <h2>Create Notes</h2>
+    
+    <!-- Main App (hidden until login) -->
+    <div id="appContainer" style="display: none;">
+        <div class="overlay" id="overlay"></div>
+        
+        <!-- Dictionary Notification -->
+        <div class="dictionary-notification" id="dictionaryNotification">
+            <span id="notificationIcon">✅</span>
+            <span id="notificationText">Notes loaded successfully!</span>
+        </div>
+        
+        <!-- Hidden file input for dictionary loading -->
+        <input type="file" id="dictionaryFileInput" accept=".json" style="display: none;">
+        
+        <!-- Dictionary Builder -->
+        <div class="builder-container" id="builderContainer">
+            <div class="builder-header">
+                <div class="builder-title">
+                    <span>📝</span>
+                    <h2>Create Notes</h2>
+                </div>
+                <div class="builder-actions">
+                    <button class="builder-btn builder-cancel" id="builderCancel">Cancel</button>
+                    <button class="builder-btn builder-export" id="builderExport">Export as JSON</button>
+                    <button class="builder-btn builder-save" id="builderSave">Save to Cloud</button>
+                </div>
             </div>
-            <div class="builder-actions">
-                <button class="builder-btn builder-cancel" id="builderCancel">Cancel</button>
-                <button class="builder-btn builder-export" id="builderExport">Export as JSON</button>
+            
+            <div class="builder-form">
+                <div class="input-group">
+                    <label for="builderTopic">Topic:</label>
+                    <input type="text" id="builderTopic" placeholder="Enter topic name (e.g. vowels, consonants)">
+                </div>
+                
+                <div class="input-group">
+                    <label for="builderDesc">Description:</label>
+                    <textarea id="builderDesc" rows="3" placeholder="Enter description text (supports multi-line and formatting)"></textarea>
+                </div>
+                
+                <div class="input-group">
+                    <label for="builderEx">Examples (comma separated):</label>
+                    <input type="text" id="builderEx" placeholder="Enter examples (e.g. a,b,c)">
+                </div>
+                
+                <button class="builder-add" id="builderAdd">
+                    <span>+</span> Add Entry
+                </button>
+                
+                <div class="builder-preview">
+                    <div class="preview-header">
+                        <h3 class="preview-title">Notes Preview</h3>
+                        <button class="preview-clear" id="previewClear">Clear All</button>
+                    </div>
+                    <pre class="preview-content" id="builderPreview">No entries yet</pre>
+                    <div class="entry-count" id="builderEntryCount">0 entries</div>
+                </div>
             </div>
         </div>
         
-        <div class="builder-form">
-            <div class="input-group">
-                <label for="builderTopic">Topic:</label>
-                <input type="text" id="builderTopic" placeholder="Enter topic name">
+        <!-- Bookmarks Panel -->
+        <div class="bookmarks-panel" id="bookmarksPanel">
+            <div class="bookmarks-header">
+                <h2>🔖 Bookmarks</h2>
+                <div class="close-bookmarks" id="closeBookmarks">❌</div>
             </div>
-            
-            <div class="input-group">
-                <label for="builderDesc">Description:</label>
-                <textarea id="builderDesc" rows="4" placeholder="Enter description (supports formatting)"></textarea>
-            </div>
-            
-            <div class="input-group">
-                <label for="builderEx">Examples (comma separated):</label>
-                <input type="text" id="builderEx" placeholder="e.g. a,e,i,o,u">
-            </div>
-            
-            <button class="builder-add" id="builderAdd">+ Add Entry</button>
-            
-            <div class="builder-preview">
-                <div class="preview-header">
-                    <h3 class="preview-title">Preview</h3>
-                    <button class="preview-clear" id="previewClear">Clear All</button>
-                </div>
-                <pre class="preview-content" id="builderPreview">No entries yet</pre>
-                <div class="entry-count" id="builderEntryCount">0 entries</div>
+            <div class="bookmarks-list" id="bookmarksList">
+                <!-- Bookmarks will be added here dynamically -->
             </div>
         </div>
-    </div>
-
-    <!-- Slideshow -->
-    <div class="slideshow-overlay" id="slideshowOverlay">
-        <div class="slideshow-close" id="slideshowClose">❌</div>
-        <div class="slideshow-top" id="slideshowTop"></div>
-        <div class="slideshow-content" id="slideshowContent"></div>
-        <div class="slideshow-bottom" id="slideshowBottom"></div>
-        <div class="slideshow-indicator" id="slideshowIndicator">1/5</div>
-    </div>
-
-    <div class="instruction-modal" id="instructionModal">
-        <h2>Slide Mode Instructions</h2>
-        <ul>
-            <li>Tap <strong>top half</strong> → next example</li>
-            <li>Tap <strong>bottom half</strong> → previous example</li>
-            <li>Tap any <strong>word</strong> to highlight / remove highlight</li>
-            <li>Press ESC or close button to exit</li>
-        </ul>
-        <button id="closeInstruction">Start Slideshow</button>
-    </div>
-
-    <!-- History Panel -->
-    <div class="history-panel" id="historyPanel">
-        <div class="history-header">
-            <h2>📜 Search History</h2>
-            <div class="close-history" id="closeHistory">❌</div>
+        
+        <!-- Slideshow Elements -->
+        <div class="slideshow-overlay" id="slideshowOverlay">
+            <div class="slideshow-close" id="slideshowClose">❌</div>
+            <div class="slideshow-top" id="slideshowTop"></div>
+            <div class="slideshow-content" id="slideshowContent"></div>
+            <div class="slideshow-bottom" id="slideshowBottom"></div>
+            <div class="slideshow-indicator" id="slideshowIndicator">1/5</div>
         </div>
-        <div class="history-list" id="historyList"></div>
-    </div>
-
-    <!-- Topics Panel -->
-    <div class="topics-panel" id="topicsPanel">
-        <div class="topics-header">
-            <h2>📚 All Topics</h2>
-            <div class="close-topics" id="closeTopics">❌</div>
-        </div>
-        <div class="topics-list" id="topicsList"></div>
-    </div>
-
-    <!-- Instructions Modal -->
-    <div class="instructions-modal" id="instructionsModal">
-        <div class="modal-header">
-            <h2><span>❓</span> How to Use This App</h2>
-            <div class="close-modal" id="closeModal">✕</div>
-        </div>
-        <div class="modal-content">
-            <p>Welcome to Enhanced Digital Notes!</p>
+        
+        <div class="instruction-modal" id="instructionModal">
+            <h2>Slide Mode Instructions</h2>
+            <p>You are now in slide mode. The control panel is hidden to maximize your viewing experience.</p>
+            
             <ul>
-                <li><strong>Search</strong> any topic</li>
-                <li><strong>Topics</strong> → browse all available topics</li>
-                <li><strong>History</strong> → see recent searches</li>
-                <li><strong>Theme</strong> → light/dark mode</li>
-                <li><strong>Load</strong> → import JSON file</li>
-                <li><strong>Create</strong> → make your own notes</li>
-                <li><strong>Slideshow</strong> → presentation mode</li>
+                <li>Tap the <strong>top half</strong> of the screen to go to the next example</li>
+                <li>Tap the <strong>bottom half</strong> of the screen to go to the previous example</li>
+                <li>Tap any <strong>word</strong> to highlight it in red</li>
+                <li>Tap a highlighted word again to remove the highlight</li>
+                <li>Press <strong>ESC</strong> or tap the close button to exit slide mode</li>
             </ul>
+            
+            <button id="closeInstruction">Start Slideshow</button>
+        </div>
+        
+        <!-- History Panel -->
+        <div class="history-panel" id="historyPanel">
+            <div class="history-header">
+                <h2>📜 Search History</h2>
+                <div class="close-history" id="closeHistory">❌</div>
+            </div>
+            <div class="history-list" id="historyList">
+                <!-- History items will be added here dynamically -->
+            </div>
+        </div>
+        
+        <!-- Topics Panel -->
+        <div class="topics-panel" id="topicsPanel">
+            <div class="topics-header">
+                <h2>📚 All Topics</h2>
+                <div class="close-topics" id="closeTopics">❌</div>
+            </div>
+            <div class="topics-list" id="topicsList">
+                <!-- Topics will be added here dynamically -->
+            </div>
+        </div>
+        
+        <!-- User Profile Panel -->
+        <div class="profile-panel" id="profilePanel">
+            <div class="profile-header">
+                <h2>👤 Profile</h2>
+                <div class="close-profile" id="closeProfile">❌</div>
+            </div>
+            <div class="profile-content">
+                <div class="profile-info">
+                    <div class="profile-avatar">
+                        <span id="profileAvatar">👤</span>
+                    </div>
+                    <h3 id="profileName">User Name</h3>
+                    <p id="profileEmail">user@example.com</p>
+                    <div class="profile-stats">
+                        <div class="stat-item">
+                            <span class="stat-number" id="bookmarksCount">0</span>
+                            <span class="stat-label">Bookmarks</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number" id="historyCount">0</span>
+                            <span class="stat-label">History</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number" id="createdCount">0</span>
+                            <span class="stat-label">Created</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="profile-actions">
+                    <button class="profile-btn" id="changeAvatar">Change Avatar</button>
+                    <button class="profile-btn" id="changePassword">Change Password</button>
+                    <button class="profile-btn" id="exportData">Export My Data</button>
+                    <button class="profile-btn logout-btn" id="logoutBtn">Log Out</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Instructions Modal -->
+        <div class="instructions-modal" id="instructionsModal">
+            <div class="modal-header">
+                <h2><span>❓</span> How to Use This App</h2>
+                <div class="close-modal" id="closeModal">✕</div>
+            </div>
+            <div class="modal-content">
+                <p>Welcome to the Enhanced Digital Notes! Here's how to get started:</p>
+                <ul>
+                    <li><strong>🔍 Search</strong> - Enter a topic in the search field to see its details</li>
+                    <li><strong>🔖 Bookmarks</strong> - Save your favorite topics for quick access</li>
+                    <li><strong>📚 Topics</strong> - Click the topics button to browse all available topics</li>
+                    <li><strong>🕒 History</strong> - View your recent searches with the history button</li>
+                    <li><strong>👤 Profile</strong> - View your profile and account settings</li>
+                    <li><strong>🌙 Theme</strong> - Toggle between light and dark mode</li>
+                    <li><strong>📂 Load</strong> - Import your own dictionary from a JSON file</li>
+                    <li><strong>📝 Export</strong> - Create and export custom Notes</li>
+                    <li><strong>☁️ Cloud Save</strong> - Save your notes to the cloud</li>
+                    <li><strong>❓ Help</strong> - Click the help button to see these instructions again</li>
+                    <li><strong>🔤 Font Size</strong> - Adjust text size for better readability</li>
+                    <li><strong>🔄 Case Toggle</strong> - Toggle between UPPERCASE and lowercase text</li>
+                </ul>
+                <p>You can click on examples to highlight them for better focus.</p>
+                <p><strong>Text Formatting Guide:</strong></p>
+                <ul>
+                    <li>### Main topic → Large heading</li>
+                    <li>## Sub-topic → Medium heading</li>
+                    <li># Bold text → Important terms</li>
+                    <li>[Colored text] → Key concepts</li>
+                    <li>_Underlined text_ → Emphasis</li>
+                    <li>*Italic text* → Additional details</li>
+                    <li>- Ordered list → Sequential items</li>
+                    <li>+ Unordered list → Related items</li>
+                </ul>
+                <p>Start exploring by searching for a topic or browsing the available topics!</p>
+            </div>
+        </div>
+
+        <div class="container" id="mainContainer">
+            <header>
+                <div class="header-content">
+                    <div class="logo" id="appLogo">
+                        <span>📚</span>
+                        <span>Enhanced Digital Notes</span>
+                    </div>
+                    <div class="search-container">
+                        <input type="text" id="searchInput" placeholder="Search for a topic (e.g. vowels, consonants)">
+                        <button class="search-btn" id="searchBtn">
+                            <span>🔍</span>
+                        </button>
+                    </div>
+                    <div class="controls">
+                        <div class="load-toggle" id="loadToggle" title="Load Dictionary">
+                            📂
+                        </div>
+                        <div class="export-toggle" id="exportToggle" title="Create Dictionary">
+                            📝
+                        </div>
+                        <div class="bookmark-toggle" id="bookmarkToggle" title="Bookmarks">
+                            🔖
+                        </div>
+                        <div class="topics-toggle" id="topicsToggle" title="Browse Topics">
+                            📚
+                        </div>
+                        <div class="history-toggle" id="historyToggle" title="View History">
+                            🕒
+                        </div>
+                        <div class="theme-toggle" id="themeToggle" title="Toggle Theme">
+                            🌙
+                        </div>
+                        <div class="font-toggle" id="fontToggle" title="Font Size" style="display: none;">
+                            🔤
+                        </div>
+                        <div class="case-toggle" id="caseToggle" title="Toggle Case">
+                            Aa
+                        </div>
+                        <div class="profile-toggle" id="profileToggle" title="Profile">
+                            👤
+                        </div>
+                        <div class="help-toggle" id="helpToggle" title="Help">
+                            ❓
+                        </div>
+                        <div class="slide-toggle" id="slideToggle" title="Slide Show">
+                            ▶️
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <main class="results-container" id="resultsContainer">
+                <div class="no-results">
+                    <span>📖</span>
+                    <h2>Enhanced Digital Notes</h2>
+                    <p>Search for topics to see their details and examples</p>
+                    <p>Try these examples:</p>
+                    <div class="search-history">
+                        <div class="history-item">🔍 vowels</div>
+                        <div class="history-item">🔍 consonants</div>
+                        <div class="history-item">🔍 syllables</div>
+                        <div class="history-item">🔍 diphthongs</div>
+                    </div>
+                    
+                    <div class="font-controls">
+                        <span class="font-label">Font Size:</span>
+                        <button class="font-size-btn" data-size="0.9">S</button>
+                        <button class="font-size-btn active" data-size="1">M</button>
+                        <button class="font-size-btn" data-size="1.1">L</button>
+                        <button class="font-size-btn" data-size="1.2">XL</button>
+                    </div>
+                </div>
+                
+                <div class="feature-highlight">
+                    <h2>📚 Browse All Topics</h2>
+                    <p>Click the topics icon 📚 in the top right corner to view all available topics</p>
+                </div>
+            </main>
         </div>
     </div>
 
-    <!-- Main Content -->
-    <div class="container" id="appContainer">
-        <header>
-            <div class="header-content">
-                <div class="logo" id="appLogo">
-                    <span>📚</span>
-                    <span>Enhanced Digital Notes</span>
-                </div>
-                <div class="search-container">
-                    <input type="text" id="searchInput" placeholder="Search for a topic...">
-                    <button class="search-btn" id="searchBtn">🔍</button>
-                </div>
-                <div class="controls">
-                    <div class="load-toggle" id="loadToggle" title="Load JSON">📂</div>
-                    <div class="export-toggle" id="exportToggle" title="Create Notes">📝</div>
-                    <div class="topics-toggle" id="topicsToggle" title="Browse Topics">📚</div>
-                    <div class="history-toggle" id="historyToggle" title="History">🕒</div>
-                    <div class="theme-toggle" id="themeToggle" title="Toggle Theme">🌙</div>
-                    <div class="case-toggle" id="caseToggle" title="Aa">Aa</div>
-                    <div class="help-toggle" id="helpToggle" title="Help">❓</div>
-                    <div class="slide-toggle" id="slideToggle" title="Slideshow">▶️</div>
-                </div>
-            </div>
-        </header>
-
-        <main class="results-container" id="resultsContainer"></main>
-    </div>
-
-    <!-- Scripts -->
-    <script type="module">
-        import { initApp } from './js/main.js';
-
-        // Splash screen timing
-        const splash = document.getElementById('splashScreen');
-        const progress = document.getElementById('loadingProgress');
-        progress.style.width = '100%';
-
-        setTimeout(() => {
-            splash.style.opacity = '0';
-            splash.style.pointerEvents = 'none';
-            setTimeout(() => {
-                splash.style.display = 'none';
-                initApp();
-            }, 800);
-        }, 3800);
-    </script>
+    <!-- JavaScript Files -->
+    <script src="scripts/firebase-config.js"></script>
+    <script src="scripts/auth.js"></script>
+    <script src="scripts/database.js"></script>
+    <script src="scripts/utils.js"></script>
+    <script src="scripts/ui.js"></script>
+    <script src="scripts/slideshow.js"></script>
+    <script src="scripts/builder.js"></script>
+    <script src="scripts/app.js"></script>
 </body>
 </html>
