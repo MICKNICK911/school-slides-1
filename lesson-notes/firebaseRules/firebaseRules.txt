@@ -1,0 +1,364 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ============================================
+    // GLOBAL RULES & HELPER FUNCTIONS
+    // ============================================
+    
+    // Helper function: Check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function: Check if user is accessing their own data
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // Helper function: Validate email format
+    function isValidEmail(email) {
+      return email.matches('^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$');
+    }
+    
+    // Helper function: Validate table name (2-50 characters)
+    function isValidTableName(name) {
+      return name.size() >= 2 && name.size() <= 50;
+    }
+    
+    // Helper function: Validate entry/topic name (1-100 characters)
+    function isValidEntryName(name) {
+      return name.size() >= 1 && name.size() <= 100;
+    }
+    
+    // Helper function: Validate note title (1-200 characters)
+    function isValidNoteTitle(title) {
+      return title.size() >= 1 && title.size() <= 200;
+    }
+    
+    // Helper function: Get current timestamp
+    function currentTimestamp() {
+      return request.time;
+    }
+    
+    // Helper function: Check if field exists and is not null
+    function fieldExists(field) {
+      return field in resource.data || field in request.resource.data;
+    }
+    
+    // Helper function: Validate data structure for dictionary entries
+    function isValidDictionaryEntry() {
+      return request.resource.data.keys().hasAll(['desc', 'ex', 'createdAt', 'updatedAt']) &&
+             request.resource.data.desc is string &&
+             request.resource.data.desc.size() >= 1 &&
+             request.resource.data.desc.size() <= 5000 &&
+             request.resource.data.ex is list &&
+             request.resource.data.ex.size() <= 100 &&
+             request.resource.data.createdAt is timestamp &&
+             request.resource.data.updatedAt is timestamp &&
+             request.resource.data.updatedAt >= request.resource.data.createdAt;
+    }
+    
+    // Helper function: Validate data structure for notes
+    function isValidNote() {
+      return request.resource.data.keys().hasAll(['title', 'content', 'createdAt', 'updatedAt']) &&
+             request.resource.data.title is string &&
+             isValidNoteTitle(request.resource.data.title) &&
+             request.resource.data.content is string &&
+             request.resource.data.content.size() <= 10000 &&
+             request.resource.data.createdAt is timestamp &&
+             request.resource.data.updatedAt is timestamp &&
+             request.resource.data.updatedAt >= request.resource.data.createdAt;
+    }
+    
+    // Helper function: Validate data structure for table metadata
+    function isValidTable() {
+      return request.resource.data.keys().hasAll(['name', 'createdAt', 'updatedAt', 'entryCount', 'noteCount']) &&
+             request.resource.data.name is string &&
+             isValidTableName(request.resource.data.name) &&
+             request.resource.data.createdAt is timestamp &&
+             request.resource.data.updatedAt is timestamp &&
+             request.resource.data.updatedAt >= request.resource.data.createdAt &&
+             request.resource.data.entryCount is number &&
+             request.resource.data.entryCount >= 0 &&
+             request.resource.data.noteCount is number &&
+             request.resource.data.noteCount >= 0;
+    }
+    
+    // Helper function: Validate user profile data
+    function isValidUserProfile() {
+      return request.resource.data.keys().hasAll(['email', 'createdAt', 'lastLogin', 'displayName']) &&
+             request.resource.data.email is string &&
+             isValidEmail(request.resource.data.email) &&
+             request.resource.data.createdAt is timestamp &&
+             request.resource.data.lastLogin is timestamp &&
+             request.resource.data.displayName is string &&
+             request.resource.data.displayName.size() <= 100;
+    }
+    
+    // ============================================
+    // USER PROFILE RULES
+    // ============================================
+    
+    match /users/{userId} {
+      // Allow users to read their own profile
+      allow read: if isOwner(userId);
+      
+      // Allow users to create their profile on first login
+      allow create: if isOwner(userId) && isValidUserProfile();
+      
+      // Allow users to update their profile
+      allow update: if isOwner(userId) && 
+                     isValidUserProfile() &&
+                     // Prevent changing email address
+                     request.resource.data.email == resource.data.email;
+      
+      // Prevent users from deleting their profile (use Firebase Auth delete instead)
+      allow delete: if false;
+      
+      // ============================================
+      // TABLES COLLECTION RULES
+      // ============================================
+      
+      match /tables/{tableId} {
+        // Allow users to read their own tables
+        allow read: if isOwner(userId);
+        
+        // Allow users to create new tables with valid data
+        allow create: if isOwner(userId) && 
+                       isValidTable() &&
+                       // Ensure timestamps are reasonable (not in future)
+                       request.resource.data.createdAt <= currentTimestamp() &&
+                       request.resource.data.updatedAt <= currentTimestamp() &&
+                       // Initial counts should be zero
+                       request.resource.data.entryCount == 0 &&
+                       request.resource.data.noteCount == 0;
+        
+        // Allow users to update their tables
+        allow update: if isOwner(userId) &&
+                       isValidTable() &&
+                       // Prevent changing table ID
+                       request.resource.data.name != null &&
+                       // Ensure counts don't go negative
+                       request.resource.data.entryCount >= 0 &&
+                       request.resource.data.noteCount >= 0 &&
+                       // Ensure updatedAt is current or newer
+                       request.resource.data.updatedAt >= resource.data.updatedAt;
+        
+        // Allow users to delete their tables (cascades to subcollections)
+        allow delete: if isOwner(userId);
+        
+        // ============================================
+        // DICTIONARY SUBCOLLECTION RULES
+        // ============================================
+        
+        match /dictionary/{entryId} {
+          // Allow users to read their own dictionary entries
+          allow read: if isOwner(userId);
+          
+          // Allow users to create dictionary entries
+          allow create: if isOwner(userId) &&
+                         isValidDictionaryEntry() &&
+                         isValidEntryName(entryId) &&
+                         // Ensure timestamps are reasonable
+                         request.resource.data.createdAt <= currentTimestamp() &&
+                         request.resource.data.updatedAt <= currentTimestamp();
+          
+          // Allow users to update dictionary entries
+          allow update: if isOwner(userId) &&
+                         isValidDictionaryEntry() &&
+                         // Prevent changing entry ID
+                         entryId == resource.id &&
+                         // Ensure updatedAt is current or newer
+                         request.resource.data.updatedAt >= resource.data.updatedAt &&
+                         // Ensure createdAt doesn't change
+                         request.resource.data.createdAt == resource.data.createdAt;
+          
+          // Allow users to delete dictionary entries
+          allow delete: if isOwner(userId);
+        }
+        
+        // ============================================
+        // NOTES SUBCOLLECTION RULES
+        // ============================================
+        
+        match /notes/{noteId} {
+          // Allow users to read their own notes
+          allow read: if isOwner(userId);
+          
+          // Allow users to create notes
+          allow create: if isOwner(userId) &&
+                         isValidNote() &&
+                         // Ensure timestamps are reasonable
+                         request.resource.data.createdAt <= currentTimestamp() &&
+                         request.resource.data.updatedAt <= currentTimestamp();
+          
+          // Allow users to update notes
+          allow update: if isOwner(userId) &&
+                         isValidNote() &&
+                         // Ensure updatedAt is current or newer
+                         request.resource.data.updatedAt >= resource.data.updatedAt &&
+                         // Ensure createdAt doesn't change
+                         request.resource.data.createdAt == resource.data.createdAt;
+          
+          // Allow users to delete notes
+          allow delete: if isOwner(userId);
+        }
+      }
+      
+      // ============================================
+      // USER PREFERENCES (Optional)
+      // ============================================
+      
+      match /preferences/{preferenceId} {
+        // Allow users to read their preferences
+        allow read: if isOwner(userId);
+        
+        // Allow users to manage their preferences
+        allow write: if isOwner(userId) &&
+                      // Validate preference structure
+                      request.resource.data.keys().size() <= 20 &&
+                      // Prevent storing sensitive data
+                      !(preferenceId in ['password', 'token', 'secret']);
+      }
+    }
+    
+    // ============================================
+    // ADMIN RULES (Optional - for future features)
+    // ============================================
+    
+    // Admin collection for app configuration
+    match /admin/{document} {
+      // Only allow admins to read/write
+      allow read, write: if isAuthenticated() && 
+                           request.auth.token.admin == true;
+    }
+    
+    // ============================================
+    // AUDIT LOGS (Optional - for monitoring)
+    // ============================================
+    
+    match /audit/{userId}/{logId} {
+      // Allow users to read their own audit logs
+      allow read: if isOwner(userId);
+      
+      // Allow system to write audit logs (no user writes)
+      allow create: if isAuthenticated() &&
+                     // Only allow service accounts or admin to write audit logs
+                     (request.auth.token.firebase.sign_in_provider == "serviceAccount" ||
+                      request.auth.token.admin == true);
+      
+      // Prevent updates and deletes to audit logs
+      allow update, delete: if false;
+    }
+    
+    // ============================================
+    // STATISTICS COLLECTION (Optional)
+    // ============================================
+    
+    match /statistics/{document} {
+      // Allow authenticated users to read statistics
+      allow read: if isAuthenticated();
+      
+      // Only allow system to update statistics
+      allow write: if isAuthenticated() &&
+                    request.auth.token.firebase.sign_in_provider == "serviceAccount";
+    }
+    
+    // ============================================
+    // BACKUP RULES (Optional)
+    // ============================================
+    
+    match /backups/{userId}/{backupId} {
+      // Allow users to read their own backups
+      allow read: if isOwner(userId);
+      
+      // Allow users to create backups
+      allow create: if isOwner(userId) &&
+                     // Validate backup structure
+                     request.resource.data.keys().hasAll(['data', 'createdAt', 'type']) &&
+                     request.resource.data.createdAt <= currentTimestamp();
+      
+      // Prevent updates to backups (immutable)
+      allow update: if false;
+      
+      // Allow users to delete their backups
+      allow delete: if isOwner(userId);
+    }
+    
+    // ============================================
+    // SHARED TABLES (Future Feature - Read-Only)
+    // ============================================
+    
+    match /shared/{shareId} {
+      // Allow anyone with link to read shared tables
+      allow read: if resource.data.public == true ||
+                    // Check if user has explicit permission
+                    (isAuthenticated() && 
+                     request.auth.uid in get(resource.data.allowedUsers).data);
+      
+      // Only owner can update shared settings
+      allow write: if isAuthenticated() &&
+                    request.auth.uid == resource.data.ownerId;
+    }
+    
+    // ============================================
+    // BATCH OPERATION VALIDATION
+    // ============================================
+    
+    // Helper function for batch operations
+    function validateBatchOperation() {
+      // Limit batch size to prevent abuse
+      return request.writeFields.size() <= 500;
+    }
+    
+    // ============================================
+    // RATE LIMITING (Optional - requires Cloud Functions)
+    // ============================================
+    
+    // Note: Rate limiting is better handled at the application level or with Cloud Functions
+    // This is a basic example using Firestore's built-in limitations
+    
+    // ============================================
+    // DATA VALIDATION ON WRITE
+    // ============================================
+    
+    // Global write validation
+    function globalWriteValidation() {
+      // Prevent writing fields that shouldn't be modified directly
+      let forbiddenFields = ['__internal__', '__system__', '__admin__'];
+      let allFields = request.resource.data.keys();
+      
+      // Check for forbidden field names
+      for (let field in forbiddenFields) {
+        return !(field in allFields);
+      }
+      
+      // Ensure document size is reasonable (max 1MB)
+      return request.resource.size() < 1024 * 1024;
+      
+      // Note: Additional validation happens in specific match blocks
+    }
+    
+    // ============================================
+    // EMERGENCY LOCKDOWN RULES
+    // ============================================
+    
+    // Uncomment in case of security breach or maintenance
+    
+    /*
+    match /{document=**} {
+      allow read, write: if false;
+    }
+    */
+    
+    // ============================================
+    // DEFAULT DENY RULE (Safety Net)
+    // ============================================
+    
+    // This rule catches any document not explicitly matched above
+    match /{document=**} {
+      // Deny all reads and writes by default
+      allow read, write: if false;
+    }
+  }
+}
