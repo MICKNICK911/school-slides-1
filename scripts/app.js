@@ -4,7 +4,7 @@ import { initTableManager, cleanupTableManager } from './modules/tableManager.js
 import { initDictionary, cleanupDictionary } from './modules/dictionary.js';
 import { initNotes, cleanupNotes } from './modules/notes.js';
 import { initUI, showModal, hideModal, showNotification, updateUIForTable } from './modules/uiManager.js';
-import { isValidEmail, handleError } from './modules/utils.js';
+import { isValidEmail } from './modules/utils.js';
 
 // Application state
 let appState = {
@@ -21,9 +21,9 @@ let appState = {
 };
 
 // Initialize application when DOM is ready
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', () => {
     try {
-        await initializeApp();
+        initializeApp();
         console.log('Application initialized successfully');
     } catch (error) {
         console.error('Failed to initialize application:', error);
@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 // Main initialization function
-async function initializeApp() {
+function initializeApp() {
     if (appState.initialized) {
         console.warn('App already initialized');
         return;
@@ -41,13 +41,13 @@ async function initializeApp() {
     // Initialize UI first
     initUI();
     
-    // Initialize authentication
-    appState.modules.auth = await initAuth();
+    // Initialize authentication (DON'T AWAIT - it's synchronous now)
+    initAuth();
     
     // Set up global error handling
     setupErrorHandling();
     
-    // Set up event listeners
+    // Set up event listeners IMMEDIATELY
     setupEventListeners();
     
     // Set up inter-module communication
@@ -99,13 +99,28 @@ function setupEventListeners() {
 
 function setupAuthEventListeners() {
     // Sign up button
-    document.getElementById('signUpBtn').addEventListener('click', handleSignUp);
+    const signUpBtn = document.getElementById('signUpBtn');
+    const signInBtn = document.getElementById('signInBtn');
+    const signOutBtn = document.getElementById('signOutBtn');
     
-    // Sign in button
-    document.getElementById('signInBtn').addEventListener('click', handleSignIn);
+    if (signUpBtn) {
+        signUpBtn.addEventListener('click', handleSignUp);
+        console.log('Sign Up button listener added');
+    } else {
+        console.error('Sign Up button not found!');
+    }
     
-    // Sign out button
-    document.getElementById('signOutBtn').addEventListener('click', handleSignOut);
+    if (signInBtn) {
+        signInBtn.addEventListener('click', handleSignIn);
+        console.log('Sign In button listener added');
+    } else {
+        console.error('Sign In button not found!');
+    }
+    
+    if (signOutBtn) {
+        signOutBtn.addEventListener('click', handleSignOut);
+        console.log('Sign Out button listener added');
+    }
     
     // Enter key in login form
     const loginEmail = document.getElementById('loginEmail');
@@ -263,6 +278,8 @@ function setupModuleCommunication() {
 
 // Event Handlers
 async function handleSignUp() {
+    console.log('Sign Up button clicked');
+    
     const email = document.getElementById('loginEmail').value.trim();
     const password = document.getElementById('loginPassword').value.trim();
     const messageEl = document.getElementById('loginMessage');
@@ -286,7 +303,9 @@ async function handleSignUp() {
     }
     
     try {
+        console.log('Attempting sign up for:', email);
         await signUp(email, password);
+        console.log('Sign up successful');
         // Success handled by auth state change listener
     } catch (error) {
         // Error displayed by auth module
@@ -295,6 +314,8 @@ async function handleSignUp() {
 }
 
 async function handleSignIn() {
+    console.log('Sign In button clicked');
+    
     const email = document.getElementById('loginEmail').value.trim();
     const password = document.getElementById('loginPassword').value.trim();
     const messageEl = document.getElementById('loginMessage');
@@ -307,7 +328,9 @@ async function handleSignIn() {
     }
     
     try {
+        console.log('Attempting sign in for:', email);
         await signIn(email, password);
+        console.log('Sign in successful');
         // Success handled by auth state change listener
     } catch (error) {
         // Error displayed by auth module
@@ -316,6 +339,7 @@ async function handleSignIn() {
 }
 
 async function handleSignOut() {
+    console.log('Sign Out button clicked');
     try {
         await signOut();
         // Success handled by auth state change listener
@@ -326,19 +350,26 @@ async function handleSignOut() {
 }
 
 function handleAuthStateChange(event) {
+    console.log('Auth state changed:', event.detail);
     const user = event.detail.user;
     
     if (user) {
         // User signed in
         console.log('User signed in:', user.email);
-        document.getElementById('userEmail').textContent = `(${user.email})`;
+        const userEmailEl = document.getElementById('userEmail');
+        if (userEmailEl) {
+            userEmailEl.textContent = `(${user.email})`;
+        }
         
         // Initialize user-specific modules
         initializeUserModules(user.uid);
     } else {
         // User signed out
         console.log('User signed out');
-        document.getElementById('userEmail').textContent = '';
+        const userEmailEl = document.getElementById('userEmail');
+        if (userEmailEl) {
+            userEmailEl.textContent = '';
+        }
         
         // Cleanup user-specific modules
         cleanupUserModules();
@@ -669,13 +700,13 @@ async function initializeUserModules(userId) {
         console.log('Initializing modules for user:', userId);
         
         // Initialize table manager
-        appState.modules.tableManager = await initTableManager();
+        appState.modules.tableManager = initTableManager();
         
         // Initialize dictionary module
-        appState.modules.dictionary = await initDictionary();
+        appState.modules.dictionary = initDictionary();
         
         // Initialize notes module
-        appState.modules.notes = await initNotes();
+        appState.modules.notes = initNotes();
         
         // Process any pending operations
         processPendingOperations();
