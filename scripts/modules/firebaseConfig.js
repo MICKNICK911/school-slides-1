@@ -1,108 +1,211 @@
-// scripts/modules/auth.js
-import { auth, getFirebaseErrorMessage } from './firebaseConfig.js';
-import { showNotification } from './uiManager.js';
+// scripts/modules/firebaseConfig.js
+import firebase from 'firebase/compat/app';
+import 'firebase/compat/auth';
+import 'firebase/compat/firestore';
+import 'firebase/compat/database'; // Keep for compatibility if needed
 
-// Auth state
-let currentUser = null;
+// ============================================
+// FIREBASE CONFIGURATION
+// ============================================
+// REPLACE WITH YOUR ACTUAL FIREBASE CONFIG FROM FIREBASE CONSOLE
+// Go to: Firebase Console → Project Settings → General → Your apps → Firebase SDK snippet
+// ============================================
+const firebaseConfig = {
+  apiKey: "AIzaSyCw1UnzkY4Eq_ImEnRDRFYmUMhSc95T-NU",
+  authDomain: "lesson-notes-2025.firebaseapp.com",
+  projectId: "lesson-notes-2025",
+  storageBucket: "lesson-notes-2025.firebasestorage.app",
+  messagingSenderId: "757231923808",
+  appId: "1:757231923808:web:3c72026662c8a296134905"
+};
+// ============================================
 
-// Initialize authentication
-export const initAuth = () => {
-    try {
-        auth.onAuthStateChanged((user) => {
-            currentUser = user;
-            
-            // Update UI
-            const loginModal = document.getElementById('loginModal');
-            const appContainer = document.getElementById('appContainer');
-            
-            if (user) {
-                // User is signed in
-                loginModal.style.display = 'none';
-                appContainer.style.display = 'block';
-                document.getElementById('userEmail').textContent = `(${user.email})`;
-                
-                showNotification(`Welcome back, ${user.email.split('@')[0]}!`, 'success');
-            } else {
-                // User is signed out
-                loginModal.style.display = 'flex';
-                appContainer.style.display = 'none';
-                document.getElementById('userEmail').textContent = '';
-                
-                // Clear form
-                document.getElementById('loginEmail').value = '';
-                document.getElementById('loginPassword').value = '';
-                document.getElementById('loginMessage').textContent = '';
-            }
-            
-            // Dispatch event
-            window.dispatchEvent(new CustomEvent('authStateChanged', {
-                detail: { user }
-            }));
+// Firebase initialization with error handling
+let app;
+let auth;
+let db;
+let rtdb; // Realtime Database (optional)
+
+try {
+    // Initialize Firebase
+    app = firebase.initializeApp(firebaseConfig);
+    
+    // Initialize services
+    auth = firebase.auth();
+    db = firebase.firestore();
+    
+    // Optional: Initialize Realtime Database if you plan to use it
+    // rtdb = firebase.database();
+    
+    // Firestore settings for better offline support (optional)
+    if (typeof window !== 'undefined') {
+        // Enable offline persistence
+        db.enablePersistence()
+            .catch((err) => {
+                console.warn('Firestore offline persistence not supported:', err.code);
+                if (err.code === 'failed-precondition') {
+                    console.warn('Multiple tabs open, persistence can only be enabled in one tab at a time.');
+                } else if (err.code === 'unimplemented') {
+                    console.warn('The current browser doesn\'t support offline persistence.');
+                }
+            });
+        
+        // Set Firestore settings (optional)
+        db.settings({
+            cacheSizeBytes: firebase.firestore.CACHE_SIZE_UNLIMITED
         });
-        
-        console.log('Auth initialized');
-    } catch (error) {
-        console.error('Auth init error:', error);
     }
-};
+    
+    console.log('Firebase initialized successfully');
+    
+} catch (error) {
+    console.error('Firebase initialization error:', error);
+    
+    // Handle initialization errors gracefully
+    if (!app) {
+        console.error('Failed to initialize Firebase. Please check your configuration.');
+        
+        // Create mock services for development/fallback (optional)
+        if (process.env.NODE_ENV === 'development') {
+            console.warn('Creating mock Firebase services for development');
+            
+            // Mock auth service
+            auth = {
+                currentUser: null,
+                onAuthStateChanged: (callback) => {
+                    console.warn('Mock auth: No real authentication available');
+                    callback(null);
+                    return () => {};
+                },
+                signInWithEmailAndPassword: () => Promise.reject(new Error('Firebase not initialized')),
+                createUserWithEmailAndPassword: () => Promise.reject(new Error('Firebase not initialized')),
+                signOut: () => Promise.reject(new Error('Firebase not initialized'))
+            };
+            
+            // Mock firestore service
+            db = {
+                collection: () => ({
+                    doc: () => ({
+                        get: () => Promise.reject(new Error('Firebase not initialized')),
+                        set: () => Promise.reject(new Error('Firebase not initialized')),
+                        update: () => Promise.reject(new Error('Firebase not initialized')),
+                        delete: () => Promise.reject(new Error('Firebase not initialized')),
+                        onSnapshot: () => () => {}
+                    })
+                })
+            };
+        }
+    }
+}
 
-// Sign up
-export const signUp = async (email, password) => {
-    const messageEl = document.getElementById('loginMessage');
+// Firebase service exports
+export { firebase, app, auth, db };
+
+// Optional: Export Realtime Database if initialized
+// export { rtdb };
+
+// Helper function to check Firebase connection
+export const checkFirebaseConnection = async () => {
+    if (!app) {
+        return { connected: false, error: 'Firebase not initialized' };
+    }
     
     try {
-        messageEl.textContent = 'Creating account...';
-        messageEl.style.color = 'var(--primary)';
-        
-        await auth.createUserWithEmailAndPassword(email, password);
-        
-        messageEl.textContent = 'Account created successfully!';
-        messageEl.style.color = 'var(--secondary)';
-        
+        // Simple check by trying to get server timestamp
+        const timestamp = firebase.firestore.FieldValue.serverTimestamp();
+        return { connected: true, timestamp: timestamp };
     } catch (error) {
-        const errorMessage = getFirebaseErrorMessage(error);
-        messageEl.textContent = errorMessage;
-        messageEl.style.color = 'var(--danger)';
-        throw new Error(errorMessage);
+        return { connected: false, error: error.message };
     }
 };
 
-// Sign in
-export const signIn = async (email, password) => {
-    const messageEl = document.getElementById('loginMessage');
+// Firebase error code to human-readable message mapping
+export const firebaseErrorMessages = {
+    // Auth errors
+    'auth/invalid-email': 'Please enter a valid email address.',
+    'auth/user-disabled': 'This account has been disabled.',
+    'auth/user-not-found': 'No account found with this email.',
+    'auth/wrong-password': 'Incorrect password.',
+    'auth/email-already-in-use': 'This email is already registered.',
+    'auth/weak-password': 'Password should be at least 6 characters.',
+    'auth/operation-not-allowed': 'Email/password accounts are not enabled.',
+    'auth/too-many-requests': 'Too many attempts. Please try again later.',
     
-    try {
-        messageEl.textContent = 'Signing in...';
-        messageEl.style.color = 'var(--primary)';
-        
-        await auth.signInWithEmailAndPassword(email, password);
-        
-        messageEl.textContent = 'Sign in successful!';
-        messageEl.style.color = 'var(--secondary)';
-        
-        // Clear message after delay
-        setTimeout(() => {
-            messageEl.textContent = '';
-        }, 2000);
-        
-    } catch (error) {
-        const errorMessage = getFirebaseErrorMessage(error);
-        messageEl.textContent = errorMessage;
-        messageEl.style.color = 'var(--danger)';
-        throw new Error(errorMessage);
+    // Firestore errors
+    'permission-denied': 'You don\'t have permission to access this data.',
+    'not-found': 'The requested document was not found.',
+    'already-exists': 'A document with this ID already exists.',
+    'resource-exhausted': 'Operation limit exceeded. Please try again later.',
+    'failed-precondition': 'Operation failed due to a precondition.',
+    'aborted': 'Operation was aborted.',
+    'out-of-range': 'Value is out of range.',
+    'unimplemented': 'Operation is not implemented.',
+    'internal': 'An internal error occurred.',
+    'unavailable': 'Service is temporarily unavailable.',
+    'data-loss': 'Unrecoverable data loss or corruption.',
+    'unauthenticated': 'User is not authenticated.'
+};
+
+// Helper to get user-friendly error message
+export const getFirebaseErrorMessage = (error) => {
+    if (!error || !error.code) {
+        return 'An unexpected error occurred.';
+    }
+    
+    // Check if we have a custom message for this error code
+    if (firebaseErrorMessages[error.code]) {
+        return firebaseErrorMessages[error.code];
+    }
+    
+    // Default to the original error message
+    return error.message || 'An unexpected error occurred.';
+};
+
+// Initialize Firebase Emulators for local development (optional)
+export const initializeEmulators = () => {
+    if (process.env.NODE_ENV === 'development' || process.env.REACT_APP_USE_EMULATORS === 'true') {
+        try {
+            // Uncomment and configure if using Firebase Emulators
+            /*
+            console.log('Initializing Firebase Emulators...');
+            
+            // Auth Emulator
+            auth.useEmulator('http://localhost:9099');
+            
+            // Firestore Emulator
+            db.useEmulator('localhost', 8080);
+            
+            // Realtime Database Emulator
+            // rtdb.useEmulator('localhost', 9000);
+            
+            console.log('Firebase Emulators initialized');
+            */
+        } catch (error) {
+            console.warn('Failed to initialize emulators:', error);
+        }
     }
 };
 
-// Sign out
-export const signOut = async () => {
+// Cleanup function (for testing/teardown)
+export const cleanupFirebase = async () => {
     try {
-        await auth.signOut();
+        if (app) {
+            await app.delete();
+            console.log('Firebase app cleaned up');
+        }
     } catch (error) {
-        const errorMessage = getFirebaseErrorMessage(error);
-        showNotification(`Sign out failed: ${errorMessage}`, 'error');
-        throw new Error(errorMessage);
+        console.error('Error cleaning up Firebase:', error);
     }
 };
 
-// Get current user
-export const getCurrentUser = () => currentUser;
+// Default export
+export default {
+    firebase,
+    app,
+    auth,
+    db,
+    checkFirebaseConnection,
+    getFirebaseErrorMessage,
+    firebaseErrorMessages,
+    cleanupFirebase
+};
