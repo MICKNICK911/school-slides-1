@@ -3,6 +3,10 @@ import { initTableManager } from './modules/tableManager.js';
 import { initDictionary } from './modules/dictionary.js';
 import { initNotes } from './modules/notes.js';
 import { initUI, showModal, hideModal, showNotification, updateUIForTable } from './modules/uiManager.js';
+<<<<<<< HEAD
+=======
+import { isValidEmail, handleError } from './modules/utils.js';
+>>>>>>> 278553e6ea6b14517298970dc9edad3d3a3e4057
 
 // Application state
 let appState = {
@@ -17,11 +21,16 @@ let appState = {
 };
 
 // Initialize application when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     try {
+<<<<<<< HEAD
         initializeApp();
         console.log('Application initialized successfully (Local Mode)');
         showNotification('Welcome to Enhanced Multi-Table Builder!', 'success');
+=======
+        await initializeApp();
+        console.log('Application initialized successfully');
+>>>>>>> 278553e6ea6b14517298970dc9edad3d3a3e4057
     } catch (error) {
         console.error('Failed to initialize application:', error);
         showNotification('Failed to initialize application. Please refresh the page.', 'error');
@@ -29,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Main initialization function
-function initializeApp() {
+async function initializeApp() {
     if (appState.initialized) {
         console.warn('App already initialized');
         return;
@@ -38,6 +47,12 @@ function initializeApp() {
     // Initialize UI
     initUI();
     
+<<<<<<< HEAD
+=======
+    // Initialize authentication
+    appState.modules.auth = await initAuth();
+    
+>>>>>>> 278553e6ea6b14517298970dc9edad3d3a3e4057
     // Set up global error handling
     setupErrorHandling();
     
@@ -83,6 +98,38 @@ function setupEventListeners() {
     setupWindowEventListeners();
 }
 
+<<<<<<< HEAD
+=======
+function setupAuthEventListeners() {
+    // Sign up button
+    document.getElementById('signUpBtn').addEventListener('click', handleSignUp);
+    
+    // Sign in button
+    document.getElementById('signInBtn').addEventListener('click', handleSignIn);
+    
+    // Sign out button
+    document.getElementById('signOutBtn').addEventListener('click', handleSignOut);
+    
+    // Enter key in login form
+    const loginEmail = document.getElementById('loginEmail');
+    const loginPassword = document.getElementById('loginPassword');
+    
+    if (loginEmail && loginPassword) {
+        const handleEnterKey = (e) => {
+            if (e.key === 'Enter') {
+                handleSignIn();
+            }
+        };
+        
+        loginEmail.addEventListener('keypress', handleEnterKey);
+        loginPassword.addEventListener('keypress', handleEnterKey);
+    }
+    
+    // Listen for auth state changes (from auth module)
+    window.addEventListener('authStateChanged', handleAuthStateChange);
+}
+
+>>>>>>> 278553e6ea6b14517298970dc9edad3d3a3e4057
 function setupModalEventListeners() {
     // Table delete confirmation
     const confirmTableDelete = document.getElementById('confirmTableDelete');
@@ -206,6 +253,92 @@ function setupModuleCommunication() {
 }
 
 // Event Handlers
+<<<<<<< HEAD
+=======
+async function handleSignUp() {
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value.trim();
+    const messageEl = document.getElementById('loginMessage');
+    
+    if (messageEl) messageEl.textContent = '';
+    
+    // Validation
+    if (!email || !password) {
+        if (messageEl) messageEl.textContent = 'Please enter email and password.';
+        return;
+    }
+    
+    if (!isValidEmail(email)) {
+        if (messageEl) messageEl.textContent = 'Please enter a valid email address.';
+        return;
+    }
+    
+    if (password.length < 6) {
+        if (messageEl) messageEl.textContent = 'Password must be at least 6 characters.';
+        return;
+    }
+    
+    try {
+        await signUp(email, password);
+        // Success handled by auth state change listener
+    } catch (error) {
+        // Error displayed by auth module
+        console.error('Sign up error:', error);
+    }
+}
+
+async function handleSignIn() {
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value.trim();
+    const messageEl = document.getElementById('loginMessage');
+    
+    if (messageEl) messageEl.textContent = '';
+    
+    if (!email || !password) {
+        if (messageEl) messageEl.textContent = 'Please enter email and password.';
+        return;
+    }
+    
+    try {
+        await signIn(email, password);
+        // Success handled by auth state change listener
+    } catch (error) {
+        // Error displayed by auth module
+        console.error('Sign in error:', error);
+    }
+}
+
+async function handleSignOut() {
+    try {
+        await signOut();
+        // Success handled by auth state change listener
+    } catch (error) {
+        console.error('Sign out error:', error);
+        showNotification('Error signing out', 'error');
+    }
+}
+
+function handleAuthStateChange(event) {
+    const user = event.detail.user;
+    
+    if (user) {
+        // User signed in
+        console.log('User signed in:', user.email);
+        document.getElementById('userEmail').textContent = `(${user.email})`;
+        
+        // Initialize user-specific modules
+        initializeUserModules(user.uid);
+    } else {
+        // User signed out
+        console.log('User signed out');
+        document.getElementById('userEmail').textContent = '';
+        
+        // Cleanup user-specific modules
+        cleanupUserModules();
+    }
+}
+
+>>>>>>> 278553e6ea6b14517298970dc9edad3d3a3e4057
 async function handleTableSelectionChange(event) {
     const tableId = event.target.value;
     
@@ -506,6 +639,83 @@ function handleBeforeUnload(event) {
     }
 }
 
+<<<<<<< HEAD
+=======
+function handleVisibilityChange() {
+    if (!document.hidden) {
+        // Tab became active again, check for updates
+        console.log('App became visible');
+        
+        // Refresh data if online
+        if (navigator.onLine) {
+            refreshData();
+        }
+    }
+}
+
+// Module Management
+async function initializeUserModules(userId) {
+    try {
+        console.log('Initializing modules for user:', userId);
+        
+        // Initialize table manager
+        appState.modules.tableManager = await initTableManager();
+        
+        // Initialize dictionary module
+        appState.modules.dictionary = await initDictionary();
+        
+        // Initialize notes module
+        appState.modules.notes = await initNotes();
+        
+        // Process any pending operations
+        processPendingOperations();
+        
+        showNotification('Welcome back! Your data has been loaded.', 'success');
+        
+    } catch (error) {
+        console.error('Failed to initialize user modules:', error);
+        showNotification('Failed to load your data. Please refresh.', 'error');
+    }
+}
+
+function cleanupUserModules() {
+    console.log('Cleaning up user modules');
+    
+    // Cleanup modules in reverse order
+    if (appState.modules.notes && appState.modules.notes.cleanup) {
+        appState.modules.notes.cleanup();
+    }
+    
+    if (appState.modules.dictionary && appState.modules.dictionary.cleanup) {
+        appState.modules.dictionary.cleanup();
+    }
+    
+    if (appState.modules.tableManager && appState.modules.tableManager.cleanup) {
+        appState.modules.tableManager.cleanup();
+    }
+    
+    // Reset module references
+    appState.modules = {
+        auth: appState.modules.auth, // Keep auth module
+        tableManager: null,
+        dictionary: null,
+        notes: null
+    };
+    
+    // Reset table state
+    appState.currentTableId = null;
+    appState.currentTableName = null;
+    
+    // Clear UI
+    updateUIForTable(false);
+    
+    // Clear any pending operations
+    appState.pendingOperations = [];
+    
+    showNotification('Signed out successfully', 'info');
+}
+
+>>>>>>> 278553e6ea6b14517298970dc9edad3d3a3e4057
 // Utility Functions
 function checkForUnsavedChanges() {
     // Check form inputs
