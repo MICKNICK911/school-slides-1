@@ -1,7 +1,7 @@
 // scripts/modules/auth.js
-import { auth, getFirebaseErrorMessage } from './firebaseConfig.js';
+import { auth, db, firebase, getFirebaseErrorMessage } from './firebaseConfig.js';
 import { showNotification } from './uiManager.js';
-import { isOnline, handleError } from './utils.js';
+import { isOnline } from './utils.js';
 
 // Auth state management
 let currentUser = null;
@@ -12,36 +12,28 @@ let authInitialized = false;
 export const initAuth = () => {
     if (authInitialized) {
         console.warn('Auth already initialized');
-        return Promise.resolve();
+        return;
     }
     
-    return new Promise((resolve, reject) => {
-        try {
-            // Set up auth state observer
-            const unsubscribe = auth.onAuthStateChanged(
-                (user) => {
-                    handleAuthStateChange(user);
-                    resolve();
-                },
-                (error) => {
-                    console.error('Auth state observer error:', error);
-                    showNotification('Authentication error. Please refresh.', 'error');
-                    reject(error);
-                }
-            );
-            
-            // Store unsubscribe function for cleanup
-            window.authUnsubscribe = unsubscribe;
-            
-            authInitialized = true;
-            console.log('Auth module initialized');
-            
-        } catch (error) {
-            console.error('Failed to initialize auth:', error);
-            showNotification('Failed to initialize authentication', 'error');
-            reject(error);
-        }
-    });
+    try {
+        // Set up auth state observer - FIXED: No Promise needed
+        auth.onAuthStateChanged(
+            (user) => {
+                handleAuthStateChange(user);
+            },
+            (error) => {
+                console.error('Auth state observer error:', error);
+                showNotification('Authentication error. Please refresh.', 'error');
+            }
+        );
+        
+        authInitialized = true;
+        console.log('Auth module initialized');
+        
+    } catch (error) {
+        console.error('Failed to initialize auth:', error);
+        showNotification('Failed to initialize authentication', 'error');
+    }
 };
 
 // Handle auth state changes
@@ -50,14 +42,15 @@ const handleAuthStateChange = (user) => {
     currentUser = user;
     
     // Dispatch auth state change event
-    window.dispatchEvent(new CustomEvent('authStateChanged', {
+    const event = new CustomEvent('authStateChanged', {
         detail: { 
             user,
             previousUser,
             isLoggedIn: !!user,
             timestamp: new Date().toISOString()
         }
-    }));
+    });
+    window.dispatchEvent(event);
     
     // Update UI based on auth state
     updateAuthUI(user);
@@ -96,11 +89,16 @@ const updateAuthUI = (user) => {
         if (user) {
             // User is signed in
             loginModal.style.display = 'none';
+            loginModal.setAttribute('aria-hidden', 'true');
+            loginModal.hidden = true;
+            
             appContainer.style.display = 'block';
+            appContainer.setAttribute('aria-hidden', 'false');
+            appContainer.hidden = false;
             
             // Update user email display
             if (userEmail) {
-                userEmail.textContent = user.email;
+                userEmail.textContent = `(${user.email})`;
                 userEmail.title = `User ID: ${user.uid}`;
             }
             
@@ -115,7 +113,13 @@ const updateAuthUI = (user) => {
         } else {
             // User is signed out
             loginModal.style.display = 'flex';
+            loginModal.setAttribute('aria-hidden', 'false');
+            loginModal.hidden = false;
+            
             appContainer.style.display = 'none';
+            appContainer.setAttribute('aria-hidden', 'true');
+            appContainer.hidden = true;
+            
             window.userWelcomed = false;
             
             // Clear login form
@@ -129,50 +133,80 @@ const updateAuthUI = (user) => {
             
             // Focus on email input
             setTimeout(() => {
-                if (loginEmail) loginEmail.focus();
+                if (loginEmail) {
+                    loginEmail.focus();
+                    loginEmail.select();
+                }
             }, 100);
         }
+    } else {
+        console.error('Login modal or app container not found in DOM');
     }
 };
 
 // Update user metadata in Firestore (optional)
 const updateUserMetadata = async (user) => {
     try {
-        const { db } = await import('./firebaseConfig.js');
+        if (!db) {
+            console.warn('Firestore db not available');
+            return;
+        }
+        
         const userRef = db.collection('users').doc(user.uid);
         
-        await userRef.set({
+        const userData = {
             email: user.email,
-            lastLogin: new Date(),
+            lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
             displayName: user.displayName || user.email.split('@')[0],
             photoURL: user.photoURL || null,
             metadata: {
                 creationTime: user.metadata.creationTime,
                 lastSignInTime: user.metadata.lastSignInTime
-            }
-        }, { merge: true });
+            },
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        
+        // Set with merge to avoid overwriting existing data
+        await userRef.set(userData, { merge: true });
+        
+        console.log('User metadata updated for:', user.uid);
         
     } catch (error) {
         // Non-critical error, just log it
-        console.warn('Failed to update user metadata:', error);
+        console.warn('Failed to update user metadata:', error.message);
     }
 };
 
 // Clear authentication data from storage
 const clearAuthData = () => {
-    // Clear any auth-related localStorage items
-    const keysToRemove = [];
-    for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key.startsWith('auth_') || key.startsWith('firebase:authUser:')) {
-            keysToRemove.push(key);
+    try {
+        // Clear any auth-related localStorage items
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key.startsWith('auth_') || key.includes('firebase')) {
+                keysToRemove.push(key);
+            }
         }
+        
+        keysToRemove.forEach(key => {
+            try {
+                localStorage.removeItem(key);
+            } catch (e) {
+                console.warn('Failed to remove localStorage item:', key, e);
+            }
+        });
+        
+        // Clear sessionStorage as well
+        try {
+            sessionStorage.clear();
+        } catch (e) {
+            console.warn('Failed to clear sessionStorage:', e);
+        }
+        
+    } catch (error) {
+        console.error('Error clearing auth data:', error);
     }
-    
-    keysToRemove.forEach(key => localStorage.removeItem(key));
-    
-    // Clear sessionStorage as well
-    sessionStorage.clear();
 };
 
 // Sign up with email and password
@@ -193,14 +227,20 @@ export const signUp = async (email, password) => {
         if (messageEl) {
             messageEl.textContent = 'Creating account...';
             messageEl.style.color = 'var(--primary)';
+            messageEl.className = 'message';
         }
         
         const userCredential = await auth.createUserWithEmailAndPassword(email, password);
         
         // Additional user setup (optional)
-        await userCredential.user.updateProfile({
-            displayName: email.split('@')[0]
-        });
+        try {
+            await userCredential.user.updateProfile({
+                displayName: email.split('@')[0]
+            });
+        } catch (profileError) {
+            console.warn('Failed to update profile:', profileError);
+            // Non-critical error, continue
+        }
         
         // Show success message
         if (messageEl) {
@@ -209,10 +249,14 @@ export const signUp = async (email, password) => {
         }
         
         // Store user preference
-        localStorage.setItem('user_preferences', JSON.stringify({
-            email: email,
-            createdAt: new Date().toISOString()
-        }));
+        try {
+            localStorage.setItem('user_preferences', JSON.stringify({
+                email: email,
+                createdAt: new Date().toISOString()
+            }));
+        } catch (storageError) {
+            console.warn('Failed to store user preferences:', storageError);
+        }
         
         return userCredential.user;
         
@@ -220,7 +264,7 @@ export const signUp = async (email, password) => {
         console.error('Sign up error:', error);
         
         // User-friendly error message
-        const errorMessage = getFirebaseErrorMessage(error);
+        const errorMessage = getFirebaseErrorMessage(error) || error.message;
         
         if (messageEl) {
             messageEl.textContent = errorMessage;
@@ -249,6 +293,7 @@ export const signIn = async (email, password) => {
         if (messageEl) {
             messageEl.textContent = 'Signing in...';
             messageEl.style.color = 'var(--primary)';
+            messageEl.className = 'message';
         }
         
         const userCredential = await auth.signInWithEmailAndPassword(email, password);
@@ -265,7 +310,11 @@ export const signIn = async (email, password) => {
         }
         
         // Store login timestamp
-        localStorage.setItem('last_login', new Date().toISOString());
+        try {
+            localStorage.setItem('last_login', new Date().toISOString());
+        } catch (e) {
+            console.warn('Failed to store login timestamp:', e);
+        }
         
         return userCredential.user;
         
@@ -273,7 +322,7 @@ export const signIn = async (email, password) => {
         console.error('Sign in error:', error);
         
         // User-friendly error message
-        const errorMessage = getFirebaseErrorMessage(error);
+        const errorMessage = getFirebaseErrorMessage(error) || error.message;
         
         if (messageEl) {
             messageEl.textContent = errorMessage;
@@ -291,11 +340,6 @@ export const signOut = async () => {
         return;
     }
     
-    if (!isOnline()) {
-        showNotification('You are offline. Sign out will complete when you\'re back online.', 'warning');
-        return;
-    }
-    
     try {
         // Show loading state
         showNotification('Signing out...', 'info');
@@ -310,7 +354,7 @@ export const signOut = async () => {
     } catch (error) {
         console.error('Sign out error:', error);
         
-        const errorMessage = getFirebaseErrorMessage(error);
+        const errorMessage = getFirebaseErrorMessage(error) || error.message;
         showNotification(`Sign out failed: ${errorMessage}`, 'error');
         
         throw new Error(errorMessage);
@@ -363,209 +407,8 @@ export const onAuthStateChanged = (callback) => {
     };
 };
 
-// Password reset
-export const resetPassword = async (email) => {
-    if (!email) {
-        throw new Error('Please enter your email address');
-    }
-    
-    if (!isOnline()) {
-        throw new Error('You are offline. Please connect to the internet to reset password.');
-    }
-    
-    try {
-        await auth.sendPasswordResetEmail(email);
-        showNotification('Password reset email sent. Check your inbox.', 'success');
-        return true;
-    } catch (error) {
-        console.error('Password reset error:', error);
-        
-        const errorMessage = getFirebaseErrorMessage(error);
-        showNotification(`Password reset failed: ${errorMessage}`, 'error');
-        
-        throw new Error(errorMessage);
-    }
-};
-
-// Update user profile
-export const updateUserProfile = async (updates) => {
-    if (!currentUser) {
-        throw new Error('No user signed in');
-    }
-    
-    if (!updates || typeof updates !== 'object') {
-        throw new Error('Invalid updates object');
-    }
-    
-    try {
-        await currentUser.updateProfile(updates);
-        showNotification('Profile updated successfully', 'success');
-        return true;
-    } catch (error) {
-        console.error('Update profile error:', error);
-        
-        const errorMessage = getFirebaseErrorMessage(error);
-        showNotification(`Profile update failed: ${errorMessage}`, 'error');
-        
-        throw new Error(errorMessage);
-    }
-};
-
-// Update user email
-export const updateUserEmail = async (newEmail) => {
-    if (!currentUser) {
-        throw new Error('No user signed in');
-    }
-    
-    if (!newEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) {
-        throw new Error('Please enter a valid email address');
-    }
-    
-    try {
-        await currentUser.updateEmail(newEmail);
-        showNotification('Email updated successfully', 'success');
-        return true;
-    } catch (error) {
-        console.error('Update email error:', error);
-        
-        const errorMessage = getFirebaseErrorMessage(error);
-        showNotification(`Email update failed: ${errorMessage}`, 'error');
-        
-        // If error is about re-authentication, guide user
-        if (error.code === 'auth/requires-recent-login') {
-            showNotification('Please sign in again to update your email', 'warning');
-        }
-        
-        throw new Error(errorMessage);
-    }
-};
-
-// Update user password
-export const updateUserPassword = async (newPassword) => {
-    if (!currentUser) {
-        throw new Error('No user signed in');
-    }
-    
-    if (!newPassword || newPassword.length < 6) {
-        throw new Error('Password must be at least 6 characters');
-    }
-    
-    try {
-        await currentUser.updatePassword(newPassword);
-        showNotification('Password updated successfully', 'success');
-        return true;
-    } catch (error) {
-        console.error('Update password error:', error);
-        
-        const errorMessage = getFirebaseErrorMessage(error);
-        showNotification(`Password update failed: ${errorMessage}`, 'error');
-        
-        // If error is about re-authentication, guide user
-        if (error.code === 'auth/requires-recent-login') {
-            showNotification('Please sign in again to update your password', 'warning');
-        }
-        
-        throw new Error(errorMessage);
-    }
-};
-
-// Delete user account
-export const deleteUserAccount = async () => {
-    if (!currentUser) {
-        throw new Error('No user signed in');
-    }
-    
-    if (!confirm('Are you sure you want to delete your account? This action cannot be undone and will delete all your data.')) {
-        return false;
-    }
-    
-    try {
-        // First, delete user data from Firestore
-        const { db } = await import('./firebaseConfig.js');
-        const userRef = db.collection('users').doc(currentUser.uid);
-        
-        // Delete user document and all subcollections
-        const batch = db.batch();
-        
-        // Get all tables and delete them
-        const tablesSnapshot = await userRef.collection('tables').get();
-        tablesSnapshot.forEach(doc => {
-            batch.delete(doc.ref);
-        });
-        
-        // Delete user document
-        batch.delete(userRef);
-        
-        await batch.commit();
-        
-        // Then delete the auth user
-        await currentUser.delete();
-        
-        showNotification('Account deleted successfully', 'success');
-        return true;
-        
-    } catch (error) {
-        console.error('Delete account error:', error);
-        
-        const errorMessage = getFirebaseErrorMessage(error);
-        showNotification(`Account deletion failed: ${errorMessage}`, 'error');
-        
-        throw new Error(errorMessage);
-    }
-};
-
-// Get auth token (for API calls)
-export const getIdToken = async (forceRefresh = false) => {
-    if (!currentUser) {
-        return null;
-    }
-    
-    try {
-        return await currentUser.getIdToken(forceRefresh);
-    } catch (error) {
-        console.error('Get ID token error:', error);
-        return null;
-    }
-};
-
-// Check if user has verified email
-export const isEmailVerified = () => {
-    return currentUser ? currentUser.emailVerified : false;
-};
-
-// Send email verification
-export const sendEmailVerification = async () => {
-    if (!currentUser) {
-        throw new Error('No user signed in');
-    }
-    
-    if (currentUser.emailVerified) {
-        showNotification('Email is already verified', 'info');
-        return true;
-    }
-    
-    try {
-        await currentUser.sendEmailVerification();
-        showNotification('Verification email sent. Please check your inbox.', 'success');
-        return true;
-    } catch (error) {
-        console.error('Send verification email error:', error);
-        
-        const errorMessage = getFirebaseErrorMessage(error);
-        showNotification(`Failed to send verification: ${errorMessage}`, 'error');
-        
-        throw new Error(errorMessage);
-    }
-};
-
 // Cleanup auth module
 export const cleanupAuth = () => {
-    // Remove auth state listener
-    if (window.authUnsubscribe) {
-        window.authUnsubscribe();
-        delete window.authUnsubscribe;
-    }
-    
     // Clear all registered listeners
     authStateListeners = [];
     
@@ -576,40 +419,28 @@ export const cleanupAuth = () => {
     console.log('Auth module cleaned up');
 };
 
-// Re-authenticate user (for sensitive operations)
-export const reauthenticateUser = async (password) => {
-    if (!currentUser || !currentUser.email) {
-        throw new Error('No user signed in');
-    }
-    
-    if (!password) {
-        throw new Error('Please enter your password');
-    }
-    
-    try {
-        const credential = firebase.auth.EmailAuthProvider.credential(
-            currentUser.email,
-            password
-        );
-        
-        await currentUser.reauthenticateWithCredential(credential);
-        return true;
-        
-    } catch (error) {
-        console.error('Re-authentication error:', error);
-        
-        const errorMessage = getFirebaseErrorMessage(error);
-        throw new Error(errorMessage);
-    }
+// Default export
+export default {
+    initAuth,
+    signUp,
+    signIn,
+    signOut,
+    getCurrentUser,
+    isAuthenticated,
+    getUserId,
+    getUserEmail,
+    cleanupAuth
 };
 
-// Initialize on import
+// Initialize auth on module load
 if (typeof window !== 'undefined') {
     // Set up auth state persistence
-    auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
-        .catch(error => {
-            console.warn('Auth persistence error:', error);
-        });
+    if (auth && auth.setPersistence) {
+        auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+            .catch(error => {
+                console.warn('Auth persistence error:', error);
+            });
+    }
     
     // Make auth module available globally for debugging
     window.authModule = {
@@ -619,38 +450,8 @@ if (typeof window !== 'undefined') {
         signOut,
         getCurrentUser,
         isAuthenticated,
-        resetPassword,
-        updateUserProfile,
-        updateUserEmail,
-        updateUserPassword,
-        deleteUserAccount,
-        getIdToken,
-        isEmailVerified,
-        sendEmailVerification,
-        cleanupAuth,
-        reauthenticateUser
+        getUserId,
+        getUserEmail,
+        cleanupAuth
     };
 }
-
-// Default export
-export default {
-    initAuth,
-    signUp,
-    signIn,
-    signOut,
-    getCurrentUser,
-    isAuthenticated,
-    onAuthStateChanged,
-    resetPassword,
-    updateUserProfile,
-    updateUserEmail,
-    updateUserPassword,
-    deleteUserAccount,
-    getIdToken,
-    isEmailVerified,
-    sendEmailVerification,
-    cleanupAuth,
-    reauthenticateUser,
-    getUserId,
-    getUserEmail
-};
