@@ -201,26 +201,13 @@ async saveToCloud() {
         return;
     }
     
-    // Check if user is logged in
+    // Check authentication
     if (!window.authManager || !window.authManager.isAuthenticated()) {
         alert('Please log in to save to the cloud');
         return;
     }
     
-    if (!window.databaseManager) {
-        alert('Database manager not available');
-        return;
-    }
-    
-    console.log('Current user ID:', window.databaseManager.currentUserId);
-    console.log('Entries to save:', Object.keys(this.builderDictionary).length);
-    
-    // Test Firestore connection first
-    const connectionTest = await window.databaseManager.testFirestoreConnection();
-    if (!connectionTest) {
-        alert('Cannot connect to Firestore. Please check your internet connection and try again.');
-        return;
-    }
+    console.log('User authenticated:', window.authManager.getCurrentUser().email);
     
     // Show loading state
     const originalText = this.builderSave.textContent;
@@ -228,16 +215,25 @@ async saveToCloud() {
     this.builderSave.disabled = true;
     
     try {
-        console.log('Starting cloud save...');
+        // Test connection first
+        console.log('Testing Firestore connection...');
+        const connectionTest = await this.testFirestoreConnection();
+        
+        if (!connectionTest.connected) {
+            alert(`Cannot connect to Firestore: ${connectionTest.error}\n\nPlease check:\n1. Internet connection\n2. Firestore rules\n3. Browser console (F12) for details`);
+            return;
+        }
+        
+        console.log('Firestore connection OK, starting save...');
         
         let successCount = 0;
         let errorCount = 0;
-        let errorDetails = [];
+        const results = [];
         
         // Save each entry
         for (const [topic, data] of Object.entries(this.builderDictionary)) {
             try {
-                console.log(`Saving note: "${topic}"`);
+                console.log(`Saving: "${topic}"`);
                 
                 const noteData = {
                     topic: topic,
@@ -245,71 +241,95 @@ async saveToCloud() {
                     ex: data.ex || []
                 };
                 
-                console.log('Note data:', noteData);
-                
                 const noteId = await window.databaseManager.saveNote(noteData);
                 
                 if (noteId) {
                     successCount++;
-                    console.log(`✅ Successfully saved: "${topic}" with ID: ${noteId}`);
+                    results.push(`✅ "${topic}" saved`);
+                    console.log(`✅ Saved: "${topic}" (ID: ${noteId})`);
                 } else {
                     errorCount++;
-                    errorDetails.push(`Failed to save: "${topic}"`);
-                    console.error(`❌ Failed to save: "${topic}"`);
+                    results.push(`❌ "${topic}" failed (null response)`);
+                    console.error(`❌ Save returned null for: "${topic}"`);
                 }
                 
-                // Small delay to prevent rate limiting
-                await new Promise(resolve => setTimeout(resolve, 200));
+                // Small delay between saves
+                await new Promise(resolve => setTimeout(resolve, 300));
             } catch (error) {
-                console.error(`❌ Error saving "${topic}":`, error);
                 errorCount++;
-                errorDetails.push(`"${topic}": ${error.message}`);
+                results.push(`❌ "${topic}" error: ${error.code || error.message}`);
+                console.error(`❌ Error saving "${topic}":`, error);
             }
         }
         
+        // Show results
         console.log('=== SAVE RESULTS ===');
-        console.log('Success:', successCount);
-        console.log('Errors:', errorCount);
-        console.log('Details:', errorDetails);
+        console.log(`Success: ${successCount}, Errors: ${errorCount}`);
+        results.forEach(r => console.log(r));
         
-        // Show results to user
-        let message = '';
-        if (successCount > 0) {
-            message += `✅ Successfully saved ${successCount} note(s) to the cloud.\n`;
-        }
-        if (errorCount > 0) {
-            message += `❌ Failed to save ${errorCount} note(s).\n`;
-            message += 'Check the browser console for details.';
-        }
-        
-        if (message) {
-            alert(message);
+        // User feedback
+        if (successCount === 0 && errorCount > 0) {
+            alert(`❌ All saves failed (${errorCount} errors).\nCheck browser console (F12) for details.`);
+        } else if (errorCount === 0) {
+            alert(`✅ All ${successCount} notes saved successfully!`);
+            this.builderDictionary = {};
+            this.updateBuilderPreview();
+            this.closeBuilder();
+        } else {
+            alert(`⚠️ ${successCount} saved, ${errorCount} failed.\nCheck browser console (F12) for details.`);
         }
         
-        // Update UI
+        // Update notification
         if (window.utils) {
             window.utils.showNotification(
-                `Saved ${successCount} note(s) to cloud${errorCount > 0 ? ' (' + errorCount + ' failed)' : ''}`,
+                `Cloud save: ${successCount} saved, ${errorCount} failed`,
                 successCount > 0 ? '☁️' : '❌',
                 errorCount > 0,
                 successCount > 0
             );
         }
         
-        // Clear builder if all saved successfully
-        if (errorCount === 0 && successCount > 0) {
-            this.builderDictionary = {};
-            this.updateBuilderPreview();
-            this.closeBuilder();
-        }
-        
     } catch (error) {
-        console.error('❌ Fatal error in saveToCloud:', error);
-        alert('Fatal error saving to cloud: ' + error.message);
+        console.error('❌ FATAL ERROR in saveToCloud:', error);
+        alert(`Fatal error: ${error.message}\n\nCheck browser console (F12) for details.`);
     } finally {
-        // Restore button state
+        // Restore button
         this.builderSave.textContent = originalText;
         this.builderSave.disabled = false;
+    }
+}
+
+async testFirestoreConnection() {
+    try {
+        console.log('Testing Firestore write permission...');
+        const testId = 'test-' + Date.now();
+        
+        // Test write
+        await window.firebaseServices.db.collection('test').doc(testId).set({
+            test: 'connection',
+            timestamp: new Date().toISOString(),
+            userId: window.authManager.getCurrentUser().uid
+        });
+        
+        console.log('✅ Write test passed');
+        
+        // Test read
+        const doc = await window.firebaseServices.db.collection('test').doc(testId).get();
+        if (doc.exists) {
+            console.log('✅ Read test passed');
+        }
+        
+        // Clean up
+        await window.firebaseServices.db.collection('test').doc(testId).delete();
+        console.log('✅ Cleanup test passed');
+        
+        return { connected: true };
+    } catch (error) {
+        console.error('❌ Firestore connection test failed:', error);
+        return { 
+            connected: false, 
+            error: `${error.code}: ${error.message}`
+        };
     }
 }
 }

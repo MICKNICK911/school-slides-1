@@ -107,57 +107,57 @@ class DatabaseManager {
     
     // Notes operations - FIXED VERSION
     async saveNote(noteData) {
-        if (!this.currentUserId) {
-            console.error('Cannot save note: No user ID');
-            return null;
+    if (!this.currentUserId) {
+        console.error('Cannot save note: No user ID available');
+        return null;
+    }
+    
+    try {
+        // Generate a unique ID
+        const noteId = Date.now().toString() + Math.random().toString(36).substr(2, 9);
+        
+        console.log('Attempting to save note to Firestore...');
+        console.log('User ID:', this.currentUserId);
+        console.log('Note data:', noteData);
+        
+        // Create the note object with proper structure
+        const note = {
+            id: noteId,
+            userId: this.currentUserId,
+            topic: noteData.topic || '',
+            desc: noteData.desc || '',
+            ex: Array.isArray(noteData.ex) ? noteData.ex : [],
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+            isPublic: false,
+            tags: []
+        };
+        
+        console.log('Note object prepared:', note);
+        
+        // Save to Firestore
+        await this.db.collection(this.NOTES_COLLECTION)
+            .doc(noteId)
+            .set(note);
+        
+        console.log('✅ Note saved successfully to Firestore:', noteId);
+        
+        return noteId;
+    } catch (error) {
+        console.error('❌ ERROR in saveNote:', error);
+        console.error('Error code:', error.code);
+        console.error('Error message:', error.message);
+        
+        // Show specific error messages
+        if (error.code === 'permission-denied') {
+            console.error('PERMISSION DENIED: Check Firestore rules');
+        } else if (error.code === 'unavailable') {
+            console.error('NETWORK ERROR: Check internet connection');
         }
         
-        try {
-            console.log('Starting to save note:', noteData);
-            
-            // Generate a simpler ID
-            const noteId = Date.now().toString() + Math.random().toString(36).substr(2, 9);
-            
-            // Create the note object with proper structure
-            const note = {
-                id: noteId,
-                userId: this.currentUserId,
-                topic: noteData.topic || '',
-                desc: noteData.desc || '',
-                ex: Array.isArray(noteData.ex) ? noteData.ex : [],
-                createdAt: new Date(),
-                updatedAt: new Date(),
-                isPublic: false,
-                tags: []
-            };
-            
-            console.log('Note object to save:', note);
-            
-            // Save to Firestore
-            await this.db.collection(this.NOTES_COLLECTION)
-                .doc(noteId)
-                .set(note);
-            
-            console.log('Note saved successfully to Firestore:', noteId);
-            
-            // Update user stats
-            try {
-                await this.incrementUserStat('notesCount');
-                console.log('User stats updated');
-            } catch (statsError) {
-                console.warn('Could not update user stats:', statsError);
-                // Continue even if stats update fails
-            }
-            
-            return noteId;
-        } catch (error) {
-            console.error('ERROR in saveNote:', error);
-            console.error('Error code:', error.code);
-            console.error('Error message:', error.message);
-            console.error('Error details:', error);
-            return null;
-        }
+        return null;
     }
+}
     
     async getUserNotes() {
         if (!this.currentUserId) {
