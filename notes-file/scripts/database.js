@@ -367,78 +367,72 @@ class DatabaseManager {
     
     // ============ BOOKMARKS METHODS ============
     
-    async addBookmark(topic) {
-        const user = this.auth.currentUser;
-        if (!user) {
-            alert('Please log in to bookmark');
-            return false;
-        }
+   async addBookmark(topic) {
+    const user = this.auth.currentUser;
+    if (!user) {
+        alert('Please log in to bookmark');
+        return false;
+    }
+    
+    try {
+        const bookmarkId = this.generateId();
+        const bookmark = {
+            id: bookmarkId,
+            userId: user.uid,
+            topic: topic,
+            createdAt: new Date()
+        };
         
-        try {
-            // Check if already bookmarked
-            const existing = await this.db.collection(this.BOOKMARKS_COLLECTION)
-                .where('userId', '==', user.uid)
-                .where('topic', '==', topic)
-                .limit(1)
-                .get();
+        await this.db.collection(this.BOOKMARKS_COLLECTION)
+            .doc(bookmarkId)
+            .set(bookmark);
+        
+        console.log('DatabaseManager: Bookmark added for user:', user.uid);
+        
+        // Update counts
+        await this.updateUserCounts();
+        
+        return true;
+    } catch (error) {
+        console.error('DatabaseManager: Error adding bookmark:', error);
+        return false;
+    }
+}
+
+async removeBookmark(topic) {
+    const user = this.auth.currentUser;
+    if (!user) return false;
+    
+    try {
+        // Find the bookmark by topic for this user
+        const snapshot = await this.db.collection(this.BOOKMARKS_COLLECTION)
+            .where('userId', '==', user.uid)
+            .where('topic', '==', topic)
+            .get();
+        
+        if (!snapshot.empty) {
+            // Delete each matching bookmark
+            const deletePromises = [];
+            snapshot.docs.forEach(doc => {
+                deletePromises.push(doc.ref.delete());
+            });
             
-            if (!existing.empty) {
-                console.log('Already bookmarked:', topic);
-                return false;
-            }
-            
-            const bookmarkId = this.generateId();
-            const bookmark = {
-                id: bookmarkId,
-                userId: user.uid,
-                topic: topic,
-                createdAt: new Date()
-            };
-            
-            await this.db.collection(this.BOOKMARKS_COLLECTION)
-                .doc(bookmarkId)
-                .set(bookmark);
+            await Promise.all(deletePromises);
             
             // Update counts
             await this.updateUserCounts();
             
-            console.log('Bookmark added:', topic);
+            console.log('DatabaseManager: Bookmark removed:', topic);
             return true;
-            
-        } catch (error) {
-            console.error('Error adding bookmark:', error);
-            return false;
         }
-    }
-    
-    async removeBookmark(topic) {
-        const user = this.auth.currentUser;
-        if (!user) return false;
         
-        try {
-            // Find the bookmark
-            const snapshot = await this.db.collection(this.BOOKMARKS_COLLECTION)
-                .where('userId', '==', user.uid)
-                .where('topic', '==', topic)
-                .limit(1)
-                .get();
-            
-            if (!snapshot.empty) {
-                const doc = snapshot.docs[0];
-                await doc.ref.delete();
-                
-                // Update counts
-                await this.updateUserCounts();
-                
-                console.log('Bookmark removed:', topic);
-                return true;
-            }
-            return false;
-        } catch (error) {
-            console.error('Error removing bookmark:', error);
-            return false;
-        }
+        return false;
+    } catch (error) {
+        console.error('DatabaseManager: Error removing bookmark:', error);
+        return false;
     }
+}
+
     
     async isBookmarked(topic) {
         const user = this.auth.currentUser;
@@ -459,30 +453,34 @@ class DatabaseManager {
     }
     
     async getUserBookmarks() {
-        const user = this.auth.currentUser;
-        if (!user) return [];
+    const user = this.auth.currentUser;
+    if (!user) return [];
+    
+    try {
+        const snapshot = await this.db.collection(this.BOOKMARKS_COLLECTION)
+            .where('userId', '==', user.uid)
+            .orderBy('createdAt', 'desc')
+            .get();
         
-        try {
-            const snapshot = await this.db.collection(this.BOOKMARKS_COLLECTION)
-                .where('userId', '==', user.uid)
-                .orderBy('createdAt', 'desc')
-                .get();
-            
-            const bookmarks = snapshot.docs.map(doc => {
-                const data = doc.data();
-                return {
+        const bookmarks = [];
+        snapshot.docs.forEach(doc => {
+            const data = doc.data();
+            if (data.userId === user.uid) {
+                bookmarks.push({
                     id: doc.id,
-                    ...data
-                };
-            });
-            
-            console.log(`Found ${bookmarks.length} bookmarks`);
-            return bookmarks;
-        } catch (error) {
-            console.error('Error getting bookmarks:', error);
-            return [];
-        }
+                    topic: data.topic,
+                    createdAt: data.createdAt
+                });
+            }
+        });
+        
+        console.log(`DatabaseManager: Found ${bookmarks.length} bookmarks for user ${user.uid}`);
+        return bookmarks;
+    } catch (error) {
+        console.error('DatabaseManager: Error getting bookmarks:', error);
+        return [];
     }
+}
     
     // ============ HISTORY METHODS ============
     

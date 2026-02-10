@@ -55,47 +55,59 @@ class BuilderManager {
         this.cloudSyncBtn = document.getElementById('cloudSyncBtn');
     }
     
-    init() {
-        console.log('BuilderManager initializing with edit/delete features...');
-        
-        // Event listeners
-        this.exportToggle.addEventListener('click', () => this.openBuilder());
-        this.builderCancel?.addEventListener('click', () => this.closeBuilder());
-        this.builderExport?.addEventListener('click', () => this.exportBuilderDictionary());
-        this.builderSave?.addEventListener('click', () => this.saveToCloud());
-        this.builderAdd?.addEventListener('click', () => this.addBuilderEntry());
-        this.previewClear?.addEventListener('click', () => this.clearBuilderPreview());
-        
-        // Preview mode toggle
-        this.previewModeToggle?.addEventListener('click', () => this.togglePreviewMode());
-        
-        // Search functionality
-        this.previewSearch?.addEventListener('input', (e) => this.filterPreview(e.target.value));
-        
-        // Edit/Delete buttons
-        this.builderUpdate?.addEventListener('click', () => this.updateBuilderEntry());
-        this.builderCancelEdit?.addEventListener('click', () => this.cancelEdit());
-        this.builderDelete?.addEventListener('click', () => this.deleteBuilderEntry());
-        
-        // Cloud buttons
-        this.cloudLoadBtn?.addEventListener('click', () => this.loadFromCloud());
-        this.cloudSyncBtn?.addEventListener('click', () => this.syncWithCloud());
-        
-        // Enter key support
-        this.builderTopic?.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') this.addBuilderEntry();
-        });
-        
-        this.builderDesc?.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && e.ctrlKey) this.addBuilderEntry();
-        });
-        
-        this.builderEx?.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') this.addBuilderEntry();
-        });
-        
-        console.log('BuilderManager initialized successfully');
-    }
+    // In the init method of BuilderManager, add debugging:
+init() {
+    console.log('BuilderManager initializing with edit/delete features...');
+    
+    // Event listeners
+    this.exportToggle.addEventListener('click', () => this.openBuilder());
+    this.builderCancel?.addEventListener('click', () => this.closeBuilder());
+    this.builderExport?.addEventListener('click', () => this.exportBuilderDictionary());
+    this.builderSave?.addEventListener('click', () => this.saveToCloud());
+    this.builderAdd?.addEventListener('click', () => this.addBuilderEntry());
+    this.previewClear?.addEventListener('click', () => this.clearBuilderPreview());
+    
+    // Preview mode toggle
+    this.previewModeToggle?.addEventListener('click', () => this.togglePreviewMode());
+    
+    // Search functionality
+    this.previewSearch?.addEventListener('input', (e) => this.filterPreview(e.target.value));
+    
+    // Edit/Delete buttons
+    this.builderUpdate?.addEventListener('click', () => this.updateBuilderEntry());
+    this.builderCancelEdit?.addEventListener('click', () => this.cancelEdit());
+    this.builderDelete?.addEventListener('click', () => this.deleteBuilderEntry());
+    
+    // Cloud buttons - ADD DEBUGGING
+    console.log('Setting up cloud buttons...');
+    console.log('cloudLoadBtn:', !!this.cloudLoadBtn);
+    console.log('cloudSyncBtn:', !!this.cloudSyncBtn);
+    
+    this.cloudLoadBtn?.addEventListener('click', () => {
+        console.log('Load from Cloud button clicked');
+        this.loadFromCloud();
+    });
+    
+    this.cloudSyncBtn?.addEventListener('click', () => {
+        console.log('Sync with Cloud button clicked');
+        this.syncWithCloud();
+    });
+    
+    // Enter key support
+    this.builderTopic?.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') this.addBuilderEntry();
+    });
+    
+    this.builderDesc?.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && e.ctrlKey) this.addBuilderEntry();
+    });
+    
+    this.builderEx?.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') this.addBuilderEntry();
+    });
+    
+    console.log('BuilderManager initialized successfully');
+}
     
     // ============ BUILDER OPERATIONS ============
     
@@ -743,46 +755,208 @@ async saveToCloud() {
         }
     }
     
-    async syncWithCloud() {
-        if (!window.databaseManager || !window.authManager?.isAuthenticated()) {
-            alert('Please log in to sync with cloud');
-            return;
-        }
+    // Replace the syncWithCloud method in builder.js with this:
+async syncWithCloud() {
+    console.log('syncWithCloud called');
+    
+    // Debug info
+    //this.debugSync();
+    
+    // Check authentication
+    if (!window.authManager || !window.authManager.isAuthenticated()) {
+        alert('Please log in to sync with cloud');
+        return;
+    }
+    
+    // Check database manager
+    if (!window.databaseManager) {
+        alert('Database connection not available. Please refresh the page.');
+        return;
+    }
+    
+    // Check if there are any notes to sync
+    if (!this.builderDictionary || Object.keys(this.builderDictionary).length === 0) {
+        alert('No notes to sync. Add some notes first.');
+        return;
+    }
+    
+    // Change button state
+    const originalText = this.cloudSyncBtn?.textContent;
+    if (this.cloudSyncBtn) {
+        this.cloudSyncBtn.textContent = '⏳ Syncing...';
+        this.cloudSyncBtn.disabled = true;
+    }
+    
+    try {
+        console.log('Starting sync process...');
         
-        try {
-            // First load from cloud to get latest
-            await this.loadFromCloud();
-            
-            // Then save any local changes to cloud
-            let saved = 0;
-            let updated = 0;
-            
-            for (const [topic, data] of Object.entries(this.builderDictionary)) {
-                if (data.cloudId) {
-                    // Update existing cloud note
-                    const success = await this.updateInCloud(topic);
-                    if (success) updated++;
-                } else {
-                    // Save new note to cloud
-                    const success = await this.saveSingleToCloud(topic);
-                    if (success) saved++;
-                }
-                
-                // Small delay to prevent rate limiting
-                await new Promise(resolve => setTimeout(resolve, 100));
-            }
-            
-            let message = 'Sync complete!\n';
-            if (saved > 0) message += `✅ Saved ${saved} new notes to cloud\n`;
-            if (updated > 0) message += `✏️ Updated ${updated} existing notes\n`;
-            
-            alert(message);
-            
-        } catch (error) {
-            console.error('Error syncing with cloud:', error);
-            alert('Error syncing with cloud: ' + error.message);
+        // Step 1: Load existing cloud notes first
+        console.log('Loading existing cloud notes...');
+        await this.loadFromCloud();
+        
+        // Step 2: Sync all local notes with cloud
+        console.log('Syncing local notes with cloud...');
+        const result = await this.syncAllNotes();
+        
+        // Step 3: Show result
+        this.showSyncResult(result);
+        
+        // Step 4: Reload from cloud to get updated cloud IDs
+        await this.loadFromCloud();
+        
+    } catch (error) {
+        console.error('Sync error:', error);
+        this.showSyncError(error);
+    } finally {
+        // Restore button state
+        if (this.cloudSyncBtn) {
+            this.cloudSyncBtn.textContent = originalText;
+            this.cloudSyncBtn.disabled = false;
         }
     }
+}
+
+async syncAllNotes() {
+    console.log(`Syncing ${Object.keys(this.builderDictionary).length} notes...`);
+    
+    const result = {
+        saved: 0,
+        updated: 0,
+        skipped: 0,
+        errors: []
+    };
+    
+    // Get all notes in array for easier processing
+    const notes = Object.entries(this.builderDictionary);
+    
+    for (let i = 0; i < notes.length; i++) {
+        const [topic, data] = notes[i];
+        
+        try {
+            console.log(`Processing note ${i + 1}/${notes.length}: "${topic}"`);
+            
+            // Check if note exists in cloud
+            const existingCloudNote = await window.databaseManager.searchNoteByTopic(topic);
+            
+            if (existingCloudNote) {
+                // Update existing note
+                console.log(`Note exists in cloud (ID: ${existingCloudNote.id}), updating...`);
+                
+                const updateData = {
+                    topic: topic,
+                    desc: data.desc || '',
+                    ex: data.ex || [],
+                    updatedAt: new Date()
+                };
+                
+                const success = await window.databaseManager.updateNote(existingCloudNote.id, updateData);
+                
+                if (success) {
+                    // Update local cloud ID
+                    this.builderDictionary[topic].cloudId = existingCloudNote.id;
+                    result.updated++;
+                    console.log(`✅ Updated: "${topic}"`);
+                } else {
+                    result.errors.push(`Failed to update: "${topic}"`);
+                    console.error(`Failed to update: "${topic}"`);
+                }
+                
+            } else {
+                // Create new note in cloud
+                console.log(`Note not in cloud, creating new...`);
+                
+                const noteData = {
+                    topic: topic,
+                    desc: data.desc || '',
+                    ex: data.ex || []
+                };
+                
+                const noteId = await window.databaseManager.saveNote(noteData);
+                
+                if (noteId) {
+                    // Store cloud ID
+                    this.builderDictionary[topic].cloudId = noteId;
+                    result.saved++;
+                    console.log(`✅ Saved to cloud: "${topic}" (ID: ${noteId})`);
+                } else {
+                    result.errors.push(`Failed to save: "${topic}"`);
+                    console.error(`Failed to save: "${topic}"`);
+                }
+            }
+            
+            // Update progress every 5 notes
+            if (this.cloudSyncBtn && (i + 1) % 5 === 0) {
+                this.cloudSyncBtn.textContent = `⏳ Syncing... ${i + 1}/${notes.length}`;
+            }
+            
+            // Small delay to prevent overwhelming the server
+            await new Promise(resolve => setTimeout(resolve, 300));
+            
+        } catch (error) {
+            console.error(`Error syncing "${topic}":`, error);
+            result.errors.push(`${topic}: ${error.message}`);
+        }
+    }
+    
+    console.log('Sync completed:', result);
+    return result;
+}
+
+showSyncResult(result) {
+    let message = `Sync completed!\n\n`;
+    
+    if (result.saved > 0) {
+        message += `✅ Saved ${result.saved} new notes to cloud\n`;
+    }
+    if (result.updated > 0) {
+        message += `✏️ Updated ${result.updated} existing notes\n`;
+    }
+    if (result.skipped > 0) {
+        message += `⏭️ Skipped ${result.skipped} notes\n`;
+    }
+    if (result.errors.length > 0) {
+        message += `\n❌ ${result.errors.length} errors:\n`;
+        result.errors.slice(0, 5).forEach(error => {
+            message += `• ${error}\n`;
+        });
+        if (result.errors.length > 5) {
+            message += `... and ${result.errors.length - 5} more errors\n`;
+        }
+    }
+    
+    if (result.saved === 0 && result.updated === 0 && result.errors.length === 0) {
+        message = '✅ All notes are already in sync with cloud!';
+    }
+    
+    alert(message);
+    
+    // Update local storage
+    this.saveToLocalStorage();
+    
+    // Update preview
+    this.updateBuilderPreview();
+    this.updatePreviewTable();
+    
+    // Show notification
+    window.utils.showNotification('Sync completed!', '☁️', result.errors.length > 0, result.saved + result.updated > 0);
+}
+
+showSyncError(error) {
+    console.error('Sync failed:', error);
+    
+    let errorMessage = 'Sync failed. ';
+    
+    if (error.code === 'permission-denied') {
+        errorMessage += 'Permission denied. Please check your Firestore rules.';
+    } else if (error.message.includes('network')) {
+        errorMessage += 'Network error. Please check your internet connection.';
+    } else {
+        errorMessage += `Error: ${error.message}`;
+    }
+    
+    alert(errorMessage);
+    window.utils.showNotification('Sync failed!', '❌', true);
+}
     
     async saveToCloud() {
         if (!this.builderDictionary || Object.keys(this.builderDictionary).length === 0) {

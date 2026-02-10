@@ -43,51 +43,54 @@ class UIManager {
         this.init();
     }
     
-    init() {
-        // Load saved state
-        this.loadState();
-        
-        // Event listeners
-        this.searchBtn.addEventListener('click', () => this.handleSearch());
-        this.searchInput.addEventListener('keyup', (e) => {
-            if (e.key === 'Enter') this.handleSearch();
+   async init() {
+    // Load saved state
+    this.loadState();
+    
+    // Event listeners
+    this.searchBtn.addEventListener('click', () => this.handleSearch());
+    this.searchInput.addEventListener('keyup', (e) => {
+        if (e.key === 'Enter') this.handleSearch();
+    });
+    
+    this.themeToggle.addEventListener('click', () => this.toggleTheme());
+    this.fontToggle.addEventListener('click', () => this.toggleFontControls());
+    this.caseToggle.addEventListener('click', () => this.toggleCase());
+    this.bookmarkToggle.addEventListener('click', () => this.toggleBookmarksPanel());
+    this.profileToggle.addEventListener('click', () => this.toggleProfilePanel());
+    this.historyToggle.addEventListener('click', () => this.toggleHistoryPanel());
+    this.topicsToggle.addEventListener('click', () => this.toggleTopicsPanel());
+    this.helpToggle.addEventListener('click', () => this.toggleInstructionsModal());
+    
+    this.appLogo.addEventListener('click', () => this.showHomeScreen());
+    this.closeHistory.addEventListener('click', () => this.toggleHistoryPanel());
+    this.closeTopics.addEventListener('click', () => this.toggleTopicsPanel());
+    this.closeBookmarks.addEventListener('click', () => this.toggleBookmarksPanel());
+    this.closeProfile.addEventListener('click', () => this.toggleProfilePanel());
+    this.closeModal.addEventListener('click', () => this.toggleInstructionsModal());
+    this.overlay.addEventListener('click', () => this.closeAllPanels());
+    this.logoutBtn.addEventListener('click', () => this.logout());
+    
+    // Font size controls
+    this.fontSizeBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const size = btn.dataset.size;
+            this.setFontSize(size);
         });
-        
-        this.themeToggle.addEventListener('click', () => this.toggleTheme());
-        this.fontToggle.addEventListener('click', () => this.toggleFontControls());
-        this.caseToggle.addEventListener('click', () => this.toggleCase());
-        this.bookmarkToggle.addEventListener('click', () => this.toggleBookmarksPanel());
-        this.profileToggle.addEventListener('click', () => this.toggleProfilePanel());
-        this.historyToggle.addEventListener('click', () => this.toggleHistoryPanel());
-        this.topicsToggle.addEventListener('click', () => this.toggleTopicsPanel());
-        this.helpToggle.addEventListener('click', () => this.toggleInstructionsModal());
-        
-        this.appLogo.addEventListener('click', () => this.showHomeScreen());
-        this.closeHistory.addEventListener('click', () => this.toggleHistoryPanel());
-        this.closeTopics.addEventListener('click', () => this.toggleTopicsPanel());
-        this.closeBookmarks.addEventListener('click', () => this.toggleBookmarksPanel());
-        this.closeProfile.addEventListener('click', () => this.toggleProfilePanel());
-        this.closeModal.addEventListener('click', () => this.toggleInstructionsModal());
-        this.overlay.addEventListener('click', () => this.closeAllPanels());
-        this.logoutBtn.addEventListener('click', () => this.logout());
-        
-        // Font size controls
-        this.fontSizeBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const size = btn.dataset.size;
-                this.setFontSize(size);
-            });
-        });
-        
-        // Initialize panels
-        this.renderTopicsList();
-        this.loadBookmarks();
-        this.loadHistory();
-
-        setTimeout(() => {
-            this.loadInitialData();
-        }, 1000);
-    }
+    });
+    
+    // Initialize panels
+    this.renderTopicsList();
+    
+    // Load data
+    await this.loadBookmarks();
+    await this.loadHistory();
+    
+    // Load initial data after a short delay
+    setTimeout(() => {
+        this.loadInitialData();
+    }, 1000);
+}
 
     async loadInitialData() {
         console.log('UIManager: Loading initial data...');
@@ -100,6 +103,88 @@ class UIManager {
             this.loadLocalData();
         }
     }
+
+    displayResults(term) {
+    this.currentTopic = term;
+    
+    // Find matching topic (case-insensitive search)
+    const normalizedTerm = term.toLowerCase().trim();
+    const matchingTopics = Object.keys(this.lessons).filter(topic => 
+        topic.toLowerCase() === normalizedTerm
+    );
+    
+    let topicKey;
+    if (matchingTopics.length > 0) {
+        topicKey = matchingTopics[0]; // Use the original case from lessons
+    } else {
+        // Try partial match
+        const partialMatches = Object.keys(this.lessons).filter(topic => 
+            topic.toLowerCase().includes(normalizedTerm)
+        );
+        topicKey = partialMatches.length > 0 ? partialMatches[0] : null;
+    }
+    
+    if (!topicKey || !this.lessons[topicKey]) {
+        this.showNotFound(term);
+        return;
+    }
+    
+    const topic = this.lessons[topicKey];
+    
+    // Apply case transformation
+    let displayTopic = this.isUpperCase ? topicKey.toUpperCase() : topicKey.toLowerCase();
+    let displayDesc = this.isUpperCase ? topic.desc.toUpperCase() : topic.desc.toLowerCase();
+    let displayEx = this.isUpperCase 
+        ? topic.ex.map(ex => ex.toUpperCase())
+        : topic.ex.map(ex => ex.toLowerCase());
+    
+    this.resultsContainer.innerHTML = `
+        <div class="entry-card">
+            <div class="entry-header">
+                <h1>${displayTopic}</h1>
+                <div class="entry-actions">
+                    <button class="bookmark-action" id="bookmarkAction" title="${this.isBookmarked(topicKey) ? 'Remove bookmark' : 'Add bookmark'}">
+                        ${this.isBookmarked(topicKey) ? '★' : '☆'}
+                    </button>
+                </div>
+            </div>
+            <div class="entry-desc">${window.utils.formatMarkdown(displayDesc)}</div>
+            
+            <h3>Examples & Word Bank:</h3>
+            <div class="examples-grid">
+                ${displayEx.map((example, index) => 
+                    `<div class="example-item" data-index="${index}">${example}</div>`
+                ).join('')}
+            </div>
+            
+            <button class="clear-selection" id="clearSelection">
+                <span>✕</span> Clear Selection
+            </button>
+        </div>
+    `;
+    
+    // Add click handlers to example items
+    document.querySelectorAll('.example-item').forEach(item => {
+        item.addEventListener('click', () => {
+            item.classList.toggle('selected');
+        });
+    });
+    
+    // Add clear selection button handler
+    document.getElementById('clearSelection').addEventListener('click', () => {
+        document.querySelectorAll('.example-item').forEach(item => {
+            item.classList.remove('selected');
+        });
+    });
+    
+    // Add bookmark button handler
+    const bookmarkAction = document.getElementById('bookmarkAction');
+    if (bookmarkAction) {
+        bookmarkAction.addEventListener('click', async () => {
+            await this.toggleBookmark(topicKey);
+        });
+    }
+}
 
      async loadCloudData() {
         console.log('UIManager: Loading cloud data...');
@@ -205,73 +290,183 @@ class UIManager {
         this.displayResults(searchTerm);
     }
     
-    displayResults(term) {
-        this.currentTopic = term;
-        const topic = this.lessons[term];
-        
-        if (!topic) {
-            this.showNotFound(term);
-            return;
+    async loadBookmarks() {
+    console.log('Loading bookmarks...');
+    
+    if (window.databaseManager && window.authManager?.isAuthenticated()) {
+        try {
+            console.log('Loading bookmarks from cloud...');
+            const bookmarks = await window.databaseManager.getUserBookmarks();
+            this.bookmarks = bookmarks.map(item => item.topic || item);
+            console.log(`Loaded ${this.bookmarks.length} bookmarks from cloud`);
+        } catch (error) {
+            console.error('Error loading bookmarks from cloud:', error);
+            this.bookmarks = JSON.parse(localStorage.getItem('dictionaryBookmarks')) || [];
         }
+    } else {
+        this.bookmarks = JSON.parse(localStorage.getItem('dictionaryBookmarks')) || [];
+    }
+    
+    this.renderBookmarksList();
+    return this.bookmarks;
+}
+
+async toggleBookmark(topic) {
+    if (!topic) {
+        console.error('No topic provided for bookmark');
+        return;
+    }
+    
+    console.log(`Toggling bookmark for: ${topic}`);
+    
+    try {
+        const isCurrentlyBookmarked = this.isBookmarked(topic);
         
-        // Apply case transformation if needed
-        let displayDesc = topic.desc;
-        let displayEx = topic.ex;
-        
-        if (this.isUpperCase) {
-            displayDesc = displayDesc.toUpperCase();
-            displayEx = displayEx.map(ex => ex.toUpperCase());
+        if (window.databaseManager && window.authManager?.isAuthenticated()) {
+            // Use database manager
+            if (isCurrentlyBookmarked) {
+                const success = await window.databaseManager.removeBookmark(topic);
+                if (success) {
+                    // Remove from local array
+                    const index = this.bookmarks.indexOf(topic);
+                    if (index !== -1) {
+                        this.bookmarks.splice(index, 1);
+                    }
+                    window.utils.showNotification(`Removed "${topic}" from bookmarks`, '✕');
+                }
+            } else {
+                const success = await window.databaseManager.addBookmark(topic);
+                if (success) {
+                    // Add to local array
+                    this.bookmarks.unshift(topic);
+                    window.utils.showNotification(`Bookmarked "${topic}"`, '🔖');
+                }
+            }
+            
+            // Update counts in database
+            await window.databaseManager.updateUserCounts();
+            
+            // Refresh profile data
+            await this.loadProfileData();
+            
         } else {
-            displayDesc = displayDesc.toLowerCase();
-            displayEx = displayEx.map(ex => ex.toLowerCase());
+            // Use local storage only
+            if (isCurrentlyBookmarked) {
+                // Remove bookmark
+                const index = this.bookmarks.indexOf(topic);
+                if (index !== -1) {
+                    this.bookmarks.splice(index, 1);
+                }
+                window.utils.showNotification(`Removed "${topic}" from bookmarks`, '✕');
+            } else {
+                // Add bookmark
+                this.bookmarks.unshift(topic);
+                window.utils.showNotification(`Bookmarked "${topic}"`, '🔖');
+            }
+            
+            // Save to local storage
+            localStorage.setItem('dictionaryBookmarks', JSON.stringify(this.bookmarks));
         }
         
-        this.resultsContainer.innerHTML = `
-            <div class="entry-card">
-                <div class="entry-header">
-                    <h1>${window.utils.applyCase(term, this.isUpperCase)}</h1>
-                    <div class="entry-actions">
-                        <button class="bookmark-action" id="bookmarkAction">
-                            ${this.isBookmarked(term) ? '★' : '☆'}
-                        </button>
-                    </div>
-                </div>
-                <div class="entry-desc">${window.utils.formatMarkdown(displayDesc)}</div>
-                
-                <h3>Examples & Word Bank:</h3>
-                <div class="examples-grid">
-                    ${displayEx.map((example, index) => 
-                        `<div class="example-item" data-index="${index}">${example}</div>`
-                    ).join('')}
-                </div>
-                
-                <button class="clear-selection" id="clearSelection">
-                    <span>✕</span> Clear Selection
-                </button>
+        // Update UI
+        this.renderBookmarksList();
+        this.updateBookmarkButton(topic);
+        
+        console.log(`Bookmark toggled. Now bookmarked: ${!isCurrentlyBookmarked}`);
+        
+    } catch (error) {
+        console.error('Error toggling bookmark:', error);
+        window.utils.showNotification('Error updating bookmark', '❌', true);
+    }
+}
+
+isBookmarked(topic) {
+    return this.bookmarks.includes(topic);
+}
+
+updateBookmarkButton(topic) {
+    const bookmarkAction = document.getElementById('bookmarkAction');
+    if (bookmarkAction && topic) {
+        bookmarkAction.textContent = this.isBookmarked(topic) ? '★' : '☆';
+        bookmarkAction.title = this.isBookmarked(topic) ? 'Remove bookmark' : 'Add bookmark';
+    }
+}
+
+renderBookmarksList() {
+    if (!this.bookmarksList) return;
+    
+    this.bookmarksList.innerHTML = '';
+    
+    if (this.bookmarks.length === 0) {
+        this.bookmarksList.innerHTML = `
+            <div class="empty-state">
+                <span>🔖</span>
+                <p>No bookmarks yet</p>
+                <p class="hint">Click the bookmark icon on any topic to save it here</p>
             </div>
         `;
-        
-        // Add click handlers to example items
-        document.querySelectorAll('.example-item').forEach(item => {
-            item.addEventListener('click', () => {
-                item.classList.toggle('selected');
-            });
-        });
-        
-        // Add clear selection button handler
-        document.getElementById('clearSelection').addEventListener('click', () => {
-            document.querySelectorAll('.example-item').forEach(item => {
-                item.classList.remove('selected');
-            });
-        });
-        
-        // Add bookmark button handler
-        const bookmarkAction = document.getElementById('bookmarkAction');
-        bookmarkAction.addEventListener('click', async () => {
-            await this.toggleBookmark(term);
-            bookmarkAction.textContent = this.isBookmarked(term) ? '★' : '☆';
-        });
+        return;
     }
+    
+    this.bookmarks.forEach((bookmark, index) => {
+        const bookmarkItem = document.createElement('div');
+        bookmarkItem.className = 'bookmark-item';
+        bookmarkItem.innerHTML = `
+            <div class="bookmark-content">
+                <span class="bookmark-icon">🔖</span>
+                <div class="bookmark-text">${bookmark}</div>
+            </div>
+            <button class="remove-bookmark" data-index="${index}" title="Remove bookmark">
+                ✕
+            </button>
+        `;
+        
+        // Click on bookmark to search it
+        bookmarkItem.querySelector('.bookmark-content').addEventListener('click', () => {
+            this.searchInput.value = bookmark;
+            this.handleSearch();
+            this.closeAllPanels();
+        });
+        
+        // Click remove button
+        bookmarkItem.querySelector('.remove-bookmark').addEventListener('click', async (e) => {
+            e.stopPropagation();
+            await this.removeBookmark(bookmark);
+        });
+        
+        this.bookmarksList.appendChild(bookmarkItem);
+    });
+}
+
+async removeBookmark(topic) {
+    if (!topic) return;
+    
+    console.log(`Removing bookmark: ${topic}`);
+    
+    if (window.databaseManager && window.authManager?.isAuthenticated()) {
+        // Remove from cloud
+        await window.databaseManager.removeBookmark(topic);
+        await window.databaseManager.updateUserCounts();
+    }
+    
+    // Remove from local array
+    const index = this.bookmarks.indexOf(topic);
+    if (index !== -1) {
+        this.bookmarks.splice(index, 1);
+    }
+    
+    // Save to local storage
+    localStorage.setItem('dictionaryBookmarks', JSON.stringify(this.bookmarks));
+    
+    // Update UI
+    this.renderBookmarksList();
+    this.updateBookmarkButton(topic);
+    
+    // Refresh profile
+    await this.loadProfileData();
+    
+    window.utils.showNotification(`Removed "${topic}" from bookmarks`, '✕');
+}
     
     showNotFound(term) {
         this.resultsContainer.innerHTML = `
@@ -339,15 +534,40 @@ class UIManager {
     }
     
     // Case management
+
+    forceUpdateCase() {
+    // Force update the entire UI
+    if (this.currentTopic) {
+        // Re-display the current topic with new case
+        const tempTopic = this.currentTopic;
+        this.currentTopic = null; // Force refresh
+        setTimeout(() => {
+            this.displayResults(tempTopic);
+        }, 50);
+    } else {
+        // Refresh home screen
+        this.showHomeScreen();
+    }
+    
+    // Update panels
+    this.renderTopicsList();
+    this.renderBookmarksList();
+    this.renderHistoryPanel();
+}
+
     toggleCase() {
         this.isUpperCase = !this.isUpperCase;
         this.caseToggle.classList.toggle('active', this.isUpperCase);
         this.saveState();
         
-        // Re-render current topic if any
-        if (this.currentTopic) {
-            this.displayResults(this.currentTopic);
-        }
+        // // Re-render current topic if any
+        // if (this.currentTopic) {
+        //     this.displayResults(this.currentTopic);
+        // }
+
+    // Force update the entire UI
+        this.forceUpdateCase();
+
     }
     
     // Font size management
@@ -431,106 +651,183 @@ class UIManager {
     }
     
     // Bookmarks management
-    async loadBookmarks() {
-        if (window.databaseManager && window.databaseManager.currentUserId) {
-            this.bookmarks = await window.databaseManager.getUserBookmarks();
-        } else {
+   async loadBookmarks() {
+    console.log('Loading bookmarks...');
+    
+    if (window.databaseManager && window.authManager?.isAuthenticated()) {
+        try {
+            console.log('Loading bookmarks from cloud...');
+            const bookmarks = await window.databaseManager.getUserBookmarks();
+            this.bookmarks = bookmarks.map(item => item.topic || item);
+            console.log(`Loaded ${this.bookmarks.length} bookmarks from cloud`);
+        } catch (error) {
+            console.error('Error loading bookmarks from cloud:', error);
             this.bookmarks = JSON.parse(localStorage.getItem('dictionaryBookmarks')) || [];
         }
-        this.renderBookmarksList();
+    } else {
+        this.bookmarks = JSON.parse(localStorage.getItem('dictionaryBookmarks')) || [];
     }
     
-    async toggleBookmark(topic) {
-        if (!topic) return;
+    this.renderBookmarksList();
+    return this.bookmarks;
+}
+
+async toggleBookmark(topic) {
+    if (!topic) {
+        console.error('No topic provided for bookmark');
+        return;
+    }
+    
+    console.log(`Toggling bookmark for: ${topic}`);
+    
+    try {
+        const isCurrentlyBookmarked = this.isBookmarked(topic);
         
-        if (window.databaseManager && window.databaseManager.currentUserId) {
-            if (this.isBookmarked(topic)) {
-                await window.databaseManager.removeBookmark(topic);
+        if (window.databaseManager && window.authManager?.isAuthenticated()) {
+            // Use database manager
+            if (isCurrentlyBookmarked) {
+                const success = await window.databaseManager.removeBookmark(topic);
+                if (success) {
+                    // Remove from local array
+                    const index = this.bookmarks.indexOf(topic);
+                    if (index !== -1) {
+                        this.bookmarks.splice(index, 1);
+                    }
+                    window.utils.showNotification(`Removed "${topic}" from bookmarks`, '✕');
+                }
             } else {
-                await window.databaseManager.addBookmark(topic);
+                const success = await window.databaseManager.addBookmark(topic);
+                if (success) {
+                    // Add to local array
+                    this.bookmarks.unshift(topic);
+                    window.utils.showNotification(`Bookmarked "${topic}"`, '🔖');
+                }
             }
-            await this.loadBookmarks();
+            
+            // Update counts in database
+            await window.databaseManager.updateUserCounts();
+            
+            // Refresh profile data
+            await this.loadProfileData();
+            
         } else {
-            const index = this.bookmarks.indexOf(topic);
-            if (index === -1) {
+            // Use local storage only
+            if (isCurrentlyBookmarked) {
+                // Remove bookmark
+                const index = this.bookmarks.indexOf(topic);
+                if (index !== -1) {
+                    this.bookmarks.splice(index, 1);
+                }
+                window.utils.showNotification(`Removed "${topic}" from bookmarks`, '✕');
+            } else {
+                // Add bookmark
                 this.bookmarks.unshift(topic);
                 window.utils.showNotification(`Bookmarked "${topic}"`, '🔖');
-            } else {
-                this.bookmarks.splice(index, 1);
-                window.utils.showNotification(`Removed "${topic}" from bookmarks`, '✕');
             }
+            
+            // Save to local storage
             localStorage.setItem('dictionaryBookmarks', JSON.stringify(this.bookmarks));
-            this.renderBookmarksList();
         }
         
-        // Update bookmark button state
+        // Update UI
+        this.renderBookmarksList();
         this.updateBookmarkButton(topic);
-    }
-    
-    async isBookmarked(topic) {
-        if (window.databaseManager) {
-        await window.databaseManager.updateUserCounts();
-        await window.uiManager.loadProfileData(); // Refresh UI
-    }
-        return this.bookmarks.includes(topic);
-    }
-    
-    updateBookmarkButton(topic) {
-        this.bookmarkToggle.classList.toggle('active', this.isBookmarked(topic));
-    }
-    
-    renderBookmarksList() {
-        this.bookmarksList.innerHTML = '';
         
-        if (this.bookmarks.length === 0) {
-            this.bookmarksList.innerHTML = '<p>No bookmarks yet. Click the bookmark icon on a topic to save it here.</p>';
-            return;
-        }
+        console.log(`Bookmark toggled. Now bookmarked: ${!isCurrentlyBookmarked}`);
         
-        this.bookmarks.forEach((bookmark, index) => {
-            const bookmarkItem = document.createElement('div');
-            bookmarkItem.className = 'bookmark-item';
-            bookmarkItem.innerHTML = `
+    } catch (error) {
+        console.error('Error toggling bookmark:', error);
+        window.utils.showNotification('Error updating bookmark', '❌', true);
+    }
+}
+
+isBookmarked(topic) {
+    return this.bookmarks.includes(topic);
+}
+
+updateBookmarkButton(topic) {
+    const bookmarkAction = document.getElementById('bookmarkAction');
+    if (bookmarkAction && topic) {
+        bookmarkAction.textContent = this.isBookmarked(topic) ? '★' : '☆';
+        bookmarkAction.title = this.isBookmarked(topic) ? 'Remove bookmark' : 'Add bookmark';
+    }
+}
+
+renderBookmarksList() {
+    if (!this.bookmarksList) return;
+    
+    this.bookmarksList.innerHTML = '';
+    
+    if (this.bookmarks.length === 0) {
+        this.bookmarksList.innerHTML = `
+            <div class="empty-state">
                 <span>🔖</span>
-                <div>${bookmark}</div>
-                <button class="remove-bookmark" data-index="${index}">✕</button>
-            `;
-            
-            bookmarkItem.addEventListener('click', (e) => {
-                if (e.target.classList.contains('remove-bookmark')) return;
-                this.searchInput.value = bookmark;
-                this.handleSearch();
-                this.closeAllPanels();
-            });
-            
-            const removeBtn = bookmarkItem.querySelector('.remove-bookmark');
-            removeBtn.addEventListener('click', async (e) => {
-                e.stopPropagation();
-                await this.removeBookmark(index);
-            });
-            
-            this.bookmarksList.appendChild(bookmarkItem);
-        });
+                <p>No bookmarks yet</p>
+                <p class="hint">Click the bookmark icon on any topic to save it here</p>
+            </div>
+        `;
+        return;
     }
     
-    async removeBookmark(index) {
-        const topic = this.bookmarks[index];
+    this.bookmarks.forEach((bookmark, index) => {
+        const bookmarkItem = document.createElement('div');
+        bookmarkItem.className = 'bookmark-item';
+        bookmarkItem.innerHTML = `
+            <div class="bookmark-content">
+                <span class="bookmark-icon">🔖</span>
+                <div class="bookmark-text">${bookmark}</div>
+            </div>
+            <button class="remove-bookmark" data-index="${index}" title="Remove bookmark">
+                ✕
+            </button>
+        `;
         
-        if (window.databaseManager && window.databaseManager.currentUserId) {
-            await window.databaseManager.removeBookmark(topic);
-            await this.loadBookmarks();
-        } else {
-            this.bookmarks.splice(index, 1);
-            localStorage.setItem('dictionaryBookmarks', JSON.stringify(this.bookmarks));
-            this.renderBookmarksList();
-        }
+        // Click on bookmark to search it
+        bookmarkItem.querySelector('.bookmark-content').addEventListener('click', () => {
+            this.searchInput.value = bookmark;
+            this.handleSearch();
+            this.closeAllPanels();
+        });
         
-        if (this.currentTopic === topic) {
-            this.updateBookmarkButton(topic);
-        }
+        // Click remove button
+        bookmarkItem.querySelector('.remove-bookmark').addEventListener('click', async (e) => {
+            e.stopPropagation();
+            await this.removeBookmark(bookmark);
+        });
         
-        window.utils.showNotification(`Removed "${topic}" from bookmarks`, '✕');
+        this.bookmarksList.appendChild(bookmarkItem);
+    });
+}
+
+async removeBookmark(topic) {
+    if (!topic) return;
+    
+    console.log(`Removing bookmark: ${topic}`);
+    
+    if (window.databaseManager && window.authManager?.isAuthenticated()) {
+        // Remove from cloud
+        await window.databaseManager.removeBookmark(topic);
+        await window.databaseManager.updateUserCounts();
     }
+    
+    // Remove from local array
+    const index = this.bookmarks.indexOf(topic);
+    if (index !== -1) {
+        this.bookmarks.splice(index, 1);
+    }
+    
+    // Save to local storage
+    localStorage.setItem('dictionaryBookmarks', JSON.stringify(this.bookmarks));
+    
+    // Update UI
+    this.renderBookmarksList();
+    this.updateBookmarkButton(topic);
+    
+    // Refresh profile
+    await this.loadProfileData();
+    
+    window.utils.showNotification(`Removed "${topic}" from bookmarks`, '✕');
+}
     
     // History management
     async loadHistory() {
@@ -662,25 +959,40 @@ updateElementText(elementId, text) {
     
     // State management
     saveState() {
-        const state = {
-            theme: this.isDarkTheme ? 'dark' : 'light',
-            fontSize: getComputedStyle(document.documentElement).getPropertyValue('--font-base'),
-            case: this.isUpperCase ? 'uppercase' : 'normal'
-        };
-        
-        localStorage.setItem('dictionaryState', JSON.stringify(state));
-        
-        // Save to database if user is logged in
-        if (window.databaseManager && window.databaseManager.currentUserId) {
-            window.databaseManager.updateUserPreferences({
+    const state = {
+        theme: this.isDarkTheme ? 'dark' : 'light',
+        fontSize: getComputedStyle(document.documentElement).getPropertyValue('--font-base'),
+        case: this.isUpperCase ? 'uppercase' : 'normal'
+    };
+    
+    localStorage.setItem('dictionaryState', JSON.stringify(state));
+    
+    // Optional: Save to cloud if available (but don't fail if method doesn't exist)
+    this.safeSaveToCloud(state);
+}
+
+async safeSaveToCloud(state) {
+    if (!window.databaseManager || !window.databaseManager.currentUserId) {
+        return;
+    }
+    
+    try {
+        // Check if method exists
+        if (window.databaseManager.updateUserPreferences) {
+            await window.databaseManager.updateUserPreferences({
                 theme: state.theme,
                 fontSize: parseFloat(state.fontSize),
                 case: state.case
             });
         }
+    } catch (error) {
+        console.warn('Could not save preferences to cloud:', error);
+        // Don't throw error - just log it
     }
+}
     
     loadState() {
+    try {
         const savedState = JSON.parse(localStorage.getItem('dictionaryState'));
         
         if (savedState) {
@@ -691,6 +1003,8 @@ updateElementText(elementId, text) {
             if (this.isDarkTheme) {
                 document.body.classList.add('dark-theme');
                 this.themeToggle.textContent = '☀️';
+            } else {
+                this.themeToggle.textContent = '🌙';
             }
             
             // Apply font size
@@ -702,8 +1016,24 @@ updateElementText(elementId, text) {
             if (this.isUpperCase) {
                 this.caseToggle.classList.add('active');
             }
+            
+            console.log('Loaded saved state:', savedState);
         }
+    } catch (error) {
+        console.error('Error loading saved state:', error);
+        // Use defaults if error occurs
+        this.setDefaultState();
     }
+}
+
+setDefaultState() {
+    this.isDarkTheme = false;
+    this.isUpperCase = false;
+    document.body.classList.remove('dark-theme');
+    this.themeToggle.textContent = '🌙';
+    this.caseToggle.classList.remove('active');
+    this.setFontSize('1'); // Medium font size
+}
     
     // Utility methods
     rebindEventListeners() {
@@ -779,33 +1109,168 @@ loadSavedDictionary() {
     }
 
     // Add this method to your UIManager class
+// COMPLETE WORKING SYNC METHOD - replace the entire syncWithCloud method
 async syncWithCloud() {
-    if (!window.syncManager) {
-        console.error('Sync manager not available');
-        return false;
-    }
+    console.log('syncWithCloud called');
     
+    // Check if user is logged in
     if (!window.authManager || !window.authManager.isAuthenticated()) {
         alert('Please log in to sync with cloud');
-        return false;
+        return;
+    }
+    
+    // Check if database manager is available
+    if (!window.databaseManager) {
+        alert('Database connection not available. Please refresh the page.');
+        return;
+    }
+    
+    // Check if there are notes to sync
+    if (!this.builderDictionary || Object.keys(this.builderDictionary).length === 0) {
+        alert('No notes to sync. Add some notes first.');
+        return;
+    }
+    
+    // Save button state
+    const syncButton = document.getElementById('cloudSyncBtn');
+    const originalText = syncButton ? syncButton.textContent : 'Sync with Cloud';
+    
+    // Update UI to show syncing
+    if (syncButton) {
+        syncButton.textContent = '⏳ Syncing...';
+        syncButton.disabled = true;
     }
     
     try {
-        const result = await window.syncManager.forceSync();
+        let savedCount = 0;
+        let updatedCount = 0;
+        let errorCount = 0;
         
-        if (result.success) {
-            // Update UI with merged data
-            if (result.stats) {
-                console.log('Sync stats:', result.stats);
-                // You could show more detailed info here
+        // Loop through all notes
+        const topics = Object.keys(this.builderDictionary);
+        const totalTopics = topics.length;
+        
+        for (let i = 0; i < topics.length; i++) {
+            const topic = topics[i];
+            const data = this.builderDictionary[topic];
+            
+            try {
+                // Check if note already exists in cloud
+                let existingNote = null;
+                
+                // First check if we already have a cloud ID
+                if (data.cloudId) {
+                    // Try to get the note by ID
+                    try {
+                        const noteDoc = await window.databaseManager.db.collection('notes')
+                            .doc(data.cloudId)
+                            .get();
+                        
+                        if (noteDoc.exists) {
+                            existingNote = {
+                                id: data.cloudId,
+                                ...noteDoc.data()
+                            };
+                        }
+                    } catch (error) {
+                        console.warn(`Note with ID ${data.cloudId} not found, will create new`);
+                    }
+                }
+                
+                // If not found by ID, search by topic
+                if (!existingNote) {
+                    existingNote = await window.databaseManager.searchNoteByTopic(topic);
+                }
+                
+                // Prepare note data
+                const noteData = {
+                    topic: topic,
+                    desc: data.desc || '',
+                    ex: data.ex || [],
+                    updatedAt: new Date()
+                };
+                
+                if (existingNote) {
+                    // Update existing note
+                    const success = await window.databaseManager.updateNote(existingNote.id, noteData);
+                    if (success) {
+                        updatedCount++;
+                        console.log(`✅ Updated: "${topic}"`);
+                        
+                        // Update local cloud ID if not already set
+                        if (!data.cloudId) {
+                            this.builderDictionary[topic].cloudId = existingNote.id;
+                        }
+                    } else {
+                        errorCount++;
+                        console.error(`Failed to update: "${topic}"`);
+                    }
+                } else {
+                    // Create new note
+                    const noteId = await window.databaseManager.saveNote(noteData);
+                    if (noteId) {
+                        savedCount++;
+                        console.log(`✅ Created: "${topic}" (ID: ${noteId})`);
+                        
+                        // Store cloud ID locally
+                        this.builderDictionary[topic].cloudId = noteId;
+                    } else {
+                        errorCount++;
+                        console.error(`Failed to create: "${topic}"`);
+                    }
+                }
+                
+                // Update progress
+                if (syncButton && (i + 1) % 5 === 0) {
+                    syncButton.textContent = `⏳ Syncing... ${i + 1}/${totalTopics}`;
+                }
+                
+                // Small delay to prevent rate limiting
+                await new Promise(resolve => setTimeout(resolve, 200));
+                
+            } catch (error) {
+                errorCount++;
+                console.error(`Error syncing "${topic}":`, error);
             }
         }
         
-        return result.success;
+        // Update local storage
+        this.saveToLocalStorage();
+        
+        // Update UI
+        this.updateBuilderPreview();
+        this.updatePreviewTable();
+        
+        // Show result
+        let message = 'Sync completed!\n\n';
+        if (savedCount > 0) message += `✅ Saved ${savedCount} new notes to cloud\n`;
+        if (updatedCount > 0) message += `✏️ Updated ${updatedCount} existing notes\n`;
+        if (errorCount > 0) message += `❌ ${errorCount} errors occurred`;
+        
+        if (savedCount === 0 && updatedCount === 0 && errorCount === 0) {
+            message = '✅ All notes are already in sync with cloud!';
+        }
+        
+        alert(message);
+        
+        // Show notification
+        window.utils.showNotification(
+            `Synced ${savedCount + updatedCount} notes`, 
+            '☁️', 
+            errorCount > 0, 
+            savedCount + updatedCount > 0
+        );
+        
     } catch (error) {
-        console.error('Sync error:', error);
-        window.utils.showNotification('Sync error: ' + error.message, '❌', true);
-        return false;
+        console.error('Sync failed:', error);
+        alert('Sync failed: ' + error.message);
+        window.utils.showNotification('Sync failed!', '❌', true);
+    } finally {
+        // Restore button
+        if (syncButton) {
+            syncButton.textContent = originalText;
+            syncButton.disabled = false;
+        }
     }
 }
 
