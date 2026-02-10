@@ -635,3 +635,110 @@ document.addEventListener('DOMContentLoaded', () => {
     uiManager = new UIManager();
     window.uiManager = uiManager;
 });
+
+// Add this to your ui.js or create a new file scripts/data-sync-ui.js
+class DataSyncUI {
+    constructor() {
+        this.setupSyncUI();
+    }
+    
+    setupSyncUI() {
+        // Add sync button to controls
+        setTimeout(() => {
+            const syncButton = document.createElement('div');
+            syncButton.className = 'theme-toggle';
+            syncButton.id = 'syncButton';
+            syncButton.innerHTML = '🔄';
+            syncButton.title = 'Sync with Cloud';
+            syncButton.style.cursor = 'pointer';
+            
+            syncButton.addEventListener('click', () => this.syncWithCloud());
+            
+            // Add to controls
+            const controls = document.querySelector('.controls');
+            if (controls) {
+                controls.appendChild(syncButton);
+            }
+            
+            // Add sync status indicator
+            this.addSyncStatus();
+        }, 2000);
+    }
+    
+    async syncWithCloud() {
+        console.log('DataSyncUI: Syncing with cloud...');
+        
+        if (!window.authManager || !window.authManager.isAuthenticated()) {
+            alert('Please log in to sync with cloud');
+            return;
+        }
+        
+        if (!window.cloudDataManager) {
+            alert('Cloud sync not available');
+            return;
+        }
+        
+        // Show loading
+        const syncButton = document.getElementById('syncButton');
+        const originalText = syncButton.innerHTML;
+        syncButton.innerHTML = '⏳';
+        
+        try {
+            // Force refresh from cloud
+            const success = await window.cloudDataManager.forceRefreshFromCloud();
+            
+            if (success) {
+                window.utils.showNotification('Synced with cloud successfully!', '✅', false, true);
+            } else {
+                window.utils.showNotification('No cloud data found', '⚠️');
+            }
+        } catch (error) {
+            console.error('DataSyncUI: Sync error:', error);
+            window.utils.showNotification('Sync failed: ' + error.message, '❌', true);
+        } finally {
+            // Restore button
+            syncButton.innerHTML = originalText;
+        }
+    }
+    
+    addSyncStatus() {
+        // Add a small status indicator
+        const statusIndicator = document.createElement('div');
+        statusIndicator.id = 'syncStatus';
+        statusIndicator.style.position = 'fixed';
+        statusIndicator.style.bottom = '10px';
+        statusIndicator.style.left = '10px';
+        statusIndicator.style.background = '#29c702';
+        statusIndicator.style.color = 'white';
+        statusIndicator.style.padding = '5px 10px';
+        statusIndicator.style.borderRadius = '4px';
+        statusIndicator.style.fontSize = '12px';
+        statusIndicator.style.zIndex = '9999';
+        statusIndicator.style.display = 'none';
+        statusIndicator.textContent = 'Cloud: ✅';
+        
+        document.body.appendChild(statusIndicator);
+        
+        // Update status periodically
+        setInterval(() => this.updateSyncStatus(), 5000);
+    }
+    
+    updateSyncStatus() {
+        const statusIndicator = document.getElementById('syncStatus');
+        if (!statusIndicator) return;
+        
+        if (window.authManager && window.authManager.isAuthenticated()) {
+            statusIndicator.style.display = 'block';
+            statusIndicator.textContent = 'Cloud: ✅';
+            statusIndicator.style.background = '#29c702';
+        } else {
+            statusIndicator.style.display = 'none';
+        }
+    }
+}
+
+// Initialize DataSyncUI
+let dataSyncUI;
+document.addEventListener('DOMContentLoaded', () => {
+    dataSyncUI = new DataSyncUI();
+});

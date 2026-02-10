@@ -159,36 +159,49 @@ class DatabaseManager {
     }
 }
     
-    async getUserNotes() {
-        if (!this.currentUserId) {
-            console.log('No user ID for getUserNotes');
-            return [];
-        }
-        
-        try {
-            console.log('Fetching user notes for UID:', this.currentUserId);
-            const snapshot = await this.db.collection(this.NOTES_COLLECTION)
-                .where('userId', '==', this.currentUserId)
-                .orderBy('createdAt', 'desc')
-                .get();
-            
-            const notes = snapshot.docs.map(doc => {
-                const data = doc.data();
-                // Convert Firestore timestamps to Date objects
-                return {
-                    ...data,
-                    createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : data.createdAt,
-                    updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : data.updatedAt
-                };
-            });
-            
-            console.log(`Found ${notes.length} user notes`);
-            return notes;
-        } catch (error) {
-            console.error('Error getting user notes:', error);
-            return [];
-        }
+    // In database.js, update the getUserNotes method
+async getUserNotes() {
+    if (!this.currentUserId) {
+        console.log('DatabaseManager: No user ID for getUserNotes');
+        return [];
     }
+    
+    try {
+        console.log('DatabaseManager: Fetching user notes for UID:', this.currentUserId);
+        
+        const snapshot = await this.db.collection(this.NOTES_COLLECTION)
+            .where('userId', '==', this.currentUserId)
+            .orderBy('createdAt', 'desc')
+            .get();
+        
+        const notes = snapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+                id: doc.id,
+                userId: data.userId,
+                topic: data.topic || '',
+                desc: data.desc || '',
+                ex: data.ex || [],
+                createdAt: data.createdAt,
+                updatedAt: data.updatedAt,
+                isPublic: data.isPublic || false,
+                tags: data.tags || []
+            };
+        });
+        
+        console.log(`DatabaseManager: Found ${notes.length} notes for user`);
+        
+        // Log note topics for debugging
+        notes.forEach((note, index) => {
+            console.log(`DatabaseManager: Note ${index + 1}: ${note.topic}`);
+        });
+        
+        return notes;
+    } catch (error) {
+        console.error('DatabaseManager: Error getting user notes:', error);
+        return [];
+    }
+}
     
     async deleteNote(noteId) {
         if (!this.currentUserId) return false;

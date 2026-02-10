@@ -1,68 +1,93 @@
-// scripts/cloud-data-manager.js
+// scripts/cloud-data-manager.js - UPDATED VERSION
 class CloudDataManager {
     constructor() {
         this.cloudDataLoaded = false;
         this.localDataLoaded = false;
+        this.isInitialized = false;
+        
+        // Initialize when ready
+        this.init();
     }
     
     async init() {
-        console.log('CloudDataManager initializing...');
+        console.log('CloudDataManager: Starting initialization...');
         
         // Wait for auth to be ready
         await this.waitForAuth();
         
-        // Load data with cloud-first strategy
+        // Start data loading
         await this.loadData();
+        
+        this.isInitialized = true;
+        console.log('CloudDataManager: Initialization complete');
     }
     
     async waitForAuth() {
-        // Wait up to 5 seconds for auth to initialize
+        console.log('CloudDataManager: Waiting for auth...');
+        
+        // Wait for auth manager
         let attempts = 0;
         while (!window.authManager && attempts < 50) {
             await new Promise(resolve => setTimeout(resolve, 100));
             attempts++;
         }
-        return window.authManager;
+        
+        if (!window.authManager) {
+            console.log('CloudDataManager: Auth manager not available');
+            return false;
+        }
+        
+        // Wait for auth state
+        attempts = 0;
+        while (!window.authManager.isAuthenticated() && attempts < 50) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            attempts++;
+        }
+        
+        return window.authManager.isAuthenticated();
     }
     
     async loadData() {
-        console.log('Starting data loading with cloud-first strategy...');
+        console.log('CloudDataManager: Loading data...');
         
-        // First, try to load from cloud
+        // Always try cloud first
+        console.log('CloudDataManager: Attempting to load from cloud...');
         const cloudData = await this.loadFromCloud();
         
-        if (cloudData) {
-            console.log('Cloud data loaded successfully');
+        if (cloudData && Object.keys(cloudData).length > 0) {
+            console.log('CloudDataManager: Cloud data loaded successfully');
             this.handleCloudData(cloudData);
         } else {
-            console.log('No cloud data available, loading from local storage');
-            // Fall back to local storage
+            console.log('CloudDataManager: No cloud data, loading from local...');
             this.loadFromLocal();
         }
     }
     
     async loadFromCloud() {
-        if (!window.databaseManager || !window.databaseManager.currentUserId) {
-            console.log('No authenticated user, skipping cloud load');
-            return null;
-        }
-        
         try {
-            console.log('Loading data from cloud...');
+            console.log('CloudDataManager: Loading from Firestore...');
             
-            // Load user notes
-            const userNotes = await window.databaseManager.getUserNotes();
-            console.log('Loaded user notes from cloud:', userNotes.length);
-            
-            if (userNotes.length === 0) {
-                console.log('No notes found in cloud');
+            // Check if we have database manager
+            if (!window.databaseManager || !window.databaseManager.currentUserId) {
+                console.log('CloudDataManager: No user authenticated for cloud load');
                 return null;
             }
             
-            // Convert notes to dictionary format
+            console.log('CloudDataManager: User ID:', window.databaseManager.currentUserId);
+            
+            // Load user notes from Firestore
+            const userNotes = await window.databaseManager.getUserNotes();
+            console.log('CloudDataManager: Retrieved notes from Firestore:', userNotes.length);
+            
+            if (userNotes.length === 0) {
+                console.log('CloudDataManager: No notes found in Firestore');
+                return null;
+            }
+            
+            // Convert notes to the dictionary format used by the app
             const cloudDictionary = {};
             userNotes.forEach(note => {
-                if (note.topic) {
+                if (note && note.topic) {
                     cloudDictionary[note.topic] = {
                         desc: note.desc || '',
                         ex: note.ex || []
@@ -70,78 +95,107 @@ class CloudDataManager {
                 }
             });
             
-            console.log('Converted cloud data:', Object.keys(cloudDictionary).length, 'topics');
+            console.log('CloudDataManager: Converted to dictionary:', Object.keys(cloudDictionary).length, 'topics');
+            console.log('CloudDataManager: Topics:', Object.keys(cloudDictionary));
+            
             return cloudDictionary;
         } catch (error) {
-            console.error('Error loading from cloud:', error);
+            console.error('CloudDataManager: Error loading from cloud:', error);
             return null;
         }
     }
     
     loadFromLocal() {
+        console.log('CloudDataManager: Loading from local storage...');
+        
         try {
-            console.log('Loading data from local storage...');
-            
-            // Load from localStorage
             const savedDictionary = localStorage.getItem('customDictionary');
             
             if (savedDictionary) {
                 const dictionary = JSON.parse(savedDictionary);
-                console.log('Loaded local data:', Object.keys(dictionary).length, 'topics');
+                console.log('CloudDataManager: Local data loaded:', Object.keys(dictionary).length, 'topics');
                 this.handleLocalData(dictionary);
                 return dictionary;
             } else {
-                console.log('No local data found');
+                console.log('CloudDataManager: No local data found');
                 this.useDefaultData();
                 return null;
             }
         } catch (error) {
-            console.error('Error loading from local storage:', error);
+            console.error('CloudDataManager: Error loading from local:', error);
             this.useDefaultData();
             return null;
         }
     }
     
     handleCloudData(cloudDictionary) {
+        console.log('CloudDataManager: Processing cloud data...');
         this.cloudDataLoaded = true;
         
-        // Update UI with cloud data
-        if (window.uiManager) {
-            // Merge cloud data with default lessons
-            const mergedLessons = {
-                ...window.utils.DEFAULT_LESSONS,
-                ...cloudDictionary
-            };
-            
-            window.uiManager.updateLessons(mergedLessons);
-            window.utils.showNotification('Notes loaded from cloud', '☁️');
-            
-            // Save to local storage as backup
-            this.saveToLocalStorage(cloudDictionary);
+        if (!window.uiManager) {
+            console.error('CloudDataManager: UI Manager not available');
+            return;
+        }
+        
+        // Merge cloud data with default lessons
+        const mergedLessons = {
+            ...window.utils.DEFAULT_LESSONS,
+            ...cloudDictionary
+        };
+        
+        console.log('CloudDataManager: Merged lessons total:', Object.keys(mergedLessons).length, 'topics');
+        
+        // Update the UI with merged data
+        window.uiManager.updateLessons(mergedLessons);
+        
+        // Save to local storage as backup
+        this.saveToLocalStorage(cloudDictionary);
+        
+        // Show notification
+        if (window.utils) {
+            setTimeout(() => {
+                window.utils.showNotification(`Loaded ${Object.keys(cloudDictionary).length} notes from cloud`, '☁️', false, true);
+            }, 1000);
         }
     }
     
     handleLocalData(localDictionary) {
+        console.log('CloudDataManager: Processing local data...');
         this.localDataLoaded = true;
         
-        // Update UI with local data
-        if (window.uiManager) {
-            // Merge local data with default lessons
-            const mergedLessons = {
-                ...window.utils.DEFAULT_LESSONS,
-                ...localDictionary
-            };
-            
-            window.uiManager.updateLessons(mergedLessons);
-            window.utils.showNotification('Notes loaded from local storage', '💾');
+        if (!window.uiManager) {
+            console.error('CloudDataManager: UI Manager not available');
+            return;
+        }
+        
+        // Merge local data with default lessons
+        const mergedLessons = {
+            ...window.utils.DEFAULT_LESSONS,
+            ...localDictionary
+        };
+        
+        console.log('CloudDataManager: Merged local lessons:', Object.keys(mergedLessons).length, 'topics');
+        
+        // Update the UI with merged data
+        window.uiManager.updateLessons(mergedLessons);
+        
+        // Show notification
+        if (window.utils) {
+            window.utils.showNotification(`Loaded ${Object.keys(localDictionary).length} notes from local storage`, '💾');
         }
     }
     
     useDefaultData() {
-        console.log('Using default data');
+        console.log('CloudDataManager: Using default data');
         
-        if (window.uiManager) {
-            window.uiManager.updateLessons(window.utils.DEFAULT_LESSONS);
+        if (!window.uiManager) {
+            console.error('CloudDataManager: UI Manager not available');
+            return;
+        }
+        
+        window.uiManager.updateLessons(window.utils.DEFAULT_LESSONS);
+        
+        if (window.utils) {
             window.utils.showNotification('Using default Notes', '📚');
         }
     }
@@ -149,76 +203,94 @@ class CloudDataManager {
     saveToLocalStorage(dictionary) {
         try {
             localStorage.setItem('customDictionary', JSON.stringify(dictionary));
-            console.log('Cloud data saved to local storage as backup');
+            console.log('CloudDataManager: Saved cloud data to local storage');
         } catch (error) {
-            console.error('Error saving to local storage:', error);
+            console.error('CloudDataManager: Error saving to local storage:', error);
         }
     }
     
-    // Sync local changes to cloud
     async syncToCloud() {
+        console.log('CloudDataManager: Syncing to cloud...');
+        
         if (!window.databaseManager || !window.databaseManager.currentUserId) {
-            console.log('Not authenticated, skipping sync');
+            console.log('CloudDataManager: Not authenticated, skipping sync');
             return;
         }
         
         try {
-            console.log('Starting sync to cloud...');
-            
             // Load local dictionary
             const savedDictionary = localStorage.getItem('customDictionary');
             if (!savedDictionary) {
-                console.log('No local data to sync');
+                console.log('CloudDataManager: No local data to sync');
                 return;
             }
             
             const localDictionary = JSON.parse(savedDictionary);
             let syncedCount = 0;
             
+            console.log('CloudDataManager: Local data to sync:', Object.keys(localDictionary).length, 'topics');
+            
             // Save each local entry to cloud
             for (const [topic, data] of Object.entries(localDictionary)) {
                 try {
-                    const noteData = {
-                        topic: topic,
-                        desc: data.desc || '',
-                        ex: data.ex || []
-                    };
+                    // Check if this note already exists in cloud
+                    const existingNotes = await window.databaseManager.getUserNotes();
+                    const noteExists = existingNotes.some(note => note.topic === topic);
                     
-                    const noteId = await window.databaseManager.saveNote(noteData);
-                    if (noteId) {
-                        syncedCount++;
+                    if (!noteExists) {
+                        const noteData = {
+                            topic: topic,
+                            desc: data.desc || '',
+                            ex: data.ex || []
+                        };
+                        
+                        const noteId = await window.databaseManager.saveNote(noteData);
+                        if (noteId) {
+                            syncedCount++;
+                            console.log(`CloudDataManager: Synced "${topic}" to cloud`);
+                        }
+                        
+                        // Small delay to prevent rate limiting
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                    } else {
+                        console.log(`CloudDataManager: Note "${topic}" already exists in cloud`);
                     }
-                    
-                    // Small delay to prevent rate limiting
-                    await new Promise(resolve => setTimeout(resolve, 50));
                 } catch (error) {
-                    console.error(`Error syncing "${topic}":`, error);
+                    console.error(`CloudDataManager: Error syncing "${topic}":`, error);
                 }
             }
             
-            console.log(`Sync complete: ${syncedCount} notes synced`);
+            console.log(`CloudDataManager: Sync complete: ${syncedCount} notes synced`);
             
             if (syncedCount > 0 && window.utils) {
                 window.utils.showNotification(`Synced ${syncedCount} notes to cloud`, '🔄');
             }
         } catch (error) {
-            console.error('Error during sync:', error);
+            console.error('CloudDataManager: Error during sync:', error);
         }
+    }
+    
+    // Force refresh from cloud
+    async forceRefreshFromCloud() {
+        console.log('CloudDataManager: Force refreshing from cloud...');
+        const cloudData = await this.loadFromCloud();
+        
+        if (cloudData && Object.keys(cloudData).length > 0) {
+            this.handleCloudData(cloudData);
+            return true;
+        }
+        
+        return false;
     }
 }
 
 // Initialize CloudDataManager
 let cloudDataManager;
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('Initializing CloudDataManager...');
+    console.log('DOM loaded - Initializing CloudDataManager');
     try {
         cloudDataManager = new CloudDataManager();
         window.cloudDataManager = cloudDataManager;
-        
-        // Start initialization after a short delay
-        setTimeout(() => {
-            cloudDataManager.init();
-        }, 2000);
     } catch (error) {
         console.error('Error initializing CloudDataManager:', error);
     }

@@ -305,17 +305,20 @@ class AuthManager {
     }
     
     // In auth.js, update the onLoginSuccess method
-    onLoginSuccess(user) {
+    // In auth.js, update the onLoginSuccess method
+onLoginSuccess(user) {
+    console.log('AuthManager: Login successful for', user.email);
+    
     this.loginScreen.style.display = 'none';
     
-    // Show splash screen first
+    // Show splash screen
     const splashScreen = document.getElementById('splashScreen');
     const loadingProgress = document.getElementById('loadingProgress');
     
     splashScreen.style.display = 'flex';
     loadingProgress.style.width = '100%';
     
-    // Hide splash screen and show app after 2 seconds
+    // Hide splash screen and show app after delay
     setTimeout(() => {
         splashScreen.style.opacity = '0';
         splashScreen.style.pointerEvents = 'none';
@@ -324,26 +327,70 @@ class AuthManager {
             splashScreen.style.display = 'none';
             this.appContainer.style.display = 'block';
             
-            // Initialize app after login
-            if (window.appManager) {
-                window.appManager.init();
-            }
+            console.log('AuthManager: App container shown');
             
-            // Initialize cloud data loading
-            if (window.cloudDataManager) {
-                setTimeout(() => {
-                    window.cloudDataManager.init();
-                }, 500);
-            }
-            
-            // Show welcome notification
-            if (window.utils) {
-                setTimeout(() => {
-                    window.utils.showNotification(`Welcome ${user.displayName || user.email}!`, '👋');
-                }, 1000);
-            }
+            // Initialize app components
+            this.initializeAppAfterLogin(user);
         }, 800);
     }, 2000);
+}
+
+initializeAppAfterLogin(user) {
+    console.log('AuthManager: Initializing app after login...');
+    
+    // Initialize UI Manager if not already
+    if (!window.uiManager) {
+        console.log('AuthManager: Initializing UI Manager...');
+        window.uiManager = new UIManager();
+    }
+    
+    // Initialize Database Manager if not already
+    if (!window.databaseManager) {
+        console.log('AuthManager: Initializing Database Manager...');
+        window.databaseManager = new DatabaseManager();
+    }
+    
+    // Initialize other managers
+    if (!window.slideshowManager) {
+        window.slideshowManager = new SlideshowManager();
+    }
+    
+    if (!window.builderManager) {
+        window.builderManager = new BuilderManager();
+    }
+    
+    // Initialize CloudDataManager after a delay
+    setTimeout(async () => {
+        console.log('AuthManager: Starting cloud data load...');
+        
+        if (window.cloudDataManager) {
+            try {
+                // Force refresh from cloud
+                const success = await window.cloudDataManager.forceRefreshFromCloud();
+                
+                if (!success) {
+                    console.log('AuthManager: No cloud data, loading from local');
+                    // If no cloud data, load from local
+                    window.cloudDataManager.loadFromLocal();
+                }
+            } catch (error) {
+                console.error('AuthManager: Error loading cloud data:', error);
+                window.cloudDataManager.loadFromLocal();
+            }
+        } else {
+            console.log('AuthManager: CloudDataManager not available, creating...');
+            window.cloudDataManager = new CloudDataManager();
+        }
+    }, 1000);
+    
+    // Show welcome message
+    if (window.utils) {
+        setTimeout(() => {
+            window.utils.showNotification(`Welcome back, ${user.displayName || user.email}!`, '👋', false, true);
+        }, 1500);
+    }
+    
+    console.log('AuthManager: App initialization complete');
 }
     
     // Add this method to AuthManager class

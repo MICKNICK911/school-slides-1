@@ -261,6 +261,17 @@ async saveToCloud() {
                 console.error(`❌ Error saving "${topic}":`, error);
             }
         }
+
+        // AFTER SUCCESSFUL SAVE, add this:
+            if (successCount > 0) {
+                // Refresh data from cloud
+                setTimeout(async () => {
+                    if (window.cloudDataManager) {
+                        console.log('Builder: Refreshing data from cloud after save...');
+                        await window.cloudDataManager.forceRefreshFromCloud();
+                    }
+                }, 1000);
+            }
         
         // Show results
         console.log('=== SAVE RESULTS ===');
