@@ -210,15 +210,28 @@ class AuthManager {
         }
     }
     
-    async logout() {
-        try {
-            await this.auth.signOut();
-            this.currentUser = null;
-            this.showLoginScreen();
-        } catch (error) {
-            console.error('Error logging out:', error);
+    // In auth.js, update the logout method
+async logout() {
+    try {
+        // Clear local storage (except preferences)
+        const preferences = localStorage.getItem('dictionaryState');
+        localStorage.clear();
+        
+        if (preferences) {
+            localStorage.setItem('dictionaryState', preferences);
         }
+        
+        // Sign out from Firebase
+        await this.auth.signOut();
+        
+        this.currentUser = null;
+        this.showLoginScreen();
+        
+        console.log('User logged out and local data cleared');
+    } catch (error) {
+        console.error('Error logging out:', error);
     }
+}
     
     handleAuthError(error, element) {
         let message = 'An error occurred. Please try again.';
@@ -310,6 +323,7 @@ onLoginSuccess(user) {
     console.log('AuthManager: Login successful for', user.email);
     
     this.loginScreen.style.display = 'none';
+    this.clearPreviousUserData(user.uid);
     
     // Show splash screen
     const splashScreen = document.getElementById('splashScreen');
@@ -318,24 +332,25 @@ onLoginSuccess(user) {
     splashScreen.style.display = 'flex';
     loadingProgress.style.width = '100%';
     
-    // Hide splash screen and show app after delay
+    // Hide splash screen and show app
     setTimeout(() => {
         splashScreen.style.opacity = '0';
         splashScreen.style.pointerEvents = 'none';
         
-        setTimeout(() => {
+        setTimeout(async () => {
             splashScreen.style.display = 'none';
             this.appContainer.style.display = 'block';
             
             console.log('AuthManager: App container shown');
             
-            // Initialize app components
-            this.initializeAppAfterLogin(user);
+            // Initialize app after login
+            await this.initializeAppAfterLogin(user);
+            
         }, 800);
     }, 2000);
 }
 
-initializeAppAfterLogin(user) {
+async initializeAppAfterLogin(user) {
     console.log('AuthManager: Initializing app after login...');
     
     // Initialize UI Manager if not already
@@ -391,6 +406,40 @@ initializeAppAfterLogin(user) {
     }
     
     console.log('AuthManager: App initialization complete');
+
+     if (window.cloudSyncManager) {
+        console.log('AuthManager: Starting cloud sync...');
+        await window.cloudSyncManager.syncFromCloud();
+    } else {
+        console.log('AuthManager: CloudSyncManager not available');
+    }
+    
+    // Show welcome message
+    if (window.utils) {
+        setTimeout(() => {
+            window.utils.showNotification(`Welcome ${user.displayName || user.email}!`, '👋', false, true);
+        }, 1000);
+    }
+   
+}
+
+clearPreviousUserData(currentUserId) {
+    // Get last user ID from localStorage
+    const lastUserId = localStorage.getItem('lastUserId');
+    
+    if (lastUserId && lastUserId !== currentUserId) {
+        console.log('Different user logged in, clearing old data...');
+        
+        // Clear local dictionary
+        localStorage.removeItem('customDictionary');
+        
+        // Clear bookmarks and history from localStorage
+        localStorage.removeItem('dictionaryBookmarks');
+        localStorage.removeItem('dictionarySearchHistory');
+    }
+    
+    // Store current user ID
+    localStorage.setItem('lastUserId', currentUserId);
 }
     
     // Add this method to AuthManager class

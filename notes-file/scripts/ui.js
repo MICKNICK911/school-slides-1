@@ -83,6 +83,109 @@ class UIManager {
         this.renderTopicsList();
         this.loadBookmarks();
         this.loadHistory();
+
+        setTimeout(() => {
+            this.loadInitialData();
+        }, 1000);
+    }
+
+    async loadInitialData() {
+        console.log('UIManager: Loading initial data...');
+        
+        if (window.authManager && window.authManager.isAuthenticated()) {
+            console.log('UIManager: User authenticated, loading cloud data');
+            await this.loadCloudData();
+        } else {
+            console.log('UIManager: User not authenticated, loading local data');
+            this.loadLocalData();
+        }
+    }
+
+     async loadCloudData() {
+        console.log('UIManager: Loading cloud data...');
+        
+        if (!window.databaseManager) {
+            console.log('UIManager: Database manager not available');
+            return;
+        }
+        
+        if (!window.authManager || !window.authManager.isAuthenticated()) {
+            console.log('UIManager: User not authenticated');
+            return;
+        }
+        
+        try {
+            // Show loading indicator
+            this.showLoading(true);
+            
+            // Get notes from cloud
+            const notes = await window.databaseManager.getUserNotes();
+            console.log('UIManager: Notes from cloud:', notes.length);
+            
+            if (notes.length === 0) {
+                console.log('UIManager: No cloud data found');
+                this.loadLocalData();
+                return;
+            }
+            
+            // Convert to dictionary format
+            const cloudDictionary = {};
+            notes.forEach(note => {
+                if (note.topic) {
+                    cloudDictionary[note.topic] = {
+                        desc: note.desc || '',
+                        ex: note.ex || []
+                    };
+                }
+            });
+            
+            console.log('UIManager: Cloud dictionary:', Object.keys(cloudDictionary).length);
+            
+            // Update lessons
+            this.updateLessons(cloudDictionary);
+            
+            // Update local storage
+            localStorage.setItem('customDictionary', JSON.stringify(cloudDictionary));
+            
+            // Show success
+            window.utils.showNotification(`Loaded ${notes.length} notes from cloud`, '☁️', false, true);
+            
+        } catch (error) {
+            console.error('UIManager: Error loading cloud data:', error);
+            this.loadLocalData();
+        } finally {
+            this.showLoading(false);
+        }
+    }
+
+    loadLocalData() {
+        console.log('UIManager: Loading local data...');
+        
+        try {
+            const savedDictionary = localStorage.getItem('customDictionary');
+            
+            if (savedDictionary) {
+                const dictionary = JSON.parse(savedDictionary);
+                console.log('UIManager: Local data loaded:', Object.keys(dictionary).length);
+                
+                // Update lessons
+                this.updateLessons(dictionary);
+                
+                window.utils.showNotification(`Loaded ${Object.keys(dictionary).length} notes from local storage`, '💾');
+            } else {
+                console.log('UIManager: No local data found');
+                window.utils.showNotification('Using default Notes', '📚');
+            }
+        } catch (error) {
+            console.error('UIManager: Error loading local data:', error);
+        }
+    }
+    
+    showLoading(show) {
+        const loadingEl = document.getElementById('loadingIndicator');
+        if (loadingEl) {
+            loadingEl.style.display = show ? 'block' : 'none';
+        }
     }
     
     // Search functionality
@@ -623,9 +726,24 @@ loadSavedDictionary() {
     }
     
     // Update lessons
-    updateLessons(newLessons) {
-        this.lessons = newLessons;
+     updateLessons(newLessons) {
+        console.log('UIManager: Updating lessons with', Object.keys(newLessons).length, 'topics');
+        
+        // Merge with default lessons
+        this.lessons = {
+            //...window.utils.DEFAULT_LESSONS,
+            ...newLessons
+        };
+        
+        // Update topics list
         this.renderTopicsList();
+        
+        // Update current view if needed
+        if (this.currentTopic && this.lessons[this.currentTopic]) {
+            this.displayResults(this.currentTopic);
+        }
+        
+        console.log('UIManager: Lessons updated successfully');
     }
 }
 

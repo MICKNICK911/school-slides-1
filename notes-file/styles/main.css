@@ -1555,7 +1555,215 @@ header {
     color: white;
 }
 
+
+/* Add to your CSS file */
+.preview-table-container {
+    max-height: 400px;
+    overflow-y: auto;
+    margin-bottom: 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+}
+
+.preview-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.preview-table th {
+    background: var(--card-bg);
+    padding: 12px;
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 2px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.preview-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: top;
+}
+
+.preview-table tr:hover {
+    background: rgba(var(--primary-color-rgb), 0.05);
+}
+
+.preview-table .topic-cell {
+    font-weight: 600;
+    color: var(--primary-color);
+    max-width: 150px;
+    word-break: break-word;
+}
+
+.preview-table .desc-cell {
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.preview-table .desc-cell.expanded {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+}
+
+.preview-table .examples-cell {
+    max-width: 200px;
+}
+
+.preview-table .actions-cell {
+    width: 120px;
+    text-align: center;
+}
+
+.preview-table .action-btn {
+    padding: 4px 8px;
+    margin: 2px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s;
+}
+
+.preview-table .edit-btn {
+    background: #3498db;
+    color: white;
+}
+
+.preview-table .delete-btn {
+    background: #e74c3c;
+    color: white;
+}
+
+.preview-table .view-btn {
+    background: #2ecc71;
+    color: white;
+}
+
+.preview-mode-btn {
+    background: #9c27b0;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 12px;
+    margin-left: 10px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.preview-mode-btn:hover {
+    background: #7b1fa2;
+}
+
+.builder-form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+}
+
+.builder-update {
+    background: #3498db;
+    color: white;
+}
+
+.builder-update:hover {
+    background: #2980b9;
+}
+
+.builder-cancel-edit {
+    background: #95a5a6;
+    color: white;
+}
+
+.builder-cancel-edit:hover {
+    background: #7f8c8d;
+}
+
+.builder-delete {
+    background: #e74c3c;
+    color: white;
+}
+
+.builder-delete:hover {
+    background: #c0392b;
+}
+
+/* Add to your CSS */
+.cloud-load {
+    background: #3498db;
+    color: white;
+}
+
+.cloud-load:hover {
+    background: #2980b9;
+}
+
+.cloud-sync {
+    background: #9b59b6;
+    color: white;
+}
+
+.cloud-sync:hover {
+    background: #8e44ad;
+}
+
+/* Update action buttons in table */
+.action-btn {
+    padding: 4px 8px;
+    margin: 2px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s;
+    min-width: 30px;
+}
+
+.cloud-save-btn {
+    background: #2ecc71;
+    color: white;
+}
+
+.cloud-update-btn {
+    background: #3498db;
+    color: white;
+}
+
+.cloud-delete-btn {
+    background: #e74c3c;
+    color: white;
+}
+
+/* Responsive table */
+
 @media (max-width: 768px) {
+    .preview-table {
+        display: block;
+        overflow-x: auto;
+    }
+    
+    .preview-table th,
+    .preview-table td {
+        min-width: 150px;
+    }
+    
+    .builder-form-actions {
+        flex-direction: column;
+    }
+    
+    .builder-form-actions button {
+        width: 100%;
+    }
+
+
     .login-container {
         padding: 30px 20px;
     }
