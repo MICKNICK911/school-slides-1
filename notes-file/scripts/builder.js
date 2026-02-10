@@ -1,21 +1,22 @@
 class BuilderManager {
     constructor() {
-        // DOM Elements - use safe accessors
+        // DOM Elements
         this.builderContainer = document.getElementById('builderContainer');
         this.exportToggle = document.getElementById('exportToggle');
-        this.appContainer = document.getElementById('appContainer');
         
-        // Initialize only if elements exist
-        if (this.exportToggle && this.builderContainer) {
-            this.initElements();
-            this.init();
-        } else {
-            console.warn('Builder elements not found - builder features disabled');
+        // Check if elements exist before initializing
+        if (!this.builderContainer || !this.exportToggle) {
+            console.error('Builder elements not found');
+            return;
         }
+        
+        // Initialize other elements after DOM is ready
+        this.initElements();
+        this.init();
     }
     
     initElements() {
-        // Initialize other DOM elements
+        // Initialize all builder elements
         this.builderCancel = document.getElementById('builderCancel');
         this.builderExport = document.getElementById('builderExport');
         this.builderSave = document.getElementById('builderSave');
@@ -26,71 +27,71 @@ class BuilderManager {
         this.builderPreview = document.getElementById('builderPreview');
         this.builderEntryCount = document.getElementById('builderEntryCount');
         this.previewClear = document.getElementById('previewClear');
+        
+        // State
+        this.builderDictionary = {};
     }
     
     init() {
-        // Event listeners with safety checks
-        if (this.exportToggle) {
-            this.exportToggle.addEventListener('click', () => this.openBuilder());
-        }
+        console.log('BuilderManager initializing...');
         
-        if (this.builderCancel) {
-            this.builderCancel.addEventListener('click', () => this.closeBuilder());
-        }
-        
-        if (this.builderExport) {
-            this.builderExport.addEventListener('click', () => this.exportBuilderDictionary());
-        }
-        
-        if (this.builderSave) {
-            this.builderSave.addEventListener('click', () => this.saveToCloud());
-        }
-        
-        if (this.builderAdd) {
-            this.builderAdd.addEventListener('click', () => this.addBuilderEntry());
-        }
-        
-        if (this.previewClear) {
-            this.previewClear.addEventListener('click', () => this.clearBuilderPreview());
-        }
+        // Event listeners
+        this.exportToggle.addEventListener('click', () => this.openBuilder());
+        this.builderCancel?.addEventListener('click', () => this.closeBuilder());
+        this.builderExport?.addEventListener('click', () => this.exportBuilderDictionary());
+        this.builderSave?.addEventListener('click', () => this.saveToCloud());
+        this.builderAdd?.addEventListener('click', () => this.addBuilderEntry());
+        this.previewClear?.addEventListener('click', () => this.clearBuilderPreview());
         
         // Enter key support
-        if (this.builderTopic) {
-            this.builderTopic.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') this.addBuilderEntry();
-            });
-        }
+        this.builderTopic?.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') this.addBuilderEntry();
+        });
         
-        if (this.builderDesc) {
-            this.builderDesc.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter' && e.ctrlKey) this.addBuilderEntry();
-            });
-        }
+        this.builderDesc?.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && e.ctrlKey) this.addBuilderEntry();
+        });
         
-        if (this.builderEx) {
-            this.builderEx.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') this.addBuilderEntry();
-            });
-        }
+        this.builderEx?.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') this.addBuilderEntry();
+        });
+        
+        console.log('BuilderManager initialized successfully');
     }
     
     openBuilder() {
-        if (!this.appContainer || !this.builderContainer) return;
+        console.log('Opening builder...');
         
-        this.appContainer.style.display = 'none';
+        // Hide the main app container
+        const appContainer = document.getElementById('appContainer');
+        if (appContainer) {
+            appContainer.style.display = 'none';
+        }
+        
+        // Show the builder
         this.builderContainer.classList.add('active');
         document.body.style.overflow = 'hidden';
         
-        if (this.builderTopic) {
-            setTimeout(() => this.builderTopic.focus(), 100);
-        }
+        // Focus on the first input
+        setTimeout(() => {
+            if (this.builderTopic) {
+                this.builderTopic.focus();
+            }
+        }, 100);
     }
     
     closeBuilder() {
-        if (!this.appContainer || !this.builderContainer) return;
+        console.log('Closing builder...');
         
+        // Hide the builder
         this.builderContainer.classList.remove('active');
-        this.appContainer.style.display = 'block';
+        
+        // Show the main app container
+        const appContainer = document.getElementById('appContainer');
+        if (appContainer) {
+            appContainer.style.display = 'block';
+        }
+        
         document.body.style.overflow = 'auto';
         this.clearBuilderForm();
         
@@ -113,13 +114,15 @@ class BuilderManager {
         const desc = this.builderDesc.value.trim();
         const ex = this.builderEx.value.trim();
         
-        if (!topic || !desc || !ex) {
-            alert('Please fill in all fields');
+        if (!topic || !desc) {
+            alert('Please fill in Topic and Description fields');
             return;
         }
         
         // Initialize dictionary if needed
-        this.builderDictionary = this.builderDictionary || {};
+        if (!this.builderDictionary) {
+            this.builderDictionary = {};
+        }
         
         // Create or update topic
         this.builderDictionary[topic] = {
@@ -134,9 +137,14 @@ class BuilderManager {
         this.clearBuilderForm();
         
         // Focus back to topic input
-        if (this.builderTopic) {
-            setTimeout(() => this.builderTopic.focus(), 50);
-        }
+        setTimeout(() => {
+            if (this.builderTopic) {
+                this.builderTopic.focus();
+            }
+        }, 50);
+        
+        // Show success message
+        window.utils.showNotification(`Added "${topic}" to Notes`, '✅');
     }
     
     updateBuilderPreview() {
@@ -147,7 +155,9 @@ class BuilderManager {
         } else {
             this.builderPreview.textContent = JSON.stringify(this.builderDictionary, null, 2);
         }
-        this.builderEntryCount.textContent = `${Object.keys(this.builderDictionary || {}).length} entries`;
+        
+        const entryCount = Object.keys(this.builderDictionary || {}).length;
+        this.builderEntryCount.textContent = `${entryCount} ${entryCount === 1 ? 'entry' : 'entries'}`;
     }
     
     clearBuilderPreview() {
@@ -158,7 +168,7 @@ class BuilderManager {
         if (confirm('Are you sure you want to clear all entries?')) {
             this.builderDictionary = {};
             this.updateBuilderPreview();
-            window.utils.showNotification('All entries cleared', '🗑️', false, false);
+            window.utils.showNotification('All entries cleared', '🗑️');
         }
     }
     
@@ -168,15 +178,16 @@ class BuilderManager {
             return;
         }
         
-        const now = new Date();
-        const dateStr = now.toISOString().split('T')[0];
-        const filename = `E_Notes_${dateStr}.json`;
-        
-        if (window.utils && window.utils.downloadJSON) {
+        try {
+            const now = new Date();
+            const dateStr = now.toISOString().split('T')[0];
+            const filename = `E_Notes_${dateStr}.json`;
+            
             window.utils.downloadJSON(this.builderDictionary, filename);
             window.utils.showNotification(`Notes exported as ${filename}`, '📤', false, true);
-        } else {
-            alert('Export functionality not available');
+        } catch (error) {
+            console.error('Error exporting:', error);
+            alert('Error exporting Notes: ' + error.message);
         }
     }
     
@@ -196,16 +207,21 @@ class BuilderManager {
             let errorCount = 0;
             
             for (const [topic, data] of Object.entries(this.builderDictionary)) {
-                const noteData = {
-                    topic: topic,
-                    desc: data.desc,
-                    ex: data.ex
-                };
-                
-                const noteId = await window.databaseManager.saveNote(noteData);
-                if (noteId) {
-                    successCount++;
-                } else {
+                try {
+                    const noteData = {
+                        topic: topic,
+                        desc: data.desc,
+                        ex: data.ex
+                    };
+                    
+                    const noteId = await window.databaseManager.saveNote(noteData);
+                    if (noteId) {
+                        successCount++;
+                    } else {
+                        errorCount++;
+                    }
+                } catch (error) {
+                    console.error(`Error saving "${topic}":`, error);
                     errorCount++;
                 }
             }
@@ -218,11 +234,7 @@ class BuilderManager {
                 message += `Failed to save ${errorCount} note(s).`;
             }
             
-            if (window.utils) {
-                window.utils.showNotification(message, '☁️', errorCount > 0, successCount > 0);
-            } else {
-                alert(message);
-            }
+            window.utils.showNotification(message, '☁️', errorCount > 0, successCount > 0);
             
             // Clear builder if all saved successfully
             if (errorCount === 0) {
@@ -232,22 +244,26 @@ class BuilderManager {
             }
         } catch (error) {
             console.error('Error saving to cloud:', error);
-            if (window.utils) {
-                window.utils.showNotification('Error saving to cloud', '❌', true);
-            } else {
-                alert('Error saving to cloud: ' + error.message);
-            }
+            window.utils.showNotification('Error saving to cloud: ' + error.message, '❌', true);
         }
     }
 }
 
-// Initialize with error handling
+// Initialize with better error handling
 let builderManager;
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('Initializing BuilderManager...');
     try {
         builderManager = new BuilderManager();
         window.builderManager = builderManager;
+        console.log('BuilderManager initialized successfully');
     } catch (error) {
         console.error('Error initializing BuilderManager:', error);
+        // Fallback: Create a basic builder manager if initialization fails
+        window.builderManager = {
+            openBuilder: function() {
+                alert('Builder feature is temporarily unavailable. Please refresh the page.');
+            }
+        };
     }
 });
