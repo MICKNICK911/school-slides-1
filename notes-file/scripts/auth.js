@@ -304,32 +304,47 @@ class AuthManager {
         this.resetSuccess.textContent = '';
     }
     
+    // In auth.js, update the onLoginSuccess method
     onLoginSuccess(user) {
-        this.loginScreen.style.display = 'none';
+    this.loginScreen.style.display = 'none';
+    
+    // Show splash screen first
+    const splashScreen = document.getElementById('splashScreen');
+    const loadingProgress = document.getElementById('loadingProgress');
+    
+    splashScreen.style.display = 'flex';
+    loadingProgress.style.width = '100%';
+    
+    // Hide splash screen and show app after 2 seconds
+    setTimeout(() => {
+        splashScreen.style.opacity = '0';
+        splashScreen.style.pointerEvents = 'none';
         
-        // Show splash screen first
-        const splashScreen = document.getElementById('splashScreen');
-        const loadingProgress = document.getElementById('loadingProgress');
-        
-        splashScreen.style.display = 'flex';
-        loadingProgress.style.width = '100%';
-        
-        // Hide splash screen and show app after 2 seconds
         setTimeout(() => {
-            splashScreen.style.opacity = '0';
-            splashScreen.style.pointerEvents = 'none';
+            splashScreen.style.display = 'none';
+            this.appContainer.style.display = 'block';
             
-            setTimeout(() => {
-                splashScreen.style.display = 'none';
-                this.appContainer.style.display = 'block';
-                
-                // Initialize app after login
-                if (window.appManager) {
-                    window.appManager.init();
-                }
-            }, 800);
-        }, 2000);
-    }
+            // Initialize app after login
+            if (window.appManager) {
+                window.appManager.init();
+            }
+            
+            // Initialize cloud data loading
+            if (window.cloudDataManager) {
+                setTimeout(() => {
+                    window.cloudDataManager.init();
+                }, 500);
+            }
+            
+            // Show welcome notification
+            if (window.utils) {
+                setTimeout(() => {
+                    window.utils.showNotification(`Welcome ${user.displayName || user.email}!`, '👋');
+                }, 1000);
+            }
+        }, 800);
+    }, 2000);
+}
     
     // Add this method to AuthManager class
 isAuthenticated() {

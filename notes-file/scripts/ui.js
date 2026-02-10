@@ -589,6 +589,33 @@ class UIManager {
         });
     }
     
+    // In ui.js, update the loadSavedDictionary method or add a new method
+async loadUserData() {
+    console.log('Loading user data...');
+    
+    // First check if we have cloud data manager
+    if (window.cloudDataManager) {
+        console.log('Using cloud data manager for data loading');
+        // CloudDataManager will handle everything
+        return;
+    }
+    
+    // Fallback: load from local storage
+    this.loadSavedDictionary();
+}
+
+loadSavedDictionary() {
+    const savedDictionary = localStorage.getItem('customDictionary');
+    if (savedDictionary) {
+        try {
+            const dictionary = JSON.parse(savedDictionary);
+            this.updateLessons(dictionary);
+        } catch (e) {
+            console.error('Failed to load saved Notes:', e);
+        }
+    }
+}
+    
     logout() {
         if (window.authManager) {
             window.authManager.logout();

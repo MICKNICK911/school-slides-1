@@ -76,36 +76,48 @@ class DatabaseManager {
     }
     
     // Notes operations
+    // Update the saveNote method in database.js
     async saveNote(noteData) {
-        if (!this.currentUserId) return null;
-        
-        try {
-            const noteId = this.generateId();
-            const note = {
-                id: noteId,
-                userId: this.currentUserId,
-                topic: noteData.topic,
-                desc: noteData.desc,
-                ex: noteData.ex,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                isPublic: false,
-                tags: []
-            };
-            
-            await this.db.collection(this.NOTES_COLLECTION)
-                .doc(noteId)
-                .set(note);
-            
-            // Update user stats
-            await this.incrementUserStat('notesCount');
-            
-            return noteId;
-        } catch (error) {
-            console.error('Error saving note:', error);
-            return null;
-        }
+    if (!this.currentUserId) {
+        console.error('No user ID available');
+        return null;
     }
+    
+    try {
+        // Generate a unique ID
+        const noteId = this.generateId();
+        
+        // Create the note object
+        const note = {
+            id: noteId,
+            userId: this.currentUserId,
+            topic: noteData.topic,
+            desc: noteData.desc || '',
+            ex: Array.isArray(noteData.ex) ? noteData.ex : [],
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+            isPublic: noteData.isPublic || false,
+            tags: noteData.tags || []
+        };
+        
+        console.log('Saving note to cloud:', note);
+        
+        // Save to Firestore
+        await this.db.collection(this.NOTES_COLLECTION)
+            .doc(noteId)
+            .set(note);
+        
+        // Update user stats
+        await this.incrementUserStat('notesCount');
+        
+        console.log('Note saved successfully:', noteId);
+        return noteId;
+    } catch (error) {
+        console.error('Error saving note to cloud:', error);
+        console.error('Error details:', error.message, error.code);
+        return null;
+    }
+}
     
     async getUserNotes() {
         if (!this.currentUserId) return [];
