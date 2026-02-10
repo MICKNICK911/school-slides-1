@@ -1,3 +1,4 @@
+// Update the DatabaseManager in database.js with better error handling
 class DatabaseManager {
     constructor() {
         this.db = firebaseServices.db;
@@ -5,10 +6,10 @@ class DatabaseManager {
         this.currentUserId = null;
         
         // Collections
-        this.USERS_COLLECTION = firebaseServices.collections.USERS_COLLECTION;
-        this.NOTES_COLLECTION = firebaseServices.collections.NOTES_COLLECTION;
-        this.BOOKMARKS_COLLECTION = firebaseServices.collections.BOOKMARKS_COLLECTION;
-        this.HISTORY_COLLECTION = firebaseServices.collections.HISTORY_COLLECTION;
+        this.USERS_COLLECTION = 'users';
+        this.NOTES_COLLECTION = 'notes';
+        this.BOOKMARKS_COLLECTION = 'bookmarks';
+        this.HISTORY_COLLECTION = 'history';
         
         this.init();
     }
@@ -18,27 +19,54 @@ class DatabaseManager {
         this.auth.onAuthStateChanged((user) => {
             if (user) {
                 this.currentUserId = user.uid;
+                console.log('User authenticated:', user.email, 'UID:', user.uid);
             } else {
                 this.currentUserId = null;
+                console.log('User not authenticated');
             }
         });
     }
     
+    // Test Firestore connection
+    async testFirestoreConnection() {
+        try {
+            console.log('Testing Firestore connection...');
+            const testRef = this.db.collection('test').doc('connection');
+            await testRef.set({
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                test: 'connection'
+            });
+            console.log('Firestore connection successful');
+            await testRef.delete();
+            return true;
+        } catch (error) {
+            console.error('Firestore connection failed:', error);
+            return false;
+        }
+    }
+    
     // User operations
     async getUserData() {
-        if (!this.currentUserId) return null;
+        if (!this.currentUserId) {
+            console.log('No current user ID for getUserData');
+            return null;
+        }
         
         try {
+            console.log('Fetching user data for UID:', this.currentUserId);
             const userDoc = await this.db.collection(this.USERS_COLLECTION)
                 .doc(this.currentUserId)
                 .get();
             
             if (userDoc.exists) {
+                console.log('User data found:', userDoc.data());
                 return userDoc.data();
             }
+            console.log('User document does not exist');
             return null;
         } catch (error) {
             console.error('Error getting user data:', error);
+            console.error('Error details:', error.code, error.message);
             return null;
         }
     }
@@ -52,6 +80,7 @@ class DatabaseManager {
                 .update({
                     'preferences': preferences
                 });
+            console.log('User preferences updated');
             return true;
         } catch (error) {
             console.error('Error updating user preferences:', error);
@@ -68,6 +97,7 @@ class DatabaseManager {
                 .update({
                     [stat]: firebase.firestore.FieldValue.increment(1)
                 });
+            console.log(`User stat ${stat} incremented`);
             return true;
         } catch (error) {
             console.error(`Error incrementing ${stat}:`, error);
@@ -75,60 +105,85 @@ class DatabaseManager {
         }
     }
     
-    // Notes operations
-    // Update the saveNote method in database.js
+    // Notes operations - FIXED VERSION
     async saveNote(noteData) {
-    if (!this.currentUserId) {
-        console.error('No user ID available');
-        return null;
-    }
-    
-    try {
-        // Generate a unique ID
-        const noteId = this.generateId();
-        
-        // Create the note object
-        const note = {
-            id: noteId,
-            userId: this.currentUserId,
-            topic: noteData.topic,
-            desc: noteData.desc || '',
-            ex: Array.isArray(noteData.ex) ? noteData.ex : [],
-            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-            isPublic: noteData.isPublic || false,
-            tags: noteData.tags || []
-        };
-        
-        console.log('Saving note to cloud:', note);
-        
-        // Save to Firestore
-        await this.db.collection(this.NOTES_COLLECTION)
-            .doc(noteId)
-            .set(note);
-        
-        // Update user stats
-        await this.incrementUserStat('notesCount');
-        
-        console.log('Note saved successfully:', noteId);
-        return noteId;
-    } catch (error) {
-        console.error('Error saving note to cloud:', error);
-        console.error('Error details:', error.message, error.code);
-        return null;
-    }
-}
-    
-    async getUserNotes() {
-        if (!this.currentUserId) return [];
+        if (!this.currentUserId) {
+            console.error('Cannot save note: No user ID');
+            return null;
+        }
         
         try {
+            console.log('Starting to save note:', noteData);
+            
+            // Generate a simpler ID
+            const noteId = Date.now().toString() + Math.random().toString(36).substr(2, 9);
+            
+            // Create the note object with proper structure
+            const note = {
+                id: noteId,
+                userId: this.currentUserId,
+                topic: noteData.topic || '',
+                desc: noteData.desc || '',
+                ex: Array.isArray(noteData.ex) ? noteData.ex : [],
+                createdAt: new Date(),
+                updatedAt: new Date(),
+                isPublic: false,
+                tags: []
+            };
+            
+            console.log('Note object to save:', note);
+            
+            // Save to Firestore
+            await this.db.collection(this.NOTES_COLLECTION)
+                .doc(noteId)
+                .set(note);
+            
+            console.log('Note saved successfully to Firestore:', noteId);
+            
+            // Update user stats
+            try {
+                await this.incrementUserStat('notesCount');
+                console.log('User stats updated');
+            } catch (statsError) {
+                console.warn('Could not update user stats:', statsError);
+                // Continue even if stats update fails
+            }
+            
+            return noteId;
+        } catch (error) {
+            console.error('ERROR in saveNote:', error);
+            console.error('Error code:', error.code);
+            console.error('Error message:', error.message);
+            console.error('Error details:', error);
+            return null;
+        }
+    }
+    
+    async getUserNotes() {
+        if (!this.currentUserId) {
+            console.log('No user ID for getUserNotes');
+            return [];
+        }
+        
+        try {
+            console.log('Fetching user notes for UID:', this.currentUserId);
             const snapshot = await this.db.collection(this.NOTES_COLLECTION)
                 .where('userId', '==', this.currentUserId)
                 .orderBy('createdAt', 'desc')
                 .get();
             
-            return snapshot.docs.map(doc => doc.data());
+            const notes = snapshot.docs.map(doc => {
+                const data = doc.data();
+                // Convert Firestore timestamps to Date objects
+                return {
+                    ...data,
+                    createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : data.createdAt,
+                    updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : data.updatedAt
+                };
+            });
+            
+            console.log(`Found ${notes.length} user notes`);
+            return notes;
         } catch (error) {
             console.error('Error getting user notes:', error);
             return [];
@@ -143,7 +198,14 @@ class DatabaseManager {
                 .doc(noteId)
                 .get();
             
-            if (!noteDoc.exists || noteDoc.data().userId !== this.currentUserId) {
+            if (!noteDoc.exists) {
+                console.log('Note not found:', noteId);
+                return false;
+            }
+            
+            const noteData = noteDoc.data();
+            if (noteData.userId !== this.currentUserId) {
+                console.log('User not authorized to delete note:', noteId);
                 return false;
             }
             
@@ -151,6 +213,7 @@ class DatabaseManager {
                 .doc(noteId)
                 .delete();
             
+            console.log('Note deleted:', noteId);
             return true;
         } catch (error) {
             console.error('Error deleting note:', error);
@@ -168,16 +231,14 @@ class DatabaseManager {
                 id: bookmarkId,
                 userId: this.currentUserId,
                 topic: topic,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                createdAt: new Date()
             };
             
             await this.db.collection(this.BOOKMARKS_COLLECTION)
                 .doc(bookmarkId)
                 .set(bookmark);
             
-            // Update user stats
-            await this.incrementUserStat('bookmarksCount');
-            
+            console.log('Bookmark added:', topic);
             return true;
         } catch (error) {
             console.error('Error adding bookmark:', error);
@@ -194,7 +255,10 @@ class DatabaseManager {
                 .where('topic', '==', topic)
                 .get();
             
-            if (snapshot.empty) return false;
+            if (snapshot.empty) {
+                console.log('No bookmark found to remove:', topic);
+                return false;
+            }
             
             const batch = this.db.batch();
             snapshot.docs.forEach(doc => {
@@ -202,6 +266,7 @@ class DatabaseManager {
             });
             
             await batch.commit();
+            console.log('Bookmark removed:', topic);
             return true;
         } catch (error) {
             console.error('Error removing bookmark:', error);
@@ -218,7 +283,9 @@ class DatabaseManager {
                 .orderBy('createdAt', 'desc')
                 .get();
             
-            return snapshot.docs.map(doc => doc.data().topic);
+            const topics = snapshot.docs.map(doc => doc.data().topic);
+            console.log(`Found ${topics.length} bookmarks`);
+            return topics;
         } catch (error) {
             console.error('Error getting bookmarks:', error);
             return [];
@@ -252,16 +319,14 @@ class DatabaseManager {
                 id: historyId,
                 userId: this.currentUserId,
                 term: searchTerm,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                timestamp: new Date()
             };
             
             await this.db.collection(this.HISTORY_COLLECTION)
                 .doc(historyId)
                 .set(historyItem);
             
-            // Update user stats
-            await this.incrementUserStat('historyCount');
-            
+            console.log('Added to history:', searchTerm);
             return true;
         } catch (error) {
             console.error('Error adding to history:', error);
@@ -279,10 +344,13 @@ class DatabaseManager {
                 .limit(limit)
                 .get();
             
-            return snapshot.docs.map(doc => ({
+            const history = snapshot.docs.map(doc => ({
                 term: doc.data().term,
-                time: doc.data().timestamp.toDate()
+                time: doc.data().timestamp?.toDate ? doc.data().timestamp.toDate() : doc.data().timestamp
             }));
+            
+            console.log(`Found ${history.length} history items`);
+            return history;
         } catch (error) {
             console.error('Error getting history:', error);
             return [];
@@ -303,6 +371,7 @@ class DatabaseManager {
             });
             
             await batch.commit();
+            console.log('History cleared');
             return true;
         } catch (error) {
             console.error('Error clearing history:', error);
@@ -310,36 +379,36 @@ class DatabaseManager {
         }
     }
     
-    // Public notes operations
-    async getPublicNotes(limit = 20) {
-        try {
-            const snapshot = await this.db.collection(this.NOTES_COLLECTION)
-                .where('isPublic', '==', true)
-                .orderBy('createdAt', 'desc')
-                .limit(limit)
+    // Test method to check if notes are being saved
+    async testSaveNote() {
+        const testNote = {
+            topic: 'Test Note',
+            desc: 'This is a test note to check if Firestore is working.',
+            ex: ['test1', 'test2', 'test3']
+        };
+        
+        console.log('Testing note save...');
+        const noteId = await this.saveNote(testNote);
+        
+        if (noteId) {
+            console.log('Test note saved successfully! ID:', noteId);
+            
+            // Try to retrieve it
+            const noteDoc = await this.db.collection(this.NOTES_COLLECTION)
+                .doc(noteId)
                 .get();
             
-            return snapshot.docs.map(doc => doc.data());
-        } catch (error) {
-            console.error('Error getting public notes:', error);
-            return [];
-        }
-    }
-    
-    async searchPublicNotes(query) {
-        try {
-            const snapshot = await this.db.collection(this.NOTES_COLLECTION)
-                .where('isPublic', '==', true)
-                .orderBy('topic')
-                .startAt(query)
-                .endAt(query + '\uf8ff')
-                .limit(10)
-                .get();
+            if (noteDoc.exists) {
+                console.log('Test note retrieved:', noteDoc.data());
+                // Delete test note
+                await noteDoc.ref.delete();
+                console.log('Test note deleted');
+            }
             
-            return snapshot.docs.map(doc => doc.data());
-        } catch (error) {
-            console.error('Error searching public notes:', error);
-            return [];
+            return true;
+        } else {
+            console.log('Test note save failed');
+            return false;
         }
     }
     
@@ -347,15 +416,25 @@ class DatabaseManager {
     generateId() {
         return Date.now().toString(36) + Math.random().toString(36).substr(2);
     }
-    
-    formatDate(date) {
-        return date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-    }
 }
 
 // Initialize Database Manager
 let databaseManager;
 document.addEventListener('DOMContentLoaded', () => {
-    databaseManager = new DatabaseManager();
-    window.databaseManager = databaseManager;
+    console.log('Initializing DatabaseManager...');
+    try {
+        databaseManager = new DatabaseManager();
+        window.databaseManager = databaseManager;
+        
+        // Test Firestore after initialization
+        setTimeout(async () => {
+            console.log('Testing Firestore connection...');
+            if (databaseManager.currentUserId) {
+                await databaseManager.testFirestoreConnection();
+                await databaseManager.testSaveNote();
+            }
+        }, 3000);
+    } catch (error) {
+        console.error('Error initializing DatabaseManager:', error);
+    }
 });
