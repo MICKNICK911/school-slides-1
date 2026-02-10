@@ -495,6 +495,35 @@ class BuilderManager {
             window.utils.showNotification('All entries cleared', '🗑️');
         }
     }
+
+    // Add these methods to your BuilderManager class
+async syncAfterSave() {
+    if (window.authManager && window.authManager.isAuthenticated()) {
+        if (window.syncManager) {
+            // Small delay to ensure data is processed
+            setTimeout(() => {
+                window.syncManager.sync();
+            }, 2000);
+        }
+    }
+}
+
+// Call syncAfterSave after these operations:
+// 1. In saveToCloud() - after successful save
+// 2. In updateInCloud() - after successful update
+// 3. In deleteFromCloud() - after successful delete
+
+// Example update to saveToCloud method:
+async saveToCloud() {
+    // ... existing code ...
+    
+    if (success) {
+        window.utils.showNotification(message.trim(), '☁️', errors > 0, saved + updated > 0);
+        
+        // Trigger sync
+        this.syncAfterSave();
+    }
+}
     
     // ============ FORM MANAGEMENT ============
     

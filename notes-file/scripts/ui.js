@@ -467,7 +467,11 @@ class UIManager {
         this.updateBookmarkButton(topic);
     }
     
-    isBookmarked(topic) {
+    async isBookmarked(topic) {
+        if (window.databaseManager) {
+        await window.databaseManager.updateUserCounts();
+        await window.uiManager.loadProfileData(); // Refresh UI
+    }
         return this.bookmarks.includes(topic);
     }
     
@@ -612,21 +616,49 @@ class UIManager {
         });
     }
     
-    // Profile management
-    async loadProfileData() {
-        if (!window.databaseManager || !window.databaseManager.currentUserId) {
+   // In ui.js, update the loadProfileData method
+// In ui.js - Update the loadProfileData method
+async loadProfileData() {
+    if (!window.databaseManager) {
+        console.warn('Database manager not available');
+        return;
+    }
+    
+    try {
+        const userData = await window.databaseManager.getUserData();
+        if (!userData) {
+            console.warn('No user data available');
             return;
         }
         
-        const userData = await window.databaseManager.getUserData();
-        if (userData) {
-            document.getElementById('profileName').textContent = userData.displayName || 'User';
-            document.getElementById('profileEmail').textContent = userData.email || 'user@example.com';
-            document.getElementById('bookmarksCount').textContent = userData.bookmarksCount || 0;
-            document.getElementById('historyCount').textContent = userData.historyCount || 0;
-            document.getElementById('createdCount').textContent = userData.notesCount || 0;
+        console.log('Loading profile data:', userData);
+        
+        // Update all profile elements
+        this.updateElementText('profileName', userData.displayName || 'User');
+        this.updateElementText('profileEmail', userData.email || 'user@example.com');
+        this.updateElementText('bookmarksCount', userData.bookmarksCount || 0);
+        this.updateElementText('historyCount', userData.historyCount || 0);
+        this.updateElementText('createdCount', userData.notesCount || 0);
+        
+        // Update avatar
+        const avatar = document.getElementById('profileAvatar');
+        if (avatar && userData.displayName) {
+            avatar.textContent = userData.displayName.charAt(0).toUpperCase();
         }
+        
+    } catch (error) {
+        console.error('Error loading profile data:', error);
     }
+}
+
+updateElementText(elementId, text) {
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.textContent = text;
+    } else {
+        console.warn(`Element ${elementId} not found`);
+    }
+}
     
     // State management
     saveState() {
@@ -745,6 +777,63 @@ loadSavedDictionary() {
         
         console.log('UIManager: Lessons updated successfully');
     }
+
+    // Add this method to your UIManager class
+async syncWithCloud() {
+    if (!window.syncManager) {
+        console.error('Sync manager not available');
+        return false;
+    }
+    
+    if (!window.authManager || !window.authManager.isAuthenticated()) {
+        alert('Please log in to sync with cloud');
+        return false;
+    }
+    
+    try {
+        const result = await window.syncManager.forceSync();
+        
+        if (result.success) {
+            // Update UI with merged data
+            if (result.stats) {
+                console.log('Sync stats:', result.stats);
+                // You could show more detailed info here
+            }
+        }
+        
+        return result.success;
+    } catch (error) {
+        console.error('Sync error:', error);
+        window.utils.showNotification('Sync error: ' + error.message, '❌', true);
+        return false;
+    }
+}
+
+// Update the loadInitialData method to use sync
+async loadInitialData() {
+    console.log('UIManager: Loading initial data...');
+    
+    if (window.authManager && window.authManager.isAuthenticated()) {
+        console.log('UIManager: User authenticated, checking for sync');
+        
+        // Check if we should sync
+        const lastSync = localStorage.getItem('lastDictionarySync');
+        const now = new Date();
+        const shouldSync = !lastSync || (now - new Date(lastSync)) > (5 * 60 * 1000); // 5 minutes
+        
+        if (shouldSync && window.syncManager) {
+            console.log('UIManager: Syncing data...');
+            await window.syncManager.sync();
+        } else if (window.cloudDataManager) {
+            console.log('UIManager: Loading from cloud data manager');
+            await window.cloudDataManager.loadData();
+        }
+    } else {
+        console.log('UIManager: User not authenticated, loading local data');
+        this.loadLocalData();
+    }
+}
+
 }
 
 // Initialize UI Manager

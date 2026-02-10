@@ -423,6 +423,32 @@ async initializeAppAfterLogin(user) {
    
 }
 
+// In auth.js, add this method to AuthManager class
+async changePassword(currentPassword, newPassword) {
+    const user = this.auth.currentUser;
+    if (!user) {
+        throw new Error('No user logged in');
+    }
+    
+    try {
+        // Re-authenticate user
+        const credential = firebase.auth.EmailAuthProvider.credential(
+            user.email,
+            currentPassword
+        );
+        
+        await user.reauthenticateWithCredential(credential);
+        
+        // Update password
+        await user.updatePassword(newPassword);
+        
+        return true;
+    } catch (error) {
+        console.error('Error changing password:', error);
+        throw error;
+    }
+}
+
 clearPreviousUserData(currentUserId) {
     // Get last user ID from localStorage
     const lastUserId = localStorage.getItem('lastUserId');

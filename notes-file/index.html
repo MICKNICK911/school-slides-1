@@ -249,35 +249,76 @@
                 <h2>👤 Profile</h2>
                 <div class="close-profile" id="closeProfile">❌</div>
             </div>
-            <div class="profile-content">
-                <div class="profile-info">
-                    <div class="profile-avatar">
-                        <span id="profileAvatar">👤</span>
-                    </div>
-                    <h3 id="profileName">User Name</h3>
-                    <p id="profileEmail">user@example.com</p>
-                    <div class="profile-stats">
-                        <div class="stat-item">
-                            <span class="stat-number" id="bookmarksCount">0</span>
-                            <span class="stat-label">Bookmarks</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-number" id="historyCount">0</span>
-                            <span class="stat-label">History</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-number" id="createdCount">0</span>
-                            <span class="stat-label">Created</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="profile-actions">
-                    <button class="profile-btn" id="changeAvatar">Change Avatar</button>
-                    <button class="profile-btn" id="changePassword">Change Password</button>
-                    <button class="profile-btn" id="exportData">Export My Data</button>
-                    <button class="profile-btn logout-btn" id="logoutBtn">Log Out</button>
-                </div>
+            <!-- Update the profile-content section -->
+<div class="profile-content">
+    <div class="profile-info">
+        <div class="profile-avatar">
+            <span id="profileAvatar">👤</span>
+        </div>
+        <h3 id="profileName">User Name</h3>
+        <p id="profileEmail">user@example.com</p>
+        <div class="profile-stats">
+            <div class="stat-item">
+                <span class="stat-number" id="bookmarksCount">0</span>
+                <span class="stat-label">Bookmarks</span>
             </div>
+            <div class="stat-item">
+                <span class="stat-number" id="historyCount">0</span>
+                <span class="stat-label">History</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number" id="createdCount">0</span>
+                <span class="stat-label">Created</span>
+            </div>
+        </div>
+    </div>
+    <div class="profile-actions">
+        <!-- Only keep Change Password and Log Out -->
+        <button class="profile-btn" id="changePasswordBtn">Change Password</button>
+        <button class="profile-btn logout-btn" id="logoutBtn">Log Out</button>
+    </div>
+</div>
+
+<!-- Add Change Password Modal -->
+<div class="change-password-modal" id="changePasswordModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>🔐 Change Password</h2>
+            <div class="close-modal" id="closePasswordModal">✕</div>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label for="currentPassword">Current Password:</label>
+                <input type="password" id="currentPassword" placeholder="Enter current password">
+            </div>
+            <div class="form-group">
+                <label for="newPassword">New Password:</label>
+                <input type="password" id="newPassword" placeholder="Enter new password (min. 6 characters)">
+            </div>
+            <div class="form-group">
+                <label for="confirmPassword">Confirm New Password:</label>
+                <input type="password" id="confirmPassword" placeholder="Confirm new password">
+            </div>
+            <div class="password-strength" id="passwordStrength">
+                <div class="strength-bar"></div>
+                <span class="strength-text">Password strength: None</span>
+            </div>
+            <div class="password-rules">
+                <p>Password must contain:</p>
+                <ul>
+                    <li id="ruleLength">At least 6 characters</li>
+                    <li id="ruleLetter">At least one letter</li>
+                    <li id="ruleNumber">At least one number</li>
+                </ul>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-primary" id="submitPasswordChange">Change Password</button>
+                <button class="btn-secondary" id="cancelPasswordChange">Cancel</button>
+            </div>
+            <div class="password-message" id="passwordMessage"></div>
+        </div>
+    </div>
+</div>
         </div>
         
         <!-- Instructions Modal -->
@@ -409,6 +450,8 @@
     <script src="scripts/builder.js"></script>
     <script src="scripts/app.js"></script>
     <script src="scripts/fix.js"></script>
+    <!-- Add this before closing body tag -->
+<script src="scripts/change-password.js"></script>
     <!-- Add this to your HTML file after other script tags -->
 <script src="scripts/cloud-data-manager.js"></script>
 <!-- Add this to your HTML file -->
