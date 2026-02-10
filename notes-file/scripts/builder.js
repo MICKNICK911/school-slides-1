@@ -1,7 +1,21 @@
 class BuilderManager {
     constructor() {
-        // DOM Elements
+        // DOM Elements - use safe accessors
         this.builderContainer = document.getElementById('builderContainer');
+        this.exportToggle = document.getElementById('exportToggle');
+        this.appContainer = document.getElementById('appContainer');
+        
+        // Initialize only if elements exist
+        if (this.exportToggle && this.builderContainer) {
+            this.initElements();
+            this.init();
+        } else {
+            console.warn('Builder elements not found - builder features disabled');
+        }
+    }
+    
+    initElements() {
+        // Initialize other DOM elements
         this.builderCancel = document.getElementById('builderCancel');
         this.builderExport = document.getElementById('builderExport');
         this.builderSave = document.getElementById('builderSave');
@@ -12,55 +26,89 @@ class BuilderManager {
         this.builderPreview = document.getElementById('builderPreview');
         this.builderEntryCount = document.getElementById('builderEntryCount');
         this.previewClear = document.getElementById('previewClear');
-        this.exportToggle = document.getElementById('exportToggle');
-        this.appContainer = document.getElementById('appContainer');
-        
-        // State
-        this.builderDictionary = {};
-        
-        this.init();
     }
     
     init() {
-        // Event listeners
-        this.exportToggle.addEventListener('click', () => this.openBuilder());
-        this.builderCancel.addEventListener('click', () => this.closeBuilder());
-        this.builderExport.addEventListener('click', () => this.exportBuilderDictionary());
-        this.builderSave.addEventListener('click', () => this.saveToCloud());
-        this.builderAdd.addEventListener('click', () => this.addBuilderEntry());
-        this.previewClear.addEventListener('click', () => this.clearBuilderPreview());
+        // Event listeners with safety checks
+        if (this.exportToggle) {
+            this.exportToggle.addEventListener('click', () => this.openBuilder());
+        }
+        
+        if (this.builderCancel) {
+            this.builderCancel.addEventListener('click', () => this.closeBuilder());
+        }
+        
+        if (this.builderExport) {
+            this.builderExport.addEventListener('click', () => this.exportBuilderDictionary());
+        }
+        
+        if (this.builderSave) {
+            this.builderSave.addEventListener('click', () => this.saveToCloud());
+        }
+        
+        if (this.builderAdd) {
+            this.builderAdd.addEventListener('click', () => this.addBuilderEntry());
+        }
+        
+        if (this.previewClear) {
+            this.previewClear.addEventListener('click', () => this.clearBuilderPreview());
+        }
         
         // Enter key support
-        this.builderTopic.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') this.addBuilderEntry();
-        });
-        this.builderDesc.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && e.ctrlKey) this.addBuilderEntry();
-        });
-        this.builderEx.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') this.addBuilderEntry();
-        });
+        if (this.builderTopic) {
+            this.builderTopic.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') this.addBuilderEntry();
+            });
+        }
+        
+        if (this.builderDesc) {
+            this.builderDesc.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && e.ctrlKey) this.addBuilderEntry();
+            });
+        }
+        
+        if (this.builderEx) {
+            this.builderEx.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') this.addBuilderEntry();
+            });
+        }
     }
     
     openBuilder() {
+        if (!this.appContainer || !this.builderContainer) return;
+        
         this.appContainer.style.display = 'none';
         this.builderContainer.classList.add('active');
-        this.builderTopic.focus();
+        document.body.style.overflow = 'hidden';
+        
+        if (this.builderTopic) {
+            setTimeout(() => this.builderTopic.focus(), 100);
+        }
     }
     
     closeBuilder() {
+        if (!this.appContainer || !this.builderContainer) return;
+        
         this.builderContainer.classList.remove('active');
         this.appContainer.style.display = 'block';
+        document.body.style.overflow = 'auto';
         this.clearBuilderForm();
+        
+        // Show home screen
+        if (window.uiManager) {
+            setTimeout(() => window.uiManager.showHomeScreen(), 50);
+        }
     }
     
     clearBuilderForm() {
-        this.builderTopic.value = '';
-        this.builderDesc.value = '';
-        this.builderEx.value = '';
+        if (this.builderTopic) this.builderTopic.value = '';
+        if (this.builderDesc) this.builderDesc.value = '';
+        if (this.builderEx) this.builderEx.value = '';
     }
     
     addBuilderEntry() {
+        if (!this.builderTopic || !this.builderDesc || !this.builderEx) return;
+        
         const topic = this.builderTopic.value.trim();
         const desc = this.builderDesc.value.trim();
         const ex = this.builderEx.value.trim();
@@ -70,10 +118,13 @@ class BuilderManager {
             return;
         }
         
+        // Initialize dictionary if needed
+        this.builderDictionary = this.builderDictionary || {};
+        
         // Create or update topic
         this.builderDictionary[topic] = {
             desc: desc,
-            ex: ex.split(',').map(item => item.trim())
+            ex: ex.split(',').map(item => item.trim()).filter(item => item.length > 0)
         };
         
         // Update preview
@@ -83,27 +134,36 @@ class BuilderManager {
         this.clearBuilderForm();
         
         // Focus back to topic input
-        this.builderTopic.focus();
+        if (this.builderTopic) {
+            setTimeout(() => this.builderTopic.focus(), 50);
+        }
     }
     
     updateBuilderPreview() {
-        if (Object.keys(this.builderDictionary).length === 0) {
+        if (!this.builderPreview || !this.builderEntryCount) return;
+        
+        if (!this.builderDictionary || Object.keys(this.builderDictionary).length === 0) {
             this.builderPreview.textContent = 'No entries yet';
         } else {
             this.builderPreview.textContent = JSON.stringify(this.builderDictionary, null, 2);
         }
-        this.builderEntryCount.textContent = `${Object.keys(this.builderDictionary).length} entries`;
+        this.builderEntryCount.textContent = `${Object.keys(this.builderDictionary || {}).length} entries`;
     }
     
     clearBuilderPreview() {
-        if (Object.keys(this.builderDictionary).length > 0 && confirm('Are you sure you want to clear all entries?')) {
+        if (!this.builderDictionary || Object.keys(this.builderDictionary).length === 0) {
+            return;
+        }
+        
+        if (confirm('Are you sure you want to clear all entries?')) {
             this.builderDictionary = {};
             this.updateBuilderPreview();
+            window.utils.showNotification('All entries cleared', '🗑️', false, false);
         }
     }
     
     exportBuilderDictionary() {
-        if (Object.keys(this.builderDictionary).length === 0) {
+        if (!this.builderDictionary || Object.keys(this.builderDictionary).length === 0) {
             alert('No entries to export');
             return;
         }
@@ -112,12 +172,16 @@ class BuilderManager {
         const dateStr = now.toISOString().split('T')[0];
         const filename = `E_Notes_${dateStr}.json`;
         
-        window.utils.downloadJSON(this.builderDictionary, filename);
-        window.utils.showNotification(`Notes exported as ${filename}`, '📤', false, true);
+        if (window.utils && window.utils.downloadJSON) {
+            window.utils.downloadJSON(this.builderDictionary, filename);
+            window.utils.showNotification(`Notes exported as ${filename}`, '📤', false, true);
+        } else {
+            alert('Export functionality not available');
+        }
     }
     
     async saveToCloud() {
-        if (Object.keys(this.builderDictionary).length === 0) {
+        if (!this.builderDictionary || Object.keys(this.builderDictionary).length === 0) {
             alert('No entries to save');
             return;
         }
@@ -154,7 +218,11 @@ class BuilderManager {
                 message += `Failed to save ${errorCount} note(s).`;
             }
             
-            window.utils.showNotification(message, '☁️', errorCount > 0, successCount > 0);
+            if (window.utils) {
+                window.utils.showNotification(message, '☁️', errorCount > 0, successCount > 0);
+            } else {
+                alert(message);
+            }
             
             // Clear builder if all saved successfully
             if (errorCount === 0) {
@@ -164,25 +232,22 @@ class BuilderManager {
             }
         } catch (error) {
             console.error('Error saving to cloud:', error);
-            window.utils.showNotification('Error saving to cloud', '❌', true);
+            if (window.utils) {
+                window.utils.showNotification('Error saving to cloud', '❌', true);
+            } else {
+                alert('Error saving to cloud: ' + error.message);
+            }
         }
-    }
-    
-    // Load dictionary into builder
-    loadDictionary(dictionary) {
-        this.builderDictionary = { ...dictionary };
-        this.updateBuilderPreview();
-    }
-    
-    // Get current builder dictionary
-    getDictionary() {
-        return this.builderDictionary;
     }
 }
 
-// Initialize Builder Manager
+// Initialize with error handling
 let builderManager;
 document.addEventListener('DOMContentLoaded', () => {
-    builderManager = new BuilderManager();
-    window.builderManager = builderManager;
+    try {
+        builderManager = new BuilderManager();
+        window.builderManager = builderManager;
+    } catch (error) {
+        console.error('Error initializing BuilderManager:', error);
+    }
 });
