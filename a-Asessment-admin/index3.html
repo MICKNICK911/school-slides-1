@@ -190,7 +190,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
-    <!-- ========== APPLICATION CODE (FULL, WITH ROUNDING ON EVERY CELL) ========== -->
+    <!-- ========== APPLICATION CODE (FULLY UPDATED) ========== -->
     <script>
         (function() {
             // ==================== CONFIG ====================
@@ -241,34 +241,33 @@
                 SYNC_ERROR: 'Sync failed. Will retry automatically.'
             };
 
-            // ==================== UTILS (UPDATED: ROUND TO NEAREST WHOLE) ====================
+            // ==================== UTILS ====================
             function generateId() {
                 return Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
             }
-            // Parse input, round to nearest whole, clamp between 0 and maxMark
             function parseMarkInput(input, maxMark) {
                 if (!input && input !== 0) return 0;
                 const str = String(input).trim();
-                let raw;
                 if (str.includes('/')) {
                     const parts = str.split('/');
                     if (parts.length === 2) {
                         const num = parseFloat(parts[0]), den = parseFloat(parts[1]);
                         if (!isNaN(num) && !isNaN(den) && den !== 0) {
-                            raw = (num / den) * maxMark;
-                        } else raw = NaN;
-                    } else raw = NaN;
-                } else if (str.includes('%')) {
-                    const p = parseFloat(str);
-                    raw = !isNaN(p) ? (p / 100) * maxMark : NaN;
-                } else {
-                    const num = parseFloat(str);
-                    raw = !isNaN(num) ? num : NaN;
+                            const percent = num / den;
+                            // keep as float (will be rounded later in totals)
+                            return Math.min(Math.max(percent * maxMark, 0), maxMark);
+                        }
+                    }
                 }
-                if (isNaN(raw)) return 0;
-                // round to nearest integer, then clamp
-                const rounded = Math.round(raw);
-                return Math.min(Math.max(rounded, 0), maxMark);
+                if (str.includes('%')) {
+                    const p = parseFloat(str);
+                    if (!isNaN(p)) {
+                        return Math.min(Math.max((p / 100) * maxMark, 0), maxMark);
+                    }
+                }
+                const num = parseFloat(str);
+                if (!isNaN(num)) return Math.min(Math.max(num, 0), maxMark);
+                return 0;
             }
             function getRemarks(score, maxScore = 100) {
                 const p = (score / maxScore) * 100;
@@ -627,7 +626,7 @@
                     const title = document.createElement('div'); title.className = 'table-title'; title.setAttribute('contenteditable','true'); title.textContent = t.name;
                     title.addEventListener('blur', e => { if (window.app) window.app.updateTableName(t.id, e.target.textContent); });
                     const acts = document.createElement('div'); acts.className = 'table-actions';
-                    // Reset button (↻)
+                    // Added Reset button (↻)
                     acts.appendChild(this.createActionButton('↻','Reset all marks','btn-warning', () => window.app.resetTable(t.id)));
                     acts.appendChild(this.createActionButton('🖨️','Print','btn-info', () => window.app.printTable(t.id)));
                     acts.appendChild(this.createActionButton('📝','Clone Names','btn-secondary', () => window.app.createTableFromNames(t.id)));
@@ -822,7 +821,7 @@
                 }
                 renderHelpContent() {
                     document.getElementById('helpContainer').innerHTML = `
-                        <div class="help-section"><h3><i class="fas fa-rocket"></i> Getting Started</h3><p>Create tables, add students, enter marks. Use datasets for organization.</p><ul><li>Marks: fractions (45/50), percentages (90%), numbers – all rounded to nearest whole.</li><li>CAT columns customizable.</li><li>Statistics & reports.</li><li>Sign in to sync.</li></ul></div>
+                        <div class="help-section"><h3><i class="fas fa-rocket"></i> Getting Started</h3><p>Create tables, add students, enter marks. Use datasets for organization.</p><ul><li>Marks: fractions (45/50), percentages (90%), numbers.</li><li>CAT columns customizable.</li><li>Statistics & reports.</li><li>Sign in to sync.</li></ul></div>
                         <div class="help-section"><h3><i class="fas fa-keyboard"></i> Shortcuts</h3><p>Ctrl+S: manual save, Escape: close modal, Enter: confirm cell edit.</p></div>
                     `;
                 }
@@ -835,7 +834,7 @@
             }
             const ui = new UIManager();
 
-            // ==================== MAIN APP (UPDATED ROUNDING LOGIC) ====================
+            // ==================== MAIN APP ====================
             class App {
                 constructor() {
                     this.datasets = [];
@@ -889,7 +888,6 @@
                     this.updateUI(); this.saveCurrentState();
                 }
                 getCurrentDataset() { return this.datasets.find(d => d.id === this.currentDatasetId); }
-                // ✅ Ensure all marks are rounded integers
                 validateAllDatasets() {
                     this.datasets.forEach(ds => {
                         if (!ds.tables) ds.tables = [];
@@ -899,27 +897,23 @@
                             if (!t.students) t.students = [];
                             t.students.forEach(s => {
                                 if (!s.catMarks) s.catMarks = {};
-                                // Round each CAT mark to nearest integer, clamp to max
-                                t.catColumns.forEach(c => {
-                                    let val = s.catMarks[c.id];
-                                    if (typeof val !== 'number') val = 0;
-                                    const rounded = Math.round(val);
-                                    s.catMarks[c.id] = Math.min(Math.max(rounded, 0), c.maxScore);
-                                });
-                                // Round exam
+                                t.catColumns.forEach(c => { if (typeof s.catMarks[c.id] !== 'number') s.catMarks[c.id] = 0; });
                                 if (typeof s.exam !== 'number') s.exam = 0;
-                                s.exam = Math.min(Math.max(Math.round(s.exam), 0), 50);
                                 this.recalculateStudentTotals(t, s);
                             });
                             this.updatePositions(t.id);
                         });
                     });
                 }
-                // 🔁 ROUNDING APPLIED: catTotal is sum of already rounded marks, still capped at 50
+                // 🔁 ROUNDING TO NEAREST WHOLE NUMBER
                 recalculateStudentTotals(t, s) {
+                    // sum cat marks (which may be decimals) then round
                     let rawCatTotal = t.catColumns.reduce((sum, c) => sum + (s.catMarks[c.id] || 0), 0);
-                    s.catTotal = Math.min(50, rawCatTotal); // already integer
-                    s.total = s.catTotal + s.exam; // both integers
+                    s.catTotal = Math.min(50, Math.round(rawCatTotal));
+                    // exam is already rounded on input? but we round again for safety
+                    let examRounded = Math.round(s.exam || 0);
+                    s.exam = examRounded; // store rounded exam
+                    s.total = Math.min(100, s.catTotal + examRounded);
                 }
                 updatePositions(tid) {
                     const t = this.findTable(tid); if (!t) return;
@@ -958,10 +952,9 @@
                         this.updateUI(); this.saveCurrentState();
                     }
                 }
-                // These receive already rounded integers from parseMarkInput
                 updateStudentCatMark(tid, idx, cid, val) {
                     const t = this.findTable(tid); if (t && t.students[idx]) {
-                        t.students[idx].catMarks[cid] = val; // val is integer 0..max
+                        t.students[idx].catMarks[cid] = val; // val is already float from parseMarkInput
                         this.recalculateStudentTotals(t, t.students[idx]);
                         this.updatePositions(tid);
                         this.updateUI(); this.saveCurrentState();
@@ -969,7 +962,7 @@
                 }
                 updateStudentMark(tid, idx, type, val) {
                     const t = this.findTable(tid); if (t && t.students[idx]) {
-                        t.students[idx][type] = val; // val is integer 0..50
+                        t.students[idx][type] = val;
                         this.recalculateStudentTotals(t, t.students[idx]);
                         this.updatePositions(tid);
                         this.updateUI(); this.saveCurrentState();
@@ -997,11 +990,12 @@
                         this.updateUI(); this.saveCurrentState();
                     }
                 }
-                // Reset table (all marks to zero)
+                // 🔄 NEW: Reset table (all marks to zero)
                 resetTable(tid) {
                     if (!confirm('Reset all marks in this table to 0? Student names will remain.')) return;
                     const t = this.findTable(tid); if (!t) return;
                     t.students.forEach(s => {
+                        // reset cat marks
                         t.catColumns.forEach(c => s.catMarks[c.id] = 0);
                         s.exam = 0;
                         this.recalculateStudentTotals(t, s);
@@ -1095,19 +1089,11 @@
                                 const newId = `table-${cur.tableCounter++}`;
                                 const cats = tbl.catColumns?.length>0 ? tbl.catColumns.map(c=>({...c})) : deepClone(defaultCatColumns);
                                 const students = tbl.students.map(s => {
-                                    const marks = {}; 
-                                    cats.forEach(c => {
-                                        // round and clamp imported marks
-                                        let raw = (s.catMarks && s.catMarks[c.id]) ? parseFloat(s.catMarks[c.id]) : 0;
-                                        if (isNaN(raw)) raw = 0;
-                                        marks[c.id] = Math.min(Math.max(Math.round(raw), 0), c.maxScore);
-                                    });
-                                    let examRaw = (typeof s.exam === 'number') ? s.exam : (parseFloat(s.exam)||0);
-                                    if (isNaN(examRaw)) examRaw = 0;
-                                    const exam = Math.min(Math.max(Math.round(examRaw), 0), 50);
+                                    const marks = {}; cats.forEach(c => marks[c.id] = 0);
+                                    if (s.catMarks) Object.entries(s.catMarks).forEach(([k,v]) => { if (marks.hasOwnProperty(k)) marks[k] = parseFloat(v)||0; });
                                     return {
                                         name: s.name || 'Unnamed',
-                                        exam: exam,
+                                        exam: typeof s.exam === 'number' ? s.exam : (parseFloat(s.exam)||0),
                                         catMarks: marks,
                                         catTotal:0, total:0, position:0
                                     };
