@@ -176,7 +176,51 @@ export class UIManager {
     }
 
     showEmptyState() {
-        this.emptyState.style.display = 'block';
+        const container = document.getElementById('tablesContainer');
+        if (!container) {
+            console.warn('tablesContainer not found – cannot show empty state');
+            return;
+        }
+
+        // Remove any children that are not the empty state itself
+        Array.from(container.children).forEach(child => {
+            if (child.id !== 'emptyState') {
+                child.remove();
+            }
+        });
+
+        // Try to get existing empty state
+        let emptyState = document.getElementById('emptyState');
+        
+        // If still missing, create it
+        if (!emptyState) {
+            emptyState = document.createElement('div');
+            emptyState.className = 'empty-state';
+            emptyState.id = 'emptyState';
+            emptyState.innerHTML = `
+                <i class="fas fa-database" style="font-size: 48px; color: var(--gray); margin-bottom: 20px;"></i>
+                <p>No tables created yet. Click "Add New Table" to get started.</p>
+                <button id="initialAddTable" class="btn-primary">
+                    <i class="fas fa-plus-circle"></i> Create First Table
+                </button>
+            `;
+            container.appendChild(emptyState);
+
+            // Attach event listener to the new button
+            document.getElementById('initialAddTable').addEventListener('click', () => {
+                if (window.app) window.app.addNewTable();
+            });
+        }
+
+        // Now emptyState definitely exists – show it
+        emptyState.style.display = 'block';
+    }
+
+    hideEmptyState() {
+        const emptyState = document.getElementById('emptyState');
+        if (emptyState) {
+            emptyState.style.display = 'none';
+        }
     }
 
     hideEmptyState() {

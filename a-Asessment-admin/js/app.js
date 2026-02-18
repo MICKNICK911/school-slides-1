@@ -1,28 +1,19 @@
-// Main Application Class
 class App {
     constructor() {
         this.datasets = [];
         this.currentDatasetId = null;
         this.initialized = false;
-        
-        // Bind methods
         this.init = this.init.bind(this);
         this.handleAuthChange = this.handleAuthChange.bind(this);
     }
 
-    // Initialize application
     async init() {
         if (this.initialized) return;
-        
         try {
-            // Add auth listener
             auth.addListener(this.handleAuthChange);
-            
-            // Check if user is already authenticated
             if (auth.isAuthenticated()) {
                 await this.handleAuthChange(auth.getCurrentUser());
             }
-            
             this.initialized = true;
             console.log('App initialized');
         } catch (error) {
@@ -31,52 +22,34 @@ class App {
         }
     }
 
-    // Handle authentication change
     async handleAuthChange(user) {
         if (user) {
-            // User signed in
             try {
-                // Try to load from Firebase first
                 const cloudData = await database.loadFromFirebase();
-                
                 if (cloudData) {
-                    // Use cloud data
                     this.loadFromCloud(cloudData);
                 } else {
-                    // No cloud data, try local storage
                     const localData = database.loadFromLocalStorage();
-                    
                     if (localData) {
-                        // Upload local data to cloud
                         this.loadFromCloud(localData);
                         await database.saveToFirebase(localData);
                     } else {
-                        // No data anywhere, create default
                         this.createDefaultDataset();
                     }
                 }
             } catch (error) {
                 console.error('Auth sync error:', error);
-                // Fallback to local storage
                 const localData = database.loadFromLocalStorage();
-                if (localData) {
-                    this.loadFromCloud(localData);
-                } else {
-                    this.createDefaultDataset();
-                }
+                if (localData) this.loadFromCloud(localData);
+                else this.createDefaultDataset();
             }
         } else {
-            // User signed out, use local storage only
             const localData = database.loadFromLocalStorage();
-            if (localData) {
-                this.loadFromCloud(localData);
-            } else {
-                this.createDefaultDataset();
-            }
+            if (localData) this.loadFromCloud(localData);
+            else this.createDefaultDataset();
         }
     }
 
-    // Load data from cloud/local
     loadFromCloud(data) {
         if (data.resultDatasets) {
             this.datasets = data.resultDatasets;
@@ -85,77 +58,100 @@ class App {
             this.datasets = [data];
             this.currentDatasetId = data.id;
         }
-        
-        this.validateAllDatasets();
+        // Force complete revalidation of all datasets
+        this.validateAllDatasets(true);
         this.updateUI();
     }
 
-    // Create default dataset
     createDefaultDataset() {
         const datasetId = generateId();
-        const dataset = {
-            id: datasetId,
-            name: 'My Dataset',
-            tables: [],
-            tableCounter: 1
+        const dataset = { 
+            id: datasetId, 
+            name: 'My Dataset', 
+            tables: [], 
+            tableCounter: 1 
         };
-        
         this.datasets = [dataset];
         this.currentDatasetId = datasetId;
         this.updateUI();
         this.saveCurrentState();
     }
 
-    // Get current dataset
     getCurrentDataset() {
         return this.datasets.find(d => d.id === this.currentDatasetId);
     }
 
-    // Get current tables
     getCurrentTables() {
         const dataset = this.getCurrentDataset();
         return dataset ? dataset.tables : [];
     }
 
-    // Validate all datasets
-    validateAllDatasets() {
+    // ========== COMPLETELY FIXED VALIDATION ==========
+    validateAllDatasets(forceRebuild = false) {
         this.datasets.forEach(dataset => {
             if (!dataset.tables) dataset.tables = [];
             if (!dataset.tableCounter) dataset.tableCounter = 1;
             
             dataset.tables.forEach(table => {
-                if (!table.catColumns) table.catColumns = deepClone(defaultCatColumns);
+                // Ensure catColumns exist
+                if (!table.catColumns || table.catColumns.length === 0) {
+                    table.catColumns = deepClone(defaultCatColumns);
+                }
+                
+                // Ensure students exist
                 if (!table.students) table.students = [];
                 
+                // Process each student
                 table.students.forEach(student => {
-                    if (!student.catMarks) {
-                        student.catMarks = {};
-                        table.catColumns.forEach(cat => {
-                            student.catMarks[cat.id] = 0;
-                        });
+                    // Ensure catMarks exists
+                    if (!student.catMarks) student.catMarks = {};
+                    
+                    // CRITICAL: For EVERY cat column, ensure a number exists in catMarks
+                    table.catColumns.forEach(cat => {
+                        if (typeof student.catMarks[cat.id] !== 'number') {
+                            // If the mark exists but is not a number, try to parse it
+                            if (student.catMarks[cat.id] !== undefined) {
+                                const parsed = parseFloat(student.catMarks[cat.id]);
+                                student.catMarks[cat.id] = isNaN(parsed) ? 0 : parsed;
+                            } else {
+                                student.catMarks[cat.id] = 0;
+                            }
+                        }
+                    });
+                    
+                    // Ensure exam is a number
+                    if (typeof student.exam !== 'number') {
+                        student.exam = parseFloat(student.exam) || 0;
                     }
+                    
+                    // Recalculate totals
                     this.recalculateStudentTotals(table, student);
                 });
+                
+                // Update positions for this table
                 this.updatePositions(table.id);
             });
         });
     }
 
-    // Recalculate student totals
     recalculateStudentTotals(table, student) {
+        // Calculate CAT total from all cat columns
         student.catTotal = table.catColumns.reduce((sum, cat) => {
             return sum + (student.catMarks[cat.id] || 0);
         }, 0);
         
+        // Cap CAT total at 50
         student.catTotal = Math.min(student.catTotal, 50);
+        
+        // Calculate overall total
         student.total = student.catTotal + (student.exam || 0);
     }
 
-    // Update positions
     updatePositions(tableId) {
         const table = this.findTable(tableId);
         if (!table) return;
         
+        // Sort students by total marks (descending)
         const sorted = [...table.students].sort((a, b) => b.total - a.total);
         
         let position = 1;
@@ -172,7 +168,6 @@ class App {
         });
     }
 
-    // Find table by ID
     findTable(tableId) {
         for (const dataset of this.datasets) {
             const table = dataset.tables.find(t => t.id === tableId);
@@ -181,12 +176,10 @@ class App {
         return null;
     }
 
-    // Find dataset containing table
     findDatasetByTable(tableId) {
         return this.datasets.find(d => d.tables.some(t => t.id === tableId));
     }
 
-    // Add new table
     addNewTable() {
         const dataset = this.getCurrentDataset();
         if (!dataset) return;
@@ -216,7 +209,6 @@ class App {
         this.saveCurrentState();
     }
 
-    // Create table from names
     createTableFromNames(sourceTableId) {
         const sourceTable = this.findTable(sourceTableId);
         if (!sourceTable) return;
@@ -249,7 +241,6 @@ class App {
         this.saveCurrentState();
     }
 
-    // Update table name
     updateTableName(tableId, newName) {
         const table = this.findTable(tableId);
         if (table) {
@@ -258,7 +249,6 @@ class App {
         }
     }
 
-    // Update student name
     updateStudentName(tableId, index, newName) {
         const table = this.findTable(tableId);
         if (table && table.students[index]) {
@@ -268,7 +258,6 @@ class App {
         }
     }
 
-    // Update student CAT mark
     updateStudentCatMark(tableId, index, catId, value) {
         const table = this.findTable(tableId);
         if (table && table.students[index]) {
@@ -280,7 +269,6 @@ class App {
         }
     }
 
-    // Update student mark
     updateStudentMark(tableId, index, markType, value) {
         const table = this.findTable(tableId);
         if (table && table.students[index]) {
@@ -292,7 +280,6 @@ class App {
         }
     }
 
-    // Add student
     addStudent(tableId) {
         const table = this.findTable(tableId);
         if (!table) return;
@@ -314,7 +301,6 @@ class App {
         this.saveCurrentState();
     }
 
-    // Delete student
     deleteStudent(tableId, index) {
         if (!confirm('Delete this student?')) return;
         
@@ -327,7 +313,6 @@ class App {
         }
     }
 
-    // Delete table
     deleteTable(tableId) {
         if (!confirm('Delete this table?')) return;
         
@@ -339,7 +324,6 @@ class App {
         }
     }
 
-    // Add CAT column
     addCatColumn(tableId, name, maxScore) {
         if (!name || !maxScore || maxScore <= 0) {
             showToast('warning', 'Invalid Input', 'Please enter valid name and max score');
@@ -363,7 +347,6 @@ class App {
         this.saveCurrentState();
     }
 
-    // Edit CAT column
     editCatColumn(tableId, index) {
         const table = this.findTable(tableId);
         if (!table || !table.catColumns[index]) return;
@@ -382,13 +365,19 @@ class App {
         cat.name = newName;
         cat.maxScore = newMax;
         
+        // If max score changed, cap existing marks
+        table.students.forEach(student => {
+            if (student.catMarks[cat.id] > newMax) {
+                student.catMarks[cat.id] = newMax;
+            }
+        });
+        
         table.students.forEach(s => this.recalculateStudentTotals(table, s));
         this.updatePositions(tableId);
         this.updateUI();
         this.saveCurrentState();
     }
 
-    // Delete CAT column
     deleteCatColumn(tableId, index) {
         const table = this.findTable(tableId);
         if (!table || !table.catColumns[index]) return;
@@ -409,7 +398,6 @@ class App {
         this.saveCurrentState();
     }
 
-    // Switch dataset
     switchDataset(datasetId) {
         this.currentDatasetId = datasetId;
         this.updateUI();
@@ -417,7 +405,6 @@ class App {
         document.getElementById('bulkListModal').style.display = 'none';
     }
 
-    // Delete dataset
     deleteDataset(datasetId) {
         if (this.datasets.length <= 1) {
             showToast('warning', 'Cannot Delete', 'You must keep at least one dataset');
@@ -438,11 +425,11 @@ class App {
         this.updateUI();
         this.saveCurrentState();
         
-        // Update bulk list if open
-        ui.renderBulkList(this.datasets, this.currentDatasetId);
+        if (document.getElementById('bulkListModal').style.display === 'flex') {
+            ui.renderBulkList(this.datasets, this.currentDatasetId);
+        }
     }
 
-    // Create new dataset
     createNewDataset() {
         const name = prompt('Enter dataset name:', `Dataset ${this.datasets.length + 1}`);
         if (!name) return;
@@ -462,11 +449,9 @@ class App {
         document.getElementById('bulkListModal').style.display = 'none';
     }
 
-    // Update UI
     updateUI() {
         const dataset = this.getCurrentDataset();
         
-        // Update dataset indicator
         const indicator = document.getElementById('currentDatasetIndicator');
         const nameSpan = document.getElementById('currentDatasetName');
         
@@ -477,26 +462,22 @@ class App {
             indicator.style.display = 'none';
         }
         
-        // Render tables
+        // Force UI to re-render
         ui.renderTables(dataset);
     }
 
-    // Save current state
     saveCurrentState() {
-        // Validate all datasets
+        // Validate before saving
         this.validateAllDatasets();
         
-        // Prepare data for saving
         const data = {
             resultDatasets: this.datasets,
             currentDatasetId: this.currentDatasetId,
             lastUpdated: Date.now()
         };
         
-        // Save to local storage
         database.saveToLocalStorage(data);
         
-        // Save to Firebase if authenticated
         if (auth.isAuthenticated()) {
             database.saveToFirebase(data).catch(error => {
                 console.error('Firebase save error:', error);
@@ -504,7 +485,6 @@ class App {
         }
     }
 
-    // Print table
     printTable(tableId) {
         const table = this.findTable(tableId);
         if (table) {
@@ -512,7 +492,6 @@ class App {
         }
     }
 
-    // Show statistics
     showStatistics() {
         const dataset = this.getCurrentDataset();
         if (!dataset || dataset.tables.length === 0) {
@@ -524,56 +503,128 @@ class App {
         document.getElementById('statisticsModal').style.display = 'flex';
     }
 
-    // Show help
     showHelp() {
         ui.renderHelpContent();
         document.getElementById('helpModal').style.display = 'flex';
     }
 
-    // Show bulk list
     showBulkList() {
         ui.renderBulkList(this.datasets, this.currentDatasetId);
         document.getElementById('bulkListModal').style.display = 'flex';
     }
 
-    // Import data
     async importData() {
         document.getElementById('fileInput').click();
     }
 
-    // Handle file import
+    // ========== FIXED SINGLE FILE IMPORT ==========
     async handleFileImport(event) {
         const file = event.target.files[0];
         if (!file) return;
-        
+
         try {
-            const importedData = await database.importData(file, true);
-            
-            if (importedData.resultDatasets) {
-                this.datasets = importedData.resultDatasets;
-                this.currentDatasetId = importedData.currentDatasetId || this.datasets[0].id;
-            } else if (this.isValidDataset(importedData)) {
-                this.datasets = [importedData];
-                this.currentDatasetId = importedData.id;
+            const fileContent = await importJSONFile(file);
+            const currentDataset = this.getCurrentDataset();
+
+            if (currentDataset && this.isValidDataset(fileContent)) {
+                const importedDataset = fileContent;
+                let tablesAdded = 0;
+
+                importedDataset.tables.forEach(importedTable => {
+                    const newTableId = `table-${currentDataset.tableCounter++}`;
+                    
+                    // Ensure catColumns exist
+                    const newCatColumns = importedTable.catColumns && importedTable.catColumns.length > 0
+                        ? importedTable.catColumns.map(c => ({ ...c }))
+                        : deepClone(defaultCatColumns);
+
+                    // Build students with complete catMarks for all columns
+                    const newStudents = importedTable.students.map(s => {
+                        const catMarks = {};
+                        
+                        // Initialize with zeros for all columns
+                        newCatColumns.forEach(cat => {
+                            catMarks[cat.id] = 0;
+                        });
+                        
+                        // Copy over any existing marks
+                        if (s.catMarks) {
+                            Object.keys(s.catMarks).forEach(key => {
+                                if (catMarks.hasOwnProperty(key)) {
+                                    const val = parseFloat(s.catMarks[key]);
+                                    catMarks[key] = isNaN(val) ? 0 : val;
+                                }
+                            });
+                        }
+                        
+                        return {
+                            name: s.name || 'Unnamed Student',
+                            exam: typeof s.exam === 'number' ? s.exam : (parseFloat(s.exam) || 0),
+                            catMarks: catMarks,
+                            catTotal: 0,
+                            total: 0,
+                            position: 0
+                        };
+                    });
+
+                    const newTable = {
+                        id: newTableId,
+                        name: importedTable.name || 'Imported Table',
+                        catColumns: newCatColumns,
+                        students: newStudents
+                    };
+
+                    // Recalculate totals
+                    newTable.students.forEach(s => this.recalculateStudentTotals(newTable, s));
+                    currentDataset.tables.push(newTable);
+                    tablesAdded++;
+                });
+
+                // Update positions for all tables
+                currentDataset.tables.forEach(t => this.updatePositions(t.id));
+                
+                // Force complete revalidation
+                this.validateAllDatasets(true);
+                this.updateUI();
+                this.saveCurrentState();
+
+                showToast('success', 'Import Complete', `Added ${tablesAdded} table(s) to "${currentDataset.name}"`);
+            } else {
+                // Bulk import format
+                const importedData = await database.importData(file, true);
+                if (importedData.resultDatasets) {
+                    this.datasets = importedData.resultDatasets;
+                    this.currentDatasetId = importedData.currentDatasetId || this.datasets[0]?.id;
+                } else if (this.isValidDataset(importedData)) {
+                    // Check if dataset with same ID exists
+                    const existingIndex = this.datasets.findIndex(d => d.id === importedData.id);
+                    if (existingIndex >= 0) {
+                        this.datasets[existingIndex] = importedData;
+                    } else {
+                        this.datasets.push(importedData);
+                    }
+                    this.currentDatasetId = importedData.id;
+                }
+
+                // Force complete revalidation
+                this.validateAllDatasets(true);
+                this.updateUI();
+                this.saveCurrentState();
+
+                const totalStudents = this.getCurrentDataset()?.tables.reduce((sum, t) => sum + t.students.length, 0) || 0;
+                ui.showImportSummary({
+                    tablesAdded: 1,
+                    studentsAdded: totalStudents
+                });
             }
-            
-            this.validateAllDatasets();
-            this.updateUI();
-            this.saveCurrentState();
-            
-            ui.showImportSummary({
-                tablesAdded: 1,
-                studentsAdded: importedData.tables?.reduce((sum, t) => sum + t.students.length, 0) || 0
-            });
         } catch (error) {
             console.error('Import error:', error);
             showToast('error', 'Import Failed', error.message);
         }
-        
+
         event.target.value = '';
     }
 
-    // Export data
     exportData() {
         const dataset = this.getCurrentDataset();
         if (!dataset) {
@@ -586,7 +637,6 @@ class App {
         showToast('success', 'Exported', 'Data exported successfully');
     }
 
-    // Bulk export
     bulkExportData() {
         if (this.datasets.length === 0) {
             showToast('info', 'No Data', 'Nothing to export');
@@ -603,44 +653,59 @@ class App {
         showToast('success', 'Exported', 'All datasets exported');
     }
 
-    // Bulk import
+    // ========== FIXED BULK IMPORT ==========
     async handleBulkFileImport(event) {
         const files = event.target.files;
         if (!files || files.length === 0) return;
         
         let importedCount = 0;
+        let firstImportedId = null;
         
         for (const file of files) {
             try {
-                const importedData = await database.importData(file, true);
+                const fileContent = await importJSONFile(file);
                 
-                if (importedData.resultDatasets) {
-                    importedData.resultDatasets.forEach(d => {
+                if (fileContent.resultDatasets) {
+                    // Bulk export file with multiple datasets
+                    fileContent.resultDatasets.forEach(d => {
                         if (!this.datasets.some(existing => existing.id === d.id)) {
                             this.datasets.push(d);
                             importedCount++;
+                            if (!firstImportedId) firstImportedId = d.id;
                         }
                     });
-                } else if (this.isValidDataset(importedData)) {
-                    if (!this.datasets.some(existing => existing.id === importedData.id)) {
-                        this.datasets.push(importedData);
+                } else if (this.isValidDataset(fileContent)) {
+                    // Single dataset file
+                    if (!this.datasets.some(existing => existing.id === fileContent.id)) {
+                        this.datasets.push(fileContent);
                         importedCount++;
+                        if (!firstImportedId) firstImportedId = fileContent.id;
                     }
                 }
             } catch (error) {
-                console.error('Bulk import error:', error);
+                console.error('Bulk import error for file:', file.name, error);
             }
         }
         
-        this.validateAllDatasets();
-        this.updateUI();
-        this.saveCurrentState();
+        if (importedCount > 0) {
+            // Switch to the first imported dataset
+            if (firstImportedId) {
+                this.currentDatasetId = firstImportedId;
+            }
+            
+            // Force complete revalidation
+            this.validateAllDatasets(true);
+            this.updateUI();
+            this.saveCurrentState();
+            
+            showToast('success', 'Import Complete', `Imported ${importedCount} new dataset(s)`);
+        } else {
+            showToast('info', 'No New Data', 'All datasets already exist');
+        }
         
-        showToast('success', 'Import Complete', `Imported ${importedCount} new dataset(s)`);
         event.target.value = '';
     }
 
-    // Clear all data
     async clearAllData() {
         if (!confirm('Are you sure? This will delete ALL datasets permanently!')) return;
         
@@ -650,10 +715,10 @@ class App {
             this.datasets = [];
             this.currentDatasetId = null;
             this.createDefaultDataset();
+            showToast('success', 'Cleared', 'All data has been cleared');
         }
     }
 
-    // Manual sync
     async syncData() {
         if (!auth.isAuthenticated()) {
             showToast('warning', 'Not Signed In', 'Sign in to sync data');
@@ -663,43 +728,97 @@ class App {
         await database.syncData();
     }
 
-    // Validate dataset
     isValidDataset(data) {
-        return data && data.id && data.name && Array.isArray(data.tables);
+        return data && 
+               typeof data === 'object' && 
+               data.id && 
+               data.name && 
+               Array.isArray(data.tables) &&
+               typeof data.tableCounter === 'number';
     }
 }
 
 // Initialize app when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-    // Create global app instance
     window.app = new App();
-    
-    // Initialize app
     window.app.init();
-    
-    // Set up event listeners
     setupEventListeners();
 });
 
 // Setup event listeners
 function setupEventListeners() {
-    // File inputs
-    document.getElementById('fileInput').addEventListener('change', (e) => window.app.handleFileImport(e));
-    document.getElementById('bulkFileInput').addEventListener('change', (e) => window.app.handleBulkFileImport(e));
+    const fileInput = document.getElementById('fileInput');
+    if (fileInput) {
+        fileInput.addEventListener('change', (e) => window.app.handleFileImport(e));
+    }
     
-    // Buttons
-    document.getElementById('addTableBtn').addEventListener('click', () => window.app.addNewTable());
-    document.getElementById('initialAddTable').addEventListener('click', () => window.app.addNewTable());
-    document.getElementById('importBtn').addEventListener('click', () => window.app.importData());
-    document.getElementById('exportBtn').addEventListener('click', () => window.app.exportData());
-    document.getElementById('statisticsBtn').addEventListener('click', () => window.app.showStatistics());
-    document.getElementById('helpBtn').addEventListener('click', () => window.app.showHelp());
-    document.getElementById('bulkImportBtn').addEventListener('click', () => document.getElementById('bulkFileInput').click());
-    document.getElementById('bulkExportBtn').addEventListener('click', () => window.app.bulkExportData());
-    document.getElementById('bulkListBtn').addEventListener('click', () => window.app.showBulkList());
-    document.getElementById('clearDataBtn').addEventListener('click', () => window.app.clearAllData());
-    document.getElementById('syncBtn').addEventListener('click', () => window.app.syncData());
+    const bulkFileInput = document.getElementById('bulkFileInput');
+    if (bulkFileInput) {
+        bulkFileInput.addEventListener('change', (e) => window.app.handleBulkFileImport(e));
+    }
     
-    // Create new dataset button
-    document.getElementById('createNewDatasetBtn').addEventListener('click', () => window.app.createNewDataset());
+    const addTableBtn = document.getElementById('addTableBtn');
+    if (addTableBtn) {
+        addTableBtn.addEventListener('click', () => window.app.addNewTable());
+    }
+    
+    const initialAddTable = document.getElementById('initialAddTable');
+    if (initialAddTable) {
+        initialAddTable.addEventListener('click', () => window.app.addNewTable());
+    }
+    
+    const importBtn = document.getElementById('importBtn');
+    if (importBtn) {
+        importBtn.addEventListener('click', () => window.app.importData());
+    }
+    
+    const exportBtn = document.getElementById('exportBtn');
+    if (exportBtn) {
+        exportBtn.addEventListener('click', () => window.app.exportData());
+    }
+    
+    const statisticsBtn = document.getElementById('statisticsBtn');
+    if (statisticsBtn) {
+        statisticsBtn.addEventListener('click', () => window.app.showStatistics());
+    }
+    
+    const helpBtn = document.getElementById('helpBtn');
+    if (helpBtn) {
+        helpBtn.addEventListener('click', () => window.app.showHelp());
+    }
+    
+    const bulkImportBtn = document.getElementById('bulkImportBtn');
+    if (bulkImportBtn) {
+        bulkImportBtn.addEventListener('click', () => document.getElementById('bulkFileInput').click());
+    }
+    
+    const bulkExportBtn = document.getElementById('bulkExportBtn');
+    if (bulkExportBtn) {
+        bulkExportBtn.addEventListener('click', () => window.app.bulkExportData());
+    }
+    
+    const bulkListBtn = document.getElementById('bulkListBtn');
+    if (bulkListBtn) {
+        bulkListBtn.addEventListener('click', () => window.app.showBulkList());
+    }
+    
+    const clearDataBtn = document.getElementById('clearDataBtn');
+    if (clearDataBtn) {
+        clearDataBtn.addEventListener('click', () => window.app.clearAllData());
+    }
+    
+    const syncBtn = document.getElementById('syncBtn');
+    if (syncBtn) {
+        syncBtn.addEventListener('click', () => window.app.syncData());
+    }
+    
+    const createNewDatasetBtn = document.getElementById('createNewDatasetBtn');
+    if (createNewDatasetBtn) {
+        createNewDatasetBtn.addEventListener('click', () => window.app.createNewDataset());
+    }
+    
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => auth.signOut());
+    }
 }

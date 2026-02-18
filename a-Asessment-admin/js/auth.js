@@ -9,24 +9,23 @@ class AuthManager {
 
     // Initialize authentication
     initAuth() {
-        this.auth.onAuthStateChanged((user) => {
-            this.user = user;
-            this.notifyListeners();
-            
-            if (user) {
-                console.log('User authenticated:', user.email);
-                database.setUser(user);
-                this.hideAuthModal();
-                this.showMainApp();
-                this.updateUserInfo(user);
-            } else {
-                console.log('User not authenticated');
-                database.setUser(null);
-                this.showAuthModal();
-                this.hideMainApp();
-            }
-        });
-    }
+    this.auth.onAuthStateChanged((user) => {
+        this.user = user;
+
+        if (user) {
+            database.setUser(user);          // ✅ set user first
+            this.hideAuthModal();
+            this.showMainApp();
+            this.updateUserInfo(user);
+        } else {
+            database.setUser(null);
+            this.showAuthModal();
+            this.hideMainApp();
+        }
+
+        this.notifyListeners();               // then notify
+    });
+}
 
     // Add auth state listener
     addListener(callback) {

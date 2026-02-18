@@ -1,4 +1,3 @@
-// Firebase Configuration
 const firebaseConfig = {
   apiKey: "AIzaSyCw1UnzkY4Eq_ImEnRDRFYmUMhSc95T-NU",
   authDomain: "lesson-notes-2025.firebaseapp.com",
@@ -8,31 +7,21 @@ const firebaseConfig = {
   appId: "1:757231923808:web:3c72026662c8a296134905"
 };
 
-// Initialize Firebase
 firebase.initializeApp(firebaseConfig);
-
-// Initialize Firestore
 const db = firebase.firestore();
 
-// Enable offline persistence (optional)
-db.enablePersistence()
-  .catch(err => {
-    if (err.code === 'failed-precondition') {
-      console.warn('Multiple tabs open, persistence disabled');
-    } else if (err.code === 'unimplemented') {
-      console.warn('Browser does not support persistence');
-    }
-  });
+db.enablePersistence().catch(err => {
+    if (err.code === 'failed-precondition') console.warn('Multiple tabs open, persistence disabled');
+    else if (err.code === 'unimplemented') console.warn('Browser does not support persistence');
+});
 
-// App Constants
 const APP_VERSION = '2.0.0';
 const STORAGE_KEY = 'studentResultsData';
 const MAX_RETRY_ATTEMPTS = 3;
 const RETRY_DELAY = 1000;
 const AUTO_SAVE_DELAY = 500;
-const SYNC_INTERVAL = 30000; // 30 seconds
+const SYNC_INTERVAL = 30000;
 
-// Default Data
 const defaultCatColumns = [
     { id: 'cat1', name: 'CAT1', maxScore: 15 },
     { id: 'cat2', name: 'CAT2', maxScore: 20 },
@@ -44,7 +33,6 @@ const initialStudents = [
     "Student 6", "Student 7", "Student 8", "Student 9", "Student 10"
 ];
 
-// Grading System
 const gradingScale = [
     { min: 90, max: 100, text: 'Distinction', class: 'remarks-excellent' },
     { min: 80, max: 89, text: 'Excellent', class: 'remarks-excellent' },
@@ -54,7 +42,6 @@ const gradingScale = [
     { min: 0, max: 49, text: 'Fail', class: 'remarks-fail' }
 ];
 
-// Error Messages
 const errorMessages = {
     NETWORK_ERROR: 'Network error. Please check your internet connection.',
     AUTH_ERROR: 'Authentication error. Please log in again.',

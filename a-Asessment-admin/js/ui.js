@@ -60,6 +60,7 @@ class UIManager {
     renderTables(dataset) {
         this.currentDataset = dataset;
         const container = document.getElementById('tablesContainer');
+        if (!container) return;
         
         if (!dataset || !dataset.tables || dataset.tables.length === 0) {
             this.showEmptyState();
@@ -67,7 +68,7 @@ class UIManager {
         }
         
         this.hideEmptyState();
-        container.innerHTML = '';
+        container.innerHTML = ''; // Clear container before rendering tables
         
         dataset.tables.forEach(tableData => {
             const tableElement = this.createTableElement(tableData);
@@ -77,13 +78,46 @@ class UIManager {
 
     // Show empty state
     showEmptyState() {
-        document.getElementById('emptyState').style.display = 'block';
-        document.getElementById('tablesContainer').innerHTML = '';
+        const container = document.getElementById('tablesContainer');
+        if (!container) return;
+        
+        // Remove any existing content (except emptyState itself)
+        Array.from(container.children).forEach(child => {
+            if (child.id !== 'emptyState') {
+                child.remove();
+            }
+        });
+        
+        let emptyState = document.getElementById('emptyState');
+        if (!emptyState) {
+            // Create empty state if missing (e.g., after container.innerHTML = '')
+            emptyState = document.createElement('div');
+            emptyState.className = 'empty-state';
+            emptyState.id = 'emptyState';
+            emptyState.innerHTML = `
+                <i class="fas fa-database" style="font-size: 48px; color: var(--gray); margin-bottom: 20px;"></i>
+                <p>No tables created yet. Click "Add New Table" to get started.</p>
+                <button id="initialAddTable" class="btn-primary">
+                    <i class="fas fa-plus-circle"></i> Create First Table
+                </button>
+            `;
+            container.appendChild(emptyState);
+            
+            // Attach event listener to the new button
+            document.getElementById('initialAddTable').addEventListener('click', () => {
+                if (window.app) window.app.addNewTable();
+            });
+        } else {
+            emptyState.style.display = 'block';
+        }
     }
 
     // Hide empty state
     hideEmptyState() {
-        document.getElementById('emptyState').style.display = 'none';
+        const emptyState = document.getElementById('emptyState');
+        if (emptyState) {
+            emptyState.style.display = 'none';
+        }
     }
 
     // Create table element
