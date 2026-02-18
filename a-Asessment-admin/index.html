@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Results Manager Pro</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- Auth Modal -->
+        <div id="authModal" class="modal-overlay" style="display: none;">
+            <div class="modal-content auth-modal">
+                <div class="modal-header">
+                    <h2 class="modal-title"><i class="fas fa-lock"></i> Authentication Required</h2>
+                </div>
+                <div class="modal-body">
+                    <div id="authContainer">
+                        <!-- Auth UI will be rendered here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main App Container -->
+        <div id="mainApp" style="display: none;">
+            <div class="container">
+                <header>
+                    <div class="header-left">
+                        <h1>
+                            <i class="fas fa-chart-line"></i> 
+                            Student Results Manager Pro
+                        </h1>
+                        <span id="currentDatasetIndicator" class="current-dataset" style="display: none;">
+                            <i class="fas fa-database"></i>
+                            <span id="currentDatasetName">Default</span>
+                        </span>
+                    </div>
+                    
+                    <div class="header-right">
+                        <div class="user-info" id="userInfo">
+                            <span id="userEmail"></span>
+                            <button id="logoutBtn" class="btn-danger" title="Logout">
+                                <i class="fas fa-sign-out-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- Main Controls -->
+                <div class="controls-wrapper">
+                    <div class="controls">
+                        <button id="addTableBtn" class="btn-primary">
+                            <i class="fas fa-plus-circle"></i> Add New Table
+                        </button>
+                        <button id="importBtn" class="btn-success">
+                            <i class="fas fa-file-import"></i> Import Data
+                        </button>
+                        <button id="exportBtn" class="btn-warning">
+                            <i class="fas fa-file-export"></i> Export Data
+                        </button>
+                        <button id="statisticsBtn" class="btn-info">
+                            <i class="fas fa-chart-bar"></i> Statistics
+                        </button>
+                        <button id="helpBtn" class="btn-help">
+                            <i class="fas fa-question-circle"></i> Help
+                        </button>
+                        <button id="bulkImportBtn" class="btn-success">
+                            <i class="fas fa-folder-open"></i> Bulk Import
+                        </button>
+                        <button id="bulkExportBtn" class="btn-warning">
+                            <i class="fas fa-download"></i> Bulk Export
+                        </button>
+                        <button id="bulkListBtn" class="btn-info">
+                            <i class="fas fa-list"></i> Datasets
+                        </button>
+                        <button id="clearDataBtn" class="btn-danger">
+                            <i class="fas fa-trash-alt"></i> Clear All
+                        </button>
+                        <button id="syncBtn" class="btn-primary">
+                            <i class="fas fa-sync-alt"></i> Sync
+                        </button>
+                    </div>
+                    
+                    <div class="status-indicator" id="statusIndicator">
+                        <i class="fas fa-circle" style="color: #4cc9f0; font-size: 8px;"></i>
+                        <span id="saveStatus">All changes saved</span>
+                    </div>
+                </div>
+
+                <!-- Tables Container -->
+                <main id="tablesContainer">
+                    <div class="empty-state" id="emptyState">
+                        <i class="fas fa-database" style="font-size: 48px; color: var(--gray); margin-bottom: 20px;"></i>
+                        <p>No tables created yet. Click "Add New Table" to get started.</p>
+                        <button id="initialAddTable" class="btn-primary">
+                            <i class="fas fa-plus-circle"></i> Create First Table
+                        </button>
+                    </div>
+                </main>
+
+                <footer class="footer">
+                    <p><i class="far fa-copyright"></i> 2024 Student Results Manager Pro | Developed by Sir Mick | Contact: 0545800158</p>
+                    <p class="input-hint">
+                        <i class="fas fa-lightbulb"></i>
+                        Tip: Enter marks in any format (e.g., 45/50, 90%, 14) - they'll be converted automatically
+                    </p>
+                </footer>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden File Inputs -->
+    <input type="file" id="fileInput" class="file-input" accept=".json">
+    <input type="file" id="bulkFileInput" class="file-input" accept=".json" multiple>
+
+    <!-- Statistics Modal -->
+    <div id="statisticsModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title"><i class="fas fa-chart-bar"></i> Overall Statistics</h2>
+                <button class="close-modal"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div id="statisticsContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Terminal Report Modal -->
+    <div id="terminalReportModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title"><i class="fas fa-file-alt"></i> Student Terminal Report</h2>
+                <button class="close-modal"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div id="terminalReportContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div id="helpModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title"><i class="fas fa-question-circle"></i> Help Guide</h2>
+                <button class="close-modal"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div id="helpContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk List Modal -->
+    <div id="bulkListModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title"><i class="fas fa-list"></i> Results Datasets</h2>
+                <button class="close-modal"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div id="bulkListContainer"></div>
+                <div style="text-align: center; margin-top: 20px;">
+                    <button id="createNewDatasetBtn" class="btn-primary">
+                        <i class="fas fa-plus-circle"></i> Create New Dataset
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="loading-spinner">
+            <i class="fas fa-circle-notch fa-spin fa-3x"></i>
+            <p>Loading...</p>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- JavaScript Modules -->
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/database.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

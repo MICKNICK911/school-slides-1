@@ -1,9 +1,9 @@
 // Firebase configuration – replace with your own values
-export const firebaseConfig = {
-    apiKey: "AIzaSyBIuRj51fQUCNREMT3JEZAyWjl7TsBU_08",
-    authDomain: "my-task-manager-c8e32.firebaseapp.com",
-    projectId: "my-task-manager-c8e32",
-    storageBucket: "my-task-manager-c8e32.firebasestorage.app",
-    messagingSenderId: "182865686068",
-    appId: "1:182865686068:web:ef8716eb8edcc7749c6461"
+const firebaseConfig = {
+  apiKey: "AIzaSyCw1UnzkY4Eq_ImEnRDRFYmUMhSc95T-NU",
+  authDomain: "lesson-notes-2025.firebaseapp.com",
+  projectId: "lesson-notes-2025",
+  storageBucket: "lesson-notes-2025.firebasestorage.app",
+  messagingSenderId: "757231923808",
+  appId: "1:757231923808:web:3c72026662c8a296134905"
 };
