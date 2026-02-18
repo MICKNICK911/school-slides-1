@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Results Manager · Redesigned</title>
-    <!-- Font Awesome 6 -->
+    <title>Student Results Manager Pro · Redesign</title>
+    <!-- Font Awesome 6 (free) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         /* ========== RED‑ORANGE‑GOLD MODERN THEME ========== */
@@ -41,6 +41,7 @@
             padding: 28px 32px;
             border: 1px solid rgba(255,215,0,0.3);
         }
+        /* header */
         header {
             display: flex;
             justify-content: space-between;
@@ -102,6 +103,7 @@
             flex-wrap: wrap;
             align-items: center;
         }
+        /* dropdown */
         .dropdown {
             position: relative;
             display: inline-block;
@@ -136,7 +138,7 @@
             box-shadow: var(--shadow-lg);
             min-width: 220px;
             padding: 8px 0;
-            z-index: 100;
+            z-index: 1000;
             display: none;
             border: 1px solid rgba(230,57,70,0.2);
             backdrop-filter: blur(4px);
@@ -164,6 +166,7 @@
         }
         .dropdown-menu button i { width: 20px; color: var(--primary); }
 
+        /* standalone buttons (add table, sync) */
         .btn-special {
             background: linear-gradient(145deg, var(--primary), var(--primary-dark));
             color: white;
@@ -195,7 +198,7 @@
             border: 1px solid var(--warning);
         }
 
-        /* table & rest */
+        /* rest of UI (tables, modals) – same structure, only colours updated */
         .table-container {
             background: white;
             border-radius: 24px;
@@ -223,7 +226,7 @@
             cursor: text;
             outline: none;
         }
-        .table-title:focus { background: white; color: var(--dark); }
+        .table-title:focus { background: white; color: var(--gray-dark); }
         .table-actions { display: flex; gap: 10px; }
         .table-actions button {
             background: rgba(255,255,255,0.2);
@@ -232,38 +235,302 @@
             padding: 8px 14px;
             border-radius: 30px;
             font-size: 0.9rem;
+            cursor: pointer;
         }
         .table-actions button:hover { background: rgba(255,255,255,0.4); transform: translateY(-1px); }
 
         .cat-config {
-            background: #fef5e7;
+            background: #fef5e7;  /* soft gold tint */
             padding: 20px;
             border-bottom: 1px solid rgba(230,57,70,0.2);
+        }
+        .cat-config-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .cat-config-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--primary-dark);
         }
         .cat-config-header .btn-primary {
             background: var(--success);
             color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 30px;
+            cursor: pointer;
+        }
+        .cat-columns-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 15px;
         }
         .cat-column-item {
             background: white;
             border: 1px solid var(--warning);
+            border-radius: 30px;
+            padding: 8px 16px;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .cat-column-name { font-weight: 600; }
+        .cat-column-max { color: var(--primary); }
+        .cat-column-actions { display: flex; gap: 5px; }
+        .cat-column-actions button {
+            background: transparent;
+            border: none;
+            color: var(--gray-dark);
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        .cat-column-actions button:hover { color: var(--primary); }
+        .add-cat-form {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 20px;
+            border: 1px dashed var(--primary);
+        }
+        .add-cat-form input {
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            flex: 1 1 150px;
+        }
+        .add-cat-form button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+        }
+
+        /* table styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
         }
         th {
             background: linear-gradient(145deg, #e67e22, #c0392b);
             color: white;
             font-weight: 600;
+            padding: 12px 8px;
+            text-align: center;
         }
-        .editable:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(230,57,70,0.2); }
+        td {
+            padding: 10px 8px;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+        }
+        .editable {
+            display: block;
+            padding: 6px 10px;
+            border-radius: 20px;
+            background: #fef9e7;
+            cursor: text;
+            min-width: 60px;
+        }
+        .editable:focus {
+            outline: 2px solid var(--primary);
+            background: white;
+        }
         .position-cell { color: var(--primary-dark); font-weight: 700; }
 
-        .btn-primary { background: linear-gradient(145deg, var(--primary), var(--primary-dark)); color: white; }
-        .btn-success { background: linear-gradient(145deg, var(--success), var(--success-dark)); color: white; }
-        .btn-danger { background: linear-gradient(145deg, var(--danger), #a03020); color: white; }
-        .btn-warning { background: linear-gradient(145deg, var(--warning), #e0a800); color: var(--dark); }
-        .btn-info { background: linear-gradient(145deg, var(--info), #bf5e1a); color: white; }
+        .btn-primary { background: linear-gradient(145deg, var(--primary), var(--primary-dark)); color: white; border: none; padding: 8px 16px; border-radius: 30px; cursor: pointer; }
+        .btn-success { background: linear-gradient(145deg, var(--success), var(--success-dark)); color: white; border: none; padding: 8px 16px; border-radius: 30px; cursor: pointer; }
+        .btn-danger { background: linear-gradient(145deg, var(--danger), #a03020); color: white; border: none; padding: 8px 16px; border-radius: 30px; cursor: pointer; }
+        .btn-warning { background: linear-gradient(145deg, var(--warning), #e0a800); color: var(--gray-dark); border: none; padding: 8px 16px; border-radius: 30px; cursor: pointer; }
+        .btn-info { background: linear-gradient(145deg, var(--info), #bf5e1a); color: white; border: none; padding: 8px 16px; border-radius: 30px; cursor: pointer; }
+        .btn-secondary { background: var(--gray-light); color: var(--gray-dark); border: 1px solid var(--border); padding: 8px 16px; border-radius: 30px; cursor: pointer; }
 
-        .modal-header { background: linear-gradient(145deg, var(--primary), var(--primary-dark)); }
-        .modal-header .close-modal { color: white; }
+        /* empty state */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            background: white;
+            border-radius: 24px;
+            box-shadow: var(--shadow);
+        }
+        .empty-state i { color: var(--gray); margin-bottom: 15px; }
+        .empty-state p { margin-bottom: 20px; color: var(--gray-dark); }
+
+        /* modal styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 20px;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 28px;
+            max-width: 800px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--warning);
+        }
+        .modal-header {
+            background: linear-gradient(145deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 18px 24px;
+            border-radius: 28px 28px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-title { font-size: 1.5rem; display: flex; align-items: center; gap: 10px; }
+        .close-modal {
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0 8px;
+        }
+        .modal-body { padding: 24px; }
+
+        /* auth modal specific */
+        .auth-modal { max-width: 400px; }
+        .auth-tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--border);
+        }
+        .auth-tab {
+            padding: 10px 20px;
+            background: transparent;
+            border: none;
+            font-weight: 600;
+            color: var(--gray);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+        }
+        .auth-tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+        .auth-form {
+            display: none;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .auth-form.active { display: flex; }
+        .auth-form input {
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: 30px;
+            font-size: 1rem;
+        }
+
+        /* toast */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 3000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .toast {
+            background: white;
+            border-radius: 30px;
+            padding: 16px 20px;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            min-width: 300px;
+            max-width: 400px;
+            border-left: 5px solid;
+            animation: slideIn 0.3s ease;
+        }
+        .toast.success { border-left-color: #2ecc71; }
+        .toast.error { border-left-color: #e74c3c; }
+        .toast.warning { border-left-color: #f39c12; }
+        .toast.info { border-left-color: #3498db; }
+        .toast i { font-size: 1.5rem; }
+        .toast.success i { color: #2ecc71; }
+        .toast.error i { color: #e74c3c; }
+        .toast.warning i { color: #f39c12; }
+        .toast.info i { color: #3498db; }
+        .toast-content { flex: 1; }
+        .toast-title { font-weight: 600; margin-bottom: 4px; }
+        .toast-message { font-size: 0.9rem; color: var(--gray); }
+        .toast-close { background: transparent; border: none; font-size: 1.2rem; cursor: pointer; color: var(--gray); }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* loading */
+        .loading-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255,255,255,0.8);
+            backdrop-filter: blur(3px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 4000;
+        }
+        .loading-spinner {
+            background: white;
+            padding: 30px;
+            border-radius: 60px;
+            box-shadow: var(--shadow-lg);
+            text-align: center;
+        }
+        .loading-spinner i { color: var(--primary); }
+        .loading-spinner p { margin-top: 10px; color: var(--gray-dark); }
+
+        /* bulk list */
+        .bulk-list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            border: 1px solid var(--border);
+            border-radius: 30px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .bulk-list-item:hover { background: #fef5e7; border-color: var(--primary); }
+        .bulk-list-item.active { background: #fef5e7; border: 2px solid var(--primary); }
+        .bulk-list-item-info { flex: 1; }
+        .bulk-list-item-name { font-weight: 600; margin-bottom: 5px; }
+        .bulk-list-item-details { font-size: 0.9rem; color: var(--gray); }
+        .bulk-list-item-actions { display: flex; gap: 10px; }
+
+        /* remarks */
+        .remarks-excellent { color: #28a745; font-weight: 600; }
+        .remarks-very-good { color: #20c997; font-weight: 600; }
+        .remarks-good { color: #17a2b8; font-weight: 600; }
+        .remarks-pass { color: #ffc107; font-weight: 600; }
+        .remarks-fail { color: #dc3545; font-weight: 600; }
+
+        /* terminal report */
+        .terminal-report table { margin-top: 20px; }
+        .comments-section { margin-top: 20px; }
+        .comments-textarea { width: 100%; padding: 12px; border-radius: 20px; border: 1px solid var(--border); min-height: 80px; }
 
         .footer {
             margin-top: 30px;
@@ -273,6 +540,7 @@
         }
         .input-hint { color: var(--primary-dark); }
 
+        /* responsive */
         @media (max-width: 700px) {
             .button-group { flex-direction: column; align-items: stretch; }
             .dropdown-menu { left: auto; right: 0; }
@@ -384,10 +652,9 @@
 
 <script>
     (function() {
-        // ==================== CONFIG ====================
-        // 🔁 REPLACE WITH YOUR FIREBASE PROJECT CONFIGURATION
+        // ==================== CONFIG – REPLACE WITH YOUR FIREBASE CREDENTIALS ====================
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",          // <-- REPLACE WITH YOURS
+            apiKey: "YOUR_API_KEY",
             authDomain: "YOUR_AUTH_DOMAIN",
             projectId: "YOUR_PROJECT_ID",
             storageBucket: "YOUR_STORAGE_BUCKET",
@@ -741,7 +1008,7 @@
         }
         const auth = new AuthManager();
 
-        // ==================== UI MANAGER (with safe dropdown listeners) ====================
+        // ==================== UI MANAGER ====================
         class UIManager {
             constructor() { this.currentDataset = null; this.initGlobalListeners(); }
             initGlobalListeners() {
@@ -752,30 +1019,20 @@
                     if (e.key === 'Escape') this.closeModals();
                 });
                 window.addEventListener('beforeunload', () => { if (window.app) window.app.saveCurrentState(); });
-
-                // Dropdown toggles with null checks
-                const fileToggle = document.getElementById('fileDropdownToggle');
-                const toolsToggle = document.getElementById('toolsDropdownToggle');
-                const fileMenu = document.getElementById('fileDropdownMenu');
-                const toolsMenu = document.getElementById('toolsDropdownMenu');
-
-                if (fileToggle && fileMenu) {
-                    fileToggle.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        fileMenu.classList.toggle('show');
-                        if (toolsMenu) toolsMenu.classList.remove('show');
-                    });
-                }
-                if (toolsToggle && toolsMenu) {
-                    toolsToggle.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        toolsMenu.classList.toggle('show');
-                        if (fileMenu) fileMenu.classList.remove('show');
-                    });
-                }
+                // Dropdown toggles
+                document.getElementById('fileDropdownToggle').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    document.getElementById('fileDropdownMenu').classList.toggle('show');
+                    document.getElementById('toolsDropdownMenu').classList.remove('show');
+                });
+                document.getElementById('toolsDropdownToggle').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    document.getElementById('toolsDropdownMenu').classList.toggle('show');
+                    document.getElementById('fileDropdownMenu').classList.remove('show');
+                });
                 document.addEventListener('click', () => {
-                    if (fileMenu) fileMenu.classList.remove('show');
-                    if (toolsMenu) toolsMenu.classList.remove('show');
+                    document.getElementById('fileDropdownMenu').classList.remove('show');
+                    document.getElementById('toolsDropdownMenu').classList.remove('show');
                 });
             }
             closeModals() { document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none'); }
@@ -1340,8 +1597,8 @@
             window.app.init();
             document.getElementById('fileInput').addEventListener('change', e => window.app.handleFileImport(e));
             document.getElementById('bulkFileInput').addEventListener('change', e => window.app.handleBulkFileImport(e));
+            // Attach button listeners
             document.getElementById('addTableBtn').addEventListener('click', () => window.app.addNewTable());
-            document.getElementById('initialAddTable').addEventListener('click', () => window.app.addNewTable());
             document.getElementById('importBtn').addEventListener('click', () => window.app.importData());
             document.getElementById('exportBtn').addEventListener('click', () => window.app.exportData());
             document.getElementById('statisticsBtn').addEventListener('click', () => window.app.showStatistics());
@@ -1353,6 +1610,7 @@
             document.getElementById('syncBtn').addEventListener('click', () => window.app.syncData());
             document.getElementById('createNewDatasetBtn').addEventListener('click', () => window.app.createNewDataset());
             document.getElementById('logoutBtn').addEventListener('click', () => auth.signOut());
+            // The initialAddTable listener is attached dynamically in showEmptyState, so we don't need a global one.
         });
     })();
 </script>
