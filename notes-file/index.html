@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>IT MyLTI D Notes · Cloud Sync</title>
+    <title>Cloud Notes</title>
     <!-- Font Awesome (optional, for icons) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
@@ -181,8 +181,12 @@
             background-color: var(--bg-color);
             z-index: 100;
             backdrop-filter: blur(8px);
-            background-color: rgba(var(--bg-color-rgb), 0.8);
+            background-color: rgba(255, 255, 255, 0.8);
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .dark-theme header {
+            background-color: rgba(18, 18, 18, 0.8);
         }
 
         .header-content {
@@ -357,7 +361,7 @@
         }
         .history-item-panel:hover, .topic-item:hover, .dataset-item:hover {
             border-color: var(--primary-color);
-            background: rgba(var(--primary-color-rgb), 0.1);
+            background: rgba(41,199,2,0.1);
         }
         .dataset-item.active { border: 2px solid var(--primary-color); background: rgba(41,199,2,0.1); }
         .dataset-actions { display: flex; gap: 5px; margin-top: 8px; }
@@ -561,6 +565,8 @@
             <div class="slideshow-bottom" id="slideshowBottom"></div>
             <div class="slideshow-indicator" id="slideshowIndicator"></div>
         </div>
+        
+        <!-- Instruction Modal -->
         <div class="instruction-modal" id="instructionModal">
             <h2>Slide Mode Instructions</h2>
             <p>Tap top half → next; bottom half → previous; tap words to highlight.</p>
@@ -589,6 +595,21 @@
                 <button id="createDatasetBtn" class="btn-primary" style="width:100%;">+ New Dataset</button>
             </div>
             <div class="dataset-list" id="datasetList"></div>
+        </div>
+
+        <!-- Instructions Modal (second one for help) -->
+        <div class="instruction-modal" id="instructionsModal">
+            <h2>Help & Instructions</h2>
+            <ul>
+                <li>🔍 Search for topics in current dataset</li>
+                <li>📂 Switch between datasets</li>
+                <li>📝 Create new topics</li>
+                <li>📚 Browse all topics</li>
+                <li>▶️ Start slideshow from a topic</li>
+                <li>🌙 Toggle dark/light theme</li>
+                <li>Aa Toggle uppercase/lowercase</li>
+            </ul>
+            <button id="closeModal">Got it</button>
         </div>
 
         <!-- Main Header -->
@@ -624,7 +645,7 @@
                     <h2>Welcome</h2>
                     <p id="welcomeMessage">Select a dataset or search for a topic</p>
                     <div class="search-history" id="suggestedTopics"></div>
-                    <div class="font-controls">
+                    <div class="font-controls" id="fontControls">
                         <span>Font:</span>
                         <button class="font-size-btn" data-size="0.9">S</button>
                         <button class="font-size-btn active" data-size="1">M</button>
@@ -643,15 +664,19 @@
 
     <script>
         (function() {
-            // ========== FIREBASE CONFIG (REPLACE WITH YOUR OWN) ==========
+            // ========== FIREBASE CONFIG - REPLACE WITH YOUR OWN ==========
+            // You need to create a Firebase project at https://console.firebase.google.com/
+            // and replace these values with your project's configuration
             const firebaseConfig = {
-  apiKey: "AIzaSyCw1UnzkY4Eq_ImEnRDRFYmUMhSc95T-NU",
-  authDomain: "lesson-notes-2025.firebaseapp.com",
-  projectId: "lesson-notes-2025",
-  storageBucket: "lesson-notes-2025.firebasestorage.app",
-  messagingSenderId: "757231923808",
-  appId: "1:757231923808:web:3c72026662c8a296134905"
-};
+                apiKey: "YOUR_API_KEY",
+                authDomain: "YOUR_AUTH_DOMAIN",
+                projectId: "YOUR_PROJECT_ID",
+                storageBucket: "YOUR_STORAGE_BUCKET",
+                messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+                appId: "YOUR_APP_ID"
+            };
+            
+            // Initialize Firebase
             firebase.initializeApp(firebaseConfig);
             const db = firebase.firestore();
             db.enablePersistence({ synchronizeTabs: true }).catch(err => {
@@ -1250,20 +1275,14 @@
                     const topics = ds ? Object.keys(ds.topics) : [];
                     const suggested = topics.slice(0, 8);
                     const suggestedHtml = suggested.map(t => `<div class="history-item">🔍 ${t}</div>`).join('');
+                    const fontControlsHTML = document.getElementById('fontControls').outerHTML;
                     document.getElementById('resultsContainer').innerHTML = `
                         <div class="no-results">
                             <span>📖</span>
                             <h2>${ds ? ds.name : 'My Notes'}</h2>
                             <p>${topics.length} topics available</p>
                             <div class="search-history">${suggestedHtml}</div>
-                            <div class="font-controls">
-                                <span>Font:</span>
-                                ${document.querySelector('.font-controls').innerHTML}
-                            </div>
-                        </div>
-                        <div class="feature-highlight">
-                            <h2>📚 Browse Topics</h2>
-                            <p>Click topics icon or search above</p>
+                            ${fontControlsHTML}
                         </div>
                     `;
                     // Reattach font listeners
@@ -1298,6 +1317,11 @@
                     } else {
                         this.showHome();
                     }
+                }
+
+                loadFromCloud() {
+                    this.refreshUI();
+                    this.updateBuilderPreview();
                 }
 
                 applyCase(text) { return this.isUpperCase ? text.toUpperCase() : text.toLowerCase(); }
@@ -1345,16 +1369,18 @@
                     const ds = database.getCurrentDataset();
                     if (!ds) return;
                     const topic = ds.topics[this.currentTopic];
-                    if (!topic || topic.ex.length === 0) return;
+                    if (!topic || !topic.ex || topic.ex.length === 0) return;
                     window.currentSlideshow = { examples: topic.ex, index: 0, selected: {} };
                     document.getElementById('instructionModal').classList.add('active');
                     document.getElementById('overlay').classList.add('active');
                 }
+                
                 beginSlideshow() {
                     document.querySelector('header').style.display = 'none';
                     document.getElementById('slideshowOverlay').classList.add('active');
                     this.updateSlideshow();
                 }
+                
                 updateSlideshow() {
                     const ss = window.currentSlideshow;
                     if (!ss) return;
@@ -1377,8 +1403,10 @@
                     });
                     document.getElementById('slideshowIndicator').textContent = `${ss.index+1}/${ss.examples.length}`;
                 }
+                
                 nextSlide() { if (window.currentSlideshow) { window.currentSlideshow.index = (window.currentSlideshow.index + 1) % window.currentSlideshow.examples.length; this.updateSlideshow(); } }
                 prevSlide() { if (window.currentSlideshow) { window.currentSlideshow.index = (window.currentSlideshow.index - 1 + window.currentSlideshow.examples.length) % window.currentSlideshow.examples.length; this.updateSlideshow(); } }
+                
                 closeSlideshow() {
                     document.getElementById('slideshowOverlay').classList.remove('active');
                     document.querySelector('header').style.display = 'flex';
