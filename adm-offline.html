@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>Digital Notes • Polished UI</title>
-    <!-- Font Awesome (optional) -->
+    <title>Digital Notes • Polished & Reliable</title>
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         /* ========== MODERNIZED STYLES – FULLY POLISHED ========== */
@@ -111,7 +111,7 @@
         .clear-selection { background: var(--accent-color); color: white; border: none; border-radius: 8px; padding: 10px 20px; cursor: pointer; margin-top: 15px; transition: var(--transition); display: inline-flex; align-items: center; gap: 8px; }
         .clear-selection:hover { background: #e64a19; transform: translateY(-2px); }
 
-        /* ===== CARD STYLES – TOPICS, HISTORY, DATASET (now polished) ===== */
+        /* ===== CARD STYLES – TOPICS, HISTORY, DATASET (polished & consistent) ===== */
         .topic-item, .history-item-panel, .dataset-item {
             background: var(--bg-color);
             border: 1px solid var(--border-color);
@@ -675,7 +675,7 @@
             }
             const auth = new AuthManager();
 
-            // ========== UI MANAGER (functionality unchanged, but styles enhanced) ==========
+            // ========== UI MANAGER – FULLY FUNCTIONAL ==========
             class UIManager {
                 constructor() {
                     this.currentTopic = null;
@@ -758,7 +758,70 @@
                 closePanels() { document.querySelectorAll('.history-panel, .topics-panel, .dataset-panel').forEach(p=>p.classList.remove('active')); document.getElementById('overlay').classList.remove('active'); }
                 renderHistoryPanel() { const list=document.getElementById('historyList'); list.innerHTML=''; if(this.searchHistory.length===0) list.innerHTML='<p>No search history</p>'; else this.searchHistory.slice(0,20).forEach(item=>{ const d=document.createElement('div'); d.className='history-item-panel'; d.innerHTML=`<div>🔍 ${item.term}</div><div style="font-size:0.8em;">${item.time}</div>`; d.addEventListener('click',()=>{ document.getElementById('searchInput').value=item.term; this.handleSearch(); this.closePanels(); }); list.appendChild(d); }); }
                 renderTopicsPanel() { const ds=database.getCurrentDataset(), topics=ds?ds.topics:{}, list=document.getElementById('topicsList'); list.innerHTML=''; const keys=Object.keys(topics).sort(); if(keys.length===0) list.innerHTML='<p>No topics yet.</p>'; else keys.forEach(key=>{ const d=document.createElement('div'); d.className='topic-item'; d.innerHTML=`<span>📄</span> ${key}`; d.addEventListener('click',()=>{ this.displayTopic(key); this.closePanels(); }); list.appendChild(d); }); }
-                renderDatasetPanel() { const list=document.getElementById('datasetList'); list.innerHTML=''; database.datasets.forEach(ds=>{ const d=document.createElement('div'); d.className=`dataset-item ${ds.id===database.currentDatasetId?'active':''}`; d.innerHTML=`<div><strong>${ds.name}</strong></div><div>${Object.keys(ds.topics||{}).length} topics</div><div class="dataset-actions"><button class="switch-ds" data-id="${ds.id}">Switch</button><button class="rename-ds" data-id="${ds.id}">Rename</button><button class="delete-ds" data-id="${ds.id}">Delete</button></div>`; list.appendChild(d); }); document.querySelectorAll('.switch-ds').forEach(btn=>{ btn.addEventListener('click',async(e)=>{ e.stopPropagation(); const id=btn.dataset.id; database.currentDatasetId=id; database.saveToLocalStorage(); this.refreshUI(); this.closePanels(); showNotification('success','Switched',database.getCurrentDataset().name); }); }); document.querySelectorAll('.rename-ds').forEach(btn=>{ btn.addEventListener('click',async(e)=>{ e.stopPropagation(); const id=btn.dataset.id; const ds=database.datasets.find(d=>d.id===id); const n=prompt('New name:',ds.name); if(n){ await database.updateDatasetName(id,n); this.renderDatasetPanel(); } }); }); document.querySelectorAll('.delete-ds').forEach(btn=>{ btn.addEventListener('click',async(e)=>{ e.stopPropagation(); const id=btn.dataset.id; if(database.datasets.length===1){ alert('Cannot delete the only dataset.'); return; } if(confirm('Delete this dataset?')){ await database.deleteDataset(id); this.refreshUI(); this.renderDatasetPanel(); } }); }); }
+                renderDatasetPanel() {
+                    const list = document.getElementById('datasetList');
+                    list.innerHTML = '';
+                    database.datasets.forEach(ds => {
+                        const d = document.createElement('div');
+                        d.className = `dataset-item ${ds.id === database.currentDatasetId ? 'active' : ''}`;
+                        d.innerHTML = `
+                            <div><strong>${ds.name}</strong></div>
+                            <div>${Object.keys(ds.topics || {}).length} topics</div>
+                            <div class="dataset-actions">
+                                <button class="switch-ds" data-id="${ds.id}">Switch</button>
+                                <button class="rename-ds" data-id="${ds.id}">Rename</button>
+                                <button class="delete-ds" data-id="${ds.id}">Delete</button>
+                            </div>
+                        `;
+                        list.appendChild(d);
+                    });
+                    // Switch button
+                    document.querySelectorAll('.switch-ds').forEach(btn => {
+                        btn.addEventListener('click', async (e) => {
+                            e.stopPropagation();
+                            const id = btn.dataset.id;
+                            if (!id) return;
+                            database.currentDatasetId = id;
+                            database.saveToLocalStorage();
+                            this.refreshUI();
+                            this.closePanels();
+                            const current = database.getCurrentDataset();
+                            showNotification('success', 'Switched', current ? current.name : 'Dataset');
+                        });
+                    });
+                    // Rename button
+                    document.querySelectorAll('.rename-ds').forEach(btn => {
+                        btn.addEventListener('click', async (e) => {
+                            e.stopPropagation();
+                            const id = btn.dataset.id;
+                            const ds = database.datasets.find(d => d.id === id);
+                            if (!ds) return;
+                            const newName = prompt('New name:', ds.name);
+                            if (newName && newName.trim()) {
+                                await database.updateDatasetName(id, newName.trim());
+                                this.renderDatasetPanel(); // refresh only the panel
+                                this.refreshUI(); // also update main view if needed
+                            }
+                        });
+                    });
+                    // Delete button
+                    document.querySelectorAll('.delete-ds').forEach(btn => {
+                        btn.addEventListener('click', async (e) => {
+                            e.stopPropagation();
+                            const id = btn.dataset.id;
+                            if (database.datasets.length === 1) {
+                                alert('Cannot delete the only dataset.');
+                                return;
+                            }
+                            if (confirm('Delete this dataset? All topics inside will be lost.')) {
+                                await database.deleteDataset(id);
+                                this.refreshUI();
+                                this.renderDatasetPanel();
+                                showNotification('info', 'Deleted', 'Dataset removed');
+                            }
+                        });
+                    });
+                }
                 handleSearch() { const term=document.getElementById('searchInput').value.trim(); if(!term) return; const ds=database.getCurrentDataset(); if(!ds){ showNotification('info','No dataset','Create or select a dataset'); return; } if(ds.topics[term]){ this.displayTopic(term); this.searchHistory=[{term,time:new Date().toLocaleTimeString()},...this.searchHistory.filter(h=>h.term!==term)].slice(0,20); localStorage.setItem('notesSearchHistory',JSON.stringify(this.searchHistory)); } else { showNotification('error','Not found',`"${term}" not found`); } }
                 displayTopic(term) { this.currentTopic=term; const ds=database.getCurrentDataset(); if(!ds) return; const topic=ds.topics[term]; if(!topic) return; let desc=topic.desc, examples=topic.ex||[]; if(this.caseState===1){ desc=desc.toUpperCase(); examples=examples.map(e=>e.toUpperCase()); } else if(this.caseState===2){ desc=desc.toLowerCase(); examples=examples.map(e=>e.toLowerCase()); } const html=`<div class="entry-card"><div class="entry-header"><h1>${this.applyCase(term)}</h1></div><div class="entry-desc">${this.formatMarkdown(desc)}</div><h3>Examples & Word Bank:</h3><div class="examples-grid">${examples.map((ex,i)=>`<div class="example-item" data-index="${i}">${ex}</div>`).join('')}</div><button class="clear-selection" id="clearSelection"><span>✕</span> Clear Selection</button></div>`; document.getElementById('resultsContainer').innerHTML=html; document.querySelectorAll('.example-item').forEach(item=>{ item.addEventListener('click',()=>item.classList.toggle('selected')); }); document.getElementById('clearSelection').addEventListener('click',()=>{ document.querySelectorAll('.example-item').forEach(i=>i.classList.remove('selected')); }); }
                 applyCase(text) { if(this.caseState===1) return text.toUpperCase(); if(this.caseState===2) return text.toLowerCase(); return text; }
