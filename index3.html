@@ -604,6 +604,7 @@
                 <li>▶️ Start slideshow from a topic</li>
                 <li>🌙 Toggle dark/light theme</li>
                 <li>Aa / AA / aa Toggle case (original/uppercase/lowercase)</li>
+                <li>📤 Export current dataset as JSON</li>
             </ul>
             <button id="closeModal">Got it</button>
         </div>
@@ -621,11 +622,12 @@
                         <button class="search-btn" id="searchBtn">🔍</button>
                     </div>
                     <div class="controls">
-                        <!-- Data Dropdown (only Datasets) -->
+                        <!-- Data Dropdown (Datasets + Export) -->
                         <div class="dropdown">
                             <button class="dropdown-toggle" id="dataDropdownToggle">📁</button>
                             <div class="dropdown-menu" id="dataDropdownMenu">
                                 <div class="dataset-toggle" id="datasetToggle" title="Datasets">📂 Datasets</div>
+                                <div class="export-toggle" id="exportToggle" title="Export">📤 Export</div>
                             </div>
                         </div>
                         <!-- Browse Dropdown -->
@@ -748,6 +750,19 @@
             
             function hideLoading() { 
                 document.getElementById('loadingOverlay').style.display = 'none'; 
+            }
+
+            // ========== EXPORT FUNCTION (copied from second version) ==========
+            function exportAsJSON(data, filename) {
+                const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url; 
+                a.download = filename;
+                document.body.appendChild(a); 
+                a.click(); 
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
             }
 
             // ========== DATABASE MANAGER (all methods kept but never called from UI) ==========
@@ -999,7 +1014,7 @@
             
             const auth = new AuthManager();
 
-            // ========== UI MANAGER (read‑only) ==========
+            // ========== UI MANAGER (read‑only + export) ==========
             class UIManager {
                 constructor() {
                     this.currentTopic = null;
@@ -1113,6 +1128,9 @@
                     document.getElementById('userToggle').addEventListener('click', () => {
                         if (auth.user) auth.signOut();
                     });
+
+                    // ===== NEW: EXPORT =====
+                    document.getElementById('exportToggle').addEventListener('click', () => this.exportCurrentDataset());
 
                     // ===== DROPDOWN TOGGLES =====
                     document.addEventListener('click', (e) => {
@@ -1501,6 +1519,20 @@
                     document.querySelector('header').style.display = 'flex';
                     document.body.style.overflow = 'auto';
                     window.currentSlideshow = null;
+                }
+
+                // ========== NEW EXPORT METHOD ==========
+                exportCurrentDataset() {
+                    const ds = database.getCurrentDataset();
+                    if (!ds) {
+                        showNotification('info', 'No dataset', 'Nothing to export');
+                        return;
+                    }
+                    // Create filename: datasetName_date.json (same as second version)
+                    const dateStr = formatDate().replace(/[/:, ]/g, '-');
+                    const filename = `${ds.name.replace(/\s+/g, '_')}_${dateStr}.json`;
+                    exportAsJSON(ds.topics, filename);
+                    showNotification('success', 'Exported', ds.name);
                 }
             }
 
