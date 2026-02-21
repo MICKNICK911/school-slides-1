@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>Digital Notes • Local First, Manual Cloud</title>
+    <title>Digital Notes • Polished UI</title>
     <!-- Font Awesome (optional) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        /* ========== MODERNIZED STYLES (fully styled) ========== */
+        /* ========== MODERNIZED STYLES – FULLY POLISHED ========== */
         * {
             -webkit-tap-highlight-color: transparent;
             -webkit-touch-callout: none;
@@ -88,7 +88,7 @@
         .user-toggle { width: 44px; height: 44px; border-radius: 50%; background: var(--secondary-color); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; cursor: pointer; color: white; transition: var(--transition); font-size: calc(20px * var(--font-base)); box-shadow: var(--shadow); }
         .user-toggle:hover { background: var(--primary-color); transform: scale(1.05); }
 
-        /* splash, panels, cards, builder, etc. (fully styled) */
+        /* splash screen */
         #splashScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10000; transition: opacity 0.8s ease, transform 0.8s ease; }
         .splash-content { text-align: center; padding: 30px; max-width: 80%; }
         .splash-logo { width: 150px; height: 150px; border-radius: 50%; background: white; display: flex; justify-content: center; align-items: center; margin: 0 auto 25px; box-shadow: 0 8px 25px rgba(0,0,0,0.2); overflow: hidden; border: 5px solid var(--accent-color); }
@@ -96,34 +96,265 @@
         .loading-bar { width: 300px; height: 8px; background: rgba(255,255,255,0.3); border-radius: 4px; overflow: hidden; margin-top: 20px; }
         .loading-progress { height: 100%; width: 0%; background: white; border-radius: 4px; transition: width 5s linear; }
 
+        /* main content */
         .results-container { padding: 30px 0; }
         .no-results { text-align: center; padding: 40px 20px; background: var(--card-bg); border-radius: 16px; box-shadow: var(--shadow); max-width: 600px; margin: 50px auto; }
         .entry-card { background: var(--card-bg); border-radius: 16px; box-shadow: var(--shadow); padding: 30px; margin-bottom: 30px; border-left: 4px solid var(--primary-color); animation: fadeIn 0.5s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .entry-header h1 { font-size: calc(42px * var(--font-base)); color: var(--primary-color); }
+        .entry-header h1 { font-size: calc(42px * var(--font-base)); color: var(--primary-color); margin-bottom: 10px; }
         .entry-desc { font-size: calc(20px * var(--font-base)); line-height: 1.7; white-space: pre-line; }
         @media (min-width: 768px) { .entry-desc { font-size: calc(24px * var(--font-base)); } }
         .examples-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; margin-top: 20px; }
         .example-item { background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 10px; padding: 15px; text-align: center; cursor: pointer; transition: var(--transition); font-size: calc(20px * var(--font-base)); }
-        .example-item:hover { transform: translateY(-3px); border-color: var(--primary-color); }
-        .example-item.selected { background: var(--selected-color); color: white; transform: scale(1.03); }
-        .clear-selection { background: var(--accent-color); color: white; border: none; border-radius: 8px; padding: 10px 20px; cursor: pointer; margin-top: 15px; transition: var(--transition); }
-        .clear-selection:hover { background: #e64a19; }
-        .history-panel, .topics-panel, .dataset-panel { position: fixed; top: 0; width: 300px; height: 100vh; background: var(--card-bg); box-shadow: 0 0 15px rgba(0,0,0,0.1); padding: 20px; z-index: 9999; transition: transform 0.3s ease; overflow-y: auto; }
+        .example-item:hover { transform: translateY(-3px); border-color: var(--primary-color); box-shadow: var(--shadow); }
+        .example-item.selected { background: var(--selected-color); color: white; border-color: var(--selected-color); transform: scale(1.03); }
+        .clear-selection { background: var(--accent-color); color: white; border: none; border-radius: 8px; padding: 10px 20px; cursor: pointer; margin-top: 15px; transition: var(--transition); display: inline-flex; align-items: center; gap: 8px; }
+        .clear-selection:hover { background: #e64a19; transform: translateY(-2px); }
+
+        /* ===== CARD STYLES – TOPICS, HISTORY, DATASET (now polished) ===== */
+        .topic-item, .history-item-panel, .dataset-item {
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-bottom: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .topic-item:hover, .history-item-panel:hover, .dataset-item:hover {
+            border-color: var(--primary-color);
+            background: rgba(255, 152, 0, 0.05);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+        .dataset-item.active {
+            border: 2px solid var(--primary-color);
+            background: rgba(255, 152, 0, 0.1);
+        }
+        .dataset-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .dataset-actions button {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 6px 12px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: var(--transition);
+            color: var(--text-color);
+        }
+        .dataset-actions button:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        /* panels */
+        .history-panel, .topics-panel, .dataset-panel {
+            position: fixed;
+            top: 0;
+            width: 300px;
+            height: 100vh;
+            background: var(--card-bg);
+            box-shadow: 0 0 20px rgba(0,0,0,0.15);
+            padding: 20px;
+            z-index: 9999;
+            transition: transform 0.3s ease;
+            overflow-y: auto;
+        }
         .history-panel { right: 0; transform: translateX(100%); }
         .topics-panel { left: 0; transform: translateX(-100%); }
         .dataset-panel { right: 0; transform: translateX(100%); }
         .history-panel.active, .topics-panel.active, .dataset-panel.active { transform: translateX(0); }
-        .overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 80; display: none; }
+        .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); }
+        .close-panel { cursor: pointer; font-size: 20px; transition: var(--transition); width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
+        .close-panel:hover { background: var(--primary-color); color: white; }
+
+        .overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 80;
+            display: none;
+        }
         .overlay.active { display: block; }
 
-        /* ===== FIX: btn-primary was missing – now styled ===== */
+        /* builder */
+        .builder-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-color); z-index: 1000; overflow-y: auto; padding: 20px; display: none; }
+        .builder-container.active { display: block; }
+        .builder-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; padding-bottom: 15px; border-bottom: 1px solid var(--border-color); flex-wrap: wrap; gap: 10px; }
+        .builder-title { display: flex; align-items: center; gap: 10px; font-size: 24px; color: var(--builder-color); }
+        .builder-actions { display: flex; gap: 15px; flex-wrap: wrap; }
+        .builder-btn { padding: 10px 20px; border: none; border-radius: 30px; cursor: pointer; font-size: 16px; font-weight: 500; transition: var(--transition); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .builder-cancel { background: #e0e0e0; color: var(--text-color); }
+        .builder-cancel:hover { background: #b0b0b0; transform: translateY(-2px); }
+        .builder-export { background: var(--export-color); color: white; }
+        .builder-export:hover { background: #b85e00; transform: translateY(-2px); }
+        .cloud-save-btn { background: #2e7d32; color: white; display: inline-flex; align-items: center; gap: 5px; }
+        .cloud-save-btn:hover { background: #1b5e20; transform: translateY(-2px); }
+        .cloud-load-btn { background: #1565c0; color: white; display: inline-flex; align-items: center; gap: 5px; }
+        .cloud-load-btn:hover { background: #0d47a1; transform: translateY(-2px); }
+        .builder-form { max-width: 800px; margin: 0 auto; background: var(--card-bg); border-radius: 24px; padding: 30px; box-shadow: var(--shadow); }
+        .input-group { margin-bottom: 25px; }
+        .input-group label { display: block; margin-bottom: 10px; font-weight: 600; }
+        .input-group input, .input-group textarea { width: 100%; padding: 14px; border: 1px solid var(--border-color); border-radius: 12px; background: var(--bg-color); color: var(--text-color); font-size: 16px; }
+        .builder-add { background: var(--builder-color); color: white; border: none; border-radius: 30px; padding: 12px 30px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; margin: 15px 5px 15px 0; transition: var(--transition); font-weight: 600; }
+        .builder-add:hover { background: #8b4c2c; transform: translateY(-2px); box-shadow: var(--shadow); }
+        .builder-cancel-edit { background: #ff9800; color: white; border: none; border-radius: 30px; padding: 12px 30px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; margin: 15px 0; display: none; transition: var(--transition); font-weight: 600; }
+        .builder-cancel-edit:hover { background: #e68900; transform: translateY(-2px); }
+
+        .manage-topics { margin-top: 30px; }
+        .manage-topics h3 { margin-bottom: 15px; color: var(--builder-color); }
+        .topics-manage-list { display: flex; flex-direction: column; gap: 10px; max-height: 300px; overflow-y: auto; margin-bottom: 15px; }
+        .topic-manage-item { background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; display: flex; justify-content: space-between; align-items: center; transition: var(--transition); }
+        .topic-manage-item:hover { border-color: var(--primary-color); box-shadow: var(--shadow); }
+        .topic-manage-info { flex: 1; }
+        .topic-manage-title { font-weight: 600; font-size: 16px; }
+        .topic-manage-preview { font-size: 14px; color: #666; }
+        .dark-theme .topic-manage-preview { color: #aaa; }
+        .topic-manage-actions { display: flex; gap: 8px; }
+        .topic-manage-actions button { background: transparent; border: 1px solid var(--border-color); border-radius: 20px; padding: 6px 12px; cursor: pointer; font-size: 13px; transition: var(--transition); }
+        .topic-manage-actions button:hover { background: var(--primary-color); color: white; border-color: var(--primary-color); }
+
+        .clear-all-btn { background: var(--accent-color); color: white; border: none; border-radius: 30px; padding: 12px 25px; cursor: pointer; font-size: 15px; display: inline-flex; align-items: center; gap: 8px; margin-top: 10px; transition: var(--transition); font-weight: 600; }
+        .clear-all-btn:hover { background: #e64a19; transform: translateY(-2px); box-shadow: var(--shadow); }
+
+        /* notifications, loading */
+        .dictionary-notification { position: fixed; bottom: 20px; right: 20px; background: var(--primary-color); color: white; padding: 15px 25px; border-radius: 50px; box-shadow: var(--shadow); z-index: 1000; display: flex; align-items: center; gap: 10px; transform: translateY(100px); opacity: 0; transition: transform 0.3s ease, opacity 0.3s ease; }
+        .dictionary-notification.active { transform: translateY(0); opacity: 1; }
+        .dictionary-notification.error { background: #e74c3c; }
+        .loading-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 10002; }
+        .loading-spinner { background: var(--card-bg); padding: 30px; border-radius: 60px; text-align: center; box-shadow: var(--shadow); }
+
+        /* ===== SLIDESHOW – FULLY RESPONSIVE ===== */
+        .slideshow-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--bg-color);
+            z-index: 150;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .slideshow-overlay.active { display: flex; }
+        .slideshow-top, .slideshow-bottom {
+            position: absolute;
+            left: 0; right: 0;
+            height: 50%;
+            cursor: pointer;
+            z-index: 1;
+        }
+        .slideshow-top { top: 0; }
+        .slideshow-bottom { bottom: 0; }
+        .slideshow-content {
+            font-size: clamp(2rem, 8vw, 6rem);
+            text-align: center;
+            max-width: 95%;
+            padding: 20px;
+            z-index: 2;
+            font-weight: bold;
+            color: var(--primary-color);
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+            line-height: 1.4;
+            word-break: break-word;
+        }
+        .slideshow-word {
+            transition: color 0.3s ease, background 0.3s ease;
+            padding: 0.2rem 0.5rem;
+            border-radius: 12px;
+            cursor: pointer;
+            display: inline-block;
+        }
+        .slideshow-word.selected {
+            color: var(--selected-color);
+            background: rgba(255, 0, 0, 0.15);
+        }
+        .slideshow-indicator {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 1.2rem;
+            color: var(--text-color);
+            z-index: 2;
+            background: rgba(0,0,0,0.1);
+            padding: 8px 16px;
+            border-radius: 50px;
+            width: fit-content;
+            margin: 0 auto;
+        }
+        .slideshow-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--card-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 24px;
+            z-index: 3;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+        .slideshow-close:hover { background: var(--primary-color); color: white; transform: scale(1.1); }
+
+        /* instruction modals */
+        .instruction-modal {
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--card-bg);
+            border-radius: 24px;
+            box-shadow: var(--shadow);
+            padding: 30px;
+            z-index: 200;
+            max-width: 90%;
+            width: 500px;
+            text-align: center;
+            display: none;
+        }
+        .instruction-modal.active { display: block; }
+        .instruction-modal h2 { color: var(--primary-color); margin-bottom: 20px; }
+        .instruction-modal ul { text-align: left; margin: 20px 0; padding-left: 20px; }
+        .instruction-modal button { background: var(--primary-color); color: white; border: none; border-radius: 50px; padding: 12px 30px; cursor: pointer; margin-top: 20px; font-weight: 600; transition: var(--transition); }
+        .instruction-modal button:hover { background: var(--secondary-color); transform: translateY(-2px); }
+
+        /* auth modal */
+        .auth-modal {
+            background: var(--card-bg);
+            border-radius: 24px;
+            padding: 30px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: var(--shadow);
+        }
+        .auth-tabs { display: flex; gap: 5px; margin-bottom: 20px; border-bottom: 2px solid var(--border-color); }
+        .auth-tab { padding: 10px 20px; background: transparent; border: none; font-weight: 600; color: var(--text-color); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: var(--transition); }
+        .auth-tab.active { color: var(--primary-color); border-bottom-color: var(--primary-color); }
+        .auth-form { display: none; flex-direction: column; gap: 15px; }
+        .auth-form.active { display: flex; }
+        .auth-form input { padding: 14px 18px; border: 1px solid var(--border-color); border-radius: 50px; font-size: 1rem; background: var(--bg-color); color: var(--text-color); }
         .btn-primary {
             background: var(--primary-color);
             color: white;
             border: none;
-            border-radius: 30px;
-            padding: 12px 20px;
+            border-radius: 50px;
+            padding: 14px 20px;
             font-weight: 600;
             cursor: pointer;
             transition: var(--transition);
@@ -131,6 +362,7 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
+            font-size: 1rem;
         }
         .btn-primary:hover {
             background: var(--secondary-color);
@@ -138,80 +370,15 @@
             box-shadow: var(--shadow);
         }
 
-        /* Builder container with cloud buttons */
-        .builder-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-color); z-index: 1000; overflow-y: auto; padding: 20px; display: none; }
-        .builder-container.active { display: block; }
-        .builder-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; padding-bottom: 15px; border-bottom: 1px solid var(--border-color); flex-wrap: wrap; gap: 10px; }
-        .builder-title { display: flex; align-items: center; gap: 10px; font-size: 24px; color: var(--builder-color); }
-        .builder-actions { display: flex; gap: 15px; flex-wrap: wrap; }
-        .builder-btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 500; transition: var(--transition); }
-        .builder-cancel { background: #e0e0e0; color: var(--text-color); }
-        .builder-cancel:hover { background: #b0b0b0; }
-        .builder-export { background: var(--export-color); color: white; }
-        .builder-export:hover { background: #b85e00; } /* darker orange */
-        .cloud-save-btn { background: #2e7d32; color: white; display: inline-flex; align-items: center; gap: 5px; }
-        .cloud-save-btn:hover { background: #1b5e20; }
-        .cloud-load-btn { background: #1565c0; color: white; display: inline-flex; align-items: center; gap: 5px; }
-        .cloud-load-btn:hover { background: #0d47a1; }
-        .builder-form { max-width: 800px; margin: 0 auto; background: var(--card-bg); border-radius: 16px; padding: 30px; box-shadow: var(--shadow); }
-        .input-group { margin-bottom: 25px; }
-        .input-group label { display: block; margin-bottom: 10px; font-weight: 600; }
-        .input-group input, .input-group textarea { width: 100%; padding: 14px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-color); color: var(--text-color); }
-        .builder-add { background: var(--builder-color); color: white; border: none; border-radius: 8px; padding: 12px 25px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; margin: 15px 5px 15px 0; transition: var(--transition); }
-        .builder-add:hover { background: #8b4c2c; }
-        .builder-cancel-edit { background: #ff9800; color: white; border: none; border-radius: 8px; padding: 12px 25px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; margin: 15px 0; display: none; transition: var(--transition); }
-        .builder-cancel-edit:hover { background: #e68900; }
-
-        .manage-topics { margin-top: 30px; }
-        .manage-topics h3 { margin-bottom: 15px; color: var(--builder-color); }
-        .topics-manage-list { display: flex; flex-direction: column; gap: 10px; max-height: 300px; overflow-y: auto; margin-bottom: 15px; }
-        .topic-manage-item { background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; display: flex; justify-content: space-between; align-items: center; }
-        .topic-manage-info { flex: 1; }
-        .topic-manage-title { font-weight: 600; }
-        .topic-manage-preview { font-size: 14px; color: #666; }
-        .dark-theme .topic-manage-preview { color: #aaa; }
-        .topic-manage-actions { display: flex; gap: 5px; }
-        .topic-manage-actions button { background: transparent; border: 1px solid var(--border-color); border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 12px; transition: var(--transition); }
-        .topic-manage-actions button:hover { background: var(--primary-color); color: white; }
-        .clear-all-btn { background: var(--accent-color); color: white; border: none; border-radius: 8px; padding: 10px 20px; cursor: pointer; font-size: 14px; display: inline-flex; align-items: center; gap: 8px; margin-top: 10px; transition: var(--transition); }
-        .clear-all-btn:hover { background: #e64a19; }
-
-        .dictionary-notification { position: fixed; bottom: 20px; right: 20px; background: var(--primary-color); color: white; padding: 15px 25px; border-radius: 8px; box-shadow: var(--shadow); z-index: 1000; display: flex; align-items: center; gap: 10px; transform: translateY(100px); opacity: 0; transition: transform 0.3s ease, opacity 0.3s ease; }
-        .dictionary-notification.active { transform: translateY(0); opacity: 1; }
-        .dictionary-notification.error { background: #e74c3c; }
-        .loading-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 10002; }
-        .loading-spinner { background: var(--card-bg); padding: 30px; border-radius: 60px; text-align: center; }
-
-        .slideshow-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg-color); z-index: 150; display: none; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
-        .slideshow-overlay.active { display: flex; }
-        .slideshow-top { position: absolute; top: 0; left: 0; right: 0; height: 50%; cursor: pointer; }
-        .slideshow-bottom { position: absolute; bottom: 0; left: 0; right: 0; height: 50%; cursor: pointer; }
-        .slideshow-content { font-size: calc(72px * var(--font-base)); text-align: center; max-width: 90%; padding: 20px; z-index: 2; font-weight: bold; color: var(--primary-color); display: flex; flex-wrap: wrap; justify-content: center; align-items: center; }
-        .slideshow-word { transition: color 0.3s ease, background 0.3s ease; padding: 10px; border-radius: 8px; cursor: pointer; margin: 5px; }
-        .slideshow-word.selected { color: var(--selected-color); background: rgba(255, 0, 0, 0.1); }
-        .slideshow-indicator { position: absolute; bottom: 20px; left: 0; right: 0; text-align: center; font-size: 18px; color: var(--text-color); z-index: 2; }
-        .slideshow-close { position: absolute; top: 20px; right: 20px; width: 44px; height: 44px; border-radius: 50%; background: var(--card-bg); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 24px; z-index: 3; box-shadow: var(--shadow); transition: var(--transition); }
-        .slideshow-close:hover { background: var(--primary-color); color: white; }
-
-        .instruction-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--card-bg); border-radius: 16px; box-shadow: var(--shadow); padding: 30px; z-index: 200; max-width: 90%; width: 500px; text-align: center; display: none; }
-        .instruction-modal.active { display: block; }
-        .auth-modal { background: var(--card-bg); border-radius: 16px; padding: 30px; max-width: 400px; width: 90%; box-shadow: var(--shadow); }
-        .font-controls { display: flex; gap: 10px; align-items: center; margin-top: 15px; }
-        .font-size-btn { width: 36px; height: 36px; border-radius: 50%; background: var(--card-bg); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: var(--transition); }
-        .font-size-btn.active { background: var(--primary-color); color: white; }
+        .font-controls { display: flex; gap: 10px; align-items: center; margin-top: 15px; justify-content: center; }
+        .font-size-btn { width: 40px; height: 40px; border-radius: 50%; background: var(--card-bg); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: var(--transition); font-weight: bold; }
+        .font-size-btn.active { background: var(--primary-color); color: white; border-color: var(--primary-color); }
         .font-size-btn:hover { background: var(--primary-color); color: white; }
-
-        /* panel close buttons */
-        .close-panel { cursor: pointer; font-size: 18px; transition: var(--transition); }
-        .close-panel:hover { color: var(--primary-color); transform: scale(1.2); }
-
-        /* history panel items */
-        .history-item-panel { background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; cursor: pointer; transition: var(--transition); }
-        .history-item-panel:hover { border-color: var(--primary-color); background: rgba(255, 152, 0, 0.1); }
 
         @media (max-width: 768px) {
             .header-content { flex-direction: column; }
             .builder-actions { justify-content: center; }
+            .slideshow-content { font-size: clamp(1.5rem, 6vw, 3rem); }
         }
     </style>
 </head>
@@ -259,7 +426,7 @@
         <div id="loadingOverlay" class="loading-overlay" style="display: none;"><div class="loading-spinner"><i class="fas fa-circle-notch fa-spin"></i><p>Loading...</p></div></div>
         <input type="file" id="fileInput" accept=".json" style="display: none;">
 
-        <!-- Builder Container with explicit cloud buttons -->
+        <!-- Builder Container -->
         <div class="builder-container" id="builderContainer">
             <div class="builder-header">
                 <div class="builder-title"><span>📝</span><h2>Create / Edit Topics</h2></div>
@@ -288,7 +455,6 @@
                     <button class="builder-cancel-edit" id="builderCancelEdit">Cancel Edit</button>
                 </div>
                 
-                <!-- Manage Topics List -->
                 <div class="manage-topics">
                     <h3>Manage Topics</h3>
                     <div class="topics-manage-list" id="topicsManageList"></div>
@@ -297,18 +463,37 @@
             </div>
         </div>
 
-        <!-- Slideshow, panels, etc. -->
-        <div class="slideshow-overlay" id="slideshowOverlay"><div class="slideshow-close" id="slideshowClose">❌</div><div class="slideshow-top" id="slideshowTop"></div><div class="slideshow-content" id="slideshowContent"></div><div class="slideshow-bottom" id="slideshowBottom"></div><div class="slideshow-indicator" id="slideshowIndicator"></div></div>
-        <div class="instruction-modal" id="instructionModal"><h2>Slide Mode Instructions</h2><p>Tap top half → next; bottom half → previous; tap words to highlight.</p><button id="closeInstruction" class="btn-primary">Start</button></div>
+        <!-- Slideshow -->
+        <div class="slideshow-overlay" id="slideshowOverlay">
+            <div class="slideshow-close" id="slideshowClose">❌</div>
+            <div class="slideshow-top" id="slideshowTop"></div>
+            <div class="slideshow-content" id="slideshowContent"></div>
+            <div class="slideshow-bottom" id="slideshowBottom"></div>
+            <div class="slideshow-indicator" id="slideshowIndicator"></div>
+        </div>
         
-        <div class="history-panel" id="historyPanel"><div class="panel-header"><h2>📜 History</h2><div class="close-panel" id="closeHistory">❌</div></div><div class="history-list" id="historyList"></div></div>
-        <div class="topics-panel" id="topicsPanel"><div class="panel-header"><h2>📚 Topics</h2><div class="close-panel" id="closeTopics">❌</div></div><div class="topics-list" id="topicsList"></div></div>
+        <div class="instruction-modal" id="instructionModal">
+            <h2>Slide Mode Instructions</h2>
+            <p>Tap top half → next; bottom half → previous; tap words to highlight.</p>
+            <button id="closeInstruction" class="btn-primary">Start</button>
+        </div>
+
+        <!-- Panels -->
+        <div class="history-panel" id="historyPanel">
+            <div class="panel-header"><h2>📜 History</h2><div class="close-panel" id="closeHistory">❌</div></div>
+            <div class="history-list" id="historyList"></div>
+        </div>
+        <div class="topics-panel" id="topicsPanel">
+            <div class="panel-header"><h2>📚 Topics</h2><div class="close-panel" id="closeTopics">❌</div></div>
+            <div class="topics-list" id="topicsList"></div>
+        </div>
         <div class="dataset-panel" id="datasetPanel">
             <div class="panel-header"><h2>📂 Datasets</h2><div class="close-panel" id="closeDatasetPanel">❌</div></div>
             <div style="margin-bottom: 15px;"><button id="createDatasetBtn" class="btn-primary" style="width:100%;">+ New Dataset</button></div>
             <div class="dataset-list" id="datasetList"></div>
         </div>
 
+        <!-- Help Modal -->
         <div class="instruction-modal" id="instructionsModal">
             <h2>Help & Instructions</h2>
             <ul>
@@ -384,24 +569,17 @@
                     this.datasets = [];           
                     this.currentDatasetId = null;
                     this.localData = null;
-                    // No auto-sync, no intervals
                 }
-
-                setUser(user) {
-                    this.userId = user ? user.uid : null;
-                    // No auto-sync start/stop
-                }
-
+                setUser(user) { this.userId = user ? user.uid : null; }
                 getUserDocRef() { return this.userId ? db.collection('users').doc(this.userId) : null; }
 
-                // Manual cloud save
                 async saveToFirebase() {
                     if (!this.userId) throw new Error('Not authenticated');
                     try {
                         showLoading('Saving to cloud...');
                         const data = { datasets: this.datasets, currentDatasetId: this.currentDatasetId, lastUpdated: Date.now() };
                         await this.getUserDocRef().set({ data, version: '1.0.0' }, { merge: true });
-                        this.localData = data; // update localData reference
+                        this.localData = data;
                         showNotification('success', 'Cloud', 'Saved to cloud');
                     } catch (e) { 
                         console.error(e); 
@@ -410,7 +588,6 @@
                     } finally { hideLoading(); }
                 }
 
-                // Manual cloud load
                 async loadFromFirebase() {
                     if (!this.userId) throw new Error('Not authenticated');
                     try {
@@ -422,7 +599,6 @@
                                 this.datasets = d.datasets;
                                 this.currentDatasetId = d.currentDatasetId || (this.datasets[0]?.id || null);
                                 this.localData = d;
-                                // Save to localStorage after cloud load (so local reflects cloud)
                                 this.saveToLocalStorage();
                                 showNotification('success', 'Cloud', 'Loaded from cloud');
                             } else { showNotification('info', 'Cloud', 'No data found'); }
@@ -432,7 +608,6 @@
                     } finally { hideLoading(); }
                 }
 
-                // Local storage ops
                 saveToLocalStorage() {
                     try {
                         const data = { datasets: this.datasets, currentDatasetId: this.currentDatasetId, lastUpdated: Date.now() };
@@ -440,89 +615,31 @@
                         this.localData = data;
                     } catch (e) { console.error(e); }
                 }
-
                 loadFromLocalStorage() {
                     try {
                         const s = localStorage.getItem('itmylti_notes');
-                        if (s) { 
-                            const data = JSON.parse(s); 
-                            this.datasets = data.datasets || []; 
-                            this.currentDatasetId = data.currentDatasetId || (this.datasets[0]?.id || null); 
-                            this.localData = data; 
-                        }
+                        if (s) { const data = JSON.parse(s); this.datasets = data.datasets || []; this.currentDatasetId = data.currentDatasetId || (this.datasets[0]?.id || null); this.localData = data; }
                     } catch (e) { console.error(e); }
                 }
-
                 getCurrentDataset() { return this.datasets.find(d => d.id === this.currentDatasetId); }
 
-                // CRUD - only local storage, no cloud calls
                 async createDataset(name) {
-                    const id = generateId(); 
-                    const newDataset = { id, name, topics: {} };
-                    this.datasets.push(newDataset); 
-                    this.currentDatasetId = id; 
-                    this.saveToLocalStorage();
+                    const id = generateId(); const newDataset = { id, name, topics: {} };
+                    this.datasets.push(newDataset); this.currentDatasetId = id; this.saveToLocalStorage();
                     return newDataset;
                 }
-
-                async updateDatasetName(id, newName) { 
-                    const ds = this.datasets.find(d=>d.id===id); 
-                    if(ds){ ds.name = newName; this.saveToLocalStorage(); } 
-                }
-
+                async updateDatasetName(id, newName) { const ds = this.datasets.find(d=>d.id===id); if(ds){ ds.name = newName; this.saveToLocalStorage(); } }
                 async deleteDataset(id) {
-                    const idx = this.datasets.findIndex(d=>d.id===id); 
-                    if(idx===-1) return;
+                    const idx = this.datasets.findIndex(d=>d.id===id); if(idx===-1) return;
                     this.datasets.splice(idx,1);
-                    if(this.datasets.length===0) { 
-                        await this.createDataset('My Notes'); 
-                    } else if(this.currentDatasetId===id) { 
-                        this.currentDatasetId = this.datasets[0]?.id || null; 
-                    }
+                    if(this.datasets.length===0) { await this.createDataset('My Notes'); } else if(this.currentDatasetId===id) { this.currentDatasetId = this.datasets[0]?.id || null; }
                     this.saveToLocalStorage();
                 }
-
-                async addTopic(key,desc,ex) { 
-                    const ds=this.getCurrentDataset(); 
-                    if(!ds) return; 
-                    ds.topics[key]={desc,ex}; 
-                    this.saveToLocalStorage(); 
-                }
-
-                async updateTopic(key,desc,ex) { 
-                    const ds=this.getCurrentDataset(); 
-                    if(ds && ds.topics[key]) { 
-                        ds.topics[key]={desc,ex}; 
-                        this.saveToLocalStorage(); 
-                    } 
-                }
-
-                async deleteTopic(key) { 
-                    const ds=this.getCurrentDataset(); 
-                    if(ds && ds.topics[key]) { 
-                        delete ds.topics[key]; 
-                        this.saveToLocalStorage(); 
-                    } 
-                }
-
-                async clearAllTopics() { 
-                    const ds=this.getCurrentDataset(); 
-                    if(ds){ 
-                        ds.topics={}; 
-                        this.saveToLocalStorage(); 
-                    } 
-                }
-
-                async importTopics(newTopics, merge=true) { 
-                    const ds=this.getCurrentDataset(); 
-                    if(!ds) return; 
-                    if(merge) { 
-                        ds.topics={...ds.topics, ...newTopics}; 
-                    } else { 
-                        ds.topics=newTopics; 
-                    } 
-                    this.saveToLocalStorage(); 
-                }
+                async addTopic(key,desc,ex) { const ds=this.getCurrentDataset(); if(!ds) return; ds.topics[key]={desc,ex}; this.saveToLocalStorage(); }
+                async updateTopic(key,desc,ex) { const ds=this.getCurrentDataset(); if(ds && ds.topics[key]) { ds.topics[key]={desc,ex}; this.saveToLocalStorage(); } }
+                async deleteTopic(key) { const ds=this.getCurrentDataset(); if(ds && ds.topics[key]) { delete ds.topics[key]; this.saveToLocalStorage(); } }
+                async clearAllTopics() { const ds=this.getCurrentDataset(); if(ds){ ds.topics={}; this.saveToLocalStorage(); } }
+                async importTopics(newTopics, merge=true) { const ds=this.getCurrentDataset(); if(!ds) return; if(merge) { ds.topics={...ds.topics, ...newTopics}; } else { ds.topics=newTopics; } this.saveToLocalStorage(); }
             }
             const database = new DatabaseManager();
 
@@ -531,13 +648,11 @@
                 constructor() { this.auth = firebase.auth(); this.user = null; this.init(); }
                 init() {
                     this.auth.onAuthStateChanged(user => {
-                        this.user = user; 
-                        database.setUser(user);
+                        this.user = user; database.setUser(user);
                         if(user) {
                             document.getElementById('authModal').style.display='none';
                             document.getElementById('mainApp').style.display='block';
                             document.getElementById('userToggle').textContent = user.email ? user.email[0].toUpperCase() : '👤';
-                            // Load only local data, not cloud automatically
                             if(window.app) window.app.loadLocalData();
                         } else {
                             document.getElementById('mainApp').style.display='none';
@@ -560,7 +675,7 @@
             }
             const auth = new AuthManager();
 
-            // ========== UI MANAGER (identical to before, with cloud buttons) ==========
+            // ========== UI MANAGER (functionality unchanged, but styles enhanced) ==========
             class UIManager {
                 constructor() {
                     this.currentTopic = null;
@@ -580,7 +695,6 @@
                 }
                 updateCaseButtonDisplay() { const btn=document.getElementById('caseToggle'); if(this.caseState===0) btn.innerHTML='Aa'; else if(this.caseState===1) btn.innerHTML='AA'; else btn.innerHTML='aa'; }
                 initEventListeners() {
-                    // Theme, case, font, search, logo, panels, help, import, builder (original listeners) ...
                     document.getElementById('themeToggle').addEventListener('click', ()=>{ this.isDarkTheme=!this.isDarkTheme; document.body.classList.toggle('dark-theme',this.isDarkTheme); localStorage.setItem('notesTheme',this.isDarkTheme?'dark':'light'); document.getElementById('themeToggle').innerHTML=this.isDarkTheme?'☀️ Theme':'🌙 Theme'; });
                     document.getElementById('caseToggle').addEventListener('click', ()=>{ this.caseState=(this.caseState+1)%3; if(this.caseState===0) localStorage.setItem('notesCase','original'); else if(this.caseState===1) localStorage.setItem('notesCase','uppercase'); else localStorage.setItem('notesCase','lowercase'); this.updateCaseButtonDisplay(); if(this.currentTopic) this.displayTopic(this.currentTopic); });
                     document.querySelectorAll('.font-size-btn').forEach(btn=>{ btn.addEventListener('click',()=>{ const s=parseFloat(btn.dataset.size); document.documentElement.style.setProperty('--font-base',s); localStorage.setItem('notesFontSize',s); document.querySelectorAll('.font-size-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); if(this.currentTopic) this.displayTopic(this.currentTopic); }); });
@@ -607,7 +721,6 @@
                     document.getElementById('previewClear').addEventListener('click',()=>{ if(confirm('Clear all topics?')) database.clearAllTopics().then(()=>{ this.refreshUI(); this.updateManageTopicsList(); }); });
                     document.getElementById('topicsManageList').addEventListener('click',(e)=>{ const t=e.target; if(t.classList.contains('edit-btn')) this.editTopic(t.dataset.key); else if(t.classList.contains('delete-btn')) this.deleteTopic(t.dataset.key); });
                     
-                    // Cloud buttons (manual)
                     document.getElementById('builderCloudSave').addEventListener('click', async ()=>{
                         if (!auth.user) { showNotification('error','Auth required','Please log in'); return; }
                         try { await database.saveToFirebase(); } catch(e) { showNotification('error','Cloud save failed',e.message); }
@@ -629,7 +742,6 @@
                     document.getElementById('userToggle').addEventListener('click',()=>{ if(auth.user) auth.signOut(); });
                     document.getElementById('createDatasetBtn').addEventListener('click', async ()=>{ const n=prompt('Dataset name:','New Notes'); if(!n) return; await database.createDataset(n); this.refreshUI(); this.closePanels(); showNotification('success','Dataset created',n); });
 
-                    // dropdown toggles
                     document.addEventListener('click', (e)=>{ if(!e.target.closest('.dropdown')) document.querySelectorAll('.dropdown-menu').forEach(m=>m.classList.remove('active')); });
                     document.getElementById('dataDropdownToggle').addEventListener('click',(e)=>{ e.stopPropagation(); document.getElementById('dataDropdownMenu').classList.toggle('active'); document.getElementById('browseDropdownMenu').classList.remove('active'); document.getElementById('toolsDropdownMenu').classList.remove('active'); });
                     document.getElementById('browseDropdownToggle').addEventListener('click',(e)=>{ e.stopPropagation(); document.getElementById('browseDropdownMenu').classList.toggle('active'); document.getElementById('dataDropdownMenu').classList.remove('active'); document.getElementById('toolsDropdownMenu').classList.remove('active'); });
@@ -637,7 +749,6 @@
                     document.querySelectorAll('.dropdown-menu').forEach(m=>{ m.addEventListener('click',e=>e.stopPropagation()); });
                 }
 
-                // All CRUD / UI methods (identical to original, but they now only call local database methods)
                 resetBuilderForm() { document.getElementById('builderTopic').value=''; document.getElementById('builderDesc').value=''; document.getElementById('builderEx').value=''; this.editingTopicKey=null; document.getElementById('builderAdd').innerHTML='<span>+</span> Add Topic'; document.getElementById('builderCancelEdit').style.display='none'; }
                 cancelEdit() { this.resetBuilderForm(); }
                 editTopic(key) { const ds=database.getCurrentDataset(); if(!ds||!ds.topics[key]) return; const t=ds.topics[key]; document.getElementById('builderTopic').value=key; document.getElementById('builderDesc').value=t.desc; document.getElementById('builderEx').value=t.ex.join(', '); this.editingTopicKey=key; document.getElementById('builderAdd').innerHTML='<span>✏️</span> Update Topic'; document.getElementById('builderCancelEdit').style.display='inline-flex'; }
@@ -653,7 +764,7 @@
                 applyCase(text) { if(this.caseState===1) return text.toUpperCase(); if(this.caseState===2) return text.toLowerCase(); return text; }
                 showHome() { this.currentTopic=null; const ds=database.getCurrentDataset(); const topics=ds?Object.keys(ds.topics):[]; const suggested=topics.slice(0,8).map(t=>`<div class="history-item">🔍 ${t}</div>`).join(''); const fc=document.getElementById('fontControls').outerHTML; document.getElementById('resultsContainer').innerHTML=`<div class="no-results"><span>📖</span><h2>${ds?ds.name:'My Notes'}</h2><p>${topics.length} topics available</p><div class="search-history">${suggested||'<p>No topics yet.</p>'}</div>${fc}</div>`; document.querySelectorAll('.font-size-btn').forEach(btn=>{ btn.addEventListener('click',()=>{ const s=parseFloat(btn.dataset.size); document.documentElement.style.setProperty('--font-base',s); localStorage.setItem('notesFontSize',s); document.querySelectorAll('.font-size-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); }); }); document.querySelectorAll('.history-item').forEach(item=>{ item.addEventListener('click',()=>{ document.getElementById('searchInput').value=item.textContent.trim().replace('🔍','').trim(); this.handleSearch(); }); }); }
                 refreshUI() { this.renderTopicsPanel(); this.renderDatasetPanel(); if(this.currentTopic){ const ds=database.getCurrentDataset(); if(!ds||!ds.topics[this.currentTopic]) this.showHome(); else this.displayTopic(this.currentTopic); } else { this.showHome(); } this.updateManageTopicsList(); }
-                loadFromCloud() { this.refreshUI(); } // called after manual cloud load
+                loadFromCloud() { this.refreshUI(); }
                 formatMarkdown(text) { const lines=text.split('\n'); let out='',inO=false,inU=false; for(let l of lines){ l=l.trim(); if(!l) continue; if(l.startsWith('### ')) out+=`<h2 class="markdown-h2">${this.processInline(l.slice(4))}</h2>`; else if(l.startsWith('## ')) out+=`<h3 class="markdown-h3">${this.processInline(l.slice(3))}</h3>`; else if(l.startsWith('# ')) out+=`<strong class="markdown-strong">${this.processInline(l.slice(2))}</strong>`; else if(l.startsWith('- ')){ if(!inO){ out+='<ol class="markdown-ol">'; inO=true; } out+=`<li class="markdown-li">${this.processInline(l.slice(2))}</li>`; } else if(l.startsWith('+ ')){ if(!inU){ out+='<ul class="markdown-ul">'; inU=true; } out+=`<li class="markdown-li">${this.processInline(l.slice(2))}</li>`; } else { if(inO){ out+='</ol>'; inO=false; } if(inU){ out+='</ul>'; inU=false; } out+=`<p class="markdown-p">${this.processInline(l)}</p>`; } } if(inO) out+='</ol>'; if(inU) out+='</ul>'; return out; }
                 processInline(t) { t=t.replace(/\[([^\]]+)\]/g,'<span class="theme-color">$1</span>'); t=t.replace(/_([^_]+)_/g,'<u class="markdown-u">$1</u>'); t=t.replace(/\*([^*]+)\*/g,'<em class="markdown-em">$1</em>'); return t; }
                 startSlideshow() { if(!this.currentTopic){ showNotification('info','No topic','Search a topic first'); return; } const ds=database.getCurrentDataset(); if(!ds) return; const t=ds.topics[this.currentTopic]; if(!t||!t.ex||t.ex.length===0){ showNotification('info','No examples'); return; } window.currentSlideshow={examples:t.ex,index:0,selected:{}}; document.getElementById('instructionModal').classList.add('active'); document.getElementById('overlay').classList.add('active'); }
@@ -668,7 +779,6 @@
             }
             const ui = new UIManager();
 
-            // ========== MAIN APP ==========
             class App {
                 constructor() { this.initialized = false; }
                 async init() {
@@ -678,21 +788,18 @@
                     ui.refreshUI();
                     this.initialized = true;
                 }
-                // Called after login – only local data, no cloud fetch
                 loadLocalData() {
                     database.loadFromLocalStorage();
-                    if(!database.datasets.length) { database.createDataset('My Notes'); } // create if empty
+                    if(!database.datasets.length) { database.createDataset('My Notes'); }
                     ui.refreshUI();
                 }
-                loadFromCloud() { ui.refreshUI(); } // used after manual cloud load
+                loadFromCloud() { ui.refreshUI(); }
             }
             window.app = new App();
 
-            // Splash screen
             document.getElementById('loadingProgress').style.width = '100%';
             setTimeout(()=>{ document.getElementById('splashScreen').style.opacity='0'; setTimeout(()=>{ document.getElementById('splashScreen').style.display='none'; window.app.init(); },800); },5000);
 
-            // Keyboard slideshow
             document.addEventListener('keydown', e=>{ if(document.getElementById('slideshowOverlay').classList.contains('active')){ if(e.key==='ArrowRight'||e.key===' '){ e.preventDefault(); ui.nextSlide(); } else if(e.key==='ArrowLeft'){ e.preventDefault(); ui.prevSlide(); } else if(e.key==='Escape'){ ui.closeSlideshow(); } } });
         })();
     </script>
