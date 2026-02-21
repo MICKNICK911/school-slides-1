@@ -453,9 +453,35 @@
         .slideshow-overlay.active { display: flex; }
         .slideshow-top { position: absolute; top: 0; left: 0; right: 0; height: 50%; cursor: pointer; }
         .slideshow-bottom { position: absolute; bottom: 0; left: 0; right: 0; height: 50%; cursor: pointer; }
-        .slideshow-content { font-size: calc(72px * var(--font-base)); text-align: center; max-width: 90%; padding: 20px; z-index: 2; font-weight: bold; color: var(--primary-color); display: flex; flex-wrap: wrap; justify-content: center; align-items: center; }
-        .slideshow-word { transition: color 0.3s ease, background 0.3s ease; padding: 10px; border-radius: 8px; cursor: pointer; margin: 5px; }
-        .slideshow-word.selected { color: var(--selected-color); background: rgba(255, 0, 0, 0.1); }
+        /* Responsive font size for slideshow: clamp + scaling + wrapping */
+        .slideshow-content { 
+            font-size: calc(clamp(24px, 8vw, 96px) * var(--font-base)); 
+            text-align: center; 
+            max-width: 95%; 
+            padding: 20px; 
+            z-index: 2; 
+            font-weight: bold; 
+            color: var(--primary-color); 
+            display: flex; 
+            flex-wrap: wrap; 
+            justify-content: center; 
+            align-items: center; 
+            line-height: 1.4;
+            word-break: break-word;
+        }
+        .slideshow-word { 
+            transition: color 0.3s ease, background 0.3s ease; 
+            padding: 0.1em 0.2em; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            margin: 0.1em 0.2em;
+            display: inline-block;
+            white-space: normal;
+        }
+        .slideshow-word.selected { 
+            color: var(--selected-color); 
+            background: rgba(255, 0, 0, 0.1); 
+        }
         .slideshow-indicator { position: absolute; bottom: 20px; left: 0; right: 0; text-align: center; font-size: 18px; color: var(--text-color); z-index: 2; }
         .slideshow-close { position: absolute; top: 20px; right: 20px; width: 44px; height: 44px; border-radius: 50%; background: var(--card-bg); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 24px; z-index: 3; box-shadow: var(--shadow); }
 
@@ -578,6 +604,7 @@
                 <li>▶️ Start slideshow from a topic</li>
                 <li>🌙 Toggle dark/light theme</li>
                 <li>Aa / AA / aa Toggle case (original/uppercase/lowercase)</li>
+                <li>📤 Export current dataset as JSON</li>
             </ul>
             <button id="closeModal">Got it</button>
         </div>
@@ -595,11 +622,12 @@
                         <button class="search-btn" id="searchBtn">🔍</button>
                     </div>
                     <div class="controls">
-                        <!-- Data Dropdown (only Datasets) -->
+                        <!-- Data Dropdown (Datasets + Export) -->
                         <div class="dropdown">
                             <button class="dropdown-toggle" id="dataDropdownToggle">📁</button>
                             <div class="dropdown-menu" id="dataDropdownMenu">
                                 <div class="dataset-toggle" id="datasetToggle" title="Datasets">📂 Datasets</div>
+                                <div class="export-toggle" id="exportToggle" title="Export">📤 Export</div>
                             </div>
                         </div>
                         <!-- Browse Dropdown -->
@@ -722,6 +750,19 @@
             
             function hideLoading() { 
                 document.getElementById('loadingOverlay').style.display = 'none'; 
+            }
+
+            // ========== EXPORT FUNCTION (copied from second version) ==========
+            function exportAsJSON(data, filename) {
+                const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url; 
+                a.download = filename;
+                document.body.appendChild(a); 
+                a.click(); 
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
             }
 
             // ========== DATABASE MANAGER (all methods kept but never called from UI) ==========
@@ -973,7 +1014,7 @@
             
             const auth = new AuthManager();
 
-            // ========== UI MANAGER (read‑only) ==========
+            // ========== UI MANAGER (read‑only + export) ==========
             class UIManager {
                 constructor() {
                     this.currentTopic = null;
@@ -1087,6 +1128,9 @@
                     document.getElementById('userToggle').addEventListener('click', () => {
                         if (auth.user) auth.signOut();
                     });
+
+                    // ===== NEW: EXPORT =====
+                    document.getElementById('exportToggle').addEventListener('click', () => this.exportCurrentDataset());
 
                     // ===== DROPDOWN TOGGLES =====
                     document.addEventListener('click', (e) => {
@@ -1255,11 +1299,12 @@
                         examples = examples.map(e => e.toLowerCase());
                     }
                     
+                    // Changed label from "Examples & Word Bank:" to "Facts:"
                     const html = `
                         <div class="entry-card">
                             <div class="entry-header"><h1>${this.applyCase(term)}</h1></div>
                             <div class="entry-desc">${this.formatMarkdown(desc)}</div>
-                            <h3>Examples & Word Bank:</h3>
+                            <h3>Facts:</h3>
                             <div class="examples-grid">
                                 ${examples.map((ex, i) => `<div class="example-item" data-index="${i}">${ex}</div>`).join('')}
                             </div>
@@ -1406,7 +1451,7 @@
                     
                     const topic = ds.topics[this.currentTopic];
                     if (!topic || !topic.ex || topic.ex.length === 0) {
-                        showNotification('info', 'No examples', 'This topic has no examples');
+                        showNotification('info', 'No examples', 'This topic has no facts');
                         return;
                     }
                     
@@ -1474,6 +1519,20 @@
                     document.querySelector('header').style.display = 'flex';
                     document.body.style.overflow = 'auto';
                     window.currentSlideshow = null;
+                }
+
+                // ========== NEW EXPORT METHOD ==========
+                exportCurrentDataset() {
+                    const ds = database.getCurrentDataset();
+                    if (!ds) {
+                        showNotification('info', 'No dataset', 'Nothing to export');
+                        return;
+                    }
+                    // Create filename: datasetName_date.json (same as second version)
+                    const dateStr = formatDate().replace(/[/:, ]/g, '-');
+                    const filename = `${ds.name.replace(/\s+/g, '_')}_${dateStr}.json`;
+                    exportAsJSON(ds.topics, filename);
+                    showNotification('success', 'Exported', ds.name);
                 }
             }
 

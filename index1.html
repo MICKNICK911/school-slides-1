@@ -3,24 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>Digital Notes</title>
-    <!-- Font Awesome (optional, for icons) -->
+    <title>Digital Notes · Read‑only</title>
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        /* ========== MODERNIZED STYLES ========== */
         * {
             -webkit-tap-highlight-color: transparent;
             -webkit-touch-callout: none;
             box-sizing: border-box;
         }
 
-        /* Color theme: orange, gold, wine */
+        /* Green / Blue / Purple theme */
         :root {
-            --primary-color: #ff9800;       /* orange */
-            --secondary-color: #8b1e3f;      /* wine */
-            --accent-color: #ffd700;          /* gold */
-            --export-color: #b85e00;           /* dark orange */
-            --builder-color: #6d351a;           /* brownish */
+            --primary-color: #4CAF50;       /* green */
+            --secondary-color: #2196F3;      /* blue */
+            --accent-color: #9C27B0;         /* purple */
+            --export-color: #388E3C;          /* dark green */
+            --builder-color: #512DA8;          /* deep purple */
             --bg-color: #ffffff;
             --text-color: #333333;
             --card-bg: #f8f9fa;
@@ -28,16 +27,16 @@
             --shadow: 0 4px 12px rgba(0,0,0,0.08);
             --transition: all 0.3s ease;
             --header-height: 70px;
-            --selected-color: #ff0000;
+            --selected-color: #f44336;
             --font-base: 1;
         }
 
         .dark-theme {
-            --primary-color: #ffb74d;          /* lighter orange */
-            --secondary-color: #b84a6a;         /* lighter wine */
-            --accent-color: #ffe082;            /* light gold */
-            --export-color: #ff9800;
-            --builder-color: #ce9178;
+            --primary-color: #66BB6A;          /* lighter green */
+            --secondary-color: #42A5F5;         /* lighter blue */
+            --accent-color: #BA68C8;            /* lighter purple */
+            --export-color: #81C784;
+            --builder-color: #9575CD;
             --bg-color: #121212;
             --text-color: #f8f9fa;
             --card-bg: #1e1e1e;
@@ -55,14 +54,14 @@
             min-height: 100vh;
             padding-bottom: 40px;
             background-image: 
-                radial-gradient(circle at 15% 50%, rgba(255, 152, 0, 0.05) 0%, rgba(255, 152, 0, 0) 25%),
-                radial-gradient(circle at 85% 30%, rgba(255, 193, 7, 0.05) 0%, rgba(255, 193, 7, 0) 25%);
+                radial-gradient(circle at 15% 50%, rgba(76, 175, 80, 0.05) 0%, rgba(76, 175, 80, 0) 25%),
+                radial-gradient(circle at 85% 30%, rgba(33, 150, 243, 0.05) 0%, rgba(33, 150, 243, 0) 25%);
         }
 
         .dark-theme body {
             background-image: 
-                radial-gradient(circle at 15% 50%, rgba(255, 152, 0, 0.08) 0%, rgba(255, 152, 0, 0) 25%),
-                radial-gradient(circle at 85% 30%, rgba(255, 193, 7, 0.08) 0%, rgba(255, 193, 7, 0) 25%);
+                radial-gradient(circle at 15% 50%, rgba(76, 175, 80, 0.08) 0%, rgba(76, 175, 80, 0) 25%),
+                radial-gradient(circle at 85% 30%, rgba(33, 150, 243, 0.08) 0%, rgba(33, 150, 243, 0) 25%);
         }
 
         .container {
@@ -71,7 +70,6 @@
             padding: 0 20px;
         }
 
-        /* ===== MODERN HEADER ===== */
         header {
             width: 100%;
             position: sticky;
@@ -123,7 +121,7 @@
 
         .search-container:focus-within {
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(255, 152, 0, 0.2);
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
         }
 
         .search-container input {
@@ -156,7 +154,6 @@
             background: var(--secondary-color);
         }
 
-        /* ===== DROPDOWNS ===== */
         .controls {
             display: flex;
             gap: 10px;
@@ -226,16 +223,6 @@
             color: white;
         }
 
-        .dropdown-menu > div:first-child {
-            border-top-left-radius: 12px;
-            border-top-right-radius: 12px;
-        }
-
-        .dropdown-menu > div:last-child {
-            border-bottom-left-radius: 12px;
-            border-bottom-right-radius: 12px;
-        }
-
         .user-toggle {
             width: 44px;
             height: 44px;
@@ -257,7 +244,7 @@
             transform: scale(1.05);
         }
 
-        /* ===== SPLASH SCREEN (unchanged) ===== */
+        /* Splash Screen */
         #splashScreen {
             position: fixed;
             top: 0;
@@ -341,7 +328,7 @@
             transition: width 5s linear;
         }
 
-        /* ===== RESULTS & CARDS (unchanged) ===== */
+        /* Results & Cards */
         .results-container { padding: 30px 0; }
         .no-results { text-align: center; padding: 40px 20px; background: var(--card-bg); border-radius: 16px; box-shadow: var(--shadow); max-width: 600px; margin: 50px auto; }
         .no-results span { font-size: 48px; margin-bottom: 20px; display: block; color: var(--primary-color); }
@@ -378,7 +365,7 @@
         .history-item { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 50px; padding: 8px 18px; font-size: 14px; cursor: pointer; transition: var(--transition); display: flex; align-items: center; gap: 6px; }
         .history-item:hover { background: var(--primary-color); color: white; border-color: var(--primary-color); }
 
-        /* Panels (unchanged) */
+        /* Panels */
         .history-panel, .topics-panel, .dataset-panel {
             position: fixed;
             top: 0;
@@ -408,12 +395,9 @@
         }
         .history-item-panel:hover, .topic-item:hover, .dataset-item:hover {
             border-color: var(--primary-color);
-            background: rgba(255, 152, 0, 0.1);
+            background: rgba(76, 175, 80, 0.1);
         }
-        .dataset-item.active { border: 2px solid var(--primary-color); background: rgba(255, 152, 0, 0.1); }
-        .dataset-actions { display: flex; gap: 5px; margin-top: 8px; }
-        .dataset-actions button { background: transparent; border: 1px solid var(--border-color); border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 12px; }
-        .dataset-actions button:hover { background: var(--primary-color); color: white; }
+        .dataset-item.active { border: 2px solid var(--primary-color); background: rgba(76, 175, 80, 0.1); }
 
         .overlay {
             position: fixed;
@@ -424,7 +408,7 @@
         }
         .overlay.active { display: block; }
 
-        /* Auth Modal (unchanged) */
+        /* Auth Modal */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -464,39 +448,7 @@
         .loading-spinner { background: var(--card-bg); padding: 30px; border-radius: 60px; text-align: center; }
         .loading-spinner i { font-size: 40px; color: var(--primary-color); }
 
-        /* Builder (updated: removed JSON preview) */
-        .builder-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-color); z-index: 1000; overflow-y: auto; padding: 20px; display: none; }
-        .builder-container.active { display: block; }
-        .builder-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; padding-bottom: 15px; border-bottom: 1px solid var(--border-color); }
-        .builder-title { display: flex; align-items: center; gap: 10px; font-size: 24px; color: var(--builder-color); }
-        .builder-actions { display: flex; gap: 15px; }
-        .builder-btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; }
-        .builder-cancel { background: #e0e0e0; color: var(--text-color); }
-        .builder-export { background: var(--export-color); color: white; }
-        .builder-form { max-width: 800px; margin: 0 auto; background: var(--card-bg); border-radius: 16px; padding: 30px; box-shadow: var(--shadow); }
-        .input-group { margin-bottom: 25px; }
-        .input-group label { display: block; margin-bottom: 10px; font-weight: 600; }
-        .input-group input, .input-group textarea { width: 100%; padding: 14px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-color); color: var(--text-color); }
-        .builder-add { background: var(--builder-color); color: white; border: none; border-radius: 8px; padding: 12px 25px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; margin: 15px 5px 15px 0; }
-        .builder-cancel-edit { background: #ff9800; color: white; border: none; border-radius: 8px; padding: 12px 25px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; margin: 15px 0; display: none; }
-
-        /* Manage Topics List (enhanced) */
-        .manage-topics { margin-top: 30px; }
-        .manage-topics h3 { margin-bottom: 15px; color: var(--builder-color); }
-        .topics-manage-list { display: flex; flex-direction: column; gap: 10px; max-height: 300px; overflow-y: auto; margin-bottom: 15px; }
-        .topic-manage-item { background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; display: flex; justify-content: space-between; align-items: center; }
-        .topic-manage-info { flex: 1; }
-        .topic-manage-title { font-weight: 600; font-size: 16px; }
-        .topic-manage-preview { font-size: 14px; color: #666; }
-        .topic-manage-actions { display: flex; gap: 5px; }
-        .topic-manage-actions button { background: transparent; border: 1px solid var(--border-color); border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 12px; }
-        .topic-manage-actions button:hover { background: var(--primary-color); color: white; }
-        .topic-manage-actions .edit-btn:hover { background: #2196F3; }
-        .topic-manage-actions .delete-btn:hover { background: #f44336; }
-        .clear-all-btn { background: var(--accent-color); color: white; border: none; border-radius: 8px; padding: 10px 20px; cursor: pointer; font-size: 14px; display: inline-flex; align-items: center; gap: 8px; margin-top: 10px; }
-        .clear-all-btn:hover { background: #e64a19; }
-
-        /* Slideshow (unchanged) */
+        /* Slideshow */
         .slideshow-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg-color); z-index: 150; display: none; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
         .slideshow-overlay.active { display: flex; }
         .slideshow-top { position: absolute; top: 0; left: 0; right: 0; height: 50%; cursor: pointer; }
@@ -532,8 +484,8 @@
             <div class="splash-logo">
                 <div class="splash-logo-inner">📚</div>
             </div>
-            <h1 class="splash-title">IT MyLTI D Notes</h1>
-            <p class="splash-subtitle">Cloud-Powered Learning</p>
+            <h1 class="splash-title">Digital Notes</h1>
+            <p class="splash-subtitle">Read‑only</p>
             <div class="loading-bar"><div class="loading-progress" id="loadingProgress"></div></div>
         </div>
     </div>
@@ -579,45 +531,6 @@
             <div class="loading-spinner"><i class="fas fa-circle-notch fa-spin"></i><p>Loading...</p></div>
         </div>
 
-        <!-- Hidden file input -->
-        <input type="file" id="fileInput" accept=".json" style="display: none;">
-
-        <!-- Builder Container (JSON preview removed) -->
-        <div class="builder-container" id="builderContainer">
-            <div class="builder-header">
-                <div class="builder-title"><span>📝</span><h2>Create / Edit Topics</h2></div>
-                <div class="builder-actions">
-                    <button class="builder-btn builder-cancel" id="builderCancel">Cancel</button>
-                    <button class="builder-btn builder-export" id="builderExport">Export Dataset</button>
-                </div>
-            </div>
-            <div class="builder-form">
-                <div class="input-group">
-                    <label for="builderTopic">Topic:</label>
-                    <input type="text" id="builderTopic" placeholder="e.g., vowels">
-                </div>
-                <div class="input-group">
-                    <label for="builderDesc">Description:</label>
-                    <textarea id="builderDesc" rows="3" placeholder="Use markdown: ### heading, [color], _underline_, *italic*"></textarea>
-                </div>
-                <div class="input-group">
-                    <label for="builderEx">Examples (comma separated):</label>
-                    <input type="text" id="builderEx" placeholder="e.g., a, e, i, o, u">
-                </div>
-                <div>
-                    <button class="builder-add" id="builderAdd"><span>+</span> Add Topic</button>
-                    <button class="builder-cancel-edit" id="builderCancelEdit">Cancel Edit</button>
-                </div>
-                
-                <!-- Manage Topics List (with Clear All button) -->
-                <div class="manage-topics">
-                    <h3>Manage Topics</h3>
-                    <div class="topics-manage-list" id="topicsManageList"></div>
-                    <button class="clear-all-btn" id="previewClear"><span>🗑️</span> Clear All Topics</button>
-                </div>
-            </div>
-        </div>
-
         <!-- Slideshow -->
         <div class="slideshow-overlay" id="slideshowOverlay">
             <div class="slideshow-close" id="slideshowClose">❌</div>
@@ -646,14 +559,11 @@
             <div class="topics-list" id="topicsList"></div>
         </div>
 
-        <!-- Datasets Panel -->
+        <!-- Datasets Panel (read‑only) -->
         <div class="dataset-panel" id="datasetPanel">
             <div class="panel-header">
                 <h2>📂 Datasets</h2>
                 <div class="close-panel" id="closeDatasetPanel">❌</div>
-            </div>
-            <div style="margin-bottom: 15px;">
-                <button id="createDatasetBtn" class="btn-primary" style="width:100%;">+ New Dataset</button>
             </div>
             <div class="dataset-list" id="datasetList"></div>
         </div>
@@ -663,12 +573,11 @@
             <h2>Help & Instructions</h2>
             <ul>
                 <li>🔍 Search for topics in current dataset</li>
-                <li>📂 Switch between datasets</li>
-                <li>📝 Create new topics</li>
+                <li>📂 Switch between datasets (read‑only)</li>
                 <li>📚 Browse all topics</li>
                 <li>▶️ Start slideshow from a topic</li>
                 <li>🌙 Toggle dark/light theme</li>
-                <li>Aa Toggle uppercase/lowercase</li>
+                <li>Aa / AA / aa Toggle case (original/uppercase/lowercase)</li>
             </ul>
             <button id="closeModal">Got it</button>
         </div>
@@ -679,20 +588,18 @@
                 <div class="header-content">
                     <div class="logo" id="appLogo">
                         <span>📚</span>
-                        <span>IT MyLTI D</span>
+                        <span>Digital Notes</span>
                     </div>
                     <div class="search-container">
                         <input type="text" id="searchInput" placeholder="Search topic...">
                         <button class="search-btn" id="searchBtn">🔍</button>
                     </div>
                     <div class="controls">
-                        <!-- Data Dropdown -->
+                        <!-- Data Dropdown (only Datasets) -->
                         <div class="dropdown">
                             <button class="dropdown-toggle" id="dataDropdownToggle">📁</button>
                             <div class="dropdown-menu" id="dataDropdownMenu">
                                 <div class="dataset-toggle" id="datasetToggle" title="Datasets">📂 Datasets</div>
-                                <div class="load-toggle" id="loadToggle" title="Import JSON">📥 Import</div>
-                                <div class="export-toggle" id="exportToggle" title="Create Topic">📝 Create</div>
                             </div>
                         </div>
                         <!-- Browse Dropdown -->
@@ -708,12 +615,12 @@
                             <button class="dropdown-toggle" id="toolsDropdownToggle">🛠️</button>
                             <div class="dropdown-menu" id="toolsDropdownMenu">
                                 <div class="theme-toggle" id="themeToggle" title="Theme">🌙 Theme</div>
-                                <div class="case-toggle" id="caseToggle" title="Case">Aa Case</div>
+                                <div class="case-toggle" id="caseToggle" title="Case">Aa</div>
                                 <div class="help-toggle" id="helpToggle" title="Help">❓ Help</div>
                                 <div class="slide-toggle" id="slideToggle" title="Slide Show">▶️ Slide</div>
                             </div>
                         </div>
-                        <!-- User Button (standalone) -->
+                        <!-- User Button -->
                         <div class="user-toggle" id="userToggle" title="User">👤</div>
                     </div>
                 </div>
@@ -744,18 +651,17 @@
 
     <script>
         (function() {
-            // ========== FIREBASE CONFIG - REPLACE WITH YOUR OWN ==========
+            // ========== FIREBASE CONFIG (same as original) ==========
             const firebaseConfig = {
-            apiKey: "AIzaSyCw1UnzkY4Eq_ImEnRDRFYmUMhSc95T-NU",
-            authDomain: "lesson-notes-2025.firebaseapp.com",
-            projectId: "lesson-notes-2025",
-            storageBucket: "lesson-notes-2025.firebasestorage.app",
-            messagingSenderId: "757231923808",
-            appId: "1:757231923808:web:3c72026662c8a296134905"
+                apiKey: "AIzaSyCw1UnzkY4Eq_ImEnRDRFYmUMhSc95T-NU",
+                authDomain: "lesson-notes-2025.firebaseapp.com",
+                projectId: "lesson-notes-2025",
+                storageBucket: "lesson-notes-2025.firebasestorage.app",
+                messagingSenderId: "757231923808",
+                appId: "1:757231923808:web:3c72026662c8a296134905"
             };
             
-            firebase.initializeApp
-            (firebaseConfig);
+            firebase.initializeApp(firebaseConfig);
             const db = firebase.firestore();
             
             db.enablePersistence({ synchronizeTabs: true })
@@ -772,7 +678,6 @@
             const STORAGE_KEY = 'itmylti_notes';
             const SYNC_INTERVAL = 30000;
 
-            // Utility functions
             function generateId() {
                 return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
             }
@@ -819,34 +724,7 @@
                 document.getElementById('loadingOverlay').style.display = 'none'; 
             }
 
-            function exportAsJSON(data, filename) {
-                const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url; 
-                a.download = filename;
-                document.body.appendChild(a); 
-                a.click(); 
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-            }
-
-            async function importJSONFile(file) {
-                return new Promise((res, rej) => {
-                    const reader = new FileReader();
-                    reader.onload = e => { 
-                        try { 
-                            res(JSON.parse(e.target.result)); 
-                        } catch(err) { 
-                            rej('Invalid JSON'); 
-                        } 
-                    };
-                    reader.onerror = () => rej('Read error');
-                    reader.readAsText(file);
-                });
-            }
-
-            // ========== DATABASE MANAGER (unchanged) ==========
+            // ========== DATABASE MANAGER (all methods kept but never called from UI) ==========
             class DatabaseManager {
                 constructor() {
                     this.userId = null;
@@ -989,102 +867,20 @@
                     return this.datasets.find(d => d.id === this.currentDatasetId);
                 }
 
-                async createDataset(name) {
-                    const id = generateId();
-                    const newDataset = { id, name, topics: {} };
-                    this.datasets.push(newDataset);
-                    this.currentDatasetId = id;
-                    this.pendingChanges = true;
-                    this.saveToLocalStorage();
-                    if (this.userId) await this.saveToFirebase().catch(() => {});
-                    return newDataset;
-                }
-
-                async updateDatasetName(id, newName) {
-                    const ds = this.datasets.find(d => d.id === id);
-                    if (ds) { 
-                        ds.name = newName; 
-                        this.pendingChanges = true; 
-                        this.saveToLocalStorage();
-                        if (this.userId) await this.saveToFirebase().catch(() => {});
-                    }
-                }
-
-                async deleteDataset(id) {
-                    const idx = this.datasets.findIndex(d => d.id === id);
-                    if (idx === -1) return;
-                    
-                    this.datasets.splice(idx, 1);
-                    
-                    if (this.datasets.length === 0) {
-                        await this.createDataset('My Notes');
-                    } else if (this.currentDatasetId === id) {
-                        this.currentDatasetId = this.datasets[0]?.id || null;
-                    }
-                    
-                    this.pendingChanges = true;
-                    this.saveToLocalStorage();
-                    if (this.userId) await this.saveToFirebase().catch(() => {});
-                }
-
-                async addTopic(topicKey, desc, examples) {
-                    const ds = this.getCurrentDataset();
-                    if (!ds) return;
-                    ds.topics[topicKey] = { desc, ex: examples };
-                    this.pendingChanges = true;
-                    this.saveToLocalStorage();
-                    if (this.userId) await this.saveToFirebase().catch(() => {});
-                }
-
-                async updateTopic(topicKey, desc, examples) {
-                    const ds = this.getCurrentDataset();
-                    if (ds && ds.topics[topicKey]) {
-                        ds.topics[topicKey] = { desc, ex: examples };
-                        this.pendingChanges = true;
-                        this.saveToLocalStorage();
-                        if (this.userId) await this.saveToFirebase().catch(() => {});
-                    }
-                }
-
-                async deleteTopic(topicKey) {
-                    const ds = this.getCurrentDataset();
-                    if (ds && ds.topics[topicKey]) {
-                        delete ds.topics[topicKey];
-                        this.pendingChanges = true;
-                        this.saveToLocalStorage();
-                        if (this.userId) await this.saveToFirebase().catch(() => {});
-                    }
-                }
-
-                async clearAllTopics() {
-                    const ds = this.getCurrentDataset();
-                    if (ds) {
-                        ds.topics = {};
-                        this.pendingChanges = true;
-                        this.saveToLocalStorage();
-                        if (this.userId) await this.saveToFirebase().catch(() => {});
-                    }
-                }
-
-                async importTopics(newTopics, merge = true) {
-                    const ds = this.getCurrentDataset();
-                    if (!ds) return;
-                    
-                    if (merge) {
-                        ds.topics = { ...ds.topics, ...newTopics };
-                    } else {
-                        ds.topics = newTopics;
-                    }
-                    
-                    this.pendingChanges = true;
-                    this.saveToLocalStorage();
-                    if (this.userId) await this.saveToFirebase().catch(() => {});
-                }
+                // The following methods are kept but never invoked by the read‑only UI.
+                async createDataset(name) { /* not used */ }
+                async updateDatasetName(id, newName) { /* not used */ }
+                async deleteDataset(id) { /* not used */ }
+                async addTopic(topicKey, desc, examples) { /* not used */ }
+                async updateTopic(topicKey, desc, examples) { /* not used */ }
+                async deleteTopic(topicKey) { /* not used */ }
+                async clearAllTopics() { /* not used */ }
+                async importTopics(newTopics, merge = true) { /* not used */ }
             }
 
             const database = new DatabaseManager();
 
-            // ========== AUTH MANAGER ==========
+            // ========== AUTH MANAGER (unchanged) ==========
             class AuthManager {
                 constructor() {
                     this.auth = firebase.auth();
@@ -1177,16 +973,19 @@
             
             const auth = new AuthManager();
 
-            // ========== UI MANAGER ==========
+            // ========== UI MANAGER (read‑only) ==========
             class UIManager {
                 constructor() {
                     this.currentTopic = null;
                     this.searchHistory = JSON.parse(localStorage.getItem('notesSearchHistory')) || [];
                     this.isDarkTheme = localStorage.getItem('notesTheme') === 'dark';
-                    this.isUpperCase = localStorage.getItem('notesCase') === 'uppercase';
-                    this.fontBase = parseFloat(localStorage.getItem('notesFontSize')) || 1;
                     
-                    this.editingTopicKey = null;
+                    const savedCase = localStorage.getItem('notesCase');
+                    if (savedCase === 'uppercase') this.caseState = 1;
+                    else if (savedCase === 'lowercase') this.caseState = 2;
+                    else this.caseState = 0;
+                    
+                    this.fontBase = parseFloat(localStorage.getItem('notesFontSize')) || 1;
                     
                     document.documentElement.style.setProperty('--font-base', this.fontBase);
                     
@@ -1197,11 +996,16 @@
                         document.getElementById('themeToggle').innerHTML = '🌙 Theme';
                     }
                     
-                    if (this.isUpperCase) {
-                        document.getElementById('caseToggle').classList.add('active');
-                    }
+                    this.updateCaseButtonDisplay();
                     
                     this.initEventListeners();
+                }
+
+                updateCaseButtonDisplay() {
+                    const btn = document.getElementById('caseToggle');
+                    if (this.caseState === 0) btn.innerHTML = 'Aa';
+                    else if (this.caseState === 1) btn.innerHTML = 'AA';
+                    else btn.innerHTML = 'aa';
                 }
 
                 initEventListeners() {
@@ -1215,9 +1019,13 @@
 
                     // Case
                     document.getElementById('caseToggle').addEventListener('click', () => {
-                        this.isUpperCase = !this.isUpperCase;
-                        document.getElementById('caseToggle').classList.toggle('active', this.isUpperCase);
-                        localStorage.setItem('notesCase', this.isUpperCase ? 'uppercase' : 'normal');
+                        this.caseState = (this.caseState + 1) % 3;
+                        if (this.caseState === 0) localStorage.setItem('notesCase', 'original');
+                        else if (this.caseState === 1) localStorage.setItem('notesCase', 'uppercase');
+                        else localStorage.setItem('notesCase', 'lowercase');
+                        
+                        this.updateCaseButtonDisplay();
+                        
                         if (this.currentTopic) this.displayTopic(this.currentTopic);
                     });
 
@@ -1242,7 +1050,7 @@
                     // Logo home
                     document.getElementById('appLogo').addEventListener('click', () => this.showHome());
 
-                    // Panels (IDs unchanged)
+                    // Panels
                     document.getElementById('historyToggle').addEventListener('click', () => this.togglePanel('history'));
                     document.getElementById('topicsToggle').addEventListener('click', () => this.togglePanel('topics'));
                     document.getElementById('datasetToggle').addEventListener('click', () => this.togglePanel('dataset'));
@@ -1263,35 +1071,6 @@
                         document.getElementById('overlay').classList.remove('active');
                     });
 
-                    // Import
-                    document.getElementById('loadToggle').addEventListener('click', () => document.getElementById('fileInput').click());
-                    document.getElementById('fileInput').addEventListener('change', e => this.handleFileImport(e));
-
-                    // Builder
-                    document.getElementById('exportToggle').addEventListener('click', () => {
-                        document.getElementById('builderContainer').classList.add('active');
-                        this.resetBuilderForm();
-                        this.updateManageTopicsList();
-                    });
-                    
-                    document.getElementById('builderCancel').addEventListener('click', () => {
-                        document.getElementById('builderContainer').classList.remove('active');
-                        this.resetBuilderForm();
-                    });
-                    
-                    document.getElementById('builderAdd').addEventListener('click', () => this.addBuilderEntry());
-                    document.getElementById('builderCancelEdit').addEventListener('click', () => this.cancelEdit());
-                    document.getElementById('builderExport').addEventListener('click', () => this.exportCurrentDataset());
-                    
-                    document.getElementById('previewClear').addEventListener('click', () => {
-                        if (confirm('Clear all topics in current dataset?')) {
-                            database.clearAllTopics().then(() => {
-                                this.refreshUI();
-                                this.updateManageTopicsList();
-                            });
-                        }
-                    });
-
                     // Slideshow
                     document.getElementById('slideToggle').addEventListener('click', () => this.startSlideshow());
                     document.getElementById('slideshowClose').addEventListener('click', () => this.closeSlideshow());
@@ -1309,30 +1088,7 @@
                         if (auth.user) auth.signOut();
                     });
 
-                    // Create dataset
-                    document.getElementById('createDatasetBtn').addEventListener('click', async () => {
-                        const name = prompt('Dataset name:', 'New Notes');
-                        if (!name) return;
-                        await database.createDataset(name);
-                        this.refreshUI();
-                        this.closePanels();
-                        showNotification('success', 'Dataset created', name);
-                    });
-
-                    // Manage topics actions (delegation)
-                    document.getElementById('topicsManageList').addEventListener('click', (e) => {
-                        const target = e.target;
-                        if (target.classList.contains('edit-btn')) {
-                            const key = target.dataset.key;
-                            this.editTopic(key);
-                        } else if (target.classList.contains('delete-btn')) {
-                            const key = target.dataset.key;
-                            this.deleteTopic(key);
-                        }
-                    });
-
                     // ===== DROPDOWN TOGGLES =====
-                    // Close all dropdowns when clicking outside
                     document.addEventListener('click', (e) => {
                         if (!e.target.closest('.dropdown')) {
                             document.querySelectorAll('.dropdown-menu').forEach(menu => {
@@ -1341,17 +1097,14 @@
                         }
                     });
 
-                    // Data dropdown
                     document.getElementById('dataDropdownToggle').addEventListener('click', (e) => {
                         e.stopPropagation();
                         const menu = document.getElementById('dataDropdownMenu');
                         menu.classList.toggle('active');
-                        // Close others
                         document.getElementById('browseDropdownMenu').classList.remove('active');
                         document.getElementById('toolsDropdownMenu').classList.remove('active');
                     });
 
-                    // Browse dropdown
                     document.getElementById('browseDropdownToggle').addEventListener('click', (e) => {
                         e.stopPropagation();
                         const menu = document.getElementById('browseDropdownMenu');
@@ -1360,7 +1113,6 @@
                         document.getElementById('toolsDropdownMenu').classList.remove('active');
                     });
 
-                    // Tools dropdown
                     document.getElementById('toolsDropdownToggle').addEventListener('click', (e) => {
                         e.stopPropagation();
                         const menu = document.getElementById('toolsDropdownMenu');
@@ -1369,91 +1121,9 @@
                         document.getElementById('browseDropdownMenu').classList.remove('active');
                     });
 
-                    // Prevent clicks inside dropdown from closing
                     document.querySelectorAll('.dropdown-menu').forEach(menu => {
                         menu.addEventListener('click', (e) => e.stopPropagation());
                     });
-                }
-
-                // CRUD Methods (unchanged)
-                resetBuilderForm() {
-                    document.getElementById('builderTopic').value = '';
-                    document.getElementById('builderDesc').value = '';
-                    document.getElementById('builderEx').value = '';
-                    this.editingTopicKey = null;
-                    document.getElementById('builderAdd').innerHTML = '<span>+</span> Add Topic';
-                    document.getElementById('builderCancelEdit').style.display = 'none';
-                }
-
-                cancelEdit() {
-                    this.resetBuilderForm();
-                }
-
-                editTopic(key) {
-                    const ds = database.getCurrentDataset();
-                    if (!ds || !ds.topics[key]) return;
-                    
-                    const topic = ds.topics[key];
-                    document.getElementById('builderTopic').value = key;
-                    document.getElementById('builderDesc').value = topic.desc;
-                    document.getElementById('builderEx').value = topic.ex.join(', ');
-                    
-                    this.editingTopicKey = key;
-                    document.getElementById('builderAdd').innerHTML = '<span>✏️</span> Update Topic';
-                    document.getElementById('builderCancelEdit').style.display = 'inline-flex';
-                }
-
-                async deleteTopic(key) {
-                    if (!confirm(`Delete topic "${key}"?`)) return;
-                    await database.deleteTopic(key);
-                    this.refreshUI();
-                    this.updateManageTopicsList();
-                    if (this.editingTopicKey === key) {
-                        this.resetBuilderForm();
-                    }
-                    showNotification('success', 'Deleted', key);
-                }
-
-                addBuilderEntry() {
-                    const topic = document.getElementById('builderTopic').value.trim();
-                    const desc = document.getElementById('builderDesc').value.trim();
-                    const exStr = document.getElementById('builderEx').value.trim();
-                    
-                    if (!topic || !desc || !exStr) { 
-                        alert('Please fill all fields'); 
-                        return; 
-                    }
-                    
-                    const examples = exStr.split(',').map(s => s.trim());
-                    
-                    if (this.editingTopicKey) {
-                        if (this.editingTopicKey !== topic) {
-                            database.deleteTopic(this.editingTopicKey).then(() => {
-                                database.addTopic(topic, desc, examples).then(() => {
-                                    this.updateManageTopicsList();
-                                    this.resetBuilderForm();
-                                    this.refreshUI();
-                                    showNotification('success', 'Updated', topic);
-                                });
-                            });
-                        } else {
-                            database.updateTopic(topic, desc, examples).then(() => {
-                                this.updateManageTopicsList();
-                                this.resetBuilderForm();
-                                this.refreshUI();
-                                showNotification('success', 'Updated', topic);
-                            });
-                        }
-                    } else {
-                        database.addTopic(topic, desc, examples).then(() => {
-                            this.updateManageTopicsList();
-                            document.getElementById('builderTopic').value = '';
-                            document.getElementById('builderDesc').value = '';
-                            document.getElementById('builderEx').value = '';
-                            this.refreshUI();
-                            showNotification('success', 'Added', topic);
-                        });
-                    }
                 }
 
                 togglePanel(panel) {
@@ -1502,7 +1172,7 @@
                     
                     const keys = Object.keys(topics).sort();
                     if (keys.length === 0) {
-                        list.innerHTML = '<p>No topics yet. Add some!</p>';
+                        list.innerHTML = '<p>No topics yet.</p>';
                         return;
                     }
                     
@@ -1528,57 +1198,16 @@
                         div.innerHTML = `
                             <div><strong>${ds.name}</strong></div>
                             <div>${Object.keys(ds.topics || {}).length} topics</div>
-                            <div class="dataset-actions">
-                                <button class="switch-ds" data-id="${ds.id}">Switch</button>
-                                <button class="rename-ds" data-id="${ds.id}">Rename</button>
-                                <button class="delete-ds" data-id="${ds.id}">Delete</button>
-                            </div>
                         `;
-                        list.appendChild(div);
-                    });
-                    
-                    document.querySelectorAll('.switch-ds').forEach(btn => {
-                        btn.addEventListener('click', async (e) => {
-                            e.stopPropagation();
-                            const id = btn.dataset.id;
-                            database.currentDatasetId = id;
+                        div.addEventListener('click', () => {
+                            database.currentDatasetId = ds.id;
                             database.saveToLocalStorage();
-                            if (auth.user) await database.saveToFirebase().catch(() => {});
+                            if (auth.user) database.saveToFirebase().catch(() => {});
                             this.refreshUI();
                             this.closePanels();
-                            showNotification('success', 'Switched', database.getCurrentDataset().name);
+                            showNotification('success', 'Switched', ds.name);
                         });
-                    });
-                    
-                    document.querySelectorAll('.rename-ds').forEach(btn => {
-                        btn.addEventListener('click', async (e) => {
-                            e.stopPropagation();
-                            const id = btn.dataset.id;
-                            const ds = database.datasets.find(d => d.id === id);
-                            const newName = prompt('New name:', ds.name);
-                            if (newName) {
-                                await database.updateDatasetName(id, newName);
-                                this.renderDatasetPanel();
-                            }
-                        });
-                    });
-                    
-                    document.querySelectorAll('.delete-ds').forEach(btn => {
-                        btn.addEventListener('click', async (e) => {
-                            e.stopPropagation();
-                            const id = btn.dataset.id;
-                            
-                            if (database.datasets.length === 1) {
-                                alert('Cannot delete the only dataset.');
-                                return;
-                            }
-                            
-                            if (confirm('Delete this dataset?')) {
-                                await database.deleteDataset(id);
-                                this.refreshUI();
-                                this.renderDatasetPanel();
-                            }
-                        });
+                        list.appendChild(div);
                     });
                 }
 
@@ -1588,7 +1217,7 @@
                     
                     const ds = database.getCurrentDataset();
                     if (!ds) { 
-                        showNotification('info', 'No dataset', 'Create or select a dataset first'); 
+                        showNotification('info', 'No dataset', 'Select a dataset first'); 
                         return; 
                     }
                     
@@ -1618,10 +1247,10 @@
                     let desc = topic.desc;
                     let examples = topic.ex || [];
                     
-                    if (this.isUpperCase) {
+                    if (this.caseState === 1) {
                         desc = desc.toUpperCase();
                         examples = examples.map(e => e.toUpperCase());
-                    } else {
+                    } else if (this.caseState === 2) {
                         desc = desc.toLowerCase();
                         examples = examples.map(e => e.toLowerCase());
                     }
@@ -1649,6 +1278,12 @@
                     });
                 }
 
+                applyCase(text) {
+                    if (this.caseState === 1) return text.toUpperCase();
+                    if (this.caseState === 2) return text.toLowerCase();
+                    return text;
+                }
+
                 showHome() {
                     this.currentTopic = null;
                     const ds = database.getCurrentDataset();
@@ -1664,7 +1299,7 @@
                             <span>📖</span>
                             <h2>${ds ? ds.name : 'My Notes'}</h2>
                             <p>${topics.length} topics available</p>
-                            <div class="search-history">${suggestedHtml || '<p>No topics yet. Create some!</p>'}</div>
+                            <div class="search-history">${suggestedHtml || '<p>No topics yet.</p>'}</div>
                             ${fontControlsHTML}
                         </div>
                     `;
@@ -1701,16 +1336,10 @@
                     } else {
                         this.showHome();
                     }
-                    
-                    this.updateManageTopicsList();
                 }
 
                 loadFromCloud() {
                     this.refreshUI();
-                }
-
-                applyCase(text) { 
-                    return this.isUpperCase ? text.toUpperCase() : text.toLowerCase(); 
                 }
 
                 formatMarkdown(text) {
@@ -1846,66 +1475,6 @@
                     document.body.style.overflow = 'auto';
                     window.currentSlideshow = null;
                 }
-
-                // Updated: only manage topics list, no JSON preview
-                updateManageTopicsList() {
-                    const ds = database.getCurrentDataset();
-                    const topics = ds ? ds.topics : {};
-                    
-                    const manageList = document.getElementById('topicsManageList');
-                    manageList.innerHTML = '';
-                    
-                    const keys = Object.keys(topics).sort();
-                    if (keys.length === 0) {
-                        manageList.innerHTML = '<p>No topics yet. Add some above.</p>';
-                        return;
-                    }
-                    
-                    keys.forEach(key => {
-                        const topic = topics[key];
-                        const preview = topic.desc.substring(0, 50) + (topic.desc.length > 50 ? '...' : '');
-                        const item = document.createElement('div');
-                        item.className = 'topic-manage-item';
-                        item.innerHTML = `
-                            <div class="topic-manage-info">
-                                <div class="topic-manage-title">${key}</div>
-                                <div class="topic-manage-preview">${preview}</div>
-                            </div>
-                            <div class="topic-manage-actions">
-                                <button class="edit-btn" data-key="${key}">✏️ Edit</button>
-                                <button class="delete-btn" data-key="${key}">🗑️ Delete</button>
-                            </div>
-                        `;
-                        manageList.appendChild(item);
-                    });
-                }
-
-                exportCurrentDataset() {
-                    const ds = database.getCurrentDataset();
-                    if (!ds) return;
-                    exportAsJSON(ds.topics, `${ds.name.replace(/\s+/g,'_')}_${formatDate().replace(/[/:, ]/g,'-')}.json`);
-                    showNotification('success', 'Exported', ds.name);
-                }
-
-                async handleFileImport(e) {
-                    const file = e.target.files[0];
-                    if (!file) return;
-                    
-                    try {
-                        const data = await importJSONFile(file);
-                        if (typeof data !== 'object') throw new Error('Invalid JSON');
-                        
-                        const merge = confirm('Merge with current topics? (Cancel to replace)');
-                        await database.importTopics(data, merge);
-                        this.refreshUI();
-                        this.updateManageTopicsList();
-                        showNotification('success', 'Imported', 'Topics updated');
-                    } catch (err) {
-                        showNotification('error', 'Import failed', err.message);
-                    } finally {
-                        e.target.value = '';
-                    }
-                }
             }
 
             const ui = new UIManager();
@@ -1922,7 +1491,11 @@
                     database.loadFromLocalStorage();
                     
                     if (!database.datasets.length) {
-                        await database.createDataset('My Notes');
+                        // Create a default dataset silently (no UI call)
+                        const id = generateId();
+                        database.datasets.push({ id, name: 'My Notes', topics: {} });
+                        database.currentDatasetId = id;
+                        database.saveToLocalStorage();
                     }
                     
                     ui.refreshUI();
@@ -1934,7 +1507,9 @@
                         await database.loadFromFirebase();
                         
                         if (!database.datasets.length) {
-                            await database.createDataset('My Notes');
+                            const id = generateId();
+                            database.datasets.push({ id, name: 'My Notes', topics: {} });
+                            database.currentDatasetId = id;
                         } else {
                             if (!database.currentDatasetId) {
                                 database.currentDatasetId = database.datasets[0]?.id || null;
@@ -1947,7 +1522,9 @@
                         database.loadFromLocalStorage();
                         
                         if (!database.datasets.length) {
-                            await database.createDataset('My Notes');
+                            const id = generateId();
+                            database.datasets.push({ id, name: 'My Notes', topics: {} });
+                            database.currentDatasetId = id;
                         }
                         
                         ui.refreshUI();
