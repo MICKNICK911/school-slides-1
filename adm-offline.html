@@ -749,19 +749,6 @@
                     document.querySelectorAll('.dropdown-menu').forEach(m=>{ m.addEventListener('click',e=>e.stopPropagation()); });
                 }
 
-                // ========== NEW METHOD: SWITCH DATASET AND RETURN TO HOME ==========
-                switchToDataset(datasetId) {
-                    if (!datasetId) return;
-                    database.currentDatasetId = datasetId;
-                    database.saveToLocalStorage();
-                    // Clear any open topic to force showing the home page
-                    this.currentTopic = null;
-                    this.refreshUI();
-                    this.closePanels();
-                    const current = database.getCurrentDataset();
-                    showNotification('success', 'Switched', current ? current.name : 'Dataset');
-                }
-
                 resetBuilderForm() { document.getElementById('builderTopic').value=''; document.getElementById('builderDesc').value=''; document.getElementById('builderEx').value=''; this.editingTopicKey=null; document.getElementById('builderAdd').innerHTML='<span>+</span> Add Topic'; document.getElementById('builderCancelEdit').style.display='none'; }
                 cancelEdit() { this.resetBuilderForm(); }
                 editTopic(key) { const ds=database.getCurrentDataset(); if(!ds||!ds.topics[key]) return; const t=ds.topics[key]; document.getElementById('builderTopic').value=key; document.getElementById('builderDesc').value=t.desc; document.getElementById('builderEx').value=t.ex.join(', '); this.editingTopicKey=key; document.getElementById('builderAdd').innerHTML='<span>✏️</span> Update Topic'; document.getElementById('builderCancelEdit').style.display='inline-flex'; }
@@ -788,12 +775,18 @@
                         `;
                         list.appendChild(d);
                     });
-                    // Switch button – now uses the dedicated method
+                    // Switch button
                     document.querySelectorAll('.switch-ds').forEach(btn => {
-                        btn.addEventListener('click', (e) => {
+                        btn.addEventListener('click', async (e) => {
                             e.stopPropagation();
                             const id = btn.dataset.id;
-                            this.switchToDataset(id);
+                            if (!id) return;
+                            database.currentDatasetId = id;
+                            database.saveToLocalStorage();
+                            this.refreshUI();
+                            this.closePanels();
+                            const current = database.getCurrentDataset();
+                            showNotification('success', 'Switched', current ? current.name : 'Dataset');
                         });
                     });
                     // Rename button
