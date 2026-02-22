@@ -3,17 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>Digital Notes • Local First, Manual Cloud</title>
-    <!-- Font Awesome (optional) -->
+    <title>Digital Notes</title>
+    <!-- Font Awesome (optional, for icons) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        /* ========== MODERNIZED STYLES (unchanged) ========== */
+        /* ========== MODERNIZED STYLES ========== */
         * {
             -webkit-tap-highlight-color: transparent;
             -webkit-touch-callout: none;
             box-sizing: border-box;
         }
 
+        /* Color theme: orange, gold, wine */
         :root {
             --primary-color: #ff9800;       /* orange */
             --secondary-color: #8b1e3f;      /* wine */
@@ -32,9 +33,9 @@
         }
 
         .dark-theme {
-            --primary-color: #ffb74d;
-            --secondary-color: #b84a6a;
-            --accent-color: #ffe082;
+            --primary-color: #ffb74d;          /* lighter orange */
+            --secondary-color: #b84a6a;         /* lighter wine */
+            --accent-color: #ffe082;            /* light gold */
             --export-color: #ff9800;
             --builder-color: #ce9178;
             --bg-color: #121212;
@@ -64,69 +65,414 @@
                 radial-gradient(circle at 85% 30%, rgba(255, 193, 7, 0.08) 0%, rgba(255, 193, 7, 0) 25%);
         }
 
-        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
-        header { width: 100%; position: sticky; top: 0; background-color: var(--bg-color); z-index: 100; backdrop-filter: blur(8px); background-color: rgba(var(--bg-color-rgb, 255, 255, 255), 0.8); box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .dark-theme header { background-color: rgba(18, 18, 18, 0.8); }
-        .header-content { display: flex; justify-content: space-between; align-items: center; gap: 15px; flex-wrap: wrap; }
-        .logo { display: flex; align-items: center; gap: 10px; font-size: calc(24px * var(--font-base)); font-weight: 700; color: var(--primary-color); cursor: pointer; }
-        .logo span { font-size: calc(28px * var(--font-base)); }
-        .search-container { display: flex; flex: 1; max-width: 600px; background: var(--card-bg); border-radius: 50px; overflow: hidden; border: 1px solid var(--border-color); box-shadow: var(--shadow); transition: var(--transition); }
-        .search-container:focus-within { border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(255, 152, 0, 0.2); }
-        .search-container input { flex: 1; padding: 14px 20px; border: none; background: transparent; color: var(--text-color); font-size: calc(16px * var(--font-base)); }
-        .search-container input:focus { outline: none; }
-        .search-btn { background: var(--primary-color); color: white; border: none; padding: 0 25px; cursor: pointer; font-size: calc(18px * var(--font-base)); transition: var(--transition); display: flex; align-items: center; gap: 8px; }
-        .search-btn:hover { background: var(--secondary-color); }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
 
-        .controls { display: flex; gap: 10px; align-items: center; position: relative; }
-        .dropdown { position: relative; }
-        .dropdown-toggle { width: 44px; height: 44px; border-radius: 50%; background: var(--card-bg); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-color); transition: var(--transition); font-size: calc(20px * var(--font-base)); box-shadow: var(--shadow); }
-        .dropdown-toggle:hover { background: var(--primary-color); color: white; transform: scale(1.05); }
-        .dropdown-menu { position: absolute; top: 50px; right: 0; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; box-shadow: var(--shadow); padding: 8px 0; min-width: 160px; z-index: 200; display: none; flex-direction: column; }
-        .dropdown-menu.active { display: flex; }
-        .dropdown-menu > div { padding: 10px 16px; cursor: pointer; color: var(--text-color); font-size: calc(16px * var(--font-base)); display: flex; align-items: center; gap: 10px; transition: var(--transition); white-space: nowrap; }
-        .dropdown-menu > div:hover { background: var(--primary-color); color: white; }
-        .user-toggle { width: 44px; height: 44px; border-radius: 50%; background: var(--secondary-color); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; cursor: pointer; color: white; transition: var(--transition); font-size: calc(20px * var(--font-base)); box-shadow: var(--shadow); }
-        .user-toggle:hover { background: var(--primary-color); transform: scale(1.05); }
+        /* ===== MODERN HEADER ===== */
+        header {
+            width: 100%;
+            position: sticky;
+            top: 0;
+            background-color: var(--bg-color);
+            z-index: 100;
+            backdrop-filter: blur(8px);
+            background-color: rgba(var(--bg-color-rgb, 255, 255, 255), 0.8);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
 
-        /* splash, panels, cards, builder, etc. (all original styles) */
-        #splashScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10000; transition: opacity 0.8s ease, transform 0.8s ease; }
-        .splash-content { text-align: center; padding: 30px; max-width: 80%; }
-        .splash-logo { width: 150px; height: 150px; border-radius: 50%; background: white; display: flex; justify-content: center; align-items: center; margin: 0 auto 25px; box-shadow: 0 8px 25px rgba(0,0,0,0.2); overflow: hidden; border: 5px solid var(--accent-color); }
-        .splash-logo-inner { width: 130px; height: 130px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); display: flex; justify-content: center; align-items: center; font-size: 60px; color: white; font-weight: bold; }
-        .loading-bar { width: 300px; height: 8px; background: rgba(255,255,255,0.3); border-radius: 4px; overflow: hidden; margin-top: 20px; }
-        .loading-progress { height: 100%; width: 0%; background: white; border-radius: 4px; transition: width 5s linear; }
+        .dark-theme header {
+            background-color: rgba(18, 18, 18, 0.8);
+        }
 
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: calc(24px * var(--font-base));
+            font-weight: 700;
+            color: var(--primary-color);
+            cursor: pointer;
+        }
+
+        .logo span {
+            font-size: calc(28px * var(--font-base));
+        }
+
+        .search-container {
+            display: flex;
+            flex: 1;
+            max-width: 600px;
+            background: var(--card-bg);
+            border-radius: 50px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .search-container:focus-within {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(255, 152, 0, 0.2);
+        }
+
+        .search-container input {
+            flex: 1;
+            padding: 14px 20px;
+            border: none;
+            background: transparent;
+            color: var(--text-color);
+            font-size: calc(16px * var(--font-base));
+        }
+
+        .search-container input:focus {
+            outline: none;
+        }
+
+        .search-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0 25px;
+            cursor: pointer;
+            font-size: calc(18px * var(--font-base));
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .search-btn:hover {
+            background: var(--secondary-color);
+        }
+
+        /* ===== DROPDOWNS ===== */
+        .controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            position: relative;
+        }
+
+        .dropdown {
+            position: relative;
+        }
+
+        .dropdown-toggle {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text-color);
+            transition: var(--transition);
+            font-size: calc(20px * var(--font-base));
+            box-shadow: var(--shadow);
+        }
+
+        .dropdown-toggle:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 50px;
+            right: 0;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            padding: 8px 0;
+            min-width: 180px;
+            z-index: 200;
+            display: none;
+            flex-direction: column;
+        }
+
+        .dropdown-menu.active {
+            display: flex;
+        }
+
+        .dropdown-menu > div {
+            padding: 10px 16px;
+            cursor: pointer;
+            color: var(--text-color);
+            font-size: calc(16px * var(--font-base));
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: var(--transition);
+            white-space: nowrap;
+        }
+
+        .dropdown-menu > div:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .dropdown-menu > div:first-child {
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
+        }
+
+        .dropdown-menu > div:last-child {
+            border-bottom-left-radius: 12px;
+            border-bottom-right-radius: 12px;
+        }
+
+        .user-toggle {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--secondary-color);
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: white;
+            transition: var(--transition);
+            font-size: calc(20px * var(--font-base));
+            box-shadow: var(--shadow);
+        }
+
+        .user-toggle:hover {
+            background: var(--primary-color);
+            transform: scale(1.05);
+        }
+
+        /* ===== SPLASH SCREEN (unchanged) ===== */
+        #splashScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+
+        .splash-content {
+            text-align: center;
+            padding: 30px;
+            max-width: 80%;
+        }
+
+        .splash-logo {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 25px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            overflow: hidden;
+            border: 5px solid var(--accent-color);
+        }
+
+        .splash-logo-inner {
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 60px;
+            color: white;
+            font-weight: bold;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .splash-title {
+            font-size: 36px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .splash-subtitle {
+            font-size: 24px;
+            font-weight: 500;
+            color: white;
+            opacity: 0.9;
+            margin-bottom: 30px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .loading-bar {
+            width: 300px;
+            height: 8px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+
+        .loading-progress {
+            height: 100%;
+            width: 0%;
+            background: white;
+            border-radius: 4px;
+            transition: width 5s linear;
+        }
+
+        /* ===== RESULTS & CARDS (unchanged) ===== */
         .results-container { padding: 30px 0; }
         .no-results { text-align: center; padding: 40px 20px; background: var(--card-bg); border-radius: 16px; box-shadow: var(--shadow); max-width: 600px; margin: 50px auto; }
+        .no-results span { font-size: 48px; margin-bottom: 20px; display: block; color: var(--primary-color); }
         .entry-card { background: var(--card-bg); border-radius: 16px; box-shadow: var(--shadow); padding: 30px; margin-bottom: 30px; border-left: 4px solid var(--primary-color); animation: fadeIn 0.5s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .entry-header h1 { font-size: calc(42px * var(--font-base)); color: var(--primary-color); }
-        .entry-desc { font-size: calc(20px * var(--font-base)); line-height: 1.7; white-space: pre-line; }
+        .entry-header { margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid var(--border-color); }
+        .entry-header h1 { font-size: calc(42px * var(--font-base)); color: var(--primary-color); margin-bottom: 10px; }
+        .entry-desc { font-size: calc(20px * var(--font-base)); margin-bottom: 25px; line-height: 1.7; white-space: pre-line; }
         @media (min-width: 768px) { .entry-desc { font-size: calc(24px * var(--font-base)); } }
+        @media (min-width: 992px) { .entry-desc { font-size: calc(28px * var(--font-base)); } }
+        @media (min-width: 1200px) { .entry-desc { font-size: calc(32px * var(--font-base)); } }
+
+        /* Markdown styling */
+        .markdown-content h2.markdown-h2 { font-size: calc(28px * var(--font-base)); color: #5ca5f8; margin: 20px 0 15px; padding-bottom: 10px; border-bottom: 2px solid rgba(92,165,248,0.4); }
+        .markdown-content h3.markdown-h3 { font-size: calc(22px * var(--font-base)); color: #3d7ddb; margin: 18px 0 12px; }
+        .markdown-content h4.markdown-h4 { font-size: calc(20px * var(--font-base)); color: #2ecc71; margin: 15px 0 10px; }
+        .markdown-content strong.markdown-strong { font-weight: bold; color: #ffd700; }
+        .markdown-content em.markdown-em { font-style: italic; color: #5EA517; }
+        .markdown-content u.markdown-u { text-decoration: underline; text-decoration-color: red; text-underline-offset: 3px; }
+        .theme-color { color: #3d7ddb; font-weight: bold; background: rgba(61,125,219,0.15); padding: 2px 6px; border-radius: 4px; display: inline-block; margin: 2px 0; }
+        .markdown-content ol.markdown-ol { margin: 15px 0px; padding-left: 30px; color: #FF1500; }
+        .markdown-content ul.markdown-ul { margin: 15px 0px; padding-left: 30px; list-style: none; }
+        .markdown-content li.markdown-li { margin-bottom: 8px; position: relative; padding-left: 20px; }
+        .markdown-content ul.markdown-ul li.markdown-li:before { content: "•"; color: #3d7ddb; font-size: calc(24px * var(--font-base)); position: absolute; left: 0; top: -3px; }
+
         .examples-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; margin-top: 20px; }
-        .example-item { background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 10px; padding: 15px; text-align: center; cursor: pointer; transition: var(--transition); font-size: calc(20px * var(--font-base)); }
-        .example-item:hover { transform: translateY(-3px); border-color: var(--primary-color); }
-        .example-item.selected { background: var(--selected-color); color: white; transform: scale(1.03); }
-        .clear-selection { background: var(--accent-color); color: white; border: none; border-radius: 8px; padding: 10px 20px; cursor: pointer; margin-top: 15px; }
-        .history-panel, .topics-panel, .dataset-panel { position: fixed; top: 0; width: 300px; height: 100vh; background: var(--card-bg); box-shadow: 0 0 15px rgba(0,0,0,0.1); padding: 20px; z-index: 9999; transition: transform 0.3s ease; overflow-y: auto; }
+        .example-item { background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 10px; padding: 15px; text-align: center; cursor: pointer; transition: var(--transition); font-size: calc(20px * var(--font-base)); font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .example-item:hover { transform: translateY(-3px); box-shadow: 0 6px 12px rgba(0,0,0,0.1); border-color: var(--primary-color); }
+        .example-item.selected { background: var(--selected-color); color: white; border-color: var(--selected-color); transform: scale(1.03); }
+        .clear-selection { background: var(--accent-color); color: white; border: none; border-radius: 8px; padding: 10px 20px; cursor: pointer; margin-top: 15px; transition: var(--transition); font-weight: 500; display: inline-flex; align-items: center; gap: 8px; }
+        .clear-selection:hover { background: #e64a19; transform: translateY(-2px); }
+
+        .search-history { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; justify-content: center; }
+        .history-item { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 50px; padding: 8px 18px; font-size: 14px; cursor: pointer; transition: var(--transition); display: flex; align-items: center; gap: 6px; }
+        .history-item:hover { background: var(--primary-color); color: white; border-color: var(--primary-color); }
+
+        /* Panels (unchanged) */
+        .history-panel, .topics-panel, .dataset-panel {
+            position: fixed;
+            top: 0;
+            width: 300px;
+            height: 100vh;
+            background: var(--card-bg);
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            padding: 20px;
+            z-index: 9999;
+            transition: transform 0.3s ease;
+            overflow-y: auto;
+        }
         .history-panel { right: 0; transform: translateX(100%); }
         .topics-panel { left: 0; transform: translateX(-100%); }
         .dataset-panel { right: 0; transform: translateX(100%); }
         .history-panel.active, .topics-panel.active, .dataset-panel.active { transform: translateX(0); }
-        .overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 80; display: none; }
+        .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); }
+        .close-panel { cursor: pointer; font-size: 18px; }
+        .history-list, .topics-list, .dataset-list { display: flex; flex-direction: column; gap: 10px; }
+        .history-item-panel, .topic-item, .dataset-item {
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .history-item-panel:hover, .topic-item:hover, .dataset-item:hover {
+            border-color: var(--primary-color);
+            background: rgba(255, 152, 0, 0.1);
+        }
+        .dataset-item.active { border: 2px solid var(--primary-color); background: rgba(255, 152, 0, 0.1); }
+        .dataset-actions { display: flex; gap: 5px; margin-top: 8px; }
+        .dataset-actions button { background: transparent; border: 1px solid var(--border-color); border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 12px; }
+        .dataset-actions button:hover { background: var(--primary-color); color: white; }
+
+        .overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 80;
+            display: none;
+        }
         .overlay.active { display: block; }
 
-        /* Builder container with cloud buttons */
+        /* Auth Modal (unchanged) */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10001;
+        }
+        .auth-modal {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: var(--shadow);
+        }
+        .auth-tabs { display: flex; gap: 5px; margin-bottom: 20px; border-bottom: 2px solid var(--border-color); }
+        .auth-tab { padding: 10px 20px; background: transparent; border: none; font-weight: 600; color: var(--text-color); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; }
+        .auth-tab.active { color: var(--primary-color); border-bottom-color: var(--primary-color); }
+        .auth-form { display: none; flex-direction: column; gap: 15px; }
+        .auth-form.active { display: flex; }
+        .auth-form input { padding: 12px 16px; border: 1px solid var(--border-color); border-radius: 30px; font-size: 1rem; background: var(--bg-color); color: var(--text-color); }
+        .btn-primary { background: var(--primary-color); color: white; border: none; padding: 12px; border-radius: 30px; cursor: pointer; font-weight: 600; }
+        .btn-primary:hover { background: var(--secondary-color); }
+
+        /* Notification, loading */
+        .dictionary-notification {
+            position: fixed; bottom: 20px; right: 20px; background: var(--primary-color); color: white; padding: 15px 25px; border-radius: 8px; box-shadow: var(--shadow); z-index: 1000; display: flex; align-items: center; gap: 10px; transform: translateY(100px); opacity: 0; transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+        .dictionary-notification.active { transform: translateY(0); opacity: 1; }
+        .dictionary-notification.error { background: #e74c3c; }
+        .dictionary-notification.success { background: var(--export-color); }
+        .loading-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 10002;
+        }
+        .loading-spinner { background: var(--card-bg); padding: 30px; border-radius: 60px; text-align: center; }
+        .loading-spinner i { font-size: 40px; color: var(--primary-color); }
+
+        /* Builder (updated: removed JSON preview) */
         .builder-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-color); z-index: 1000; overflow-y: auto; padding: 20px; display: none; }
         .builder-container.active { display: block; }
-        .builder-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; padding-bottom: 15px; border-bottom: 1px solid var(--border-color); flex-wrap: wrap; gap: 10px; }
+        .builder-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; padding-bottom: 15px; border-bottom: 1px solid var(--border-color); }
         .builder-title { display: flex; align-items: center; gap: 10px; font-size: 24px; color: var(--builder-color); }
-        .builder-actions { display: flex; gap: 15px; flex-wrap: wrap; }
-        .builder-btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 500; }
+        .builder-actions { display: flex; gap: 15px; }
+        .builder-btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; }
         .builder-cancel { background: #e0e0e0; color: var(--text-color); }
         .builder-export { background: var(--export-color); color: white; }
-        .cloud-save-btn { background: #2e7d32; color: white; display: inline-flex; align-items: center; gap: 5px; }
-        .cloud-load-btn { background: #1565c0; color: white; display: inline-flex; align-items: center; gap: 5px; }
         .builder-form { max-width: 800px; margin: 0 auto; background: var(--card-bg); border-radius: 16px; padding: 30px; box-shadow: var(--shadow); }
         .input-group { margin-bottom: 25px; }
         .input-group label { display: block; margin-bottom: 10px; font-weight: 600; }
@@ -134,24 +480,23 @@
         .builder-add { background: var(--builder-color); color: white; border: none; border-radius: 8px; padding: 12px 25px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; margin: 15px 5px 15px 0; }
         .builder-cancel-edit { background: #ff9800; color: white; border: none; border-radius: 8px; padding: 12px 25px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; margin: 15px 0; display: none; }
 
+        /* Manage Topics List (enhanced) */
         .manage-topics { margin-top: 30px; }
         .manage-topics h3 { margin-bottom: 15px; color: var(--builder-color); }
         .topics-manage-list { display: flex; flex-direction: column; gap: 10px; max-height: 300px; overflow-y: auto; margin-bottom: 15px; }
         .topic-manage-item { background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; display: flex; justify-content: space-between; align-items: center; }
         .topic-manage-info { flex: 1; }
-        .topic-manage-title { font-weight: 600; }
+        .topic-manage-title { font-weight: 600; font-size: 16px; }
         .topic-manage-preview { font-size: 14px; color: #666; }
         .topic-manage-actions { display: flex; gap: 5px; }
         .topic-manage-actions button { background: transparent; border: 1px solid var(--border-color); border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 12px; }
         .topic-manage-actions button:hover { background: var(--primary-color); color: white; }
+        .topic-manage-actions .edit-btn:hover { background: #2196F3; }
+        .topic-manage-actions .delete-btn:hover { background: #f44336; }
         .clear-all-btn { background: var(--accent-color); color: white; border: none; border-radius: 8px; padding: 10px 20px; cursor: pointer; font-size: 14px; display: inline-flex; align-items: center; gap: 8px; margin-top: 10px; }
+        .clear-all-btn:hover { background: #e64a19; }
 
-        .dictionary-notification { position: fixed; bottom: 20px; right: 20px; background: var(--primary-color); color: white; padding: 15px 25px; border-radius: 8px; box-shadow: var(--shadow); z-index: 1000; display: flex; align-items: center; gap: 10px; transform: translateY(100px); opacity: 0; transition: transform 0.3s ease, opacity 0.3s ease; }
-        .dictionary-notification.active { transform: translateY(0); opacity: 1; }
-        .dictionary-notification.error { background: #e74c3c; }
-        .loading-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 10002; }
-        .loading-spinner { background: var(--card-bg); padding: 30px; border-radius: 60px; text-align: center; }
-
+        /* Slideshow (improved with toggle) */
         .slideshow-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg-color); z-index: 150; display: none; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
         .slideshow-overlay.active { display: flex; }
         .slideshow-top { position: absolute; top: 0; left: 0; right: 0; height: 50%; cursor: pointer; }
@@ -161,17 +506,25 @@
         .slideshow-word.selected { color: var(--selected-color); background: rgba(255, 0, 0, 0.1); }
         .slideshow-indicator { position: absolute; bottom: 20px; left: 0; right: 0; text-align: center; font-size: 18px; color: var(--text-color); z-index: 2; }
         .slideshow-close { position: absolute; top: 20px; right: 20px; width: 44px; height: 44px; border-radius: 50%; background: var(--card-bg); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 24px; z-index: 3; box-shadow: var(--shadow); }
+        .slideshow-toggle { position: absolute; top: 20px; left: 20px; background: var(--primary-color); color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; z-index: 3; }
 
         .instruction-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--card-bg); border-radius: 16px; box-shadow: var(--shadow); padding: 30px; z-index: 200; max-width: 90%; width: 500px; text-align: center; display: none; }
         .instruction-modal.active { display: block; }
-        .auth-modal { background: var(--card-bg); border-radius: 16px; padding: 30px; max-width: 400px; width: 90%; box-shadow: var(--shadow); }
+        .instruction-modal h2 { color: var(--primary-color); margin-bottom: 20px; }
+        .instruction-modal ul { text-align: left; margin: 20px 0; padding-left: 20px; }
+        .instruction-modal button { background: var(--primary-color); color: white; border: none; border-radius: 50px; padding: 12px 30px; cursor: pointer; margin-top: 20px; }
+
         .font-controls { display: flex; gap: 10px; align-items: center; margin-top: 15px; }
         .font-size-btn { width: 36px; height: 36px; border-radius: 50%; background: var(--card-bg); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; cursor: pointer; }
         .font-size-btn.active { background: var(--primary-color); color: white; }
 
+        .speak-btn { cursor: pointer; font-size: 20px; color: var(--primary-color); margin-left: 8px; }
+
         @media (max-width: 768px) {
             .header-content { flex-direction: column; }
-            .builder-actions { justify-content: center; }
+            .logo { order: 1; }
+            .search-container { order: 3; width: 100%; }
+            .controls { order: 2; }
         }
     </style>
 </head>
@@ -179,9 +532,11 @@
     <!-- Splash Screen -->
     <div id="splashScreen">
         <div class="splash-content">
-            <div class="splash-logo"><div class="splash-logo-inner">📚</div></div>
+            <div class="splash-logo">
+                <div class="splash-logo-inner">📚</div>
+            </div>
             <h1 class="splash-title">Digital Notes</h1>
-            <p class="splash-subtitle">Local First, Manual Cloud</p>
+            <p class="splash-subtitle">Cloud-Powered Learning</p>
             <div class="loading-bar"><div class="loading-progress" id="loadingProgress"></div></div>
         </div>
     </div>
@@ -215,19 +570,28 @@
     <!-- Main App Container -->
     <div id="mainApp" style="display: none;">
         <div class="overlay" id="overlay"></div>
-        <div class="dictionary-notification" id="notification"><span id="notificationIcon">✅</span><span id="notificationText"></span></div>
-        <div id="loadingOverlay" class="loading-overlay" style="display: none;"><div class="loading-spinner"><i class="fas fa-circle-notch fa-spin"></i><p>Loading...</p></div></div>
+
+        <!-- Notification -->
+        <div class="dictionary-notification" id="notification">
+            <span id="notificationIcon">✅</span>
+            <span id="notificationText"></span>
+        </div>
+
+        <!-- Loading -->
+        <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+            <div class="loading-spinner"><i class="fas fa-circle-notch fa-spin"></i><p>Loading...</p></div>
+        </div>
+
+        <!-- Hidden file input -->
         <input type="file" id="fileInput" accept=".json" style="display: none;">
 
-        <!-- Builder Container with explicit cloud buttons -->
+        <!-- Builder Container (JSON preview removed) -->
         <div class="builder-container" id="builderContainer">
             <div class="builder-header">
                 <div class="builder-title"><span>📝</span><h2>Create / Edit Topics</h2></div>
                 <div class="builder-actions">
-                    <button class="builder-btn cloud-save-btn" id="builderCloudSave"><i class="fas fa-cloud-upload-alt"></i> Save to Cloud</button>
-                    <button class="builder-btn cloud-load-btn" id="builderCloudLoad"><i class="fas fa-cloud-download-alt"></i> Load from Cloud</button>
-                    <button class="builder-btn builder-export" id="builderExport">Export Dataset</button>
                     <button class="builder-btn builder-cancel" id="builderCancel">Cancel</button>
+                    <button class="builder-btn builder-export" id="builderExport">Export Dataset</button>
                 </div>
             </div>
             <div class="builder-form">
@@ -236,8 +600,8 @@
                     <input type="text" id="builderTopic" placeholder="e.g., vowels">
                 </div>
                 <div class="input-group">
-                    <label for="builderDesc">Description (markdown):</label>
-                    <textarea id="builderDesc" rows="3" placeholder="### heading, [color], _underline_, *italic*"></textarea>
+                    <label for="builderDesc">Description:</label>
+                    <textarea id="builderDesc" rows="3" placeholder="Use markdown: ### heading, [color], _underline_, *italic*"></textarea>
                 </div>
                 <div class="input-group">
                     <label for="builderEx">Examples (comma separated):</label>
@@ -248,7 +612,7 @@
                     <button class="builder-cancel-edit" id="builderCancelEdit">Cancel Edit</button>
                 </div>
                 
-                <!-- Manage Topics List -->
+                <!-- Manage Topics List (with Clear All button) -->
                 <div class="manage-topics">
                     <h3>Manage Topics</h3>
                     <div class="topics-manage-list" id="topicsManageList"></div>
@@ -257,46 +621,125 @@
             </div>
         </div>
 
-        <!-- Slideshow, panels, etc. (unchanged) -->
-        <div class="slideshow-overlay" id="slideshowOverlay"><div class="slideshow-close" id="slideshowClose">❌</div><div class="slideshow-top" id="slideshowTop"></div><div class="slideshow-content" id="slideshowContent"></div><div class="slideshow-bottom" id="slideshowBottom"></div><div class="slideshow-indicator" id="slideshowIndicator"></div></div>
-        <div class="instruction-modal" id="instructionModal"><h2>Slide Mode Instructions</h2><p>Tap top half → next; bottom half → previous; tap words to highlight.</p><button id="closeInstruction">Start</button></div>
+        <!-- Slideshow -->
+        <div class="slideshow-overlay" id="slideshowOverlay">
+            <div class="slideshow-close" id="slideshowClose">❌</div>
+            <button class="slideshow-toggle" id="slideshowModeToggle">Toggle Mode</button>
+            <div class="slideshow-top" id="slideshowTop"></div>
+            <div class="slideshow-content" id="slideshowContent"></div>
+            <div class="slideshow-bottom" id="slideshowBottom"></div>
+            <div class="slideshow-indicator" id="slideshowIndicator"></div>
+        </div>
         
-        <div class="history-panel" id="historyPanel"><div class="panel-header"><h2>📜 History</h2><div class="close-panel" id="closeHistory">❌</div></div><div class="history-list" id="historyList"></div></div>
-        <div class="topics-panel" id="topicsPanel"><div class="panel-header"><h2>📚 Topics</h2><div class="close-panel" id="closeTopics">❌</div></div><div class="topics-list" id="topicsList"></div></div>
+        <!-- Slide Mode Instruction Modal -->
+        <div class="instruction-modal" id="instructionModal">
+            <h2>Slide Mode Instructions</h2>
+            <p>Tap top half → next; bottom half → previous; tap words to highlight.</p>
+            <button id="closeInstruction">Start</button>
+        </div>
+
+        <!-- History Panel -->
+        <div class="history-panel" id="historyPanel">
+            <div class="panel-header"><h2>📜 History</h2><div class="close-panel" id="closeHistory">❌</div></div>
+            <div class="history-list" id="historyList"></div>
+        </div>
+
+        <!-- Topics Panel (list of topics in current dataset) -->
+        <div class="topics-panel" id="topicsPanel">
+            <div class="panel-header"><h2>📚 Topics</h2><div class="close-panel" id="closeTopics">❌</div></div>
+            <div class="topics-list" id="topicsList"></div>
+        </div>
+
+        <!-- Datasets Panel -->
         <div class="dataset-panel" id="datasetPanel">
-            <div class="panel-header"><h2>📂 Datasets</h2><div class="close-panel" id="closeDatasetPanel">❌</div></div>
-            <div style="margin-bottom: 15px;"><button id="createDatasetBtn" class="btn-primary" style="width:100%;">+ New Dataset</button></div>
+            <div class="panel-header">
+                <h2>📂 Datasets</h2>
+                <div class="close-panel" id="closeDatasetPanel">❌</div>
+            </div>
+            <div style="margin-bottom: 15px;">
+                <button id="createDatasetBtn" class="btn-primary" style="width:100%;">+ New Dataset</button>
+            </div>
             <div class="dataset-list" id="datasetList"></div>
         </div>
 
+        <!-- Help Instructions Modal -->
         <div class="instruction-modal" id="instructionsModal">
             <h2>Help & Instructions</h2>
             <ul>
-                <li>🔍 Search for topics in current dataset</li>
+                <li>🔍 Search for topics in current dataset (now with partial matches)</li>
                 <li>📂 Switch between datasets</li>
-                <li>📝 Create new topics (saved only locally)</li>
-                <li>☁️ Use cloud buttons in builder to manually sync</li>
+                <li>📝 Create new topics</li>
+                <li>📚 Browse all topics</li>
+                <li>▶️ Start slideshow from a topic (with word-by-word mode)</li>
                 <li>🌙 Toggle dark/light theme</li>
+                <li>Aa / AA / aa Toggle case (original/uppercase/lowercase)</li>
+                <li>☁️ Save / Load cloud data manually from 📁 menu</li>
             </ul>
             <button id="closeModal">Got it</button>
         </div>
 
-        <!-- Main Header -->
+        <!-- Main Header with Dropdowns -->
         <div class="container">
             <header>
                 <div class="header-content">
-                    <div class="logo" id="appLogo"><span>📚</span><span>Digital Notes</span></div>
-                    <div class="search-container"><input type="text" id="searchInput" placeholder="Search topic..."><button class="search-btn" id="searchBtn">🔍</button></div>
+                    <div class="logo" id="appLogo">
+                        <span>📚</span>
+                        <span>Digital Notes</span>
+                    </div>
+                    <div class="search-container">
+                        <input type="text" id="searchInput" placeholder="Search topic...">
+                        <button class="search-btn" id="searchBtn">🔍</button>
+                    </div>
                     <div class="controls">
-                        <div class="dropdown"><button class="dropdown-toggle" id="dataDropdownToggle">📁</button><div class="dropdown-menu" id="dataDropdownMenu"><div class="dataset-toggle" id="datasetToggle">📂 Datasets</div><div class="load-toggle" id="loadToggle">📥 Import</div><div class="export-toggle" id="exportToggle">📝 Create</div></div></div>
-                        <div class="dropdown"><button class="dropdown-toggle" id="browseDropdownToggle">🔍</button><div class="dropdown-menu" id="browseDropdownMenu"><div class="topics-toggle" id="topicsToggle">📚 Topics</div><div class="history-toggle" id="historyToggle">🕒 History</div></div></div>
-                        <div class="dropdown"><button class="dropdown-toggle" id="toolsDropdownToggle">🛠️</button><div class="dropdown-menu" id="toolsDropdownMenu"><div class="theme-toggle" id="themeToggle">🌙 Theme</div><div class="case-toggle" id="caseToggle">Aa</div><div class="help-toggle" id="helpToggle">❓ Help</div><div class="slide-toggle" id="slideToggle">▶️ Slide</div></div></div>
-                        <div class="user-toggle" id="userToggle">👤</div>
+                        <!-- Data Dropdown -->
+                        <div class="dropdown">
+                            <button class="dropdown-toggle" id="dataDropdownToggle">📁</button>
+                            <div class="dropdown-menu" id="dataDropdownMenu">
+                                <div class="dataset-toggle" id="datasetToggle" title="Datasets">📂 Datasets</div>
+                                <div class="load-toggle" id="loadToggle" title="Import JSON">📥 Import</div>
+                                <div class="export-toggle" id="exportToggle" title="Create Topic">📝 Create</div>
+                                <div class="cloud-save" id="cloudSaveToggle" title="Save to Cloud">☁️ Save to Cloud</div>
+                                <div class="cloud-load" id="cloudLoadToggle" title="Load from Cloud">☁️ Load from Cloud</div>
+                            </div>
+                        </div>
+                        <!-- Browse Dropdown -->
+                        <div class="dropdown">
+                            <button class="dropdown-toggle" id="browseDropdownToggle">🔍</button>
+                            <div class="dropdown-menu" id="browseDropdownMenu">
+                                <div class="topics-toggle" id="topicsToggle" title="Topics">📚 Topics</div>
+                                <div class="history-toggle" id="historyToggle" title="History">🕒 History</div>
+                            </div>
+                        </div>
+                        <!-- Tools Dropdown -->
+                        <div class="dropdown">
+                            <button class="dropdown-toggle" id="toolsDropdownToggle">🛠️</button>
+                            <div class="dropdown-menu" id="toolsDropdownMenu">
+                                <div class="theme-toggle" id="themeToggle" title="Theme">🌙 Theme</div>
+                                <div class="case-toggle" id="caseToggle" title="Case">Aa</div>
+                                <div class="help-toggle" id="helpToggle" title="Help">❓ Help</div>
+                                <div class="slide-toggle" id="slideToggle" title="Slide Show">▶️ Slide</div>
+                            </div>
+                        </div>
+                        <!-- User Button (standalone) -->
+                        <div class="user-toggle" id="userToggle" title="User">👤</div>
                     </div>
                 </div>
             </header>
+
             <main class="results-container" id="resultsContainer">
-                <div class="no-results" id="noResults"><span>📖</span><h2>Welcome</h2><p id="welcomeMessage">Select a dataset or search for a topic</p><div class="search-history" id="suggestedTopics"></div><div class="font-controls" id="fontControls"><span>Font:</span><button class="font-size-btn" data-size="0.9">S</button><button class="font-size-btn active" data-size="1">M</button><button class="font-size-btn" data-size="1.1">L</button><button class="font-size-btn" data-size="1.2">XL</button></div></div>
+                <div class="no-results" id="noResults">
+                    <span>📖</span>
+                    <h2>Welcome</h2>
+                    <p id="welcomeMessage">Select a dataset or search for a topic</p>
+                    <div class="search-history" id="suggestedTopics"></div>
+                    <div class="font-controls" id="fontControls">
+                        <span>Font:</span>
+                        <button class="font-size-btn" data-size="0.9">S</button>
+                        <button class="font-size-btn active" data-size="1">M</button>
+                        <button class="font-size-btn" data-size="1.1">L</button>
+                        <button class="font-size-btn" data-size="1.2">XL</button>
+                    </div>
+                </div>
             </main>
         </div>
     </div>
@@ -308,70 +751,150 @@
 
     <script>
         (function() {
-            // ========== FIREBASE CONFIG ==========
+            // ========== FIREBASE CONFIG - REPLACE WITH YOUR OWN ==========
             const firebaseConfig = {
-                apiKey: "AIzaSyCw1UnzkY4Eq_ImEnRDRFYmUMhSc95T-NU",
-                authDomain: "lesson-notes-2025.firebaseapp.com",
-                projectId: "lesson-notes-2025",
-                storageBucket: "lesson-notes-2025.firebasestorage.app",
-                messagingSenderId: "757231923808",
-                appId: "1:757231923808:web:3c72026662c8a296134905"
+            apiKey: "AIzaSyCw1UnzkY4Eq_ImEnRDRFYmUMhSc95T-NU",
+            authDomain: "lesson-notes-2025.firebaseapp.com",
+            projectId: "lesson-notes-2025",
+            storageBucket: "lesson-notes-2025.firebasestorage.app",
+            messagingSenderId: "757231923808",
+            appId: "1:757231923808:web:3c72026662c8a296134905"
             };
+            
             firebase.initializeApp(firebaseConfig);
             const db = firebase.firestore();
-            db.enablePersistence({ synchronizeTabs: true }).catch(() => {});
+            
+            db.enablePersistence({ synchronizeTabs: true })
+                .catch(err => {
+                    if (err.code === 'failed-precondition') {
+                        console.warn('Persistence failed: Multiple tabs open');
+                    } else if (err.code === 'unimplemented') {
+                        console.warn('Persistence not supported');
+                    }
+                });
 
-            // ========== UTILS ==========
-            function generateId() { return Date.now().toString(36) + Math.random().toString(36).substr(2,5); }
-            function showNotification(type, title, message, duration=3000) {
-                const n = document.getElementById('notification'), icon = document.getElementById('notificationIcon'), text = document.getElementById('notificationText');
-                icon.textContent = type==='success'?'✅':type==='error'?'❌':'ℹ️';
-                text.textContent = message;
-                n.classList.remove('error','success');
-                if (type==='error') n.classList.add('error');
-                else if (type==='success') n.classList.add('success');
-                n.classList.add('active');
-                setTimeout(()=>n.classList.remove('active'), duration);
+            // ========== CONSTANTS ==========
+            const APP_VERSION = '1.1.0'; // Updated version
+            const STORAGE_KEY = 'itmylti_notes';
+
+            // Utility functions
+            function generateId() {
+                return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
             }
-            function showLoading(msg='Loading...') { const o=document.getElementById('loadingOverlay'); o.querySelector('p').textContent=msg; o.style.display='flex'; }
-            function hideLoading() { document.getElementById('loadingOverlay').style.display='none'; }
-            function exportAsJSON(data,filename) { const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=filename; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(a.href); }
+            
+            function deepClone(obj) { 
+                return JSON.parse(JSON.stringify(obj)); 
+            }
+            
+            function formatDate(d = new Date()) {
+                return d.toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric', 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                });
+            }
 
-            // ========== DATABASE MANAGER - LOCAL ONLY, MANUAL CLOUD ==========
+            function showNotification(type, title, message, duration = 3000) {
+                const n = document.getElementById('notification');
+                const icon = document.getElementById('notificationIcon');
+                const text = document.getElementById('notificationText');
+                
+                icon.textContent = type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️';
+                text.textContent = message;
+                
+                n.classList.remove('error', 'success');
+                if (type === 'error') n.classList.add('error');
+                else if (type === 'success') n.classList.add('success');
+                
+                n.classList.add('active');
+                setTimeout(() => n.classList.remove('active'), duration);
+            }
+
+            function showLoading(msg = 'Loading...') {
+                const o = document.getElementById('loadingOverlay');
+                if (o) { 
+                    o.querySelector('p').textContent = msg; 
+                    o.style.display = 'flex'; 
+                }
+            }
+            
+            function hideLoading() { 
+                const o = document.getElementById('loadingOverlay');
+                if (o) o.style.display = 'none'; 
+            }
+
+            function exportAsJSON(data, filename) {
+                const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url; 
+                a.download = filename;
+                document.body.appendChild(a); 
+                a.click(); 
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            async function importJSONFile(file) {
+                return new Promise((res, rej) => {
+                    const reader = new FileReader();
+                    reader.onload = e => { 
+                        try { 
+                            res(JSON.parse(e.target.result)); 
+                        } catch(err) { 
+                            rej('Invalid JSON'); 
+                        } 
+                    };
+                    reader.onerror = () => rej('Read error');
+                    reader.readAsText(file);
+                });
+            }
+
+            // ========== DATABASE MANAGER (MANUAL CLOUD) ==========
             class DatabaseManager {
                 constructor() {
                     this.userId = null;
                     this.datasets = [];           
                     this.currentDatasetId = null;
                     this.localData = null;
-                    // No auto-sync, no intervals
+                    this.lastSynced = null;
                 }
 
                 setUser(user) {
                     this.userId = user ? user.uid : null;
-                    // No auto-sync start/stop
                 }
 
-                getUserDocRef() { return this.userId ? db.collection('users').doc(this.userId) : null; }
+                getUserDocRef() { 
+                    return this.userId ? db.collection('users').doc(this.userId) : null; 
+                }
 
-                // Manual cloud save
-                async saveToFirebase() {
+                // Manual save to cloud (overwrites cloud with current local data)
+                async saveToCloud() {
                     if (!this.userId) throw new Error('Not authenticated');
                     try {
                         showLoading('Saving to cloud...');
-                        const data = { datasets: this.datasets, currentDatasetId: this.currentDatasetId, lastUpdated: Date.now() };
-                        await this.getUserDocRef().set({ data, version: '1.0.0' }, { merge: true });
-                        this.localData = data; // update localData reference
-                        showNotification('success', 'Cloud', 'Saved to cloud');
+                        const data = { 
+                            datasets: this.datasets, 
+                            currentDatasetId: this.currentDatasetId, 
+                            lastUpdated: Date.now() 
+                        };
+                        await this.getUserDocRef().set({ data, version: APP_VERSION }, { merge: true });
+                        this.localData = data;
+                        this.lastSynced = new Date();
+                        showNotification('success', 'Cloud', 'Data saved to cloud at ' + formatDate(this.lastSynced));
                     } catch (e) { 
                         console.error(e); 
-                        showNotification('error', 'Cloud error', e.message); 
+                        showNotification('error', 'Cloud error', 'Save failed'); 
                         throw e; 
-                    } finally { hideLoading(); }
+                    } finally { 
+                        hideLoading(); 
+                    }
                 }
 
-                // Manual cloud load
-                async loadFromFirebase() {
+                // Manual load from cloud (replaces local data with cloud data)
+                async loadFromCloud() {
                     if (!this.userId) throw new Error('Not authenticated');
                     try {
                         showLoading('Loading from cloud...');
@@ -382,278 +905,1131 @@
                                 this.datasets = d.datasets;
                                 this.currentDatasetId = d.currentDatasetId || (this.datasets[0]?.id || null);
                                 this.localData = d;
-                                // Save to localStorage after cloud load (so local reflects cloud)
-                                this.saveToLocalStorage();
-                                showNotification('success', 'Cloud', 'Loaded from cloud');
-                            } else { showNotification('info', 'Cloud', 'No data found'); }
-                        } else { showNotification('info', 'Cloud', 'No cloud data'); }
+                                this.saveToLocalStorage(); // persist to local after loading
+                                this.lastSynced = new Date();
+                                showNotification('success', 'Cloud', 'Data loaded from cloud at ' + formatDate(this.lastSynced));
+                            } else {
+                                showNotification('info', 'Cloud', 'No cloud data found');
+                            }
+                        } else {
+                            showNotification('info', 'Cloud', 'No cloud data found');
+                        }
+                        hideLoading();
+                        return this.datasets;
                     } catch (e) { 
-                        showNotification('error', 'Cloud load failed', e.message); 
-                    } finally { hideLoading(); }
+                        console.error(e); 
+                        hideLoading(); 
+                        showNotification('error', 'Cloud error', 'Load failed');
+                        throw e; 
+                    }
                 }
 
-                // Local storage ops
                 saveToLocalStorage() {
                     try {
-                        const data = { datasets: this.datasets, currentDatasetId: this.currentDatasetId, lastUpdated: Date.now() };
-                        localStorage.setItem('itmylti_notes', JSON.stringify(data));
+                        const data = { 
+                            datasets: this.datasets, 
+                            currentDatasetId: this.currentDatasetId, 
+                            lastUpdated: Date.now() 
+                        };
+                        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
                         this.localData = data;
-                    } catch (e) { console.error(e); }
+                    } catch (e) { 
+                        console.error('Local storage error:', e); 
+                    }
                 }
 
                 loadFromLocalStorage() {
                     try {
-                        const s = localStorage.getItem('itmylti_notes');
-                        if (s) { 
-                            const data = JSON.parse(s); 
-                            this.datasets = data.datasets || []; 
-                            this.currentDatasetId = data.currentDatasetId || (this.datasets[0]?.id || null); 
-                            this.localData = data; 
+                        const s = localStorage.getItem(STORAGE_KEY);
+                        if (s) {
+                            const data = JSON.parse(s);
+                            this.datasets = data.datasets || [];
+                            this.currentDatasetId = data.currentDatasetId || (this.datasets[0]?.id || null);
+                            this.localData = data;
                         }
-                    } catch (e) { console.error(e); }
+                    } catch (e) { 
+                        console.error('Local storage load error:', e); 
+                    }
                 }
 
-                getCurrentDataset() { return this.datasets.find(d => d.id === this.currentDatasetId); }
+                getCurrentDataset() {
+                    return this.datasets.find(d => d.id === this.currentDatasetId);
+                }
 
-                // CRUD - only local storage, no cloud calls
                 async createDataset(name) {
-                    const id = generateId(); 
+                    const id = generateId();
                     const newDataset = { id, name, topics: {} };
-                    this.datasets.push(newDataset); 
-                    this.currentDatasetId = id; 
+                    this.datasets.push(newDataset);
+                    this.currentDatasetId = id;
                     this.saveToLocalStorage();
                     return newDataset;
                 }
 
-                async updateDatasetName(id, newName) { 
-                    const ds = this.datasets.find(d=>d.id===id); 
-                    if(ds){ ds.name = newName; this.saveToLocalStorage(); } 
+                async updateDatasetName(id, newName) {
+                    const ds = this.datasets.find(d => d.id === id);
+                    if (ds) { 
+                        ds.name = newName; 
+                        this.saveToLocalStorage();
+                    }
                 }
 
                 async deleteDataset(id) {
-                    const idx = this.datasets.findIndex(d=>d.id===id); 
-                    if(idx===-1) return;
-                    this.datasets.splice(idx,1);
-                    if(this.datasets.length===0) { 
-                        await this.createDataset('My Notes'); 
-                    } else if(this.currentDatasetId===id) { 
-                        this.currentDatasetId = this.datasets[0]?.id || null; 
+                    const idx = this.datasets.findIndex(d => d.id === id);
+                    if (idx === -1) return;
+                    
+                    this.datasets.splice(idx, 1);
+                    
+                    if (this.datasets.length === 0) {
+                        await this.createDataset('My Notes');
+                    } else if (this.currentDatasetId === id) {
+                        this.currentDatasetId = this.datasets[0]?.id || null;
                     }
+                    
                     this.saveToLocalStorage();
                 }
 
-                async addTopic(key,desc,ex) { 
-                    const ds=this.getCurrentDataset(); 
-                    if(!ds) return; 
-                    ds.topics[key]={desc,ex}; 
-                    this.saveToLocalStorage(); 
+                async addTopic(topicKey, desc, examples) {
+                    const ds = this.getCurrentDataset();
+                    if (!ds) return;
+                    ds.topics[topicKey] = { desc, ex: examples };
+                    this.saveToLocalStorage();
                 }
 
-                async updateTopic(key,desc,ex) { 
-                    const ds=this.getCurrentDataset(); 
-                    if(ds && ds.topics[key]) { 
-                        ds.topics[key]={desc,ex}; 
-                        this.saveToLocalStorage(); 
-                    } 
+                async updateTopic(topicKey, desc, examples) {
+                    const ds = this.getCurrentDataset();
+                    if (ds && ds.topics[topicKey]) {
+                        ds.topics[topicKey] = { desc, ex: examples };
+                        this.saveToLocalStorage();
+                    }
                 }
 
-                async deleteTopic(key) { 
-                    const ds=this.getCurrentDataset(); 
-                    if(ds && ds.topics[key]) { 
-                        delete ds.topics[key]; 
-                        this.saveToLocalStorage(); 
-                    } 
+                async deleteTopic(topicKey) {
+                    const ds = this.getCurrentDataset();
+                    if (ds && ds.topics[topicKey]) {
+                        delete ds.topics[topicKey];
+                        this.saveToLocalStorage();
+                    }
                 }
 
-                async clearAllTopics() { 
-                    const ds=this.getCurrentDataset(); 
-                    if(ds){ 
-                        ds.topics={}; 
-                        this.saveToLocalStorage(); 
-                    } 
+                async clearAllTopics() {
+                    const ds = this.getCurrentDataset();
+                    if (ds) {
+                        ds.topics = {};
+                        this.saveToLocalStorage();
+                    }
                 }
 
-                async importTopics(newTopics, merge=true) { 
-                    const ds=this.getCurrentDataset(); 
-                    if(!ds) return; 
-                    if(merge) { 
-                        ds.topics={...ds.topics, ...newTopics}; 
-                    } else { 
-                        ds.topics=newTopics; 
-                    } 
-                    this.saveToLocalStorage(); 
+                async importTopics(newTopics, merge = true) {
+                    const ds = this.getCurrentDataset();
+                    if (!ds) return;
+                    
+                    if (merge) {
+                        ds.topics = { ...ds.topics, ...newTopics };
+                    } else {
+                        ds.topics = newTopics;
+                    }
+                    
+                    this.saveToLocalStorage();
                 }
             }
+
             const database = new DatabaseManager();
 
             // ========== AUTH MANAGER ==========
             class AuthManager {
-                constructor() { this.auth = firebase.auth(); this.user = null; this.init(); }
+                constructor() {
+                    this.auth = firebase.auth();
+                    this.user = null;
+                    this.init();
+                }
+                
                 init() {
                     this.auth.onAuthStateChanged(user => {
-                        this.user = user; 
+                        this.user = user;
                         database.setUser(user);
-                        if(user) {
-                            document.getElementById('authModal').style.display='none';
-                            document.getElementById('mainApp').style.display='block';
+                        
+                        if (user) {
+                            document.getElementById('authModal').style.display = 'none';
+                            document.getElementById('mainApp').style.display = 'block';
                             document.getElementById('userToggle').textContent = user.email ? user.email[0].toUpperCase() : '👤';
-                            // Load only local data, not cloud automatically
-                            if(window.app) window.app.loadLocalData();
+                            if (window.app) window.app.onLogin();
                         } else {
-                            document.getElementById('mainApp').style.display='none';
-                            document.getElementById('authModal').style.display='flex';
+                            document.getElementById('mainApp').style.display = 'none';
+                            document.getElementById('authModal').style.display = 'flex';
                         }
                     });
-                    document.getElementById('loginBtn').addEventListener('click', ()=>{ this.signIn(document.getElementById('loginEmail').value, document.getElementById('loginPassword').value); });
-                    document.getElementById('registerBtn').addEventListener('click', ()=>{
-                        const p = document.getElementById('registerPassword').value, c = document.getElementById('registerConfirm').value;
-                        if(p!==c) { showNotification('error','Error','Passwords do not match'); return; }
-                        this.signUp(document.getElementById('registerEmail').value, p);
-                    });
-                    document.getElementById('resetBtn').addEventListener('click', ()=>{ this.resetPassword(document.getElementById('resetEmail').value); });
-                    document.querySelectorAll('.auth-tab').forEach(tab=>{ tab.addEventListener('click',()=>{ document.querySelectorAll('.auth-tab').forEach(t=>t.classList.remove('active')); document.querySelectorAll('.auth-form').forEach(f=>f.classList.remove('active')); tab.classList.add('active'); const id='auth'+tab.dataset.tab.charAt(0).toUpperCase()+tab.dataset.tab.slice(1); document.getElementById(id).classList.add('active'); }); });
+                    
+                    this.renderAuthUI();
                 }
-                async signIn(e,p) { try{ await this.auth.signInWithEmailAndPassword(e,p); }catch(e){ showNotification('error','Login failed',e.message); } }
-                async signUp(e,p) { try{ await this.auth.createUserWithEmailAndPassword(e,p); }catch(e){ showNotification('error','Registration failed',e.message); } }
-                async resetPassword(e) { try{ await this.auth.sendPasswordResetEmail(e); showNotification('success','Reset email sent','Check your inbox'); }catch(e){ showNotification('error','Error',e.message); } }
-                signOut() { this.auth.signOut(); }
+                
+                renderAuthUI() {
+                    document.getElementById('loginBtn').addEventListener('click', () => {
+                        const email = document.getElementById('loginEmail').value;
+                        const pass = document.getElementById('loginPassword').value;
+                        this.signIn(email, pass);
+                    });
+                    
+                    document.getElementById('registerBtn').addEventListener('click', () => {
+                        const email = document.getElementById('registerEmail').value;
+                        const pass = document.getElementById('registerPassword').value;
+                        const conf = document.getElementById('registerConfirm').value;
+                        if (pass !== conf) { 
+                            showNotification('error', 'Error', 'Passwords do not match'); 
+                            return; 
+                        }
+                        this.signUp(email, pass);
+                    });
+                    
+                    document.getElementById('resetBtn').addEventListener('click', () => {
+                        const email = document.getElementById('resetEmail').value;
+                        this.resetPassword(email);
+                    });
+                    
+                    document.querySelectorAll('.auth-tab').forEach(tab => {
+                        tab.addEventListener('click', () => {
+                            document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+                            document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+                            tab.classList.add('active');
+                            const id = 'auth' + tab.dataset.tab.charAt(0).toUpperCase() + tab.dataset.tab.slice(1);
+                            document.getElementById(id).classList.add('active');
+                        });
+                    });
+                }
+                
+                async signIn(email, pass) {
+                    try { 
+                        await this.auth.signInWithEmailAndPassword(email, pass); 
+                    } catch (e) { 
+                        showNotification('error', 'Login failed', e.message); 
+                    }
+                }
+                
+                async signUp(email, pass) {
+                    try { 
+                        await this.auth.createUserWithEmailAndPassword(email, pass); 
+                    } catch (e) { 
+                        showNotification('error', 'Registration failed', e.message); 
+                    }
+                }
+                
+                async resetPassword(email) {
+                    try { 
+                        await this.auth.sendPasswordResetEmail(email); 
+                        showNotification('success', 'Reset email sent', 'Check your inbox'); 
+                    } catch (e) { 
+                        showNotification('error', 'Error', e.message); 
+                    }
+                }
+                
+                signOut() { 
+                    this.auth.signOut(); 
+                }
             }
+            
             const auth = new AuthManager();
 
-            // ========== UI MANAGER (identical to before, but cloud buttons call manual methods) ==========
+            // ========== UI MANAGER ==========
             class UIManager {
                 constructor() {
                     this.currentTopic = null;
                     this.searchHistory = JSON.parse(localStorage.getItem('notesSearchHistory')) || [];
                     this.isDarkTheme = localStorage.getItem('notesTheme') === 'dark';
+                    
+                    // Case state: 0 = original, 1 = uppercase, 2 = lowercase
                     const savedCase = localStorage.getItem('notesCase');
                     if (savedCase === 'uppercase') this.caseState = 1;
                     else if (savedCase === 'lowercase') this.caseState = 2;
-                    else this.caseState = 0;
+                    else this.caseState = 0; // default original
+                    
                     this.fontBase = parseFloat(localStorage.getItem('notesFontSize')) || 1;
-                    this.editingTopicKey = null;
+                    
                     document.documentElement.style.setProperty('--font-base', this.fontBase);
-                    if (this.isDarkTheme) { document.body.classList.add('dark-theme'); document.getElementById('themeToggle').innerHTML = '☀️ Theme'; }
-                    else { document.getElementById('themeToggle').innerHTML = '🌙 Theme'; }
+                    
+                    if (this.isDarkTheme) {
+                        document.body.classList.add('dark-theme');
+                        document.getElementById('themeToggle').innerHTML = '☀️ Theme';
+                    } else {
+                        document.getElementById('themeToggle').innerHTML = '🌙 Theme';
+                    }
+                    
                     this.updateCaseButtonDisplay();
+                    
                     this.initEventListeners();
                 }
-                updateCaseButtonDisplay() { const btn=document.getElementById('caseToggle'); if(this.caseState===0) btn.innerHTML='Aa'; else if(this.caseState===1) btn.innerHTML='AA'; else btn.innerHTML='aa'; }
-                initEventListeners() {
-                    // Theme, case, font, search, logo, panels, help, import, builder (original listeners) ...
-                    document.getElementById('themeToggle').addEventListener('click', ()=>{ this.isDarkTheme=!this.isDarkTheme; document.body.classList.toggle('dark-theme',this.isDarkTheme); localStorage.setItem('notesTheme',this.isDarkTheme?'dark':'light'); document.getElementById('themeToggle').innerHTML=this.isDarkTheme?'☀️ Theme':'🌙 Theme'; });
-                    document.getElementById('caseToggle').addEventListener('click', ()=>{ this.caseState=(this.caseState+1)%3; if(this.caseState===0) localStorage.setItem('notesCase','original'); else if(this.caseState===1) localStorage.setItem('notesCase','uppercase'); else localStorage.setItem('notesCase','lowercase'); this.updateCaseButtonDisplay(); if(this.currentTopic) this.displayTopic(this.currentTopic); });
-                    document.querySelectorAll('.font-size-btn').forEach(btn=>{ btn.addEventListener('click',()=>{ const s=parseFloat(btn.dataset.size); document.documentElement.style.setProperty('--font-base',s); localStorage.setItem('notesFontSize',s); document.querySelectorAll('.font-size-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); if(this.currentTopic) this.displayTopic(this.currentTopic); }); });
-                    document.getElementById('searchBtn').addEventListener('click',()=>this.handleSearch());
-                    document.getElementById('searchInput').addEventListener('keyup',e=>{if(e.key==='Enter') this.handleSearch();});
-                    document.getElementById('appLogo').addEventListener('click',()=>this.showHome());
-                    document.getElementById('historyToggle').addEventListener('click',()=>this.togglePanel('history'));
-                    document.getElementById('topicsToggle').addEventListener('click',()=>this.togglePanel('topics'));
-                    document.getElementById('datasetToggle').addEventListener('click',()=>this.togglePanel('dataset'));
-                    document.getElementById('closeHistory').addEventListener('click',()=>this.closePanels());
-                    document.getElementById('closeTopics').addEventListener('click',()=>this.closePanels());
-                    document.getElementById('closeDatasetPanel').addEventListener('click',()=>this.closePanels());
-                    document.getElementById('overlay').addEventListener('click',()=>this.closePanels());
-                    document.getElementById('helpToggle').addEventListener('click',()=>{ document.getElementById('instructionsModal').classList.toggle('active'); document.getElementById('overlay').classList.toggle('active'); });
-                    document.getElementById('closeModal').addEventListener('click',()=>{ document.getElementById('instructionsModal').classList.remove('active'); document.getElementById('overlay').classList.remove('active'); });
-                    document.getElementById('loadToggle').addEventListener('click',()=>document.getElementById('fileInput').click());
-                    document.getElementById('fileInput').addEventListener('change',e=>this.handleFileImport(e));
-                    
-                    document.getElementById('exportToggle').addEventListener('click',()=>{ document.getElementById('builderContainer').classList.add('active'); this.resetBuilderForm(); this.updateManageTopicsList(); });
-                    document.getElementById('builderCancel').addEventListener('click',()=>{ document.getElementById('builderContainer').classList.remove('active'); this.resetBuilderForm(); });
-                    document.getElementById('builderAdd').addEventListener('click',()=>this.addBuilderEntry());
-                    document.getElementById('builderCancelEdit').addEventListener('click',()=>this.cancelEdit());
-                    document.getElementById('builderExport').addEventListener('click',()=>this.exportCurrentDataset());
-                    document.getElementById('previewClear').addEventListener('click',()=>{ if(confirm('Clear all topics?')) database.clearAllTopics().then(()=>{ this.refreshUI(); this.updateManageTopicsList(); }); });
-                    document.getElementById('topicsManageList').addEventListener('click',(e)=>{ const t=e.target; if(t.classList.contains('edit-btn')) this.editTopic(t.dataset.key); else if(t.classList.contains('delete-btn')) this.deleteTopic(t.dataset.key); });
-                    
-                    // Cloud buttons (manual)
-                    document.getElementById('builderCloudSave').addEventListener('click', async ()=>{
-                        if (!auth.user) { showNotification('error','Auth required','Please log in'); return; }
-                        try { await database.saveToFirebase(); } catch(e) { showNotification('error','Cloud save failed',e.message); }
-                    });
-                    document.getElementById('builderCloudLoad').addEventListener('click', async ()=>{
-                        if (!auth.user) { showNotification('error','Auth required','Please log in'); return; }
-                        try { 
-                            await database.loadFromFirebase(); 
-                            this.refreshUI(); 
-                            this.updateManageTopicsList(); 
-                        } catch(e) { showNotification('error','Cloud load failed',e.message); }
-                    });
 
-                    document.getElementById('slideToggle').addEventListener('click',()=>this.startSlideshow());
-                    document.getElementById('slideshowClose').addEventListener('click',()=>this.closeSlideshow());
-                    document.getElementById('slideshowTop').addEventListener('click',()=>this.nextSlide());
-                    document.getElementById('slideshowBottom').addEventListener('click',()=>this.prevSlide());
-                    document.getElementById('closeInstruction').addEventListener('click',()=>{ document.getElementById('instructionModal').classList.remove('active'); document.getElementById('overlay').classList.remove('active'); this.beginSlideshow(); });
-                    document.getElementById('userToggle').addEventListener('click',()=>{ if(auth.user) auth.signOut(); });
-                    document.getElementById('createDatasetBtn').addEventListener('click', async ()=>{ const n=prompt('Dataset name:','New Notes'); if(!n) return; await database.createDataset(n); this.refreshUI(); this.closePanels(); showNotification('success','Dataset created',n); });
-
-                    // dropdown toggles
-                    document.addEventListener('click', (e)=>{ if(!e.target.closest('.dropdown')) document.querySelectorAll('.dropdown-menu').forEach(m=>m.classList.remove('active')); });
-                    document.getElementById('dataDropdownToggle').addEventListener('click',(e)=>{ e.stopPropagation(); document.getElementById('dataDropdownMenu').classList.toggle('active'); document.getElementById('browseDropdownMenu').classList.remove('active'); document.getElementById('toolsDropdownMenu').classList.remove('active'); });
-                    document.getElementById('browseDropdownToggle').addEventListener('click',(e)=>{ e.stopPropagation(); document.getElementById('browseDropdownMenu').classList.toggle('active'); document.getElementById('dataDropdownMenu').classList.remove('active'); document.getElementById('toolsDropdownMenu').classList.remove('active'); });
-                    document.getElementById('toolsDropdownToggle').addEventListener('click',(e)=>{ e.stopPropagation(); document.getElementById('toolsDropdownMenu').classList.toggle('active'); document.getElementById('dataDropdownMenu').classList.remove('active'); document.getElementById('browseDropdownMenu').classList.remove('active'); });
-                    document.querySelectorAll('.dropdown-menu').forEach(m=>{ m.addEventListener('click',e=>e.stopPropagation()); });
+                updateCaseButtonDisplay() {
+                    const btn = document.getElementById('caseToggle');
+                    if (this.caseState === 0) btn.innerHTML = 'Aa';
+                    else if (this.caseState === 1) btn.innerHTML = 'AA';
+                    else btn.innerHTML = 'aa';
                 }
 
-                // All CRUD / UI methods (identical to original, but they now only call local database methods)
-                resetBuilderForm() { document.getElementById('builderTopic').value=''; document.getElementById('builderDesc').value=''; document.getElementById('builderEx').value=''; this.editingTopicKey=null; document.getElementById('builderAdd').innerHTML='<span>+</span> Add Topic'; document.getElementById('builderCancelEdit').style.display='none'; }
-                cancelEdit() { this.resetBuilderForm(); }
-                editTopic(key) { const ds=database.getCurrentDataset(); if(!ds||!ds.topics[key]) return; const t=ds.topics[key]; document.getElementById('builderTopic').value=key; document.getElementById('builderDesc').value=t.desc; document.getElementById('builderEx').value=t.ex.join(', '); this.editingTopicKey=key; document.getElementById('builderAdd').innerHTML='<span>✏️</span> Update Topic'; document.getElementById('builderCancelEdit').style.display='inline-flex'; }
-                async deleteTopic(key) { if(!confirm(`Delete topic "${key}"?`)) return; await database.deleteTopic(key); this.refreshUI(); this.updateManageTopicsList(); if(this.editingTopicKey===key) this.resetBuilderForm(); showNotification('success','Deleted',key); }
-                addBuilderEntry() { const t=document.getElementById('builderTopic').value.trim(); const d=document.getElementById('builderDesc').value.trim(); const exStr=document.getElementById('builderEx').value.trim(); if(!t||!d||!exStr){ alert('Please fill all fields'); return; } const ex=exStr.split(',').map(s=>s.trim()); if(this.editingTopicKey){ if(this.editingTopicKey!==t){ database.deleteTopic(this.editingTopicKey).then(()=>{ database.addTopic(t,d,ex).then(()=>{ this.updateManageTopicsList(); this.resetBuilderForm(); this.refreshUI(); showNotification('success','Updated',t); }); }); } else { database.updateTopic(t,d,ex).then(()=>{ this.updateManageTopicsList(); this.resetBuilderForm(); this.refreshUI(); showNotification('success','Updated',t); }); } } else { database.addTopic(t,d,ex).then(()=>{ this.updateManageTopicsList(); document.getElementById('builderTopic').value=''; document.getElementById('builderDesc').value=''; document.getElementById('builderEx').value=''; this.refreshUI(); showNotification('success','Added',t); }); } }
-                togglePanel(p) { ['history','topics','dataset'].forEach(p=>document.getElementById(p+'Panel').classList.remove('active')); document.getElementById(p+'Panel').classList.add('active'); document.getElementById('overlay').classList.add('active'); if(p==='history') this.renderHistoryPanel(); if(p==='topics') this.renderTopicsPanel(); if(p==='dataset') this.renderDatasetPanel(); }
-                closePanels() { document.querySelectorAll('.history-panel, .topics-panel, .dataset-panel').forEach(p=>p.classList.remove('active')); document.getElementById('overlay').classList.remove('active'); }
-                renderHistoryPanel() { const list=document.getElementById('historyList'); list.innerHTML=''; if(this.searchHistory.length===0) list.innerHTML='<p>No search history</p>'; else this.searchHistory.slice(0,20).forEach(item=>{ const d=document.createElement('div'); d.className='history-item-panel'; d.innerHTML=`<div>🔍 ${item.term}</div><div style="font-size:0.8em;">${item.time}</div>`; d.addEventListener('click',()=>{ document.getElementById('searchInput').value=item.term; this.handleSearch(); this.closePanels(); }); list.appendChild(d); }); }
-                renderTopicsPanel() { const ds=database.getCurrentDataset(), topics=ds?ds.topics:{}, list=document.getElementById('topicsList'); list.innerHTML=''; const keys=Object.keys(topics).sort(); if(keys.length===0) list.innerHTML='<p>No topics yet.</p>'; else keys.forEach(key=>{ const d=document.createElement('div'); d.className='topic-item'; d.innerHTML=`<span>📄</span> ${key}`; d.addEventListener('click',()=>{ this.displayTopic(key); this.closePanels(); }); list.appendChild(d); }); }
-                renderDatasetPanel() { const list=document.getElementById('datasetList'); list.innerHTML=''; database.datasets.forEach(ds=>{ const d=document.createElement('div'); d.className=`dataset-item ${ds.id===database.currentDatasetId?'active':''}`; d.innerHTML=`<div><strong>${ds.name}</strong></div><div>${Object.keys(ds.topics||{}).length} topics</div><div class="dataset-actions"><button class="switch-ds" data-id="${ds.id}">Switch</button><button class="rename-ds" data-id="${ds.id}">Rename</button><button class="delete-ds" data-id="${ds.id}">Delete</button></div>`; list.appendChild(d); }); document.querySelectorAll('.switch-ds').forEach(btn=>{ btn.addEventListener('click',async(e)=>{ e.stopPropagation(); const id=btn.dataset.id; database.currentDatasetId=id; database.saveToLocalStorage(); this.refreshUI(); this.closePanels(); showNotification('success','Switched',database.getCurrentDataset().name); }); }); document.querySelectorAll('.rename-ds').forEach(btn=>{ btn.addEventListener('click',async(e)=>{ e.stopPropagation(); const id=btn.dataset.id; const ds=database.datasets.find(d=>d.id===id); const n=prompt('New name:',ds.name); if(n){ await database.updateDatasetName(id,n); this.renderDatasetPanel(); } }); }); document.querySelectorAll('.delete-ds').forEach(btn=>{ btn.addEventListener('click',async(e)=>{ e.stopPropagation(); const id=btn.dataset.id; if(database.datasets.length===1){ alert('Cannot delete the only dataset.'); return; } if(confirm('Delete this dataset?')){ await database.deleteDataset(id); this.refreshUI(); this.renderDatasetPanel(); } }); }); }
-                handleSearch() { const term=document.getElementById('searchInput').value.trim(); if(!term) return; const ds=database.getCurrentDataset(); if(!ds){ showNotification('info','No dataset','Create or select a dataset'); return; } if(ds.topics[term]){ this.displayTopic(term); this.searchHistory=[{term,time:new Date().toLocaleTimeString()},...this.searchHistory.filter(h=>h.term!==term)].slice(0,20); localStorage.setItem('notesSearchHistory',JSON.stringify(this.searchHistory)); } else { showNotification('error','Not found',`"${term}" not found`); } }
-                displayTopic(term) { this.currentTopic=term; const ds=database.getCurrentDataset(); if(!ds) return; const topic=ds.topics[term]; if(!topic) return; let desc=topic.desc, examples=topic.ex||[]; if(this.caseState===1){ desc=desc.toUpperCase(); examples=examples.map(e=>e.toUpperCase()); } else if(this.caseState===2){ desc=desc.toLowerCase(); examples=examples.map(e=>e.toLowerCase()); } const html=`<div class="entry-card"><div class="entry-header"><h1>${this.applyCase(term)}</h1></div><div class="entry-desc">${this.formatMarkdown(desc)}</div><h3>Examples & Word Bank:</h3><div class="examples-grid">${examples.map((ex,i)=>`<div class="example-item" data-index="${i}">${ex}</div>`).join('')}</div><button class="clear-selection" id="clearSelection"><span>✕</span> Clear Selection</button></div>`; document.getElementById('resultsContainer').innerHTML=html; document.querySelectorAll('.example-item').forEach(item=>{ item.addEventListener('click',()=>item.classList.toggle('selected')); }); document.getElementById('clearSelection').addEventListener('click',()=>{ document.querySelectorAll('.example-item').forEach(i=>i.classList.remove('selected')); }); }
-                applyCase(text) { if(this.caseState===1) return text.toUpperCase(); if(this.caseState===2) return text.toLowerCase(); return text; }
-                showHome() { this.currentTopic=null; const ds=database.getCurrentDataset(); const topics=ds?Object.keys(ds.topics):[]; const suggested=topics.slice(0,8).map(t=>`<div class="history-item">🔍 ${t}</div>`).join(''); const fc=document.getElementById('fontControls').outerHTML; document.getElementById('resultsContainer').innerHTML=`<div class="no-results"><span>📖</span><h2>${ds?ds.name:'My Notes'}</h2><p>${topics.length} topics available</p><div class="search-history">${suggested||'<p>No topics yet.</p>'}</div>${fc}</div>`; document.querySelectorAll('.font-size-btn').forEach(btn=>{ btn.addEventListener('click',()=>{ const s=parseFloat(btn.dataset.size); document.documentElement.style.setProperty('--font-base',s); localStorage.setItem('notesFontSize',s); document.querySelectorAll('.font-size-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); }); }); document.querySelectorAll('.history-item').forEach(item=>{ item.addEventListener('click',()=>{ document.getElementById('searchInput').value=item.textContent.trim().replace('🔍','').trim(); this.handleSearch(); }); }); }
-                refreshUI() { this.renderTopicsPanel(); this.renderDatasetPanel(); if(this.currentTopic){ const ds=database.getCurrentDataset(); if(!ds||!ds.topics[this.currentTopic]) this.showHome(); else this.displayTopic(this.currentTopic); } else { this.showHome(); } this.updateManageTopicsList(); }
-                loadFromCloud() { this.refreshUI(); } // called after manual cloud load
-                formatMarkdown(text) { const lines=text.split('\n'); let out='',inO=false,inU=false; for(let l of lines){ l=l.trim(); if(!l) continue; if(l.startsWith('### ')) out+=`<h2 class="markdown-h2">${this.processInline(l.slice(4))}</h2>`; else if(l.startsWith('## ')) out+=`<h3 class="markdown-h3">${this.processInline(l.slice(3))}</h3>`; else if(l.startsWith('# ')) out+=`<strong class="markdown-strong">${this.processInline(l.slice(2))}</strong>`; else if(l.startsWith('- ')){ if(!inO){ out+='<ol class="markdown-ol">'; inO=true; } out+=`<li class="markdown-li">${this.processInline(l.slice(2))}</li>`; } else if(l.startsWith('+ ')){ if(!inU){ out+='<ul class="markdown-ul">'; inU=true; } out+=`<li class="markdown-li">${this.processInline(l.slice(2))}</li>`; } else { if(inO){ out+='</ol>'; inO=false; } if(inU){ out+='</ul>'; inU=false; } out+=`<p class="markdown-p">${this.processInline(l)}</p>`; } } if(inO) out+='</ol>'; if(inU) out+='</ul>'; return out; }
-                processInline(t) { t=t.replace(/\[([^\]]+)\]/g,'<span class="theme-color">$1</span>'); t=t.replace(/_([^_]+)_/g,'<u class="markdown-u">$1</u>'); t=t.replace(/\*([^*]+)\*/g,'<em class="markdown-em">$1</em>'); return t; }
-                startSlideshow() { if(!this.currentTopic){ showNotification('info','No topic','Search a topic first'); return; } const ds=database.getCurrentDataset(); if(!ds) return; const t=ds.topics[this.currentTopic]; if(!t||!t.ex||t.ex.length===0){ showNotification('info','No examples'); return; } window.currentSlideshow={examples:t.ex,index:0,selected:{}}; document.getElementById('instructionModal').classList.add('active'); document.getElementById('overlay').classList.add('active'); }
-                beginSlideshow() { document.querySelector('header').style.display='none'; document.getElementById('slideshowOverlay').classList.add('active'); this.updateSlideshow(); }
-                updateSlideshow() { const ss=window.currentSlideshow; if(!ss) return; const ex=ss.examples[ss.index]; const words=ex.split(/\s+/).filter(w=>w); const content=document.getElementById('slideshowContent'); content.innerHTML=''; words.forEach((word,i)=>{ const s=document.createElement('span'); s.className='slideshow-word'+(ss.selected[ss.index]?.[i]?' selected':''); s.textContent=word; s.addEventListener('click',(e)=>{ e.stopPropagation(); if(!ss.selected[ss.index]) ss.selected[ss.index]={}; ss.selected[ss.index][i]=!ss.selected[ss.index][i]; s.classList.toggle('selected'); }); content.appendChild(s); content.appendChild(document.createTextNode(' ')); }); document.getElementById('slideshowIndicator').textContent=`${ss.index+1}/${ss.examples.length}`; }
-                nextSlide() { if(window.currentSlideshow){ window.currentSlideshow.index=(window.currentSlideshow.index+1)%window.currentSlideshow.examples.length; this.updateSlideshow(); } }
-                prevSlide() { if(window.currentSlideshow){ window.currentSlideshow.index=(window.currentSlideshow.index-1+window.currentSlideshow.examples.length)%window.currentSlideshow.examples.length; this.updateSlideshow(); } }
-                closeSlideshow() { document.getElementById('slideshowOverlay').classList.remove('active'); document.querySelector('header').style.display='flex'; document.body.style.overflow='auto'; window.currentSlideshow=null; }
-                updateManageTopicsList() { const ds=database.getCurrentDataset(), topics=ds?ds.topics:{}, ml=document.getElementById('topicsManageList'); ml.innerHTML=''; const keys=Object.keys(topics).sort(); if(keys.length===0){ ml.innerHTML='<p>No topics yet. Add some above.</p>'; return; } keys.forEach(key=>{ const t=topics[key], preview=t.desc.substring(0,50)+(t.desc.length>50?'...':''); const it=document.createElement('div'); it.className='topic-manage-item'; it.innerHTML=`<div class="topic-manage-info"><div class="topic-manage-title">${key}</div><div class="topic-manage-preview">${preview}</div></div><div class="topic-manage-actions"><button class="edit-btn" data-key="${key}">✏️ Edit</button><button class="delete-btn" data-key="${key}">🗑️ Delete</button></div>`; ml.appendChild(it); }); }
-                exportCurrentDataset() { const ds=database.getCurrentDataset(); if(!ds) return; exportAsJSON(ds.topics,`${ds.name.replace(/\s+/g,'_')}_${new Date().toLocaleString().replace(/[/:, ]/g,'-')}.json`); showNotification('success','Exported',ds.name); }
-                async handleFileImport(e) { const file=e.target.files[0]; if(!file) return; try{ const data=await new Promise((res,rej)=>{ const r=new FileReader(); r.onload=e=>{ try{ res(JSON.parse(e.target.result)); }catch(err){ rej('Invalid JSON'); } }; r.onerror=()=>rej('Read error'); r.readAsText(file); }); if(typeof data!=='object') throw new Error('Invalid JSON'); const merge=confirm('Merge with current topics? (Cancel to replace)'); await database.importTopics(data,merge); this.refreshUI(); this.updateManageTopicsList(); showNotification('success','Imported','Topics updated'); }catch(err){ showNotification('error','Import failed',err.message); }finally{ e.target.value=''; } }
+                initEventListeners() {
+                    // Theme
+                    document.getElementById('themeToggle').addEventListener('click', () => {
+                        this.isDarkTheme = !this.isDarkTheme;
+                        document.body.classList.toggle('dark-theme', this.isDarkTheme);
+                        localStorage.setItem('notesTheme', this.isDarkTheme ? 'dark' : 'light');
+                        document.getElementById('themeToggle').innerHTML = this.isDarkTheme ? '☀️ Theme' : '🌙 Theme';
+                    });
+
+                    // Case (cycle through 0,1,2)
+                    document.getElementById('caseToggle').addEventListener('click', () => {
+                        this.caseState = (this.caseState + 1) % 3;
+                        if (this.caseState === 0) localStorage.setItem('notesCase', 'original');
+                        else if (this.caseState === 1) localStorage.setItem('notesCase', 'uppercase');
+                        else localStorage.setItem('notesCase', 'lowercase');
+                        
+                        this.updateCaseButtonDisplay();
+                        
+                        if (this.currentTopic) this.displayTopic(this.currentTopic);
+                    });
+
+                    // Font size
+                    document.querySelectorAll('.font-size-btn').forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            const size = parseFloat(btn.dataset.size);
+                            document.documentElement.style.setProperty('--font-base', size);
+                            localStorage.setItem('notesFontSize', size);
+                            document.querySelectorAll('.font-size-btn').forEach(b => b.classList.remove('active'));
+                            btn.classList.add('active');
+                            if (this.currentTopic) this.displayTopic(this.currentTopic);
+                        });
+                    });
+
+                    // Search
+                    document.getElementById('searchBtn').addEventListener('click', () => this.handleSearch());
+                    document.getElementById('searchInput').addEventListener('keyup', e => { 
+                        if (e.key === 'Enter') this.handleSearch(); 
+                    });
+
+                    // Logo home
+                    document.getElementById('appLogo').addEventListener('click', () => this.showHome());
+
+                    // Panels
+                    document.getElementById('historyToggle').addEventListener('click', () => this.togglePanel('history'));
+                    document.getElementById('topicsToggle').addEventListener('click', () => this.togglePanel('topics'));
+                    document.getElementById('datasetToggle').addEventListener('click', () => this.togglePanel('dataset'));
+                    
+                    document.getElementById('closeHistory').addEventListener('click', () => this.closePanels());
+                    document.getElementById('closeTopics').addEventListener('click', () => this.closePanels());
+                    document.getElementById('closeDatasetPanel').addEventListener('click', () => this.closePanels());
+                    document.getElementById('overlay').addEventListener('click', () => this.closePanels());
+
+                    // Help
+                    document.getElementById('helpToggle').addEventListener('click', () => {
+                        document.getElementById('instructionsModal').classList.toggle('active');
+                        document.getElementById('overlay').classList.toggle('active');
+                    });
+                    
+                    document.getElementById('closeModal').addEventListener('click', () => {
+                        document.getElementById('instructionsModal').classList.remove('active');
+                        document.getElementById('overlay').classList.remove('active');
+                    });
+
+                    // Import
+                    document.getElementById('loadToggle').addEventListener('click', () => document.getElementById('fileInput').click());
+                    document.getElementById('fileInput').addEventListener('change', e => this.handleFileImport(e));
+
+                    // Builder
+                    document.getElementById('exportToggle').addEventListener('click', () => {
+                        document.getElementById('builderContainer').classList.add('active');
+                        this.resetBuilderForm();
+                        this.updateManageTopicsList();
+                    });
+                    
+                    document.getElementById('builderCancel').addEventListener('click', () => {
+                        document.getElementById('builderContainer').classList.remove('active');
+                        this.resetBuilderForm();
+                    });
+                    
+                    document.getElementById('builderAdd').addEventListener('click', () => this.addBuilderEntry());
+                    document.getElementById('builderCancelEdit').addEventListener('click', () => this.cancelEdit());
+                    document.getElementById('builderExport').addEventListener('click', () => this.exportCurrentDataset());
+                    
+                    document.getElementById('previewClear').addEventListener('click', () => {
+                        if (confirm('Clear all topics in current dataset?')) {
+                            database.clearAllTopics().then(() => {
+                                this.refreshUI();
+                                this.updateManageTopicsList();
+                            });
+                        }
+                    });
+
+                    // Slideshow
+                    document.getElementById('slideToggle').addEventListener('click', () => this.startSlideshow());
+                    document.getElementById('slideshowClose').addEventListener('click', () => this.closeSlideshow());
+                    document.getElementById('slideshowTop').addEventListener('click', () => this.nextSlide());
+                    document.getElementById('slideshowBottom').addEventListener('click', () => this.prevSlide());
+                    document.getElementById('slideshowModeToggle').addEventListener('click', () => this.toggleSlideshowMode());
+                    
+                    document.getElementById('closeInstruction').addEventListener('click', () => {
+                        document.getElementById('instructionModal').classList.remove('active');
+                        document.getElementById('overlay').classList.remove('active');
+                        this.beginSlideshow();
+                    });
+
+                    // User toggle (logout)
+                    document.getElementById('userToggle').addEventListener('click', () => {
+                        if (auth.user) auth.signOut();
+                    });
+
+                    // Create dataset
+                    document.getElementById('createDatasetBtn').addEventListener('click', async () => {
+                        const name = prompt('Dataset name:', 'New Notes');
+                        if (!name) return;
+                        await database.createDataset(name);
+                        this.refreshUI();
+                        this.closePanels();
+                        showNotification('success', 'Dataset created', name);
+                    });
+
+                    // Manage topics actions (delegation)
+                    document.getElementById('topicsManageList').addEventListener('click', (e) => {
+                        const target = e.target;
+                        if (target.classList.contains('edit-btn')) {
+                            const key = target.dataset.key;
+                            this.editTopic(key);
+                        } else if (target.classList.contains('delete-btn')) {
+                            const key = target.dataset.key;
+                            this.deleteTopic(key);
+                        }
+                    });
+
+                    // Cloud save / load buttons
+                    document.getElementById('cloudSaveToggle').addEventListener('click', async () => {
+                        if (!auth.user) {
+                            showNotification('info', 'Not logged in', 'Please log in first');
+                            return;
+                        }
+                        if (confirm('Save current local data to cloud? It will overwrite cloud data.')) {
+                            try {
+                                await database.saveToCloud();
+                            } catch (e) {}
+                        }
+                    });
+
+                    document.getElementById('cloudLoadToggle').addEventListener('click', async () => {
+                        if (!auth.user) {
+                            showNotification('info', 'Not logged in', 'Please log in first');
+                            return;
+                        }
+                        if (confirm('Load data from cloud? This will replace all local datasets.')) {
+                            try {
+                                await database.loadFromCloud();
+                                this.refreshUI();
+                                this.closePanels();
+                            } catch (e) {}
+                        }
+                    });
+
+                    // ===== DROPDOWNS TOGGLES =====
+                    document.addEventListener('click', (e) => {
+                        if (!e.target.closest('.dropdown')) {
+                            document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                                menu.classList.remove('active');
+                            });
+                        }
+                    });
+
+                    document.getElementById('dataDropdownToggle').addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const menu = document.getElementById('dataDropdownMenu');
+                        menu.classList.toggle('active');
+                        document.getElementById('browseDropdownMenu').classList.remove('active');
+                        document.getElementById('toolsDropdownMenu').classList.remove('active');
+                    });
+
+                    document.getElementById('browseDropdownToggle').addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const menu = document.getElementById('browseDropdownMenu');
+                        menu.classList.toggle('active');
+                        document.getElementById('dataDropdownMenu').classList.remove('active');
+                        document.getElementById('toolsDropdownMenu').classList.remove('active');
+                    });
+
+                    document.getElementById('toolsDropdownToggle').addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const menu = document.getElementById('toolsDropdownMenu');
+                        menu.classList.toggle('active');
+                        document.getElementById('dataDropdownMenu').classList.remove('active');
+                        document.getElementById('browseDropdownMenu').classList.remove('active');
+                    });
+
+                    document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                        menu.addEventListener('click', (e) => e.stopPropagation());
+                    });
+                }
+
+                // CRUD Methods
+                resetBuilderForm() {
+                    document.getElementById('builderTopic').value = '';
+                    document.getElementById('builderDesc').value = '';
+                    document.getElementById('builderEx').value = '';
+                    this.editingTopicKey = null;
+                    document.getElementById('builderAdd').innerHTML = '<span>+</span> Add Topic';
+                    document.getElementById('builderCancelEdit').style.display = 'none';
+                }
+
+                cancelEdit() {
+                    this.resetBuilderForm();
+                }
+
+                editTopic(key) {
+                    const ds = database.getCurrentDataset();
+                    if (!ds || !ds.topics[key]) return;
+                    
+                    const topic = ds.topics[key];
+                    document.getElementById('builderTopic').value = key;
+                    document.getElementById('builderDesc').value = topic.desc;
+                    document.getElementById('builderEx').value = topic.ex.join(', ');
+                    
+                    this.editingTopicKey = key;
+                    document.getElementById('builderAdd').innerHTML = '<span>✏️</span> Update Topic';
+                    document.getElementById('builderCancelEdit').style.display = 'inline-flex';
+                }
+
+                async deleteTopic(key) {
+                    if (!confirm(`Delete topic "${key}"?`)) return;
+                    await database.deleteTopic(key);
+                    this.refreshUI();
+                    this.updateManageTopicsList();
+                    if (this.editingTopicKey === key) {
+                        this.resetBuilderForm();
+                    }
+                    showNotification('success', 'Deleted', key);
+                }
+
+                addBuilderEntry() {
+                    const topic = document.getElementById('builderTopic').value.trim();
+                    const desc = document.getElementById('builderDesc').value.trim();
+                    const exStr = document.getElementById('builderEx').value.trim();
+                    
+                    if (!topic || !desc || !exStr) { 
+                        showNotification('error', 'Error', 'Please fill all fields'); 
+                        return; 
+                    }
+                    
+                    const examples = exStr.split(',').map(s => s.trim());
+                    
+                    if (this.editingTopicKey) {
+                        if (this.editingTopicKey !== topic) {
+                            database.deleteTopic(this.editingTopicKey).then(() => {
+                                database.addTopic(topic, desc, examples).then(() => {
+                                    this.updateManageTopicsList();
+                                    this.resetBuilderForm();
+                                    this.refreshUI();
+                                    showNotification('success', 'Updated', topic);
+                                });
+                            });
+                        } else {
+                            database.updateTopic(topic, desc, examples).then(() => {
+                                this.updateManageTopicsList();
+                                this.resetBuilderForm();
+                                this.refreshUI();
+                                showNotification('success', 'Updated', topic);
+                            });
+                        }
+                    } else {
+                        database.addTopic(topic, desc, examples).then(() => {
+                            this.updateManageTopicsList();
+                            document.getElementById('builderTopic').value = '';
+                            document.getElementById('builderDesc').value = '';
+                            document.getElementById('builderEx').value = '';
+                            this.refreshUI();
+                            showNotification('success', 'Added', topic);
+                        });
+                    }
+                }
+
+                togglePanel(panel) {
+                    const panels = ['history', 'topics', 'dataset'];
+                    panels.forEach(p => {
+                        const el = document.getElementById(p + 'Panel');
+                        if (el) el.classList.remove('active');
+                    });
+                    const panelEl = document.getElementById(panel + 'Panel');
+                    if (panelEl) {
+                        panelEl.classList.add('active');
+                    }
+                    document.getElementById('overlay').classList.add('active');
+                    
+                    if (panel === 'history') this.renderHistoryPanel();
+                    if (panel === 'topics') this.renderTopicsPanel();
+                    if (panel === 'dataset') this.renderDatasetPanel();
+                }
+
+                closePanels() {
+                    document.querySelectorAll('.history-panel, .topics-panel, .dataset-panel').forEach(p => p.classList.remove('active'));
+                    document.getElementById('overlay').classList.remove('active');
+                }
+
+                renderHistoryPanel() {
+                    const list = document.getElementById('historyList');
+                    list.innerHTML = '';
+                    
+                    if (this.searchHistory.length === 0) {
+                        list.innerHTML = '<p>No search history</p>';
+                        return;
+                    }
+                    
+                    this.searchHistory.slice(0, 20).forEach(item => {
+                        const div = document.createElement('div');
+                        div.className = 'history-item-panel';
+                        div.innerHTML = `<div>🔍 \( {item.term}</div><div style="font-size:0.8em;color:#666;"> \){item.time}</div>`;
+                        div.addEventListener('click', () => {
+                            document.getElementById('searchInput').value = item.term;
+                            this.handleSearch();
+                            this.closePanels();
+                        });
+                        list.appendChild(div);
+                    });
+                }
+
+                renderTopicsPanel() {
+                    const ds = database.getCurrentDataset();
+                    const topics = ds ? ds.topics : {};
+                    const list = document.getElementById('topicsList');
+                    list.innerHTML = '';
+                    
+                    const keys = Object.keys(topics).sort();
+                    if (keys.length === 0) {
+                        list.innerHTML = '<p>No topics yet. Add some!</p>';
+                        return;
+                    }
+                    
+                    keys.forEach(key => {
+                        const div = document.createElement('div');
+                        div.className = 'topic-item';
+                        div.innerHTML = `<span>📄</span> ${key}`;
+                        div.addEventListener('click', () => {
+                            this.displayTopic(key);
+                            this.closePanels();
+                        });
+                        list.appendChild(div);
+                    });
+                }
+
+                renderDatasetPanel() {
+                    const list = document.getElementById('datasetList');
+                    list.innerHTML = '';
+                    
+                    database.datasets.forEach(ds => {
+                        const div = document.createElement('div');
+                        div.className = `dataset-item ${ds.id === database.currentDatasetId ? 'active' : ''}`;
+                        div.innerHTML = `
+                            <div><strong>${ds.name}</strong></div>
+                            <div>${Object.keys(ds.topics || {}).length} topics</div>
+                            <div class="dataset-actions">
+                                <button class="switch-ds" data-id="${ds.id}">Switch</button>
+                                <button class="rename-ds" data-id="${ds.id}">Rename</button>
+                                <button class="delete-ds" data-id="${ds.id}">Delete</button>
+                            </div>
+                        `;
+                        list.appendChild(div);
+                    });
+                    
+                    document.querySelectorAll('.switch-ds').forEach(btn => {
+                        btn.addEventListener('click', async (e) => {
+                            e.stopPropagation();
+                            const id = btn.dataset.id;
+                            database.currentDatasetId = id;
+                            database.saveToLocalStorage();
+                            this.refreshUI();
+                            this.closePanels();
+                            showNotification('success', 'Switched', database.getCurrentDataset().name);
+                        });
+                    });
+                    
+                    document.querySelectorAll('.rename-ds').forEach(btn => {
+                        btn.addEventListener('click', async (e) => {
+                            e.stopPropagation();
+                            const id = btn.dataset.id;
+                            const ds = database.datasets.find(d => d.id === id);
+                            const newName = prompt('New name:', ds.name);
+                            if (newName) {
+                                await database.updateDatasetName(id, newName);
+                                this.renderDatasetPanel();
+                            }
+                        });
+                    });
+                    
+                    document.querySelectorAll('.delete-ds').forEach(btn => {
+                        btn.addEventListener('click', async (e) => {
+                            e.stopPropagation();
+                            const id = btn.dataset.id;
+                            
+                            if (database.datasets.length === 1) {
+                                showNotification('error', 'Error', 'Cannot delete the only dataset.');
+                                return;
+                            }
+                            
+                            if (confirm('Delete this dataset?')) {
+                                await database.deleteDataset(id);
+                                this.refreshUI();
+                                this.renderDatasetPanel();
+                            }
+                        });
+                    });
+                }
+
+                handleSearch() {
+                    const term = document.getElementById('searchInput').value.trim().toLowerCase();
+                    if (!term) return;
+
+                    const ds = database.getCurrentDataset();
+                    if (!ds) {
+                        showNotification('info', 'No dataset', 'Create or select a dataset first');
+                        return;
+                    }
+
+                    const matches = Object.keys(ds.topics).filter(key => {
+                        const lowerKey = key.toLowerCase();
+                        const topic = ds.topics[key];
+                        return lowerKey.includes(term) ||
+                               topic.desc.toLowerCase().includes(term) ||
+                               (topic.ex && topic.ex.some(ex => ex.toLowerCase().includes(term)));
+                    });
+
+                    if (matches.length === 0) {
+                        showNotification('error', 'Not found', `No match for "${term}"`);
+                        return;
+                    }
+
+                    if (matches.length === 1) {
+                        this.displayTopic(matches[0]);
+                        this.addToHistory(term);
+                        return;
+                    }
+
+                    // multiple matches → show list
+                    let html = '<div class="entry-card"><h3>Multiple matches for "' + term + '"</h3><div style="display:grid; gap:12px;">';
+                    matches.forEach(k => {
+                        html += `<div style="padding:12px; background:var(--bg-color); border:1px solid var(--border-color); border-radius:8px; cursor:pointer;" class="match-item" data-key="\( {k}"> \){k}</div>`;
+                    });
+                    html += '</div></div>';
+
+                    document.getElementById('resultsContainer').innerHTML = html;
+                    this.addToHistory(term);
+
+                    document.querySelectorAll('.match-item').forEach(item => {
+                        item.addEventListener('click', () => {
+                            const key = item.dataset.key;
+                            this.displayTopic(key);
+                        });
+                    });
+                }
+
+                addToHistory(term) {
+                    this.searchHistory = [
+                        { term, time: formatDate() }, 
+                        ...this.searchHistory.filter(h => h.term !== term)
+                    ].slice(0, 20);
+                    
+                    localStorage.setItem('notesSearchHistory', JSON.stringify(this.searchHistory));
+                }
+
+                displayTopic(term) {
+                    this.currentTopic = term;
+                    const ds = database.getCurrentDataset();
+                    if (!ds) return;
+                    
+                    const topic = ds.topics[term];
+                    if (!topic) return;
+                    
+                    // Apply case transformation based on state
+                    let desc = topic.desc;
+                    let examples = topic.ex || [];
+                    
+                    if (this.caseState === 1) { // uppercase
+                        desc = desc.toUpperCase();
+                        examples = examples.map(e => e.toUpperCase());
+                    } else if (this.caseState === 2) { // lowercase
+                        desc = desc.toLowerCase();
+                        examples = examples.map(e => e.toLowerCase());
+                    } // else original: no change
+                    
+                    const html = `
+                        <div class="entry-card">
+                            <div class="entry-header"><h1>${this.applyCase(term)}</h1></div>
+                            <div class="entry-desc">${this.formatMarkdown(desc)}</div>
+                            <h3>Examples & Word Bank:</h3>
+                            <div class="examples-grid">
+                                \( {examples.map((ex, i) => `<div class="example-item" data-index=" \){i}">\( {ex}<span class="speak-btn fas fa-volume-up" data-text=" \){ex}"></span></div>`).join('')}
+                            </div>
+                            <button class="clear-selection" id="clearSelection"><span>✕</span> Clear Selection</button>
+                        </div>
+                    `;
+                    
+                    document.getElementById('resultsContainer').innerHTML = html;
+                    
+                    document.querySelectorAll('.example-item').forEach(item => {
+                        item.addEventListener('click', () => item.classList.toggle('selected'));
+                    });
+                    
+                    document.getElementById('clearSelection').addEventListener('click', () => {
+                        document.querySelectorAll('.example-item').forEach(i => i.classList.remove('selected'));
+                    });
+
+                    // Add speech
+                    document.querySelectorAll('.speak-btn').forEach(btn => {
+                        btn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            const text = btn.dataset.text;
+                            const utterance = new SpeechSynthesisUtterance(text);
+                            speechSynthesis.speak(utterance);
+                        });
+                    });
+                }
+
+                applyCase(text) {
+                    if (this.caseState === 1) return text.toUpperCase();
+                    if (this.caseState === 2) return text.toLowerCase();
+                    return text; // original
+                }
+
+                showHome() {
+                    this.currentTopic = null;
+                    const ds = database.getCurrentDataset();
+                    const topics = ds ? Object.keys(ds.topics) : [];
+                    const suggested = topics.slice(0, 8);
+                    const suggestedHtml = suggested.map(t => `<div class="history-item">🔍 ${t}</div>`).join('');
+                    
+                    const fontControls = document.getElementById('fontControls');
+                    const fontControlsHTML = fontControls ? fontControls.outerHTML : '';
+                    
+                    document.getElementById('resultsContainer').innerHTML = `
+                        <div class="no-results">
+                            <span>📖</span>
+                            <h2>${ds ? ds.name : 'My Notes'}</h2>
+                            <p>${topics.length} topics available</p>
+                            <div class="search-history">${suggestedHtml || '<p>No topics yet. Create some!</p>'}</div>
+                            ${fontControlsHTML}
+                        </div>
+                    `;
+                    
+                    document.querySelectorAll('.font-size-btn').forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            const size = parseFloat(btn.dataset.size);
+                            document.documentElement.style.setProperty('--font-base', size);
+                            localStorage.setItem('notesFontSize', size);
+                            document.querySelectorAll('.font-size-btn').forEach(b => b.classList.remove('active'));
+                            btn.classList.add('active');
+                        });
+                    });
+                    
+                    document.querySelectorAll('.history-item').forEach(item => {
+                        item.addEventListener('click', () => {
+                            document.getElementById('searchInput').value = item.textContent.trim().replace('🔍', '').trim();
+                            this.handleSearch();
+                        });
+                    });
+                }
+
+                refreshUI() {
+                    this.renderTopicsPanel();
+                    this.renderDatasetPanel();
+                    
+                    if (this.currentTopic) {
+                        const ds = database.getCurrentDataset();
+                        if (!ds || !ds.topics[this.currentTopic]) {
+                            this.showHome();
+                        } else {
+                            this.displayTopic(this.currentTopic);
+                        }
+                    } else {
+                        this.showHome();
+                    }
+                    
+                    this.updateManageTopicsList();
+                }
+
+                formatMarkdown(text) {
+                    // Improved parser to handle more cases
+                    const lines = text.split('\n');
+                    let output = '', inOrdered = false, inUnordered = false;
+                    
+                    for (let line of lines) {
+                        line = line.trim();
+                        if (!line) {
+                            if (inOrdered) { output += '</ol>'; inOrdered = false; }
+                            if (inUnordered) { output += '</ul>'; inUnordered = false; }
+                            continue;
+                        }
+                        
+                        if (line.startsWith('### ')) {
+                            if (inOrdered) { output += '</ol>'; inOrdered = false; }
+                            if (inUnordered) { output += '</ul>'; inUnordered = false; }
+                            output += `<h2 class="markdown-h2">${this.processInline(line.slice(4))}</h2>`;
+                        } else if (line.startsWith('## ')) {
+                            if (inOrdered) { output += '</ol>'; inOrdered = false; }
+                            if (inUnordered) { output += '</ul>'; inUnordered = false; }
+                            output += `<h3 class="markdown-h3">${this.processInline(line.slice(3))}</h3>`;
+                        } else if (line.startsWith('# ')) {
+                            if (inOrdered) { output += '</ol>'; inOrdered = false; }
+                            if (inUnordered) { output += '</ul>'; inUnordered = false; }
+                            output += `<strong class="markdown-strong">${this.processInline(line.slice(2))}</strong>`;
+                        } else if (line.startsWith('- ')) {
+                            if (!inUnordered) { 
+                                if (inOrdered) { output += '</ol>'; inOrdered = false; }
+                                output += '<ul class="markdown-ul">'; 
+                                inUnordered = true; 
+                            }
+                            output += `<li class="markdown-li">${this.processInline(line.slice(2))}</li>`;
+                        } else if (line.startsWith('+ ') || /^\d+\. /.test(line)) {
+                            if (!inOrdered) { 
+                                if (inUnordered) { output += '</ul>'; inUnordered = false; }
+                                output += '<ol class="markdown-ol">'; 
+                                inOrdered = true; 
+                            }
+                            const content = line.replace(/^\d+\. /, '');
+                            output += `<li class="markdown-li">${this.processInline(content)}</li>`;
+                        } else {
+                            if (inOrdered) { 
+                                output += '</ol>'; 
+                                inOrdered = false; 
+                            }
+                            if (inUnordered) { 
+                                output += '</ul>'; 
+                                inUnordered = false; 
+                            }
+                            output += `<p class="markdown-p">${this.processInline(line)}</p>`;
+                        }
+                    }
+                    
+                    if (inOrdered) output += '</ol>';
+                    if (inUnordered) output += '</ul>';
+                    
+                    return output;
+                }
+
+                processInline(text) {
+                    text = text.replace(/\[([^\]]+)\]/g, '<span class="theme-color">$1</span>');
+                    text = text.replace(/_([^_]+)_/g, '<u class="markdown-u">$1</u>');
+                    text = text.replace(/\*([^*]+)\*/g, '<em class="markdown-em">$1</em>');
+                    text = text.replace(/~~([^\~]+)~~/g, '<del>$1</del>'); // Added strikethrough
+                    return text;
+                }
+
+                // Slideshow
+                startSlideshow() {
+                    if (!this.currentTopic) { 
+                        showNotification('info', 'No topic', 'Search a topic first'); 
+                        return; 
+                    }
+                    
+                    const ds = database.getCurrentDataset();
+                    if (!ds) return;
+                    
+                    const topic = ds.topics[this.currentTopic];
+                    if (!topic || !topic.ex || topic.ex.length === 0) {
+                        showNotification('info', 'No examples', 'This topic has no examples');
+                        return;
+                    }
+                    
+                    window.currentSlideshow = { 
+                        examples: topic.ex, 
+                        index: 0, 
+                        selected: {}, 
+                        wordByWord: false // New: toggle for word-by-word mode
+                    };
+                    
+                    document.getElementById('slideshowModeToggle').textContent = 'Full Phrase';
+                    document.getElementById('instructionModal').classList.add('active');
+                    document.getElementById('overlay').classList.add('active');
+                }
+                
+                beginSlideshow() {
+                    document.querySelector('header').style.display = 'none';
+                    document.getElementById('slideshowOverlay').classList.add('active');
+                    this.updateSlideshow();
+                }
+                
+                toggleSlideshowMode() {
+                    if (window.currentSlideshow) {
+                        window.currentSlideshow.wordByWord = !window.currentSlideshow.wordByWord;
+                        document.getElementById('slideshowModeToggle').textContent = window.currentSlideshow.wordByWord ? 'Full Phrase' : 'Word by Word';
+                        this.updateSlideshow();
+                    }
+                }
+                
+                updateSlideshow() {
+                    const ss = window.currentSlideshow;
+                    if (!ss) return;
+                    
+                    let ex = ss.examples[ss.index];
+                    let words = ex.split(/\s+/).filter(w => w);
+                    
+                    if (ss.wordByWord) {
+                        words = words.map((w, i) => i === 0 ? w : ''); // Show only first word, hide others
+                    }
+                    
+                    const content = document.getElementById('slideshowContent');
+                    
+                    content.innerHTML = '';
+                    
+                    words.forEach((word, i) => {
+                        const span = document.createElement('span');
+                        span.className = 'slideshow-word' + (ss.selected[ss.index]?.[i] ? ' selected' : '');
+                        span.textContent = word || '***'; // Placeholder for hidden words
+                        
+                        span.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            if (!ss.selected[ss.index]) ss.selected[ss.index] = {};
+                            ss.selected[ss.index][i] = !ss.selected[ss.index][i];
+                            span.classList.toggle('selected');
+                            if (ss.wordByWord && ss.selected[ss.index][i]) {
+                                // Reveal next word if selected
+                                if (i < words.length - 1) {
+                                    const nextSpan = content.children[i + 1];
+                                    if (nextSpan) nextSpan.textContent = ex.split(/\s+/)[i + 1];
+                                }
+                            }
+                        });
+                        
+                        content.appendChild(span);
+                        content.appendChild(document.createTextNode(' '));
+                    });
+                    
+                    document.getElementById('slideshowIndicator').textContent = `\( {ss.index+1}/ \){ss.examples.length}`;
+                }
+                
+                nextSlide() { 
+                    if (window.currentSlideshow) { 
+                        window.currentSlideshow.index = (window.currentSlideshow.index + 1) % window.currentSlideshow.examples.length; 
+                        this.updateSlideshow(); 
+                    } 
+                }
+                
+                prevSlide() { 
+                    if (window.currentSlideshow) { 
+                        window.currentSlideshow.index = (window.currentSlideshow.index - 1 + window.currentSlideshow.examples.length) % window.currentSlideshow.examples.length; 
+                        this.updateSlideshow(); 
+                    } 
+                }
+                
+                closeSlideshow() {
+                    document.getElementById('slideshowOverlay').classList.remove('active');
+                    document.querySelector('header').style.display = 'block';
+                    document.body.style.overflow = 'auto';
+                    window.currentSlideshow = null;
+                }
+
+                updateManageTopicsList() {
+                    const ds = database.getCurrentDataset();
+                    const topics = ds ? ds.topics : {};
+                    
+                    const manageList = document.getElementById('topicsManageList');
+                    manageList.innerHTML = '';
+                    
+                    const keys = Object.keys(topics).sort();
+                    if (keys.length === 0) {
+                        manageList.innerHTML = '<p>No topics yet. Add some above.</p>';
+                        return;
+                    }
+                    
+                    keys.forEach(key => {
+                        const topic = topics[key];
+                        const preview = topic.desc.substring(0, 50) + (topic.desc.length > 50 ? '...' : '');
+                        const item = document.createElement('div');
+                        item.className = 'topic-manage-item';
+                        item.innerHTML = `
+                            <div class="topic-manage-info">
+                                <div class="topic-manage-title">${key}</div>
+                                <div class="topic-manage-preview">${preview}</div>
+                            </div>
+                            <div class="topic-manage-actions">
+                                <button class="edit-btn" data-key="${key}">✏️ Edit</button>
+                                <button class="delete-btn" data-key="${key}">🗑️ Delete</button>
+                            </div>
+                        `;
+                        manageList.appendChild(item);
+                    });
+                }
+
+                exportCurrentDataset() {
+                    const ds = database.getCurrentDataset();
+                    if (!ds) return;
+                    exportAsJSON(ds.topics, `\( {ds.name.replace(/\s+/g,'_')}_ \){formatDate().replace(/[/:, ]/g,'-')}.json`);
+                    showNotification('success', 'Exported', ds.name);
+                }
+
+                async handleFileImport(e) {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    
+                    try {
+                        const data = await importJSONFile(file);
+                        if (typeof data !== 'object' || data === null) throw new Error('Invalid JSON');
+                        
+                        const merge = confirm('Merge with current topics? (Cancel to replace)');
+                        await database.importTopics(data, merge);
+                        this.refreshUI();
+                        this.updateManageTopicsList();
+                        showNotification('success', 'Imported', 'Topics updated');
+                    } catch (err) {
+                        showNotification('error', 'Import failed', err.message || 'Unknown error');
+                    } finally {
+                        e.target.value = '';
+                    }
+                }
             }
+
             const ui = new UIManager();
 
             // ========== MAIN APP ==========
             class App {
-                constructor() { this.initialized = false; }
+                constructor() {
+                    this.initialized = false;
+                }
+
                 async init() {
-                    if(this.initialized) return;
+                    if (this.initialized) return;
+                    
                     database.loadFromLocalStorage();
-                    if(!database.datasets.length) { await database.createDataset('My Notes'); }
+                    
+                    if (!database.datasets.length) {
+                        await database.createDataset('My Notes');
+                    }
+                    
                     ui.refreshUI();
                     this.initialized = true;
                 }
-                // Called after login – only local data, no cloud fetch
-                loadLocalData() {
-                    database.loadFromLocalStorage();
-                    if(!database.datasets.length) { database.createDataset('My Notes'); } // create if empty
-                    ui.refreshUI();
+
+                onLogin() {
+                    // Just notify, no auto cloud load
+                    showNotification('info', 'Logged in', 'You can now save/load from cloud manually');
                 }
-                loadFromCloud() { ui.refreshUI(); } // used after manual cloud load
             }
+
             window.app = new App();
 
             // Splash screen
             document.getElementById('loadingProgress').style.width = '100%';
-            setTimeout(()=>{ document.getElementById('splashScreen').style.opacity='0'; setTimeout(()=>{ document.getElementById('splashScreen').style.display='none'; window.app.init(); },800); },5000);
+            
+            setTimeout(() => {
+                document.getElementById('splashScreen').style.opacity = '0';
+                
+                setTimeout(() => {
+                    document.getElementById('splashScreen').style.display = 'none';
+                    window.app.init();
+                }, 800);
+            }, 3000); // Reduced timeout for better UX
 
-            // Keyboard slideshow
-            document.addEventListener('keydown', e=>{ if(document.getElementById('slideshowOverlay').classList.contains('active')){ if(e.key==='ArrowRight'||e.key===' '){ e.preventDefault(); ui.nextSlide(); } else if(e.key==='ArrowLeft'){ e.preventDefault(); ui.prevSlide(); } else if(e.key==='Escape'){ ui.closeSlideshow(); } } });
+            // Keyboard slideshow navigation
+            document.addEventListener('keydown', e => {
+                if (document.getElementById('slideshowOverlay').classList.contains('active')) {
+                    if (e.key === 'ArrowRight' || e.key === ' ') { 
+                        e.preventDefault(); 
+                        ui.nextSlide(); 
+                    } else if (e.key === 'ArrowLeft') { 
+                        e.preventDefault(); 
+                        ui.prevSlide(); 
+                    } else if (e.key === 'Escape') { 
+                        ui.closeSlideshow(); 
+                    }
+                }
+            });
         })();
     </script>
 </body>
