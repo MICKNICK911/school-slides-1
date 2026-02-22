@@ -1390,6 +1390,7 @@
                             if (newName) {
                                 database.renameDataset(id, newName);
                                 this.renderDatasetPanel();
+                                showNotification('success', `Renamed to "${newName}"`);
                             }
                         });
                     });
@@ -1576,6 +1577,7 @@
                         document.body.classList.toggle('dark-theme', this.isDarkTheme);
                         localStorage.setItem(THEME_KEY, this.isDarkTheme ? 'dark' : 'light');
                         document.getElementById('themeToggle').innerHTML = this.isDarkTheme ? '☀️ Theme' : '🌙 Theme';
+                        showNotification('info', `Theme: ${this.isDarkTheme ? 'Dark' : 'Light'}`);
                     });
 
                     // Case
@@ -1585,9 +1587,8 @@
                         localStorage.setItem(CASE_KEY, caseMap[this.caseState]);
                         this.updateCaseButton();
                         if (this.currentTopic) this.displayTopic(this.currentTopic);
+                        showNotification('info', `Case: ${caseMap[this.caseState]}`);
                     });
-
-                    // Font size (global, already handled in showHome)
 
                     // Search
                     document.getElementById('searchBtn').addEventListener('click', () => this.handleSearch());
@@ -1669,6 +1670,7 @@
                         if (confirm('Clear all topics in current dataset?')) {
                             database.clearAllTopics();
                             this.refreshUI();
+                            showNotification('success', 'All topics cleared');
                         }
                     });
 
