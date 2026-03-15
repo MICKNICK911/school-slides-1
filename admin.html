@@ -16,7 +16,7 @@
 
         /* Color theme: orange, gold, wine */
         :root {
-            --primary-color: #ff9800;       /* orange */
+            --primary-color: #3559e9;       /* orange */
             --secondary-color: #8b1e3f;      /* wine */
             --accent-color: #ffd700;          /* gold */
             --export-color: #b85e00;           /* dark orange */
@@ -579,8 +579,9 @@
             <div class="loading-spinner"><i class="fas fa-circle-notch fa-spin"></i><p>Loading...</p></div>
         </div>
 
-        <!-- Hidden file input -->
+        <!-- Hidden file inputs -->
         <input type="file" id="fileInput" accept=".json" style="display: none;">
+        <input type="file" id="bulkFileInput" accept=".json" style="display: none;">
 
         <!-- Builder Container (JSON preview removed) -->
         <div class="builder-container" id="builderContainer">
@@ -669,6 +670,8 @@
                 <li>▶️ Start slideshow from a topic</li>
                 <li>🌙 Toggle dark/light theme</li>
                 <li>Aa / AA / aa Toggle case (original/uppercase/lowercase)</li>
+                <li>📤 Export All – save all datasets</li>
+                <li>📥 Bulk Import – add or replace all datasets</li>
             </ul>
             <button id="closeModal">Got it</button>
         </div>
@@ -686,13 +689,15 @@
                         <button class="search-btn" id="searchBtn">🔍</button>
                     </div>
                     <div class="controls">
-                        <!-- Data Dropdown -->
+                        <!-- Data Dropdown (enhanced with bulk actions) -->
                         <div class="dropdown">
                             <button class="dropdown-toggle" id="dataDropdownToggle">📁</button>
                             <div class="dropdown-menu" id="dataDropdownMenu">
                                 <div class="dataset-toggle" id="datasetToggle" title="Datasets">📂 Datasets</div>
-                                <div class="load-toggle" id="loadToggle" title="Import JSON">📥 Import</div>
+                                <div class="load-toggle" id="loadToggle" title="Import Topics">📥 Import Topics</div>
                                 <div class="export-toggle" id="exportToggle" title="Create Topic">📝 Create</div>
+                                <div class="export-all-toggle" id="exportAllToggle" title="Export All Datasets">📤 Export All</div>
+                                <div class="import-all-toggle" id="importAllToggle" title="Bulk Import Datasets">📥 Bulk Import</div>
                             </div>
                         </div>
                         <!-- Browse Dropdown -->
@@ -845,7 +850,7 @@
                 });
             }
 
-            // ========== DATABASE MANAGER (unchanged) ==========
+            // ========== DATABASE MANAGER (enhanced with bulk import/export) ==========
             class DatabaseManager {
                 constructor() {
                     this.userId = null;
@@ -1079,6 +1084,59 @@
                     this.saveToLocalStorage();
                     if (this.userId) await this.saveToFirebase().catch(() => {});
                 }
+
+                // ===== NEW BULK METHODS =====
+                exportAllDatasets() {
+                    // Returns a clean copy of all datasets (without internal state)
+                    return deepClone(this.datasets);
+                }
+
+                async importDatasets(newDatasets, replace = false) {
+                    // newDatasets should be an array of dataset objects
+                    if (!Array.isArray(newDatasets)) {
+                        throw new Error('Imported data must be an array of datasets');
+                    }
+
+                    // Validate each dataset has required fields
+                    const validated = [];
+                    for (const ds of newDatasets) {
+                        if (!ds.name || typeof ds.topics !== 'object') {
+                            throw new Error('Each dataset must have a "name" and a "topics" object');
+                        }
+                        // Ensure an id (generate if missing)
+                        validated.push({
+                            id: ds.id || generateId(),
+                            name: ds.name,
+                            topics: ds.topics || {}
+                        });
+                    }
+
+                    if (replace) {
+                        // Replace all existing datasets
+                        this.datasets = validated;
+                    } else {
+                        // Merge: add as new datasets (generate fresh ids to avoid conflicts)
+                        const merged = validated.map(ds => ({
+                            ...ds,
+                            id: generateId() // always new id when merging
+                        }));
+                        this.datasets = [...this.datasets, ...merged];
+                    }
+
+                    // Ensure at least one dataset exists
+                    if (this.datasets.length === 0) {
+                        this.datasets.push({ id: generateId(), name: 'My Notes', topics: {} });
+                    }
+
+                    // Set current dataset if needed
+                    if (!this.currentDatasetId || !this.datasets.find(d => d.id === this.currentDatasetId)) {
+                        this.currentDatasetId = this.datasets[0].id;
+                    }
+
+                    this.pendingChanges = true;
+                    this.saveToLocalStorage();
+                    if (this.userId) await this.saveToFirebase().catch(() => {});
+                }
             }
 
             const database = new DatabaseManager();
@@ -1176,7 +1234,7 @@
             
             const auth = new AuthManager();
 
-            // ========== UI MANAGER ==========
+            // ========== UI MANAGER (enhanced with bulk actions) ==========
             class UIManager {
                 constructor() {
                     this.currentTopic = null;
@@ -1226,7 +1284,6 @@
                     // Case (cycle through 0,1,2)
                     document.getElementById('caseToggle').addEventListener('click', () => {
                         this.caseState = (this.caseState + 1) % 3;
-                        // Save to localStorage
                         if (this.caseState === 0) localStorage.setItem('notesCase', 'original');
                         else if (this.caseState === 1) localStorage.setItem('notesCase', 'uppercase');
                         else localStorage.setItem('notesCase', 'lowercase');
@@ -1257,7 +1314,7 @@
                     // Logo home
                     document.getElementById('appLogo').addEventListener('click', () => this.showHome());
 
-                    // Panels (IDs unchanged)
+                    // Panels
                     document.getElementById('historyToggle').addEventListener('click', () => this.togglePanel('history'));
                     document.getElementById('topicsToggle').addEventListener('click', () => this.togglePanel('topics'));
                     document.getElementById('datasetToggle').addEventListener('click', () => this.togglePanel('dataset'));
@@ -1278,9 +1335,17 @@
                         document.getElementById('overlay').classList.remove('active');
                     });
 
-                    // Import
+                    // Import topics (single file input)
                     document.getElementById('loadToggle').addEventListener('click', () => document.getElementById('fileInput').click());
                     document.getElementById('fileInput').addEventListener('change', e => this.handleFileImport(e));
+
+                    // ===== NEW BULK ACTIONS =====
+                    // Export all datasets
+                    document.getElementById('exportAllToggle').addEventListener('click', () => this.exportAllDatasets());
+                    
+                    // Bulk import datasets
+                    document.getElementById('importAllToggle').addEventListener('click', () => document.getElementById('bulkFileInput').click());
+                    document.getElementById('bulkFileInput').addEventListener('change', e => this.handleBulkImport(e));
 
                     // Builder
                     document.getElementById('exportToggle').addEventListener('click', () => {
@@ -1382,6 +1447,39 @@
                     document.querySelectorAll('.dropdown-menu').forEach(menu => {
                         menu.addEventListener('click', (e) => e.stopPropagation());
                     });
+                }
+
+                // ===== NEW BULK METHODS =====
+                exportAllDatasets() {
+                    const all = database.exportAllDatasets();
+                    const filename = `all_datasets_${new Date().toISOString().slice(0,10)}.json`;
+                    exportAsJSON(all, filename);
+                    showNotification('success', 'Exported', `Saved ${all.length} datasets`);
+                }
+
+                async handleBulkImport(e) {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    
+                    try {
+                        const data = await importJSONFile(file);
+                        // Data should be an array of datasets
+                        if (!Array.isArray(data)) {
+                            throw new Error('JSON must be an array of datasets');
+                        }
+                        
+                        // Ask user: replace or merge?
+                        const replace = confirm('Replace all existing datasets? Click OK to replace, Cancel to merge (add as new)');
+                        
+                        await database.importDatasets(data, replace);
+                        this.refreshUI();
+                        this.closePanels();
+                        showNotification('success', 'Bulk import', `Imported ${data.length} datasets`);
+                    } catch (err) {
+                        showNotification('error', 'Import failed', err.message);
+                    } finally {
+                        e.target.value = '';
+                    }
                 }
 
                 // CRUD Methods
