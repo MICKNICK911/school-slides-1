@@ -7,20 +7,19 @@
     <!-- Font Awesome (optional, for icons) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        /* ========== MODERNIZED STYLES ========== */
+        /* ========== MODERNIZED STYLES (unchanged) ========== */
         * {
             -webkit-tap-highlight-color: transparent;
             -webkit-touch-callout: none;
             box-sizing: border-box;
         }
 
-        /* Color theme: orange, gold, wine */
         :root {
-            --primary-color: #ff9800;       /* orange */
-            --secondary-color: #8b1e3f;      /* wine */
-            --accent-color: #ffd700;          /* gold */
-            --export-color: #b85e00;           /* dark orange */
-            --builder-color: #6d351a;           /* brownish */
+            --primary-color: #3559e9;
+            --secondary-color: #8b1e3f;
+            --accent-color: #ffd700;
+            --export-color: #b85e00;
+            --builder-color: #6d351a;
             --bg-color: #ffffff;
             --text-color: #333333;
             --card-bg: #f8f9fa;
@@ -33,9 +32,9 @@
         }
 
         .dark-theme {
-            --primary-color: #ffb74d;          /* lighter orange */
-            --secondary-color: #b84a6a;         /* lighter wine */
-            --accent-color: #ffe082;            /* light gold */
+            --primary-color: #ffb74d;
+            --secondary-color: #b84a6a;
+            --accent-color: #ffe082;
             --export-color: #ff9800;
             --builder-color: #ce9178;
             --bg-color: #121212;
@@ -71,7 +70,6 @@
             padding: 0 20px;
         }
 
-        /* ===== MODERN HEADER ===== */
         header {
             width: 100%;
             position: sticky;
@@ -156,7 +154,6 @@
             background: var(--secondary-color);
         }
 
-        /* ===== DROPDOWNS ===== */
         .controls {
             display: flex;
             gap: 10px;
@@ -257,7 +254,6 @@
             transform: scale(1.05);
         }
 
-        /* ===== SPLASH SCREEN (unchanged) ===== */
         #splashScreen {
             position: fixed;
             top: 0;
@@ -341,7 +337,6 @@
             transition: width 5s linear;
         }
 
-        /* ===== RESULTS & CARDS (unchanged) ===== */
         .results-container { padding: 30px 0; }
         .no-results { text-align: center; padding: 40px 20px; background: var(--card-bg); border-radius: 16px; box-shadow: var(--shadow); max-width: 600px; margin: 50px auto; }
         .no-results span { font-size: 48px; margin-bottom: 20px; display: block; color: var(--primary-color); }
@@ -354,7 +349,6 @@
         @media (min-width: 992px) { .entry-desc { font-size: calc(28px * var(--font-base)); } }
         @media (min-width: 1200px) { .entry-desc { font-size: calc(32px * var(--font-base)); } }
 
-        /* Markdown styling */
         .markdown-content h2.markdown-h2 { font-size: calc(28px * var(--font-base)); color: #5ca5f8; margin: 20px 0 15px; padding-bottom: 10px; border-bottom: 2px solid rgba(92,165,248,0.4); }
         .markdown-content h3.markdown-h3 { font-size: calc(22px * var(--font-base)); color: #3d7ddb; margin: 18px 0 12px; }
         .markdown-content h4.markdown-h4 { font-size: calc(20px * var(--font-base)); color: #2ecc71; margin: 15px 0 10px; }
@@ -378,7 +372,6 @@
         .history-item { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 50px; padding: 8px 18px; font-size: 14px; cursor: pointer; transition: var(--transition); display: flex; align-items: center; gap: 6px; }
         .history-item:hover { background: var(--primary-color); color: white; border-color: var(--primary-color); }
 
-        /* Panels (unchanged) */
         .history-panel, .topics-panel, .dataset-panel {
             position: fixed;
             top: 0;
@@ -424,7 +417,6 @@
         }
         .overlay.active { display: block; }
 
-        /* Auth Modal (unchanged) */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -451,7 +443,6 @@
         .btn-primary { background: var(--primary-color); color: white; border: none; padding: 12px; border-radius: 30px; cursor: pointer; font-weight: 600; }
         .btn-primary:hover { background: var(--secondary-color); }
 
-        /* Notification, loading */
         .dictionary-notification {
             position: fixed; bottom: 20px; right: 20px; background: var(--primary-color); color: white; padding: 15px 25px; border-radius: 8px; box-shadow: var(--shadow); z-index: 1000; display: flex; align-items: center; gap: 10px; transform: translateY(100px); opacity: 0; transition: transform 0.3s ease, opacity 0.3s ease;
         }
@@ -464,7 +455,6 @@
         .loading-spinner { background: var(--card-bg); padding: 30px; border-radius: 60px; text-align: center; }
         .loading-spinner i { font-size: 40px; color: var(--primary-color); }
 
-        /* Builder (updated: removed JSON preview) */
         .builder-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-color); z-index: 1000; overflow-y: auto; padding: 20px; display: none; }
         .builder-container.active { display: block; }
         .builder-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; padding-bottom: 15px; border-bottom: 1px solid var(--border-color); }
@@ -480,7 +470,6 @@
         .builder-add { background: var(--builder-color); color: white; border: none; border-radius: 8px; padding: 12px 25px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; margin: 15px 5px 15px 0; }
         .builder-cancel-edit { background: #ff9800; color: white; border: none; border-radius: 8px; padding: 12px 25px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; margin: 15px 0; display: none; }
 
-        /* Manage Topics List (enhanced) */
         .manage-topics { margin-top: 30px; }
         .manage-topics h3 { margin-bottom: 15px; color: var(--builder-color); }
         .topics-manage-list { display: flex; flex-direction: column; gap: 10px; max-height: 300px; overflow-y: auto; margin-bottom: 15px; }
@@ -496,7 +485,6 @@
         .clear-all-btn { background: var(--accent-color); color: white; border: none; border-radius: 8px; padding: 10px 20px; cursor: pointer; font-size: 14px; display: inline-flex; align-items: center; gap: 8px; margin-top: 10px; }
         .clear-all-btn:hover { background: #e64a19; }
 
-        /* Slideshow (unchanged) */
         .slideshow-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg-color); z-index: 150; display: none; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
         .slideshow-overlay.active { display: flex; }
         .slideshow-top { position: absolute; top: 0; left: 0; right: 0; height: 50%; cursor: pointer; }
@@ -579,10 +567,11 @@
             <div class="loading-spinner"><i class="fas fa-circle-notch fa-spin"></i><p>Loading...</p></div>
         </div>
 
-        <!-- Hidden file input -->
+        <!-- Hidden file inputs -->
         <input type="file" id="fileInput" accept=".json" style="display: none;">
+        <input type="file" id="bulkFileInput" accept=".json" style="display: none;">
 
-        <!-- Builder Container (JSON preview removed) -->
+        <!-- Builder Container -->
         <div class="builder-container" id="builderContainer">
             <div class="builder-header">
                 <div class="builder-title"><span>📝</span><h2>Create / Edit Topics</h2></div>
@@ -609,7 +598,7 @@
                     <button class="builder-cancel-edit" id="builderCancelEdit">Cancel Edit</button>
                 </div>
                 
-                <!-- Manage Topics List (with Clear All button) -->
+                <!-- Manage Topics List -->
                 <div class="manage-topics">
                     <h3>Manage Topics</h3>
                     <div class="topics-manage-list" id="topicsManageList"></div>
@@ -640,7 +629,7 @@
             <div class="history-list" id="historyList"></div>
         </div>
 
-        <!-- Topics Panel (list of topics in current dataset) -->
+        <!-- Topics Panel -->
         <div class="topics-panel" id="topicsPanel">
             <div class="panel-header"><h2>📚 Topics</h2><div class="close-panel" id="closeTopics">❌</div></div>
             <div class="topics-list" id="topicsList"></div>
@@ -669,11 +658,13 @@
                 <li>▶️ Start slideshow from a topic</li>
                 <li>🌙 Toggle dark/light theme</li>
                 <li>Aa / AA / aa Toggle case (original/uppercase/lowercase)</li>
+                <li>📤 Export All – save all datasets (IDs are preserved, but import will regenerate new IDs)</li>
+                <li>📥 Bulk Import – add or replace all datasets (always generates fresh IDs)</li>
             </ul>
             <button id="closeModal">Got it</button>
         </div>
 
-        <!-- Main Header with Dropdowns -->
+        <!-- Main Header -->
         <div class="container">
             <header>
                 <div class="header-content">
@@ -691,8 +682,10 @@
                             <button class="dropdown-toggle" id="dataDropdownToggle">📁</button>
                             <div class="dropdown-menu" id="dataDropdownMenu">
                                 <div class="dataset-toggle" id="datasetToggle" title="Datasets">📂 Datasets</div>
-                                <div class="load-toggle" id="loadToggle" title="Import JSON">📥 Import</div>
+                                <div class="load-toggle" id="loadToggle" title="Import Topics">📥 Import Topics</div>
                                 <div class="export-toggle" id="exportToggle" title="Create Topic">📝 Create</div>
+                                <div class="export-all-toggle" id="exportAllToggle" title="Export All Datasets">📤 Export All</div>
+                                <div class="import-all-toggle" id="importAllToggle" title="Bulk Import Datasets">📥 Bulk Import</div>
                             </div>
                         </div>
                         <!-- Browse Dropdown -->
@@ -713,7 +706,7 @@
                                 <div class="slide-toggle" id="slideToggle" title="Slide Show">▶️ Slide</div>
                             </div>
                         </div>
-                        <!-- User Button (standalone) -->
+                        <!-- User Button -->
                         <div class="user-toggle" id="userToggle" title="User">👤</div>
                     </div>
                 </div>
@@ -744,14 +737,14 @@
 
     <script>
         (function() {
-            // ========== FIREBASE CONFIG - REPLACE WITH YOUR OWN ==========
+            // ========== FIREBASE CONFIG ==========
             const firebaseConfig = {
-            apiKey: "AIzaSyCw1UnzkY4Eq_ImEnRDRFYmUMhSc95T-NU",
-            authDomain: "lesson-notes-2025.firebaseapp.com",
-            projectId: "lesson-notes-2025",
-            storageBucket: "lesson-notes-2025.firebasestorage.app",
-            messagingSenderId: "757231923808",
-            appId: "1:757231923808:web:3c72026662c8a296134905"
+                apiKey: "AIzaSyCw1UnzkY4Eq_ImEnRDRFYmUMhSc95T-NU",
+                authDomain: "lesson-notes-2025.firebaseapp.com",
+                projectId: "lesson-notes-2025",
+                storageBucket: "lesson-notes-2025.firebasestorage.app",
+                messagingSenderId: "757231923808",
+                appId: "1:757231923808:web:3c72026662c8a296134905"
             };
             
             firebase.initializeApp(firebaseConfig);
@@ -766,12 +759,11 @@
                     }
                 });
 
-            // ========== CONSTANTS ==========
+            // ========== CONSTANTS & UTILS ==========
             const APP_VERSION = '1.0.0';
             const STORAGE_KEY = 'itmylti_notes';
             const SYNC_INTERVAL = 30000;
 
-            // Utility functions
             function generateId() {
                 return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
             }
@@ -845,7 +837,7 @@
                 });
             }
 
-            // ========== DATABASE MANAGER (unchanged) ==========
+            // ========== DATABASE MANAGER (enhanced with sanitized import) ==========
             class DatabaseManager {
                 constructor() {
                     this.userId = null;
@@ -1079,6 +1071,55 @@
                     this.saveToLocalStorage();
                     if (this.userId) await this.saveToFirebase().catch(() => {});
                 }
+
+                // ===== ROBUST BULK METHODS (sanitized import) =====
+                exportAllDatasets() {
+                    // Returns a clean copy of all datasets (preserves original IDs, but import will sanitize)
+                    return deepClone(this.datasets);
+                }
+
+                async importDatasets(newDatasets, replace = false) {
+                    // newDatasets should be an array of dataset objects
+                    if (!Array.isArray(newDatasets)) {
+                        throw new Error('Imported data must be an array of datasets');
+                    }
+
+                    // Validate each dataset has required fields
+                    const validated = [];
+                    for (const ds of newDatasets) {
+                        if (!ds.name || typeof ds.topics !== 'object') {
+                            throw new Error('Each dataset must have a "name" and a "topics" object');
+                        }
+                        // Always generate a new unique ID for each imported dataset to avoid conflicts
+                        validated.push({
+                            id: generateId(),           // <-- fresh ID every time
+                            name: ds.name,
+                            topics: ds.topics || {}
+                        });
+                    }
+
+                    if (replace) {
+                        // Replace all existing datasets
+                        this.datasets = validated;
+                    } else {
+                        // Merge: add as new datasets (IDs already fresh)
+                        this.datasets = [...this.datasets, ...validated];
+                    }
+
+                    // Ensure at least one dataset exists
+                    if (this.datasets.length === 0) {
+                        this.datasets.push({ id: generateId(), name: 'My Notes', topics: {} });
+                    }
+
+                    // Set current dataset if needed
+                    if (!this.currentDatasetId || !this.datasets.find(d => d.id === this.currentDatasetId)) {
+                        this.currentDatasetId = this.datasets[0].id;
+                    }
+
+                    this.pendingChanges = true;
+                    this.saveToLocalStorage();
+                    if (this.userId) await this.saveToFirebase().catch(() => {});
+                }
             }
 
             const database = new DatabaseManager();
@@ -1176,18 +1217,17 @@
             
             const auth = new AuthManager();
 
-            // ========== UI MANAGER ==========
+            // ========== UI MANAGER (unchanged except for import call) ==========
             class UIManager {
                 constructor() {
                     this.currentTopic = null;
                     this.searchHistory = JSON.parse(localStorage.getItem('notesSearchHistory')) || [];
                     this.isDarkTheme = localStorage.getItem('notesTheme') === 'dark';
                     
-                    // Case state: 0 = original, 1 = uppercase, 2 = lowercase
                     const savedCase = localStorage.getItem('notesCase');
                     if (savedCase === 'uppercase') this.caseState = 1;
                     else if (savedCase === 'lowercase') this.caseState = 2;
-                    else this.caseState = 0; // default original
+                    else this.caseState = 0; // original
                     
                     this.fontBase = parseFloat(localStorage.getItem('notesFontSize')) || 1;
                     
@@ -1226,7 +1266,6 @@
                     // Case (cycle through 0,1,2)
                     document.getElementById('caseToggle').addEventListener('click', () => {
                         this.caseState = (this.caseState + 1) % 3;
-                        // Save to localStorage
                         if (this.caseState === 0) localStorage.setItem('notesCase', 'original');
                         else if (this.caseState === 1) localStorage.setItem('notesCase', 'uppercase');
                         else localStorage.setItem('notesCase', 'lowercase');
@@ -1257,7 +1296,7 @@
                     // Logo home
                     document.getElementById('appLogo').addEventListener('click', () => this.showHome());
 
-                    // Panels (IDs unchanged)
+                    // Panels
                     document.getElementById('historyToggle').addEventListener('click', () => this.togglePanel('history'));
                     document.getElementById('topicsToggle').addEventListener('click', () => this.togglePanel('topics'));
                     document.getElementById('datasetToggle').addEventListener('click', () => this.togglePanel('dataset'));
@@ -1278,9 +1317,14 @@
                         document.getElementById('overlay').classList.remove('active');
                     });
 
-                    // Import
+                    // Import topics (single file input)
                     document.getElementById('loadToggle').addEventListener('click', () => document.getElementById('fileInput').click());
                     document.getElementById('fileInput').addEventListener('change', e => this.handleFileImport(e));
+
+                    // ===== BULK ACTIONS =====
+                    document.getElementById('exportAllToggle').addEventListener('click', () => this.exportAllDatasets());
+                    document.getElementById('importAllToggle').addEventListener('click', () => document.getElementById('bulkFileInput').click());
+                    document.getElementById('bulkFileInput').addEventListener('change', e => this.handleBulkImport(e));
 
                     // Builder
                     document.getElementById('exportToggle').addEventListener('click', () => {
@@ -1346,7 +1390,7 @@
                         }
                     });
 
-                    // ===== DROPDOWN TOGGLES =====
+                    // Dropdown toggles
                     document.addEventListener('click', (e) => {
                         if (!e.target.closest('.dropdown')) {
                             document.querySelectorAll('.dropdown-menu').forEach(menu => {
@@ -1382,6 +1426,37 @@
                     document.querySelectorAll('.dropdown-menu').forEach(menu => {
                         menu.addEventListener('click', (e) => e.stopPropagation());
                     });
+                }
+
+                // ===== BULK METHODS =====
+                exportAllDatasets() {
+                    const all = database.exportAllDatasets();
+                    const filename = `all_datasets_${new Date().toISOString().slice(0,10)}.json`;
+                    exportAsJSON(all, filename);
+                    showNotification('success', 'Exported', `Saved ${all.length} datasets`);
+                }
+
+                async handleBulkImport(e) {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    
+                    try {
+                        const data = await importJSONFile(file);
+                        if (!Array.isArray(data)) {
+                            throw new Error('JSON must be an array of datasets');
+                        }
+                        
+                        const replace = confirm('Replace all existing datasets? Click OK to replace, Cancel to merge (add as new)');
+                        
+                        await database.importDatasets(data, replace); // <-- now always sanitizes IDs
+                        this.refreshUI();
+                        this.closePanels();
+                        showNotification('success', 'Bulk import', `Imported ${data.length} datasets`);
+                    } catch (err) {
+                        showNotification('error', 'Import failed', err.message);
+                    } finally {
+                        e.target.value = '';
+                    }
                 }
 
                 // CRUD Methods
@@ -1777,7 +1852,6 @@
                     return text;
                 }
 
-                // Slideshow
                 startSlideshow() {
                     if (!this.currentTopic) { 
                         showNotification('info', 'No topic', 'Search a topic first'); 
