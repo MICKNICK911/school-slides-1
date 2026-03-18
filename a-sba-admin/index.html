@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Results Pro · Sanitized export + independent clone</title>
+    <title>Student Results Pro · Fast & Offline‑Ready</title>
     <!-- Font Awesome 6 (free) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         /* ========== SAME RED‑ORANGE‑GOLD THEME (keeps UI/UX) ========== */
         :root {
-            --primary: #CB19C4;         --primary-light: #CB19C4; --primary-dark: #b0302a;
+            --primary: #e63946;         --primary-light: #f1a9a9; --primary-dark: #b0302a;
             --success: #f39c12;          --success-dark: #e67e22;
             --danger: #c0392b;            --warning: #f1c40f;           --info: #e67e22;
             --gray: #6c757d; --gray-light: #f8f9fa; --gray-dark: #343a40;
@@ -124,7 +124,10 @@
                     <div class="dropdown" id="toolsDropdown"><button class="dropdown-toggle" id="toolsDropdownToggle"><i class="fas fa-tools"></i> Tools <i class="fas fa-chevron-down" style="font-size:12px;"></i></button><div class="dropdown-menu" id="toolsDropdownMenu"><button id="statisticsBtn"><i class="fas fa-chart-bar"></i> Statistics</button><button id="helpBtn"><i class="fas fa-question-circle"></i> Help</button><button id="bulkListBtn"><i class="fas fa-list"></i> Datasets</button></div></div>
                     <button id="syncBtn" class="btn-info" style="border-radius:40px;"><i class="fas fa-sync-alt"></i> Sync</button>
                 </div>
-                <div class="status-indicator"><i class="fas fa-circle" style="color:#2ecc71; font-size:10px;"></i><span id="saveStatus">All changes saved</span></div>
+                <div class="status-indicator" id="syncStatus">
+                    <i class="fas fa-circle" style="color:#2ecc71; font-size:10px;"></i>
+                    <span id="saveStatus">All changes saved</span>
+                </div>
             </div>
             <main id="tablesContainer"><div class="empty-state" id="emptyState"><i class="fas fa-database" style="font-size:48px;color:var(--gray);"></i><p>No tables yet. Click "Add Table".</p><button id="initialAddTable" class="btn-primary"><i class="fas fa-plus-circle"></i> Create First Table</button></div></main>
             <footer class="footer"><p><i class="far fa-copyright"></i> 2025 Student Results Manager | Developed by Sir Mick | Contact: 0545800158</p><p class="input-hint"><i class="fas fa-lightbulb"></i> Marks: 45/50, 90%, 14 → auto‑rounded.</p></footer>
@@ -196,43 +199,223 @@
         function showLoading(msg='Loading...'){ const o=document.getElementById('loadingOverlay'); if(o){ o.querySelector('p').textContent=msg; o.style.display='flex'; } }
         function hideLoading(){ const o=document.getElementById('loadingOverlay'); if(o) o.style.display='none'; }
 
-        // ==================== DATABASE MANAGER (unchanged) ====================
+        // ==================== ROBUST DATABASE MANAGER (non‑blocking) ====================
         class DatabaseManager {
-            constructor() { this.db=firebase.firestore(); this.userId=null; this.localData=null; this.syncInProgress=false; this.syncInterval=null; this.pendingChanges=false; }
-            setUser(user) { this.userId=user?user.uid:null; if(this.userId) this.startAutoSync(); else this.stopAutoSync(); }
-            startAutoSync() { if(this.syncInterval)clearInterval(this.syncInterval); this.syncInterval=setInterval(()=>this.syncData(),SYNC_INTERVAL); }
-            stopAutoSync() { if(this.syncInterval){ clearInterval(this.syncInterval); this.syncInterval=null; } }
-            getUserDocRef() { if(!this.userId) return null; return this.db.collection('users').doc(this.userId); }
-            async saveToFirebase(data) {
-                if(!this.userId) throw new Error('Not authenticated');
-                try{ showLoading('Saving...'); await this.getUserDocRef().set({data,lastUpdated:firebase.firestore.FieldValue.serverTimestamp(),version:APP_VERSION},{merge:true}); this.pendingChanges=false; showToast('success','Success','Saved to cloud'); return true; }
-                catch(e){ console.error(e); showToast('error','Error','Save failed'); throw e; } finally { hideLoading(); }
+            constructor() {
+                this.db = firebase.firestore();
+                this.userId = null;
+                this.localData = null;           // last saved state (for sync)
+                this.pendingChanges = false;
+                this.syncInProgress = false;
+                this.syncInterval = null;
+                this.networkStatus = navigator.onLine;
+                this.statusListeners = [];
+
+                // Monitor online/offline
+                window.addEventListener('online', () => {
+                    this.networkStatus = true;
+                    this.updateStatus('online');
+                    if (this.pendingChanges) this.syncData();
+                });
+                window.addEventListener('offline', () => {
+                    this.networkStatus = false;
+                    this.updateStatus('offline');
+                });
             }
-            async loadFromFirebase() {
-                if(!this.userId) throw new Error('Not authenticated');
-                try{ showLoading('Loading...'); const doc=await this.getUserDocRef().get(); if(doc.exists){ this.localData=doc.data().data||null; showToast('success','Success','Loaded from cloud'); return this.localData; } return null; }
-                catch(e){ console.error(e); showToast('error','Error','Load failed'); throw e; } finally { hideLoading(); }
+
+            // Update sync status indicator
+            updateStatus(state) {
+                const statusEl = document.getElementById('saveStatus');
+                const iconEl = document.querySelector('#syncStatus i');
+                if (!statusEl || !iconEl) return;
+                if (state === 'offline') {
+                    iconEl.style.color = '#e74c3c';
+                    statusEl.textContent = 'Offline - changes queued';
+                } else if (state === 'syncing') {
+                    iconEl.style.color = '#f39c12';
+                    statusEl.textContent = 'Syncing...';
+                } else if (state === 'saved') {
+                    iconEl.style.color = '#2ecc71';
+                    statusEl.textContent = 'All changes saved';
+                } else if (state === 'online') {
+                    iconEl.style.color = '#2ecc71';
+                    statusEl.textContent = 'Online';
+                }
             }
+
+            setUser(user) {
+                this.userId = user ? user.uid : null;
+                if (this.userId) {
+                    this.startAutoSync();
+                    // Initial sync after auth
+                    setTimeout(() => this.syncData(), 1000);
+                } else {
+                    this.stopAutoSync();
+                }
+            }
+
+            startAutoSync() {
+                if (this.syncInterval) clearInterval(this.syncInterval);
+                this.syncInterval = setInterval(() => this.syncData(), SYNC_INTERVAL);
+            }
+            stopAutoSync() {
+                if (this.syncInterval) { clearInterval(this.syncInterval); this.syncInterval = null; }
+            }
+
+            getUserDocRef() { return this.userId ? this.db.collection('users').doc(this.userId) : null; }
+
+            // Optimistic save: update local storage immediately, then attempt cloud in background
+            async saveToLocalStorage(data) {
+                try {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...data, lastUpdated: Date.now() }));
+                    this.localData = data;
+                    this.pendingChanges = true;
+                    this.updateStatus('syncing');
+                    return true;
+                } catch (e) {
+                    console.error('Local storage error:', e);
+                    showToast('error', 'Error', 'Local save failed');
+                    return false;
+                }
+            }
+
+            async saveToFirebase(data, showLoadingToast = false) {
+                if (!this.userId) {
+                    this.updateStatus('offline');
+                    return false; // not authenticated
+                }
+                try {
+                    if (showLoadingToast) showLoading('Saving...');
+                    await this.getUserDocRef().set({ data, lastUpdated: firebase.firestore.FieldValue.serverTimestamp(), version: APP_VERSION }, { merge: true });
+                    this.pendingChanges = false;
+                    this.updateStatus('saved');
+                    if (showLoadingToast) {
+                        hideLoading();
+                        showToast('success', 'Success', 'Saved to cloud');
+                    }
+                    return true;
+                } catch (e) {
+                    console.error('Firebase save error:', e);
+                    this.updateStatus('offline');
+                    if (showLoadingToast) {
+                        hideLoading();
+                        showToast('error', 'Error', 'Save failed - offline');
+                    } else {
+                        // Silent fail, we'll retry later
+                    }
+                    return false;
+                } finally {
+                    if (showLoadingToast) hideLoading();
+                }
+            }
+
+            async loadFromFirebase(showLoadingToast = false) {
+                if (!this.userId) return null;
+                try {
+                    if (showLoadingToast) showLoading('Loading...');
+                    const doc = await this.getUserDocRef().get();
+                    if (doc.exists) {
+                        const d = doc.data().data;
+                        if (d) {
+                            this.localData = d;
+                            this.pendingChanges = false;
+                            this.updateStatus('saved');
+                            if (showLoadingToast) showToast('success', 'Success', 'Loaded from cloud');
+                            return d;
+                        }
+                    }
+                    return null;
+                } catch (e) {
+                    console.error('Firebase load error:', e);
+                    this.updateStatus('offline');
+                    if (showLoadingToast) showToast('error', 'Error', 'Load failed - offline');
+                    return null;
+                } finally {
+                    if (showLoadingToast) hideLoading();
+                }
+            }
+
+            // Background sync (no loading overlay)
             async syncData() {
-                if(!this.userId||this.syncInProgress) return; this.syncInProgress=true;
-                try{ const doc=await this.getUserDocRef().get(); const cloud=doc.exists?doc.data():null; if(!cloud){ if(this.localData) await this.saveToFirebase(this.localData); return; }
-                const cloudTime=cloud.lastUpdated?cloud.lastUpdated.toMillis():0; const localTime=this.localData?.lastUpdated||0;
-                if(cloudTime>localTime&&cloud.data){ this.localData=cloud.data; showToast('info','Sync','Downloaded newer data'); if(window.app) window.app.loadFromCloud(this.localData); }
-                else if(localTime>cloudTime&&this.localData&&this.pendingChanges) await this.saveToFirebase(this.localData); }
-                catch(e){ console.error(e); showToast('warning','Sync error','Retry later'); } finally { this.syncInProgress=false; }
+                if (!this.userId || this.syncInProgress) return;
+                if (!this.networkStatus) {
+                    this.updateStatus('offline');
+                    return;
+                }
+                this.syncInProgress = true;
+                this.updateStatus('syncing');
+                try {
+                    const doc = await this.getUserDocRef().get();
+                    const cloud = doc.exists ? doc.data().data : null;
+                    if (!cloud) {
+                        // No cloud data, push local if exists
+                        if (this.localData) {
+                            await this.saveToFirebase(this.localData, false);
+                        }
+                        return;
+                    }
+                    const cloudTime = cloud.lastUpdated || 0;
+                    const localTime = this.localData?.lastUpdated || 0;
+
+                    if (cloudTime > localTime && cloud) {
+                        // Cloud is newer: replace local and notify app
+                        this.localData = cloud;
+                        this.pendingChanges = false;
+                        this.updateStatus('saved');
+                        if (window.app) window.app.loadFromCloud(cloud);
+                    } else if (localTime > cloudTime && this.localData && this.pendingChanges) {
+                        // Local is newer and has changes: push to cloud
+                        await this.saveToFirebase(this.localData, false);
+                    } else {
+                        this.updateStatus('saved');
+                    }
+                } catch (e) {
+                    console.error('Sync error:', e);
+                    this.updateStatus('offline');
+                } finally {
+                    this.syncInProgress = false;
+                }
             }
-            saveToLocalStorage(data) { try{ localStorage.setItem(STORAGE_KEY,JSON.stringify({...data,lastUpdated:Date.now()})); this.localData=data; this.pendingChanges=true; return true; }catch(e){ showToast('error','Error','Local save failed'); return false; } }
-            loadFromLocalStorage() { try{ const s=localStorage.getItem(STORAGE_KEY); if(s){ this.localData=JSON.parse(s); return this.localData; } }catch(e){} return null; }
-            async clearAllData() { if(!this.userId) return false; try{ showLoading('Clearing...'); await this.getUserDocRef().delete(); localStorage.removeItem(STORAGE_KEY); this.localData=null; this.pendingChanges=false; showToast('success','Cleared','All data removed'); return true; }catch(e){ showToast('error','Error','Clear failed'); return false; }finally{ hideLoading(); } }
-            exportData() { if(!this.localData){ showToast('warning','No data','Nothing to export'); return false; } exportAsJSON(this.localData,`backup-${new Date().toISOString().replace(/[:.]/g,'-')}.json`); showToast('success','Exported','Data exported'); return true; }
-            async importData(file,merge=true){ try{ showLoading('Importing...'); const imp=await importJSONFile(file); if(!this.validateData(imp)) throw new Error('Invalid format'); if(merge&&this.localData) this.localData=this.mergeData(this.localData,imp); else this.localData=imp; this.saveToLocalStorage(this.localData); if(this.userId) await this.saveToFirebase(this.localData); showToast('success','Import complete','Data imported'); return this.localData; }catch(e){ showToast('error','Import failed',e.message); throw e; }finally{ hideLoading(); } }
-            validateData(d){ if(!d||typeof d!=='object') return false; if(Array.isArray(d)) return d.every(ds=>this.isValidDataset(ds)); return this.isValidDataset(d)||(d.resultDatasets&&Array.isArray(d.resultDatasets)); }
-            isValidDataset(d){ return d&&d.id&&d.name&&Array.isArray(d.tables)&&typeof d.tableCounter==='number'; }
-            mergeData(ex,imp){ /* simplified */ return deepClone(ex); }
+
+            loadFromLocalStorage() {
+                try {
+                    const s = localStorage.getItem(STORAGE_KEY);
+                    if (s) {
+                        const data = JSON.parse(s);
+                        this.localData = data;
+                        this.pendingChanges = false; // local only, no pending cloud changes
+                        return data;
+                    }
+                } catch (e) { console.error('Local storage load error:', e); }
+                return null;
+            }
+
+            async clearAllData(showLoadingToast = false) {
+                if (!this.userId) return false;
+                try {
+                    if (showLoadingToast) showLoading('Clearing...');
+                    await this.getUserDocRef().delete();
+                    localStorage.removeItem(STORAGE_KEY);
+                    this.localData = null;
+                    this.pendingChanges = false;
+                    if (showLoadingToast) {
+                        hideLoading();
+                        showToast('success', 'Cleared', 'All data removed');
+                    }
+                    return true;
+                } catch (e) {
+                    console.error('Clear error:', e);
+                    if (showLoadingToast) {
+                        hideLoading();
+                        showToast('error', 'Error', 'Clear failed');
+                    }
+                    return false;
+                }
+            }
         }
         const database = new DatabaseManager();
 
-        // ==================== AUTH MANAGER (unchanged) ====================
+        // ==================== AUTH MANAGER (unchanged, but uses updated database) ====================
         class AuthManager {
             constructor(){ this.auth=firebase.auth(); this.user=null; this.listeners=[]; this.init(); }
             init(){ this.auth.onAuthStateChanged(user=>{ this.user=user; if(user){ database.setUser(user); this.hideAuthModal(); this.showMainApp(); this.updateUserInfo(user); }else{ database.setUser(null); this.showAuthModal(); this.hideMainApp(); } this.listeners.forEach(cb=>cb(user)); }); this.renderAuthUI(); }
@@ -250,7 +433,7 @@
                 document.getElementById('registerBtn').addEventListener('click',()=>{ const email=document.getElementById('registerEmail').value, pass=document.getElementById('registerPassword').value, conf=document.getElementById('registerConfirm').value; this.signUp(email,pass,conf); });
                 document.getElementById('resetBtn').addEventListener('click',()=>{ const email=document.getElementById('resetEmail').value; this.resetPassword(email); });
             }
-            async signIn(email,pass){ try{ await this.auth.signInWithEmailAndPassword(email,pass); showToast('success','Welcome','Signed in'); }catch(err){ showToast('error','Login failed',err.message); } }
+            async signIn(email,pass){ try{ await this.auth.signInWithEmailAndPassword(email,pass); }catch(err){ showToast('error','Login failed',err.message); } }
             async signUp(email,pass,conf){ if(pass!==conf){ showToast('error','Error','Passwords do not match'); return; } try{ await this.auth.createUserWithEmailAndPassword(email,pass); showToast('success','Account created','Welcome!'); }catch(err){ showToast('error','Registration failed',err.message); } }
             async resetPassword(email){ try{ await this.auth.sendPasswordResetEmail(email); showToast('success','Reset email sent','Check your inbox'); }catch(err){ showToast('error','Reset failed',err.message); } }
             signOut(){ this.auth.signOut(); }
@@ -258,7 +441,7 @@
         }
         const auth = new AuthManager();
 
-        // ==================== UI MANAGER (same as previous, with dynamic max fix) ====================
+        // ==================== UI MANAGER (unchanged, but removed some showLoading calls that were moved to database) ====================
         class UIManager {
             constructor() { this.currentDataset=null; this.initGlobalListeners(); }
             initGlobalListeners(){ 
@@ -314,14 +497,14 @@
             createEditableCell(val,onChange){ const td=document.createElement('td'); const span=document.createElement('span'); span.className='editable'; span.setAttribute('contenteditable','true'); span.textContent=val; span.addEventListener('blur',e=>{ onChange(e.target.textContent); }); span.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); span.blur(); } }); td.appendChild(span); return td; }
             createStaticCell(val){ const td=document.createElement('td'); td.textContent=val; return td; }
             createAddStudentRow(tid){ const d=document.createElement('div'); d.style.padding='15px 20px'; d.style.borderTop='1px solid var(--border)'; d.style.textAlign='center'; const b=document.createElement('button'); b.className='btn-primary'; b.innerHTML='<i class="fas fa-user-plus"></i> Add Student'; b.addEventListener('click',()=>window.app.addStudent(tid)); d.appendChild(b); return d; }
-            renderStatistics(ds){ /* same as original, omitted for brevity but present */ 
+            renderStatistics(ds){ 
                 const c=document.getElementById('statisticsContainer'); c.innerHTML=''; if(!ds||!ds.tables||ds.tables.length===0){ c.innerHTML='<p style="text-align:center;">No data.</p>'; return; }
                 const allNames=[...new Set(ds.tables.flatMap(t=>t.students.map(s=>s.name)))].sort(); const stats=allNames.map(n=>{ const totals=ds.tables.map(t=>{ const s=t.students.find(st=>st.name===n); return s?s.total:0; }); return {name:n,totals,overall:totals.reduce((a,b)=>a+b,0)}; }).sort((a,b)=>b.overall-a.overall); let pos=1,prev=null; stats.forEach((s,i)=>{ if(prev!==null&&s.overall===prev) s.position=pos; else{ pos=i+1; s.position=pos; } prev=s.overall; }); const tbl=document.createElement('table'); const hr=document.createElement('tr'); hr.appendChild(this.createHeaderCell('NAMES')); ds.tables.forEach(t=>hr.appendChild(this.createHeaderCell(t.name))); hr.appendChild(this.createHeaderCell('TOTAL')); hr.appendChild(this.createHeaderCell('POSITION')); tbl.appendChild(hr); stats.forEach(s=>{ const r=document.createElement('tr'); const nc=document.createElement('td'); const ns=document.createElement('span'); ns.textContent=s.name; ns.className='clickable-name'; ns.addEventListener('click',()=>{ document.getElementById('statisticsModal').style.display='none'; this.renderTerminalReport(ds,s.name); }); nc.appendChild(ns); r.appendChild(nc); s.totals.forEach(tot=>{ const td=document.createElement('td'); td.textContent=tot; r.appendChild(td); }); const totc=document.createElement('td'); totc.textContent=s.overall; r.appendChild(totc); const posc=document.createElement('td'); posc.textContent=s.position; r.appendChild(posc); tbl.appendChild(r); }); c.appendChild(tbl);
             }
-            renderTerminalReport(ds,name){ /* same */ 
+            renderTerminalReport(ds,name){ 
                 const c=document.getElementById('terminalReportContainer'); c.innerHTML=''; const r=document.createElement('div'); r.className='terminal-report'; const hdr=document.createElement('div'); hdr.style.textAlign='center'; hdr.style.marginBottom='20px'; hdr.innerHTML=`<h2 style="color:var(--primary);"><i class="fas fa-file-alt"></i> Terminal Report: ${name}</h2><p>Generated: ${new Date().toLocaleString()}</p>`; r.appendChild(hdr); const tbl=document.createElement('table'); const thr=document.createElement('tr'); ['SUBJECT','CAT TOTAL','EXAM','SUBJECT TOTAL','REMARKS'].forEach(txt=>{ const th=document.createElement('th'); th.textContent=txt; thr.appendChild(th); }); tbl.appendChild(thr); const tbody=document.createElement('tbody'); let grand=0,cnt=0; ds.tables.forEach(t=>{ const s=t.students.find(st=>st.name===name); if(s){ const rem=getRemarks(s.total,100); const row=document.createElement('tr'); row.innerHTML=`<td>${t.name}</td><td>${s.catTotal}</td><td>${s.exam}</td><td>${s.total}</td><td class="remarks-cell ${rem.class}">${rem.text}</td>`; tbody.appendChild(row); grand+=s.total; cnt++; } }); const overall=getRemarks(grand,cnt*100); const gr=document.createElement('tr'); gr.style.fontWeight='bold'; gr.style.backgroundColor='#f1f5fd'; gr.innerHTML=`<td colspan="3">GRAND TOTAL</td><td>${grand}</td><td class="remarks-cell ${overall.class}">${overall.text}</td>`; tbody.appendChild(gr); tbl.appendChild(tbody); r.appendChild(tbl); const com=document.createElement('div'); com.className='comments-section'; com.innerHTML=`<h3><i class="fas fa-comment"></i> Teacher Comments:</h3><textarea class="comments-textarea" placeholder="Enter comments..."></textarea>`; r.appendChild(com); const acts=document.createElement('div'); acts.style.textAlign='center'; acts.style.marginTop='20px'; const printBtn=document.createElement('button'); printBtn.className='btn-info'; printBtn.innerHTML='<i class="fas fa-print"></i> Print Report'; printBtn.addEventListener('click',()=>{ this.printTerminalReport(name,ds,com.querySelector('textarea').value); }); const closeBtn=document.createElement('button'); closeBtn.className='btn-secondary'; closeBtn.innerHTML='<i class="fas fa-times"></i> Close'; closeBtn.addEventListener('click',()=>document.getElementById('terminalReportModal').style.display='none'); acts.appendChild(printBtn); acts.appendChild(closeBtn); r.appendChild(acts); c.appendChild(r); document.getElementById('terminalReportModal').style.display='flex';
             }
-            printTerminalReport(name,ds,comments){ /* same */ 
+            printTerminalReport(name,ds,comments){ 
                 const w=window.open('','_blank'); let rows='',grand=0,cnt=0; ds.tables.forEach(t=>{ const s=t.students.find(st=>st.name===name); if(s){ const rem=getRemarks(s.total,100); rows+=`<tr><td>${t.name}</td><td>${s.catTotal}</td><td>${s.exam}</td><td>${s.total}</td><td class="${rem.class}">${rem.text}</td></tr>`; grand+=s.total; cnt++; } }); const overall=getRemarks(grand,cnt*100); w.document.write(`<!DOCTYPE html><html><head><title>Terminal Report</title><style>body{font-family:Arial;padding:20px;}.header{text-align:center;border-bottom:2px solid #333;}table{width:100%;border-collapse:collapse;}th,td{border:1px solid #ccc;padding:8px;text-align:center;}th{background:#f5f5f5;}.remarks-excellent{color:#28a745;}.remarks-very-good{color:#20c997;}.remarks-good{color:#17a2b8;}.remarks-pass{color:#ffc107;}.remarks-fail{color:#dc3545;}.comments{margin-top:20px;}</style></head><body><div class="header"><h1>Terminal Report</h1><h2>${name}</h2><p>${new Date().toLocaleString()}</p></div><table><thead><tr><th>SUBJECT</th><th>CAT TOTAL</th><th>EXAM</th><th>SUBJECT TOTAL</th><th>REMARKS</th></tr></thead><tbody>${rows}<tr style="font-weight:bold;"><td colspan="3">GRAND TOTAL</td><td>${grand}</td><td class="${overall.class}">${overall.text}</td></tr></tbody></table><div class="comments"><h3>Teacher Comments:</h3><p>${comments||'No comments.'}</p></div><div style="margin-top:20px;">School Stamp: _________________________</div></body></html>`); w.document.close(); w.onload=()=>w.print();
             }
             printTable(t){ const w=window.open('','_blank'); let catHeaders=''; t.catColumns.forEach(c=>catHeaders+=`<th>${c.name} (${c.maxScore})</th>`); let rows=''; t.students.forEach(s=>{ let catCells=''; t.catColumns.forEach(c=>catCells+=`<td>${s.catMarks[c.id]||0}</td>`); rows+=`<tr><td>${s.name}</td>${catCells}<td>${s.catTotal}</td><td>${s.exam}</td><td>${s.total}</td><td>${s.position}</td></tr>`; }); w.document.write(`<!DOCTYPE html><html><head><title>${t.name}</title><style>body{font-family:Arial;padding:20px;}.header{text-align:center;border-bottom:2px solid #333;}table{width:100%;border-collapse:collapse;}th,td{border:1px solid #ccc;padding:8px;text-align:center;}th{background:#f5f5f5;}</style></head><body><div class="header"><h1>${t.name}</h1><p>Student Results</p></div><table><thead><tr><th>NAMES</th>${catHeaders}<th>CAT TOTAL</th><th>EXAM</th><th>TOTAL</th><th>POS</th></tr></thead><tbody>${rows}</tbody></table><p>Generated: ${new Date().toLocaleString()}</p></body></html>`); w.document.close(); w.onload=()=>w.print(); }
@@ -331,16 +514,16 @@
         }
         const ui = new UIManager();
 
-        // ==================== MAIN APP with sanitized export & independent clone ====================
+        // ==================== MAIN APP (optimised with non‑blocking saves) ====================
         class App {
             constructor() { this.datasets=[]; this.currentDatasetId=null; this.initialized=false; this.init=this.init.bind(this); this.handleAuthChange=this.handleAuthChange.bind(this); }
             async init() { if(this.initialized) return; try{ auth.addListener(this.handleAuthChange); if(auth.getCurrentUser()) await this.handleAuthChange(auth.getCurrentUser()); this.initialized=true; }catch(e){ console.error(e); showToast('error','Error','Init failed'); } }
             async handleAuthChange(user){
-                if(user){ try{ const cloud=await database.loadFromFirebase(); if(cloud) this.loadFromCloud(cloud); else{ const local=database.loadFromLocalStorage(); if(local){ this.loadFromCloud(local); await database.saveToFirebase(local); } else this.createDefaultDataset(); } }catch(e){ const local=database.loadFromLocalStorage(); if(local) this.loadFromCloud(local); else this.createDefaultDataset(); } }
+                if(user){ try{ const cloud=await database.loadFromFirebase(true); if(cloud) this.loadFromCloud(cloud); else{ const local=database.loadFromLocalStorage(); if(local){ this.loadFromCloud(local); database.saveToFirebase(local, false); } else this.createDefaultDataset(); } }catch(e){ const local=database.loadFromLocalStorage(); if(local) this.loadFromCloud(local); else this.createDefaultDataset(); } }
                 else{ const local=database.loadFromLocalStorage(); if(local) this.loadFromCloud(local); else this.createDefaultDataset(); }
             }
             loadFromCloud(data){
-                if(data.resultDatasets){ this.datasets=data.resultDatasets; this.currentDatasetId=data.currentDatasetId||this.datasets[0]?.id; } else if(this.isValidDataset(data)){ this.datasets=[data]; this.currentDatasetId=data.id; } this.validateAllDatasets(); this.updateUI(); database.localData={resultDatasets:this.datasets,currentDatasetId:this.currentDatasetId,lastUpdated:Date.now()}; database.pendingChanges=false;
+                if(data.resultDatasets){ this.datasets=data.resultDatasets; this.currentDatasetId=data.currentDatasetId||this.datasets[0]?.id; } else if(this.isValidDataset(data)){ this.datasets=[data]; this.currentDatasetId=data.id; } this.validateAllDatasets(); this.updateUI(); database.localData={resultDatasets:this.datasets,currentDatasetId:this.currentDatasetId,lastUpdated:Date.now()}; database.pendingChanges=false; database.updateStatus('saved');
             }
             createDefaultDataset(){ const id=generateId(); this.datasets=[{id,name:'My Dataset',tables:[],tableCounter:1}]; this.currentDatasetId=id; this.updateUI(); this.saveCurrentState(); }
             getCurrentDataset(){ return this.datasets.find(d=>d.id===this.currentDatasetId); }
@@ -352,7 +535,6 @@
             findTable(tid){ for(let d of this.datasets){ let t=d.tables.find(t=>t.id===tid); if(t) return t; } return null; }
             findDatasetByTable(tid){ return this.datasets.find(d=>d.tables.some(t=>t.id===tid)); }
             addNewTable(){ const ds=this.getCurrentDataset(); if(!ds) return; const id=`table-${ds.tableCounter++}`; const students=initialStudents.map(name=>({name,exam:0,catTotal:0,total:0,position:0,catMarks:defaultCatColumns.reduce((acc,c)=>{acc[c.id]=0; return acc;},{})})); ds.tables.push({id,name:`Class ${ds.tableCounter-1}`,catColumns:deepClone(defaultCatColumns),students}); this.updateUI(); this.saveCurrentState(); }
-            // FIXED CLONE: generates new cat ids and copies marks independently
             createTableFromNames(srcId) {
                 const src = this.findTable(srcId); if (!src) return;
                 const ds = this.getCurrentDataset(); if (!ds) return;
@@ -391,7 +573,8 @@
             deleteDataset(id){ if(this.datasets.length<=1){ showToast('warning','Cannot delete','Keep at least one dataset'); return; } const ds=this.datasets.find(d=>d.id===id); if(!ds) return; if(!confirm(`Delete dataset "${ds.name}"?`)) return; this.datasets=this.datasets.filter(d=>d.id!==id); if(this.currentDatasetId===id) this.currentDatasetId=this.datasets[0].id; this.updateUI(); this.saveCurrentState(); if(document.getElementById('bulkListModal').style.display==='flex') ui.renderBulkList(this.datasets,this.currentDatasetId); }
             createNewDataset(){ const name=prompt('Dataset name:',`Dataset ${this.datasets.length+1}`); if(!name) return; const id=generateId(); this.datasets.push({id,name,tables:[],tableCounter:1}); this.currentDatasetId=id; this.updateUI(); this.saveCurrentState(); document.getElementById('bulkListModal').style.display='none'; }
             updateUI(){ const ds=this.getCurrentDataset(); document.getElementById('currentDatasetName').textContent=ds?ds.name:''; document.getElementById('currentDatasetIndicator').style.display=ds?'inline-flex':'none'; ui.renderTables(ds); }
-            saveCurrentState(){ this.validateAllDatasets(); const data={resultDatasets:this.datasets,currentDatasetId:this.currentDatasetId,lastUpdated:Date.now()}; database.saveToLocalStorage(data); if(auth.getCurrentUser()) database.saveToFirebase(data).catch(console.error); }
+            // Optimistic save: local first, then fire-and-forget cloud
+            saveCurrentState(){ this.validateAllDatasets(); const data={resultDatasets:this.datasets,currentDatasetId:this.currentDatasetId,lastUpdated:Date.now()}; database.saveToLocalStorage(data); if(auth.getCurrentUser()) database.saveToFirebase(data, false); }
             printTable(tid){ const t=this.findTable(tid); if(t) ui.printTable(t); }
             showStatistics(){ const ds=this.getCurrentDataset(); if(!ds||ds.tables.length===0){ showToast('info','No data','Create tables first'); return; } ui.renderStatistics(ds); document.getElementById('statisticsModal').style.display='flex'; }
             showHelp(){ ui.renderHelpContent(); document.getElementById('helpModal').style.display='flex'; }
@@ -404,10 +587,9 @@
                     const newCatColumns = oldCatColumns.map(c=>{ const newId=`cat-${generateId()}`; oldToNew.set(c.id, newId); return {id:newId, name:c.name, maxScore:c.maxScore}; });
                     const students = tbl.students.map(s=>{ const marks={}; oldToNew.forEach((newId,oldId)=>{ marks[newId] = (s.catMarks && typeof s.catMarks[oldId]==='number') ? s.catMarks[oldId] : 0; }); let examRaw=(typeof s.exam==='number')?s.exam:(parseFloat(s.exam)||0); if(isNaN(examRaw)) examRaw=0; const exam=Math.min(Math.max(Math.round(examRaw),0),50); return {name:s.name||'Unnamed', exam, catMarks:marks, catTotal:0, total:0, position:0}; });
                     const nt={id:newId, name:tbl.name||'Imported Table', catColumns:newCatColumns, students};
-                    nt.students.forEach(s=>this.recalculateStudentTotals(nt,s)); cur.tables.push(nt); added++; }); cur.tables.forEach(t=>this.updatePositions(t.id)); this.validateAllDatasets(); this.updateUI(); this.saveCurrentState(); showToast('success','Import complete',`Added ${added} table(s)`); } else if(content.resultDatasets&&Array.isArray(content.resultDatasets)){ let added=0; content.resultDatasets.forEach(ds=>{ if(!this.datasets.some(d=>d.id===ds.id)){ // sanitize dataset before adding (new dataset id, new table ids, new cat ids)
+                    nt.students.forEach(s=>this.recalculateStudentTotals(nt,s)); cur.tables.push(nt); added++; }); cur.tables.forEach(t=>this.updatePositions(t.id)); this.validateAllDatasets(); this.updateUI(); this.saveCurrentState(); showToast('success','Import complete',`Added ${added} table(s)`); } else if(content.resultDatasets&&Array.isArray(content.resultDatasets)){ let added=0; content.resultDatasets.forEach(ds=>{ if(!this.datasets.some(d=>d.id===ds.id)){ // sanitize dataset before adding
                         const sanitized = this.sanitizeDatasetForImport(ds); this.datasets.push(sanitized); added++; } }); if(added>0){ this.validateAllDatasets(); this.updateUI(); this.saveCurrentState(); showToast('success','Bulk import',`Added ${added} dataset(s)`); } else showToast('info','No new datasets'); } else showToast('error','Invalid file'); }catch(err){ showToast('error','Import failed',err.message); }finally{ hideLoading(); e.target.value=''; }
             }
-            // Helper to sanitize a dataset during bulk import: new dataset id, new table ids, new cat ids, updated catMarks
             sanitizeDatasetForImport(ds){
                 const newDsId = generateId();
                 const newTables = ds.tables.map(tbl => {
@@ -425,19 +607,18 @@
                 });
                 return { id: newDsId, name: ds.name, tables: newTables, tableCounter: Math.max(ds.tableCounter || 1, newTables.length+1) };
             }
-            async handleBulkFileImport(e){ /* similar, but call sanitizeDatasetForImport for each dataset */ 
+            async handleBulkFileImport(e){ 
                 const files=e.target.files; if(!files||files.length===0) return; showLoading('Importing multiple...'); let added=0; try{ for(let f of files){ try{ const content=await importJSONFile(f); if(content.resultDatasets&&Array.isArray(content.resultDatasets)){ content.resultDatasets.forEach(ds=>{ if(!this.datasets.some(d=>d.id===ds.id)){ const sanitized = this.sanitizeDatasetForImport(ds); this.datasets.push(sanitized); added++; } }); } else if(this.isValidDataset(content)){ if(!this.datasets.some(d=>d.id===content.id)){ const sanitized = this.sanitizeDatasetForImport(content); this.datasets.push(sanitized); added++; } } }catch(err){ console.warn('Skipping file',f.name,err); } } if(added>0){ this.validateAllDatasets(); this.updateUI(); this.saveCurrentState(); showToast('success','Bulk import',`Added ${added} dataset(s)`); } else showToast('info','No new datasets'); }catch(err){ showToast('error','Bulk import failed'); }finally{ hideLoading(); e.target.value=''; }
             }
-            // Sanitize for export: replace every id with a fresh one, update catMarks accordingly
             sanitizeForExport(data){
                 if (Array.isArray(data)) return data.map(d=>this.sanitizeDatasetForExport(d));
                 if (data && typeof data==='object' && data.id && data.tables) return this.sanitizeDatasetForExport(data);
                 if (data && data.resultDatasets) {
                     const newData = { ...data, resultDatasets: data.resultDatasets.map(ds=>this.sanitizeDatasetForExport(ds)) };
-                    if (data.currentDatasetId) newData.currentDatasetId = generateId(); // not critical
+                    if (data.currentDatasetId) newData.currentDatasetId = generateId();
                     return newData;
                 }
-                return deepClone(data); // fallback
+                return deepClone(data);
             }
             sanitizeDatasetForExport(ds){
                 const newDsId = generateId();
@@ -451,7 +632,7 @@
                     });
                     return { id: `table-${generateId()}`, name: tbl.name, catColumns: newCatColumns, students: newStudents };
                 });
-                return { id: newDsId, name: ds.name, tables: newTables, tableCounter: ds.tableCounter }; // tableCounter is just a number, no need to replace
+                return { id: newDsId, name: ds.name, tables: newTables, tableCounter: ds.tableCounter };
             }
             exportData(){
                 const ds = this.getCurrentDataset(); if(!ds){ showToast('info','No data'); return; }
@@ -465,8 +646,8 @@
                 exportAsJSON({ resultDatasets: sanitizedList, exportedAt: new Date().toISOString() }, 'all-datasets-sanitized.json');
                 showToast('success','All datasets exported (IDs sanitized)');
             }
-            async clearAllData(){ if(!confirm('Delete ALL datasets permanently?')) return; showLoading('Clearing...'); try{ if(await database.clearAllData()){ this.datasets=[]; this.currentDatasetId=null; this.createDefaultDataset(); } }catch(err){ showToast('error','Clear failed'); }finally{ hideLoading(); } }
-            async syncData(){ if(!auth.getCurrentUser()){ showToast('warning','Not signed in'); return; } await database.syncData(); }
+            async clearAllData(){ if(!confirm('Delete ALL datasets permanently?')) return; showLoading('Clearing...'); try{ if(await database.clearAllData(true)){ this.datasets=[]; this.currentDatasetId=null; this.createDefaultDataset(); } }catch(err){ showToast('error','Clear failed'); }finally{ hideLoading(); } }
+            async syncData(){ if(!auth.getCurrentUser()){ showToast('warning','Not signed in'); return; } await database.syncData(); showToast('info','Sync','Background sync completed'); }
             isValidDataset(d){ return d&&d.id&&d.name&&Array.isArray(d.tables)&&typeof d.tableCounter==='number'; }
         }
         window.app = new App();
