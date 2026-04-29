@@ -1,0 +1,4736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz App - Multiple Subjects</title>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --primary-hover: #2980b9;
+            --success-color: #2ecc71;
+            --error-color: #e74c3c;
+            --warning-color: #f39c12;
+            --light-gray: #f5f5f5;
+            --medium-gray: #e0e0e0;
+            --dark-gray: #333;
+            --text-color: #2c3e50;
+            --white: #ffffff;
+            --border-radius: 8px;
+            --box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background-color: var(--light-gray);
+            color: var(--text-color);
+            padding: 20px;
+        }
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        header { text-align: center; margin-bottom: 30px; }
+        h1 { color: var(--text-color); margin-bottom: 10px; font-size: 2.2rem; }
+        .description { color: var(--dark-gray); font-size: 1.1rem; max-width: 600px; margin: 0 auto; }
+
+        /* Subject Selection */
+        .subject-selection-container {
+            background: var(--white);
+            border-radius: var(--border-radius);
+            padding: 30px;
+            box-shadow: var(--box-shadow);
+        }
+        .subject-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .subject-card {
+            background: var(--light-gray);
+            border: 2px solid var(--medium-gray);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+        .subject-card:hover {
+            border-color: var(--primary-color);
+            background: rgba(52, 152, 219, 0.05);
+            transform: translateY(-2px);
+        }
+        .subject-card .subject-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        .subject-card .subject-name { font-size: 1.1rem; }
+        .subject-card .question-count {
+            font-size: 0.85rem;
+            color: var(--dark-gray);
+            margin-top: 5px;
+        }
+
+        /* Quiz Container */
+        .quiz-container {
+            background-color: var(--white);
+            border-radius: var(--border-radius);
+            padding: 30px;
+            box-shadow: var(--box-shadow);
+            display: none;
+        }
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .back-link {
+            color: var(--primary-color);
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            background: none;
+            border: none;
+            padding: 5px 0;
+        }
+        .back-link:hover { text-decoration: underline; }
+
+        .progress-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+        .progress-text { font-weight: 600; font-size: 1.1rem; }
+        .progress-bar {
+            height: 8px;
+            background-color: var(--medium-gray);
+            border-radius: 4px;
+            flex-grow: 1;
+            margin: 0 15px;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background-color: var(--primary-color);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .timer-container { display: flex; align-items: center; margin-bottom: 15px; }
+        .timer { font-size: 1rem; font-weight: 600; color: var(--text-color); margin-left: 8px; }
+        .timer-icon { width: 20px; height: 20px; }
+        .timer-warning { color: var(--warning-color); }
+        .timer-danger { color: var(--error-color); animation: pulse 1s infinite; }
+        @keyframes pulse {
+            0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; }
+        }
+
+        .question {
+            margin-bottom: 25px;
+            padding: 20px;
+            background-color: var(--light-gray);
+            border-radius: var(--border-radius);
+            display: none;
+            animation: fadeIn 0.2s ease;
+        }
+        .question.active { display: block; }
+        .review-question { display: block !important; margin-bottom: 30px; animation: none; }
+
+        .question-text { font-size: 1.2rem; font-weight: 600; margin-bottom: 20px; }
+        .question-type-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: 12px;
+            margin-left: 10px;
+            vertical-align: middle;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .badge-multiple-choice { background-color: rgba(52,152,219,0.15); color: #2471a3; }
+        .badge-text-input { background-color: rgba(46,204,113,0.15); color: #1e8449; }
+
+        .options { display: grid; grid-template-columns: 1fr; gap: 12px; }
+        .option {
+            position: relative;
+            padding: 15px;
+            padding-left: 50px;
+            background-color: var(--white);
+            border: 2px solid var(--medium-gray);
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            display: block;
+            user-select: none;
+        }
+        .option:hover { border-color: var(--primary-color); background-color: rgba(52,152,219,0.05); }
+        .option input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
+        .option .option-indicator {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 22px;
+            height: 22px;
+            border: 2px solid var(--medium-gray);
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .option input[type="radio"]:focus-visible + .option-indicator {
+            outline: 2px solid var(--primary-color);
+            outline-offset: 2px;
+        }
+        .option.selected { border-color: var(--primary-color); background-color: rgba(52,152,219,0.1); }
+        .option.selected .option-indicator { border-color: var(--primary-color); background-color: var(--primary-color); }
+        .option.selected .option-indicator::after {
+            content: '';
+            width: 10px; height: 10px;
+            background-color: var(--white);
+            border-radius: 50%;
+        }
+        .option.correct { border-color: var(--success-color); background-color: rgba(46,204,113,0.1); }
+        .option.correct .option-indicator { border-color: var(--success-color); background-color: var(--success-color); }
+        .option.incorrect { border-color: var(--error-color); background-color: rgba(231,76,60,0.1); }
+        .option.incorrect .option-indicator { border-color: var(--error-color); background-color: var(--error-color); }
+
+        .text-input-field {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid var(--medium-gray);
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            background-color: var(--white);
+            color: var(--text-color);
+        }
+        .text-input-field:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(52,152,219,0.1); }
+        .text-input-field:disabled { background-color: var(--light-gray); cursor: not-allowed; }
+        .text-input-field.correct-input { border-color: var(--success-color); background-color: rgba(46,204,113,0.05); }
+        .text-input-field.incorrect-input { border-color: var(--error-color); background-color: rgba(231,76,60,0.05); }
+        .text-input-hint { font-size: 0.85rem; color: var(--dark-gray); margin-top: 8px; font-style: italic; }
+
+        .instant-feedback {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: var(--border-radius);
+            display: none;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            animation: slideIn 0.3s ease;
+        }
+        .feedback-correct { background-color: rgba(46,204,113,0.1); border-left: 4px solid var(--success-color); color: #27ae60; }
+        .feedback-incorrect { background-color: rgba(231,76,60,0.1); border-left: 4px solid var(--error-color); color: #c0392b; }
+
+        .explanation {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: rgba(52,152,219,0.05);
+            border-left: 4px solid var(--primary-color);
+            border-radius: 0 var(--border-radius) var(--border-radius) 0;
+            display: none;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        .explanation-title { font-weight: 600; margin-bottom: 8px; color: var(--text-color); }
+
+        .navigation { display: flex; justify-content: space-between; margin-top: 25px; }
+        button {
+            padding: 12px 24px;
+            background-color: var(--primary-color);
+            color: var(--white);
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        button:hover { background-color: var(--primary-hover); transform: translateY(-2px); }
+        button:disabled { background-color: var(--medium-gray); cursor: not-allowed; transform: none; }
+        .secondary-btn { background-color: var(--medium-gray); color: var(--text-color); }
+        .secondary-btn:hover { background-color: #bbb; transform: translateY(-2px); }
+
+        .result-container {
+            text-align: center;
+            padding: 30px;
+            display: none;
+            background-color: var(--white);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-top: 20px;
+        }
+        .result-title { font-size: 1.8rem; margin-bottom: 15px; color: var(--text-color); }
+        .score { font-size: 2.5rem; font-weight: 700; margin-bottom: 20px; color: var(--primary-color); }
+        .score-text { font-size: 1.2rem; margin-bottom: 30px; }
+        .feedback { margin-top: 20px; font-size: 1.1rem; line-height: 1.6; text-align: left; }
+        .stats { margin-top: 20px; display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; }
+        .stat-item { padding: 15px; background-color: var(--light-gray); border-radius: var(--border-radius); min-width: 120px; }
+        .stat-value { font-size: 1.8rem; font-weight: 700; color: var(--primary-color); }
+        .stat-label { font-size: 0.9rem; color: var(--dark-gray); }
+        .review-wrapper { margin-top: 30px; max-height: 60vh; overflow-y: auto; padding-right: 10px; }
+        .user-text-answer {
+            background-color: rgba(52,152,219,0.05);
+            padding: 10px 15px;
+            border-radius: var(--border-radius);
+            margin-top: 10px;
+            font-size: 0.95rem;
+        }
+        .user-text-answer .answer-label { font-weight: 600; color: var(--dark-gray); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+        @media (max-width: 600px) {
+            .container { padding: 10px; }
+            .quiz-container, .subject-selection-container { padding: 20px; }
+            h1 { font-size: 1.8rem; }
+            .question { padding: 15px; }
+            button { padding: 10px 15px; font-size: 0.9rem; }
+            .stats { flex-direction: column; gap: 10px; align-items: center; }
+            .stat-item { width: 100%; max-width: 200px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>JSC118 Quiz</h1>
+        <p class="description">Choose a subject, then answer questions within the time limit</p>
+    </header>
+
+    <!-- Subject Selection Screen -->
+    <div id="subject-selection-container" class="subject-selection-container">
+        <h2 style="text-align:center;">Select a Subject</h2>
+        <div class="subject-grid" id="subject-grid"></div>
+    </div>
+
+    <!-- Quiz Screen -->
+    <div id="quiz-container" class="quiz-container">
+        <div class="quiz-header">
+            <button class="back-link" id="back-to-subjects-btn">← Change Subject</button>
+            <span style="font-weight:600;" id="current-subject-name"></span>
+        </div>
+        <div class="progress-container">
+            <span class="progress-text">Question <span id="current-question">1</span> of <span id="total-questions">10</span></span>
+            <div class="progress-bar">
+                <div class="progress-bar-fill" id="progress-bar"></div>
+            </div>
+        </div>
+        <div class="timer-container">
+            <svg class="timer-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M12 6V12L16 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="timer" id="timer">30s</span>
+        </div>
+        <div id="question-container"></div>
+        <div class="instant-feedback" id="instant-feedback"></div>
+        <div class="navigation">
+            <button id="prev-btn" disabled>Previous</button>
+            <button id="next-btn">Next</button>
+            <button id="submit-btn" style="display: none;">Submit Quiz</button>
+        </div>
+    </div>
+
+    <!-- Result Screen -->
+    <div id="result-container" class="result-container">
+        <h2 class="result-title">Quiz Completed!</h2>
+        <div class="score">Your Score: <span id="score">0</span>/<span id="max-score">10</span></div>
+        <p class="score-text" id="score-text"></p>
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-value" id="correct-answers">0</div>
+                <div class="stat-label">Correct</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="incorrect-answers">0</div>
+                <div class="stat-label">Incorrect</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="average-time">0s</div>
+                <div class="stat-label">Avg Time</div>
+            </div>
+        </div>
+        <div class="feedback" id="feedback"></div>
+        <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+            <button id="restart-btn">Restart This Quiz</button>
+            <button id="back-from-result-btn" class="secondary-btn">Back to Subjects</button>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    // ========== SUBJECTS DATA ==========
+    const subjectsData = {
+  "unit1": {
+    name: "Unit 1: History of Science in Ghana",
+    icon: "🔬",
+    questions: [
+      // --- SESSION 1: Evolution of Science (10 questions) ---
+      // MCQ (8), text-input (2)
+      {
+        type: "multiple-choice",
+        question: "Prehistoric people developed technology for obtaining necessities such as:",
+        options: [
+          "Only writing",
+          "Making tools, starting fires, hunting, and gathering",
+          "Only farming",
+          "Only building houses"
+        ],
+        correctAnswer: 1,
+        explanation: "They learned to make tools, start fires, hunt, fish, and gather fruits (Unit 1, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The oldest written record of proto‑scientific investigation originated from which culture?",
+        options: [
+          "Egyptian",
+          "Greek",
+          "Mesopotamian",
+          "Roman"
+        ],
+        correctAnswer: 2,
+        explanation: "Mesopotamian cultures inscribed astronomical observations and chemical substances on clay tablets (Unit 1, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Which philosopher is known for the idea that pure knowledge could be advanced by deduction alone?",
+        options: [
+          "Aristotle",
+          "Plato",
+          "Francis Bacon",
+          "Karl Popper"
+        ],
+        correctAnswer: 1,
+        explanation: "Plato reasoned that pure knowledge could be advanced by deduction alone (Unit 1, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Aristotle, a pupil of Plato, believed that knowledge could only be gained by comparing it with what was already known and perceived, emphasising:",
+        options: [
+          "Deductive reasoning",
+          "Inductive reasoning",
+          "Mysticism",
+          "Authority"
+        ],
+        correctAnswer: 1,
+        explanation: "Aristotle believed inductive reasoning was required before scientific demonstrations (Unit 1, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Who coined the word 'falsify' to describe a contradictory statement in science?",
+        options: [
+          "Thomas Kuhn",
+          "Karl Popper",
+          "Imre Lakatos",
+          "Paul Feyerabend"
+        ],
+        correctAnswer: 1,
+        explanation: "Karl Popper used the word 'falsify' to describe contradictory statements (Unit 1, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Thomas Kuhn perceived science as operating in two clear‑cut phases called:",
+        options: [
+          "Theory and practice",
+          "Normal and revolutionary science",
+          "Induction and deduction",
+          "Observation and experiment"
+        ],
+        correctAnswer: 1,
+        explanation: "Kuhn described 'normal' and 'revolutionary' science (Unit 1, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Which philosopher wrote the book 'Against Method' and argued that there is no single scientific method?",
+        options: [
+          "Imre Lakatos",
+          "Thomas Kuhn",
+          "Paul Feyerabend",
+          "Karl Popper"
+        ],
+        correctAnswer: 2,
+        explanation: "Paul Feyerabend wrote 'Against Method' and argued scientists use any possible method (Unit 1, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The birth of empirical science occurred in which centuries?",
+        options: [
+          "14th and 15th",
+          "16th and 17th",
+          "18th and 19th",
+          "20th and 21st"
+        ],
+        correctAnswer: 1,
+        explanation: "The 16th and 17th centuries marked the birth of empirical science (Unit 1, Session 1)."
+      },
+      {
+        type: "text-input",
+        question: "Who combined scholarship and artisanship, adding systematic verification through planned experiments?",
+        correctAnswer: "Galileo",
+        acceptableAnswers: ["Galileo", "Galileo Galilei"],
+        caseSensitive: false,
+        explanation: "Galileo Galilei used telescopes, microscopes, and thermometers for planned experiments (Unit 1, Session 1)."
+      },
+      {
+        type: "text-input",
+        question: "Which French philosopher and mathematician developed empirical methods alongside Francis Bacon?",
+        correctAnswer: "Descartes",
+        acceptableAnswers: ["Descartes", "Rene Descartes"],
+        caseSensitive: false,
+        explanation: "Rene Descartes along with Bacon encouraged individuals to think for themselves (Unit 1, Session 1)."
+      },
+
+      // --- SESSION 2: Contributions of Eminent Scientists (12 questions) ---
+      // MCQ (10), text-input (2)
+      {
+        type: "multiple-choice",
+        question: "Professor Francis Kofi Ampenyin Allotey is known for the 'Allotey Formalism' which arose from his work on:",
+        options: [
+          "Nuclear fission",
+          "Soft X‑ray spectroscopy",
+          "Quantum mechanics",
+          "Relativity"
+        ],
+        correctAnswer: 1,
+        explanation: "Allotey Formalism came from his work on soft X‑ray spectroscopy (Unit 1, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Francis Allotey was instrumental in getting Ghana to join which international union?",
+        options: [
+          "World Health Organization",
+          "International Union of Pure and Applied Physics (IUPAP)",
+          "United Nations",
+          "African Union"
+        ],
+        correctAnswer: 1,
+        explanation: "He helped Ghana join IUPAP, making it one of the first African countries in the union (Unit 1, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Professor Marian Ewurama Addy was the first Ghanaian woman professor of:",
+        options: [
+          "Physics",
+          "Chemistry",
+          "Natural sciences",
+          "Mathematics"
+        ],
+        correctAnswer: 2,
+        explanation: "She was the first Ghanaian woman professor of natural sciences (Unit 1, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Marian Addy was the first host of which popular televised programme?",
+        options: [
+          "National Science and Maths Quiz",
+          "Brilliant Science Contest",
+          "STEM Challenge",
+          "Science Fair"
+        ],
+        correctAnswer: 0,
+        explanation: "She was the first Quiz Mistress of the National Science and Maths Quiz (Unit 1, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Sir Isaac Newton's three laws of motion first appeared in which famous book?",
+        options: [
+          "Opticks",
+          "Principia Mathematica",
+          "Dialogue Concerning Two Chief World Systems",
+          "The Mathematical Principles of Natural Philosophy (Principia)"
+        ],
+        correctAnswer: 1,
+        explanation: "Newton's Philosophiae Naturalis Principia Mathematica (Principia) contained the three laws (Unit 1, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Newton's discovery of the composition of white light integrated the phenomena of colours into the science of:",
+        options: [
+          "Mechanics",
+          "Optics",
+          "Astronomy",
+          "Thermodynamics"
+        ],
+        correctAnswer: 1,
+        explanation: "His work laid the foundation for modern physical optics (Unit 1, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Stephen Hawking is known for the theoretical prediction that black holes emit radiation, often called:",
+        options: [
+          "Hawking radiation",
+          "Black hole radiation",
+          "Quantum radiation",
+          "Singularity radiation"
+        ],
+        correctAnswer: 0,
+        explanation: "Hawking radiation is the theoretical prediction of emission from black holes (Unit 1, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Hawking was the first to set out a theory of cosmology explained by a union of general relativity and:",
+        options: [
+          "Quantum mechanics",
+          "Special relativity",
+          "Thermodynamics",
+          "Electromagnetism"
+        ],
+        correctAnswer: 0,
+        explanation: "He united general relativity and quantum mechanics (Unit 1, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "A science teacher should have a good background in science and also:",
+        options: [
+          "Only mathematics",
+          "An understanding of technology",
+          "Only reading skills",
+          "Only writing skills"
+        ],
+        correctAnswer: 1,
+        explanation: "Teachers need to understand technology because pupils' experiences are technology‑oriented (Unit 1, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Effective science teachers use a variety of teaching methods and can put pupils into groups to foster:",
+        options: [
+          "Competition",
+          "Cooperative learning",
+          "Individual work",
+          "Silent reading"
+        ],
+        correctAnswer: 1,
+        explanation: "Group work fosters positive interdependence and collaboration (Unit 1, Session 2)."
+      },
+      {
+        type: "text-input",
+        question: "What is the name of the laboratory named after Marian Ewurama Addy at the University of Ghana?",
+        correctAnswer: "Marian Ewurama Addy Laboratory",
+        acceptableAnswers: ["Marian Ewurama Addy Laboratory", "Addy Laboratory", "Marian Addy Lab"],
+        caseSensitive: false,
+        explanation: "The lab is for Medicinal Plants and Natural Products Research (Unit 1, Session 2)."
+      },
+      {
+        type: "text-input",
+        question: "What mathematical discovery is Sir Isaac Newton credited with?",
+        correctAnswer: "calculus",
+        acceptableAnswers: ["calculus", "infinitesimal calculus"],
+        caseSensitive: false,
+        explanation: "Newton developed calculus, a revolutionary form of mathematics (Unit 1, Session 2)."
+      },
+
+      // --- SESSION 3: Misconceptions in/About Science (10 questions) ---
+      // MCQ (8), text-input (2)
+      {
+        type: "multiple-choice",
+        question: "A common misconception about science is that:",
+        options: [
+          "Science explains everything",
+          "Certain topics are abstract because they are not seen in real life",
+          "Science is always easy",
+          "Only geniuses can learn science"
+        ],
+        correctAnswer: 1,
+        explanation: "Many learners see certain topics as abstract because they are not directly observable (Unit 1, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Some students think that living things grow because:",
+        options: [
+          "Cells multiply",
+          "Cells get larger (not understanding differentiation)",
+          "They eat more",
+          "They exercise"
+        ],
+        correctAnswer: 1,
+        explanation: "They do not understand the role of cell differentiation and think cells just enlarge (Unit 1, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "A misconception about force is that students tend to believe:",
+        options: [
+          "Force causes motion and a constant force is needed to maintain motion",
+          "Force is not related to motion",
+          "Only moving objects have force",
+          "Force is a form of energy"
+        ],
+        correctAnswer: 0,
+        explanation: "Many believe that a constant force is required to maintain motion (Unit 1, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Many students think that the bubbles in boiling water are composed of:",
+        options: [
+          "Air",
+          "Water vapour",
+          "Oxygen",
+          "Carbon dioxide"
+        ],
+        correctAnswer: 0,
+        explanation: "They believe the bubbles are air rather than water vapour (Unit 1, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Some students view that global warming is caused by:",
+        options: [
+          "Greenhouse gases",
+          "The sun",
+          "Deforestation",
+          "Industrial pollution"
+        ],
+        correctAnswer: 1,
+        explanation: "A misconception is that global warming is caused by the sun (Unit 1, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "A misconception about blood vessels is that:",
+        options: [
+          "Arteries carry oxygenated blood",
+          "A separate system of tubes carries air to the heart",
+          "Veins carry blood to the heart",
+          "Capillaries connect arteries and veins"
+        ],
+        correctAnswer: 1,
+        explanation: "Some students believe a separate system of tubes carries air to the heart (Unit 1, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Many students think that germs cause all illnesses and that germs enter only through:",
+        options: [
+          "The skin",
+          "The mouth during eating",
+          "The nose",
+          "The eyes"
+        ],
+        correctAnswer: 1,
+        explanation: "They believe germs enter only through the mouth during eating (Unit 1, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "A misconception about bones is that they are:",
+        options: [
+          "Living and growing",
+          "Solid and unchanging, not living",
+          "Made of minerals only",
+          "Hollow"
+        ],
+        correctAnswer: 1,
+        explanation: "Students sometimes conceive bones as solid and unchanging rather than living and needing nutrients (Unit 1, Session 3)."
+      },
+      {
+        type: "text-input",
+        question: "What term describes ideas that provide an incorrect understanding of objects or events?",
+        correctAnswer: "misconceptions",
+        acceptableAnswers: ["misconceptions", "misconception"],
+        caseSensitive: false,
+        explanation: "Misconceptions are incorrect understandings based on experience (Unit 1, Session 3)."
+      },
+      {
+        type: "text-input",
+        question: "What do students think causes height and weight equally?",
+        correctAnswer: "food",
+        acceptableAnswers: ["food", "amount of food eaten"],
+        caseSensitive: false,
+        explanation: "Many think height and weight are equally influenced by food intake (Unit 1, Session 3)."
+      },
+
+      // --- SESSION 4: Physical Science and Society (10 questions) ---
+      // MCQ (8), text-input (2)
+      {
+        type: "multiple-choice",
+        question: "Nearly three‑fourths of the earth's surface is covered with:",
+        options: [
+          "Land",
+          "Water",
+          "Ice",
+          "Deserts"
+        ],
+        correctAnswer: 1,
+        explanation: "About three‑fourths of Earth's surface is water (Unit 1, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Acetic acid is found in:",
+        options: [
+          "Lemon",
+          "Vinegar",
+          "Antacids",
+          "Household cleaners"
+        ],
+        correctAnswer: 1,
+        explanation: "Acetic acid is the acid in vinegar (Unit 1, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Lime is spread on lawns to raise the pH of:",
+        options: [
+          "Basic soil",
+          "Acid soil",
+          "Neutral soil",
+          "Alkaline soil"
+        ],
+        correctAnswer: 1,
+        explanation: "Lime raises the pH of acid soil (Unit 1, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Alcoholic fermentation by yeast is used in:",
+        options: [
+          "Cheese making",
+          "Brewing and wine making",
+          "Yogurt production",
+          "Bread baking only"
+        ],
+        correctAnswer: 1,
+        explanation: "Yeast fermentation is used in brewing and wine making (Unit 1, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Lactic acid fermentation by fungi and bacteria is used in the dairy industry to make:",
+        options: [
+          "Butter",
+          "Cheese and yogurt",
+          "Ice cream",
+          "Milk powder"
+        ],
+        correctAnswer: 1,
+        explanation: "Lactic acid fermentation produces cheese and yogurt (Unit 1, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Archimedes' principle states that the buoyant force on a body equals the weight of the:",
+        options: [
+          "Body itself",
+          "Fluid displaced by the body",
+          "Container",
+          "Surrounding air"
+        ],
+        correctAnswer: 1,
+        explanation: "The upthrust is equal to the weight of the fluid displaced (Unit 1, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "A practical example of Archimedes' principle is:",
+        options: [
+          "It is easy to lift someone in a swimming pool",
+          "A stone sinks in water",
+          "A boat floats on water",
+          "A balloon rises in air"
+        ],
+        correctAnswer: 0,
+        explanation: "Lifting someone in water is easier due to buoyancy (Unit 1, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Hydrochloric acid is essential to digestion and is secreted by the lining of the:",
+        options: [
+          "Mouth",
+          "Stomach",
+          "Small intestine",
+          "Liver"
+        ],
+        correctAnswer: 1,
+        explanation: "Gastric juice contains hydrochloric acid for digestion (Unit 1, Session 4)."
+      },
+      {
+        type: "text-input",
+        question: "What is the most abundant compound on Earth?",
+        correctAnswer: "water",
+        acceptableAnswers: ["water", "H2O"],
+        caseSensitive: false,
+        explanation: "Water is the most familiar and abundant compound (Unit 1, Session 4)."
+      },
+      {
+        type: "text-input",
+        question: "Citric acid is found in which fruits?",
+        correctAnswer: "lemon",
+        acceptableAnswers: ["lemon", "citrus fruits", "oranges"],
+        caseSensitive: false,
+        explanation: "Citric acid is in lemon and other citrus fruits (Unit 1, Session 4)."
+      },
+
+      // --- SESSION 5: Science for Environment, Health, Peace and Equity (9 questions) ---
+      // MCQ (7), text-input (2)
+      {
+        type: "multiple-choice",
+        question: "The use of drones in supplying drugs to health centres is an example of science benefiting:",
+        options: [
+          "Agriculture",
+          "Health",
+          "Transportation",
+          "Communication"
+        ],
+        correctAnswer: 1,
+        explanation: "Drones deliver drugs to health centres, improving healthcare (Unit 1, Session 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "New fertilizers and pesticides developed by chemists have dramatically increased:",
+        options: [
+          "Food spoilage",
+          "Amount of food harvested from a single field",
+          "Water pollution",
+          "Soil erosion"
+        ],
+        correctAnswer: 1,
+        explanation: "Agricultural chemistry boosted crop yields (Unit 1, Session 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Fermentation can be viewed as a biological method of:",
+        options: [
+          "Food spoilage",
+          "Food preservation",
+          "Food coloring",
+          "Food flavoring only"
+        ],
+        correctAnswer: 1,
+        explanation: "Fermented foods have desirable tastes and preserve starting materials (Unit 1, Session 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Medical research helps find cures or vaccines for devastating diseases such as:",
+        options: [
+          "Only flu",
+          "Cancer, AIDS, Ebola and Leukaemia",
+          "Only common cold",
+          "Only malaria"
+        ],
+        correctAnswer: 1,
+        explanation: "Modern medicine targets cancer, AIDS, Ebola, and leukaemia (Unit 1, Session 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Peace in the context of science education includes respect for:",
+        options: [
+          "Only teachers",
+          "The nation of Ghana, its institutions and laws",
+          "Only the environment",
+          "Only technology"
+        ],
+        correctAnswer: 1,
+        explanation: "Peace includes respect for Ghana's institutions, laws, and culture (Unit 1, Session 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Equity in education means:",
+        options: [
+          "Treating all learners exactly the same",
+          "Ensuring equitable distribution of resources based on unique needs",
+          "Only focusing on gifted learners",
+          "Ignoring diverse backgrounds"
+        ],
+        correctAnswer: 1,
+        explanation: "Equity provides equal opportunities and distributes resources according to needs (Unit 1, Session 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Science has transformed the way we travel by introducing:",
+        options: [
+          "Only walking",
+          "Airplanes, helicopters, trains and cars",
+          "Only bicycles",
+          "Only horses"
+        ],
+        correctAnswer: 1,
+        explanation: "Modern transport includes airplanes, helicopters, trains, and cars (Unit 1, Session 5)."
+      },
+      {
+        type: "text-input",
+        question: "What type of food preservation uses fermentation by yeast?",
+        correctAnswer: "alcoholic",
+        acceptableAnswers: ["alcoholic", "alcohol fermentation"],
+        caseSensitive: false,
+        explanation: "Alcoholic fermentation preserves and creates new tastes (Unit 1, Session 5)."
+      },
+      {
+        type: "text-input",
+        question: "Name one example of how science improves health.",
+        correctAnswer: "vaccines",
+        acceptableAnswers: ["vaccines", "cures", "medical research", "drones for drugs"],
+        caseSensitive: false,
+        explanation: "Science develops vaccines and cures for diseases (Unit 1, Session 5)."
+      },
+
+      // --- SESSION 6: Science Process and Product (9 questions) ---
+      // MCQ (7), text-input (2)
+      {
+        type: "multiple-choice",
+        question: "The process of science involves procedures used by scientists such as:",
+        options: [
+          "Only reading textbooks",
+          "Making observations, predictions, measuring, experimenting",
+          "Only memorising facts",
+          "Only writing reports"
+        ],
+        correctAnswer: 1,
+        explanation: "Process includes observation, measurement, experimentation, inference, etc. (Unit 1, Session 6)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The product of science includes:",
+        options: [
+          "Only laboratory equipment",
+          "Discoveries of facts, concepts, generalizations, theories and laws",
+          "Only scientific papers",
+          "Only teaching methods"
+        ],
+        correctAnswer: 1,
+        explanation: "Products are the outcomes: facts, concepts, theories, laws (Unit 1, Session 6)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The 'Allotey Formalism' is an example of a:",
+        options: [
+          "Science process",
+          "Science product",
+          "Scientific method",
+          "Laboratory technique"
+        ],
+        correctAnswer: 1,
+        explanation: "It is a discovery (product) from Allotey's investigation (Unit 1, Session 6)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Newton's three laws of motion are considered:",
+        options: [
+          "Processes of science",
+          "Products of science",
+          "Scientific instruments",
+          "Hypotheses"
+        ],
+        correctAnswer: 1,
+        explanation: "They are generalizations and laws, which are products of science (Unit 1, Session 6)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Making predictions and drawing conclusions are part of:",
+        options: [
+          "Science product",
+          "Science process",
+          "Scientific law",
+          "Scientific theory"
+        ],
+        correctAnswer: 1,
+        explanation: "These are activities within the process of science (Unit 1, Session 6)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The relationship between science process and product is that they are:",
+        options: [
+          "Unrelated",
+          "Related and inseparable",
+          "Opposites",
+          "One replaces the other"
+        ],
+        correctAnswer: 1,
+        explanation: "Without process there is no product, and vice versa (Unit 1, Session 6)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Planning and designing experiments is an aspect of:",
+        options: [
+          "Science product",
+          "Science process",
+          "Scientific law",
+          "Scientific fact"
+        ],
+        correctAnswer: 1,
+        explanation: "Planning is part of the investigative process (Unit 1, Session 6)."
+      },
+      {
+        type: "text-input",
+        question: "What is the term for the procedures used by scientists to solve problems?",
+        correctAnswer: "process",
+        acceptableAnswers: ["process", "science process"],
+        caseSensitive: false,
+        explanation: "The process of science includes all investigative methods (Unit 1, Session 6)."
+      },
+      {
+        type: "text-input",
+        question: "Name one product of scientific research.",
+        correctAnswer: "theory",
+        acceptableAnswers: ["theory", "law", "fact", "concept", "generalization"],
+        caseSensitive: false,
+        explanation: "Theories, laws, and facts are products of science (Unit 1, Session 6)."
+      }
+    ]
+  },
+  "unit2": {
+    name: "Unit 2: Concept of Matter",
+    icon: "⚛️",
+    questions: [
+      // --- SESSION 1: Concept of Matter (15 questions) ---
+      // MCQ (12), text-input (3)
+      {
+        type: "multiple-choice",
+        question: "Matter is defined as anything that:",
+        options: [
+          "Has mass and occupies space",
+          "Can be seen",
+          "Has energy",
+          "Can be touched"
+        ],
+        correctAnswer: 0,
+        explanation: "Matter has mass and occupies space (volume) (Unit 2, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Which of the following is a misconception about matter?",
+        options: [
+          "Temperature determines states of matter",
+          "Gases contain the same number of molecules as liquids",
+          "Thick liquid is denser than thinner liquid",
+          "All of the above"
+        ],
+        correctAnswer: 3,
+        explanation: "All listed are common misconceptions about matter (Unit 2, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Living things are defined by characteristics including:",
+        options: [
+          "Only growth",
+          "Reproduction, growth, movement, and response to environment",
+          "Only respiration",
+          "Only nutrition"
+        ],
+        correctAnswer: 1,
+        explanation: "Living things reproduce, grow, move, breathe, adapt, and need food and water (Unit 2, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Non‑living things do NOT:",
+        options: [
+          "Occupy space",
+          "Have mass",
+          "Show growth and development",
+          "Have volume"
+        ],
+        correctAnswer: 2,
+        explanation: "Non‑living things do not grow or develop (Unit 2, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Which of the following is a characteristic of living things?",
+        options: [
+          "No evolution",
+          "Metabolic reactions",
+          "No lifespan",
+          "Cannot move by themselves"
+        ],
+        correctAnswer: 1,
+        explanation: "Living things have metabolism (catabolism and anabolism) (Unit 2, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "A misconception about floating and sinking is that:",
+        options: [
+          "Wood floats and metal sinks",
+          "Objects float because they contain air",
+          "All objects containing air float",
+          "All of the above"
+        ],
+        correctAnswer: 3,
+        explanation: "These are all common misconceptions about buoyancy (Unit 2, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Living things require energy, while non‑living things:",
+        options: [
+          "Also require energy",
+          "Do not eat anything for energy",
+          "Produce energy",
+          "Store energy"
+        ],
+        correctAnswer: 1,
+        explanation: "Non‑living things do not consume food for energy (Unit 2, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Which of the following is an example of a non‑living thing?",
+        options: [
+          "Tree",
+          "Bacteria",
+          "Rock",
+          "Fish"
+        ],
+        correctAnswer: 2,
+        explanation: "Rocks are inanimate objects without life (Unit 2, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Living things show evolution with time, while non‑living things:",
+        options: [
+          "Also evolve",
+          "Show no evolution",
+          "Evolve faster",
+          "Evolve backwards"
+        ],
+        correctAnswer: 1,
+        explanation: "Non‑living things do not undergo evolution (Unit 2, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "A misconception about density is that:",
+        options: [
+          "Mass and volume may be perceived as equivalent",
+          "Density depends on shape",
+          "Heavier objects always sink",
+          "All of the above"
+        ],
+        correctAnswer: 3,
+        explanation: "Mass, volume, weight, heaviness, size, and density are often confused (Unit 2, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Living things have a certain lifespan and eventually:",
+        options: [
+          "Live forever",
+          "Die",
+          "Turn into non‑living things",
+          "Regenerate"
+        ],
+        correctAnswer: 1,
+        explanation: "All living things have a lifespan and eventually die (Unit 2, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Metabolic reactions like catabolism and anabolism take place in:",
+        options: [
+          "Non‑living things",
+          "Living things only",
+          "Both living and non‑living",
+          "Only plants"
+        ],
+        correctAnswer: 1,
+        explanation: "Metabolism is a characteristic of living organisms (Unit 2, Session 1)."
+      },
+      {
+        type: "text-input",
+        question: "What is the term for a creature that is alive?",
+        correctAnswer: "living thing",
+        acceptableAnswers: ["living thing", "organism"],
+        caseSensitive: false,
+        explanation: "Living things show all characteristics of life (Unit 2, Session 1)."
+      },
+      {
+        type: "text-input",
+        question: "Name one property that distinguishes living from non‑living things.",
+        correctAnswer: "reproduction",
+        acceptableAnswers: ["reproduction", "growth", "movement", "metabolism"],
+        caseSensitive: false,
+        explanation: "Reproduction is a key characteristic of living things (Unit 2, Session 1)."
+      },
+      {
+        type: "text-input",
+        question: "What misconception do students have about objects that appear on top of a solution?",
+        correctAnswer: "skin",
+        acceptableAnswers: ["held up by skin", "not buoyant", "surface tension"],
+        caseSensitive: false,
+        explanation: "Some think the solution's 'skin' holds the object up (Unit 2, Session 1)."
+      },
+
+      // --- SESSION 2: States of Matter (15 questions) ---
+      // MCQ (12), text-input (3)
+      {
+        type: "multiple-choice",
+        question: "The three states of matter are:",
+        options: [
+          "Solid, liquid, gas",
+          "Element, compound, mixture",
+          "Atom, molecule, ion",
+          "Acid, base, salt"
+        ],
+        correctAnswer: 0,
+        explanation: "Matter exists as solid, liquid, or gas (Unit 2, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "In a solid, the particles are:",
+        options: [
+          "Very far apart",
+          "Very attracted to each other and vibrate in fixed positions",
+          "Moving freely",
+          "Not interacting"
+        ],
+        correctAnswer: 1,
+        explanation: "Solid particles are closely packed and vibrate in place (Unit 2, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "A characteristic of a solid is that it:",
+        options: [
+          "Has a fixed shape and volume",
+          "Takes the shape of its container",
+          "Has no fixed volume",
+          "Can be compressed easily"
+        ],
+        correctAnswer: 0,
+        explanation: "Solids maintain definite shape and volume (Unit 2, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "In a liquid, particles can:",
+        options: [
+          "Only vibrate in place",
+          "Slide past one another",
+          "Escape completely",
+          "Stop moving"
+        ],
+        correctAnswer: 1,
+        explanation: "Liquid particles are close but can move around each other (Unit 2, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "A liquid has:",
+        options: [
+          "Fixed volume but no fixed shape",
+          "Fixed shape and volume",
+          "No fixed volume or shape",
+          "Fixed shape but no fixed volume"
+        ],
+        correctAnswer: 0,
+        explanation: "Liquids take the shape of their container but have constant volume (Unit 2, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "In a gas, particles have:",
+        options: [
+          "Strong attraction to each other",
+          "Very little attraction and are very far apart",
+          "Fixed positions",
+          "No movement"
+        ],
+        correctAnswer: 1,
+        explanation: "Gas particles are far apart with minimal attraction (Unit 2, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "A gas can be compressed because:",
+        options: [
+          "Its particles are far apart",
+          "Its particles are tightly packed",
+          "It has a fixed shape",
+          "It has low energy"
+        ],
+        correctAnswer: 0,
+        explanation: "Gaps between particles allow compression (Unit 2, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Which state of matter has neither a fixed volume nor a fixed shape?",
+        options: [
+          "Solid",
+          "Liquid",
+          "Gas",
+          "Plasma"
+        ],
+        correctAnswer: 2,
+        explanation: "Gases expand to fill any container (Unit 2, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The state symbol for solid is:",
+        options: ["(g)", "(l)", "(s)", "(aq)"],
+        correctAnswer: 2,
+        explanation: "(s) represents solid state (Unit 2, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "A substance that consists of only one type of material is called:",
+        options: [
+          "Mixture",
+          "Pure substance",
+          "Heterogeneous mixture",
+          "Solution"
+        ],
+        correctAnswer: 1,
+        explanation: "Pure substances have constant composition (Unit 2, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "A mixture whose composition is the same throughout is called:",
+        options: [
+          "Heterogeneous",
+          "Homogeneous",
+          "Compound",
+          "Element"
+        ],
+        correctAnswer: 1,
+        explanation: "Homogeneous mixtures have uniform composition (Unit 2, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "An element is a substance that:",
+        options: [
+          "Can be separated by physical means",
+          "Cannot be separated into simpler substances by chemical means",
+          "Is a mixture of compounds",
+          "Has variable composition"
+        ],
+        correctAnswer: 1,
+        explanation: "Elements are the simplest forms of matter (Unit 2, Session 2)."
+      },
+      {
+        type: "text-input",
+        question: "What is the state symbol for an aqueous solution?",
+        correctAnswer: "(aq)",
+        acceptableAnswers: ["(aq)", "aq"],
+        caseSensitive: false,
+        explanation: "(aq) denotes a substance dissolved in water (Unit 2, Session 2)."
+      },
+      {
+        type: "text-input",
+        question: "What type of mixture has a non‑uniform composition?",
+        correctAnswer: "heterogeneous",
+        acceptableAnswers: ["heterogeneous", "heterogeneous mixture"],
+        caseSensitive: false,
+        explanation: "Heterogeneous mixtures have visible separate components (Unit 2, Session 2)."
+      },
+      {
+        type: "text-input",
+        question: "Name one example of a pure substance.",
+        correctAnswer: "silver",
+        acceptableAnswers: ["silver", "water", "table salt", "ethanol", "carbon"],
+        caseSensitive: false,
+        explanation: "Pure substances have definite composition (Unit 2, Session 2)."
+      },
+
+      // --- SESSION 3: Physical and Chemical Properties of Matter (15 questions) ---
+      // MCQ (12), text-input (3)
+      {
+        type: "multiple-choice",
+        question: "A physical property can be measured and observed:",
+        options: [
+          "Only after a chemical change",
+          "Without changing the composition of the substance",
+          "Only at high temperatures",
+          "Only using chemical reactions"
+        ],
+        correctAnswer: 1,
+        explanation: "Physical properties do not alter the substance's identity (Unit 2, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Examples of physical properties include:",
+        options: [
+          "Colour and melting point",
+          "Flammability",
+          "Reactivity with acid",
+          "Toxicity"
+        ],
+        correctAnswer: 0,
+        explanation: "Colour, melting point, boiling point, and density are physical (Unit 2, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Melting is an example of a:",
+        options: [
+          "Chemical change",
+          "Physical change",
+          "Nuclear change",
+          "Biological change"
+        ],
+        correctAnswer: 1,
+        explanation: "Melting changes state but not composition (Unit 2, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Boiling water to produce steam is a:",
+        options: [
+          "Chemical change",
+          "Physical change",
+          "Chemical reaction",
+          "Irreversible change"
+        ],
+        correctAnswer: 1,
+        explanation: "Boiling is a physical change (change of state) (Unit 2, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Chemical properties describe a substance's ability to:",
+        options: [
+          "Change colour without reacting",
+          "React with other substances and transform into new substances",
+          "Change state",
+          "Dissolve in water"
+        ],
+        correctAnswer: 1,
+        explanation: "Chemical properties involve chemical reactions (Unit 2, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "When hydrogen gas burns in oxygen to form water, this describes a:",
+        options: [
+          "Physical property of hydrogen",
+          "Chemical property of hydrogen",
+          "Physical change",
+          "State change"
+        ],
+        correctAnswer: 1,
+        explanation: "Burning is a chemical reaction; it is a chemical property (Unit 2, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The statement 'ice melts at 0°C' describes:",
+        options: [
+          "A chemical property",
+          "A physical property",
+          "A chemical reaction",
+          "A nuclear reaction"
+        ],
+        correctAnswer: 1,
+        explanation: "Melting point is a physical property (Unit 2, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Which of the following is a chemical change?",
+        options: [
+          "Cutting a piece of wood",
+          "Boiling an egg",
+          "Melting ice",
+          "Dissolving sugar in water"
+        ],
+        correctAnswer: 1,
+        explanation: "Boiling an egg alters its chemical composition (Unit 2, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Freezing water into ice is a:",
+        options: [
+          "Chemical change",
+          "Physical change",
+          "Chemical reaction",
+          "Irreversible change"
+        ],
+        correctAnswer: 1,
+        explanation: "Freezing is a physical change (change of state) (Unit 2, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The ability of iron to rust is a:",
+        options: [
+          "Physical property",
+          "Chemical property",
+          "Physical change",
+          "Reversible change"
+        ],
+        correctAnswer: 1,
+        explanation: "Rusting involves a chemical reaction with oxygen (Unit 2, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "When a substance undergoes a chemical change, the original substance:",
+        options: [
+          "Can be recovered by physical means",
+          "Vanishes and a new substance forms",
+          "Only changes state",
+          "Remains identical"
+        ],
+        correctAnswer: 1,
+        explanation: "Chemical change produces new substances with different properties (Unit 2, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Rusting of iron is an example of:",
+        options: [
+          "Physical change",
+          "Chemical change",
+          "Physical property",
+          "Reversible change"
+        ],
+        correctAnswer: 1,
+        explanation: "Rusting is a chemical reaction between iron, oxygen, and water (Unit 2, Session 3)."
+      },
+      {
+        type: "text-input",
+        question: "What type of change occurs when a substance changes state but remains the same composition?",
+        correctAnswer: "physical",
+        acceptableAnswers: ["physical", "physical change"],
+        caseSensitive: false,
+        explanation: "Physical changes do not alter chemical identity (Unit 2, Session 3)."
+      },
+      {
+        type: "text-input",
+        question: "What chemical property describes the ability to burn?",
+        correctAnswer: "flammability",
+        acceptableAnswers: ["flammability", "combustibility"],
+        caseSensitive: false,
+        explanation: "Flammability is a chemical property (Unit 2, Session 3)."
+      },
+      {
+        type: "text-input",
+        question: "What happens to a substance during a chemical change?",
+        correctAnswer: "transforms",
+        acceptableAnswers: ["transforms", "changes identity", "forms new substance"],
+        caseSensitive: false,
+        explanation: "Chemical change produces one or more new substances (Unit 2, Session 3)."
+      },
+
+      // --- SESSION 4: Changes of States (15 questions) ---
+      // MCQ (12), text-input (3)
+      {
+        type: "multiple-choice",
+        question: "Changing a solid to a liquid is called:",
+        options: [
+          "Freezing",
+          "Melting",
+          "Boiling",
+          "Condensation"
+        ],
+        correctAnswer: 1,
+        explanation: "Melting is the transition from solid to liquid (Unit 2, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The change from liquid to gas at the surface of the liquid is called:",
+        options: [
+          "Boiling",
+          "Evaporation",
+          "Condensation",
+          "Sublimation"
+        ],
+        correctAnswer: 1,
+        explanation: "Evaporation occurs at the liquid's surface below boiling point (Unit 2, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Rapid vaporisation that occurs throughout the liquid is called:",
+        options: [
+          "Evaporation",
+          "Boiling",
+          "Condensation",
+          "Freezing"
+        ],
+        correctAnswer: 1,
+        explanation: "Boiling produces bubbles throughout the liquid (Unit 2, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The change from gas to liquid is called:",
+        options: [
+          "Vaporisation",
+          "Condensation",
+          "Sublimation",
+          "Freezing"
+        ],
+        correctAnswer: 1,
+        explanation: "Condensation is gas to liquid (Unit 2, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Changing a liquid to a solid is called:",
+        options: [
+          "Melting",
+          "Freezing",
+          "Evaporation",
+          "Sublimation"
+        ],
+        correctAnswer: 1,
+        explanation: "Freezing is liquid to solid (Unit 2, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Sublimation occurs when a solid changes directly into:",
+        options: [
+          "Liquid",
+          "Gas",
+          "Plasma",
+          "Another solid"
+        ],
+        correctAnswer: 1,
+        explanation: "Sublimation skips the liquid phase (Unit 2, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "An example of a substance that sublimes is:",
+        options: [
+          "Water",
+          "Iodine",
+          "Salt",
+          "Sugar"
+        ],
+        correctAnswer: 1,
+        explanation: "Iodine, dry ice, and snow sublime (Unit 2, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Water droplets forming on the outside of a cold glass is an example of:",
+        options: [
+          "Evaporation",
+          "Condensation",
+          "Freezing",
+          "Melting"
+        ],
+        correctAnswer: 1,
+        explanation: "Water vapour condenses on the cold surface (Unit 2, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The temperature at which a solid changes to a liquid is its:",
+        options: [
+          "Boiling point",
+          "Melting point",
+          "Freezing point",
+          "Condensation point"
+        ],
+        correctAnswer: 1,
+        explanation: "Melting point is the temperature of solid‑liquid equilibrium (Unit 2, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The temperature at which a liquid boils is its:",
+        options: [
+          "Melting point",
+          "Boiling point",
+          "Freezing point",
+          "Sublimation point"
+        ],
+        correctAnswer: 1,
+        explanation: "Boiling point is the temperature of liquid‑gas equilibrium (Unit 2, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Melting and boiling are endothermic reactions because:",
+        options: [
+          "Energy is released",
+          "Energy is absorbed from the environment",
+          "No energy change",
+          "Temperature decreases"
+        ],
+        correctAnswer: 1,
+        explanation: "Endothermic processes absorb heat (Unit 2, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Condensation and freezing are exothermic because:",
+        options: [
+          "Energy is absorbed",
+          "Energy is released to the environment",
+          "No energy change",
+          "Temperature rises"
+        ],
+        correctAnswer: 1,
+        explanation: "Exothermic processes release heat (Unit 2, Session 4)."
+      },
+      {
+        type: "text-input",
+        question: "What is the change of state from solid to gas called?",
+        correctAnswer: "sublimation",
+        acceptableAnswers: ["sublimation"],
+        caseSensitive: false,
+        explanation: "Sublimation bypasses the liquid state (Unit 2, Session 4)."
+      },
+      {
+        type: "text-input",
+        question: "What type of reaction occurs when energy is transferred from the environment?",
+        correctAnswer: "endothermic",
+        acceptableAnswers: ["endothermic", "endothermic reaction"],
+        caseSensitive: false,
+        explanation: "Endothermic reactions absorb energy (Unit 2, Session 4)."
+      },
+      {
+        type: "text-input",
+        question: "Name an example of a substance that sublimes.",
+        correctAnswer: "dry ice",
+        acceptableAnswers: ["dry ice", "iodine", "snow"],
+        caseSensitive: false,
+        explanation: "Dry ice (solid carbon dioxide) sublimes (Unit 2, Session 4)."
+      }
+    ]
+  },
+  "unit3": {
+    name: "Unit 3: Measurement of Physical Quantities",
+    icon: "📏",
+    questions: [
+      // --- SESSION 1: Measurement of Physical Quantities (Fundamental and Derived) (12 questions) ---
+      // MCQ (10), text-input (2)
+      {
+        type: "multiple-choice",
+        question: "The British imperial system originally defined the 'foot' as:",
+        options: [
+          "The length of a king's arm",
+          "The length of a king's foot",
+          "The width of a thumb",
+          "The distance from nose to outstretched hand"
+        ],
+        correctAnswer: 1,
+        explanation: "The foot was based on the king of England's foot (Unit 3, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The metric system later selected which units as basic units of mass and length?",
+        options: [
+          "Pound and foot",
+          "Gramme and centimetre",
+          "Kilogramme and metre",
+          "Ounce and yard"
+        ],
+        correctAnswer: 1,
+        explanation: "The British Association selected gramme and centimetre (Unit 3, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The Giorgi system of measurement uses metre, kilogramme, and:",
+        options: [
+          "Candela",
+          "Second",
+          "Ampere",
+          "Mole"
+        ],
+        correctAnswer: 1,
+        explanation: "Length = metre, mass = kilogramme, time = second (Unit 3, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "SI units are described as standard units because they are:",
+        options: [
+          "Only used in Ghana",
+          "Understood and accepted by people all over the world",
+          "Based on the imperial system",
+          "Only for scientific use"
+        ],
+        correctAnswer: 1,
+        explanation: "SI units are internationally accepted standards (Unit 3, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Which of the following is a fundamental (base) quantity?",
+        options: [
+          "Force",
+          "Length",
+          "Density",
+          "Volume"
+        ],
+        correctAnswer: 1,
+        explanation: "Length is a fundamental quantity; others are derived (Unit 3, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The SI unit for length is the:",
+        options: [
+          "Metre (m)",
+          "Centimetre (cm)",
+          "Kilometre (km)",
+          "Foot (ft)"
+        ],
+        correctAnswer: 0,
+        explanation: "The metre is the SI base unit for length (Unit 3, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The SI unit for mass is the:",
+        options: [
+          "Gram (g)",
+          "Kilogram (kg)",
+          "Pound (lb)",
+          "Newton (N)"
+        ],
+        correctAnswer: 1,
+        explanation: "The kilogram is the SI base unit for mass (Unit 3, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Which instrument is used to measure electric current?",
+        options: [
+          "Voltmeter",
+          "Ammeter",
+          "Ohmmeter",
+          "Galvanometer"
+        ],
+        correctAnswer: 1,
+        explanation: "Ammeter measures electric current in amperes (Unit 3, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The derived unit for force is the:",
+        options: [
+          "Joule (J)",
+          "Newton (N)",
+          "Watt (W)",
+          "Pascal (Pa)"
+        ],
+        correctAnswer: 1,
+        explanation: "1 N = 1 kg m/s² (Unit 3, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The SI unit for temperature is the:",
+        options: [
+          "Celsius (°C)",
+          "Fahrenheit (°F)",
+          "Kelvin (K)",
+          "Rankine (°R)"
+        ],
+        correctAnswer: 2,
+        explanation: "Kelvin is the SI base unit for temperature (Unit 3, Session 1)."
+      },
+      {
+        type: "text-input",
+        question: "What does SI stand for?",
+        correctAnswer: "Systeme International",
+        acceptableAnswers: ["Systeme International", "International System"],
+        caseSensitive: false,
+        explanation: "SI is the International System of Units (Unit 3, Session 1)."
+      },
+      {
+        type: "text-input",
+        question: "What is the convention for writing large numbers in SI?",
+        correctAnswer: "spaces",
+        acceptableAnswers: ["spaces", "no commas", "space between groups of three digits"],
+        caseSensitive: false,
+        explanation: "Commas are not used; digits are grouped in threes with spaces (Unit 3, Session 1)."
+      },
+
+      // --- SESSION 2: Measuring Devices (12 questions) ---
+      // MCQ (10), text-input (2)
+      {
+        type: "multiple-choice",
+        question: "A metre rule is suitable for measuring lengths from a few millimetres to:",
+        options: [
+          "10 cm",
+          "50 cm",
+          "1 metre",
+          "2 metres"
+        ],
+        correctAnswer: 2,
+        explanation: "Metre rule measures up to one metre (Unit 3, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Which instrument is used to measure the internal and external diameter of a solid object?",
+        options: [
+          "Metre rule",
+          "Vernier callipers",
+          "Micrometer screw gauge",
+          "Pair of callipers"
+        ],
+        correctAnswer: 3,
+        explanation: "A pair of callipers has upper and lower jaws to measure diameters (Unit 3, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The micrometer screw gauge can measure to a precision of:",
+        options: ["0.1 mm", "0.01 mm", "0.001 mm", "1 mm"],
+        correctAnswer: 1,
+        explanation: "It measures to 0.01 mm precision (Unit 3, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The top‑pan or electronic balance is used to measure:",
+        options: ["Weight", "Mass", "Volume", "Density"],
+        correctAnswer: 1,
+        explanation: "It measures the mass of an object (Unit 3, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Weight is measured using a:",
+        options: ["Beam balance", "Spring balance", "Top‑pan balance", "Lever balance"],
+        correctAnswer: 1,
+        explanation: "Spring balance measures weight (force) (Unit 3, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "A beam or chemical balance works by:",
+        options: [
+          "Comparing an object to known masses until equilibrium is reached",
+          "Digital display",
+          "Spring extension",
+          "Hydraulic pressure"
+        ],
+        correctAnswer: 0,
+        explanation: "Known masses are balanced against the object (Unit 3, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Liquid‑in‑glass thermometers measure temperature by:",
+        options: [
+          "Expansion of gas",
+          "Expansion of liquid (mercury or alcohol)",
+          "Change in colour",
+          "Electric resistance"
+        ],
+        correctAnswer: 1,
+        explanation: "Liquids expand uniformly with temperature (Unit 3, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Which instrument would you use to measure the thickness of a wire?",
+        options: [
+          "Metre rule",
+          "Vernier callipers",
+          "Micrometer screw gauge",
+          "Measuring tape"
+        ],
+        correctAnswer: 2,
+        explanation: "Micrometer screw gauge is designed for small external dimensions (Unit 3, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "A metre rule should be placed so that the zero mark coincides with:",
+        options: [
+          "The middle of the object",
+          "One end of the object",
+          "The observer's eye",
+          "The floor"
+        ],
+        correctAnswer: 1,
+        explanation: "Align zero with one end for correct measurement (Unit 3, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "To read a metre rule accurately, the eye should be positioned:",
+        options: [
+          "At an angle",
+          "Directly above the point to be read",
+          "Below the rule",
+          "Far away"
+        ],
+        correctAnswer: 1,
+        explanation: "Vertical positioning avoids parallax error (Unit 3, Session 2)."
+      },
+      {
+        type: "text-input",
+        question: "What device is used to measure the mass of a magnet in a school lab?",
+        correctAnswer: "top-pan balance",
+        acceptableAnswers: ["top-pan balance", "electronic balance", "beam balance"],
+        caseSensitive: false,
+        explanation: "Top‑pan balances are common in school laboratories (Unit 3, Session 2)."
+      },
+      {
+        type: "text-input",
+        question: "What is the unit of measurement for weight?",
+        correctAnswer: "newton",
+        acceptableAnswers: ["newton", "N"],
+        caseSensitive: false,
+        explanation: "Weight is a force, measured in newtons (Unit 3, Session 2)."
+      },
+
+      // --- SESSION 3: Measurement of Volume (12 questions) ---
+      // MCQ (10), text-input (2)
+      {
+        type: "multiple-choice",
+        question: "The volume of a substance is the:",
+        options: [
+          "Mass it contains",
+          "Space it occupies",
+          "Weight it has",
+          "Density it has"
+        ],
+        correctAnswer: 1,
+        explanation: "Volume is the amount of space occupied (Unit 3, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Which instrument is used to measure the volume of a liquid in the laboratory?",
+        options: [
+          "Metre rule",
+          "Measuring cylinder",
+          "Thermometer",
+          "Spring balance"
+        ],
+        correctAnswer: 1,
+        explanation: "Measuring cylinders, burettes, and pipettes measure liquid volumes (Unit 3, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The curved surface of a liquid in a graduated cylinder is called the:",
+        options: [
+          "Bubble",
+          "Meniscus",
+          "Surface tension",
+          "Layer"
+        ],
+        correctAnswer: 1,
+        explanation: "The meniscus is the curved surface (Unit 3, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "For most liquids like water, the meniscus curves:",
+        options: ["Upwards", "Downwards", "Flat", "Irregular"],
+        correctAnswer: 1,
+        explanation: "Water has a concave (downward) meniscus (Unit 3, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Mercury in a glass tube has a meniscus that curves:",
+        options: ["Downwards", "Upwards", "Flat", "Circular"],
+        correctAnswer: 1,
+        explanation: "Mercury has a convex (upward) meniscus (Unit 3, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "To measure the volume of a regular solid like a cube, you:",
+        options: [
+          "Use a measuring cylinder",
+          "Measure its dimensions and multiply",
+          "Use a spring balance",
+          "Use displacement method"
+        ],
+        correctAnswer: 1,
+        explanation: "Volume = length × breadth × height (Unit 3, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The volume of an irregular solid such as a stone is determined by:",
+        options: [
+          "Measuring its dimensions",
+          "The displacement method using a measuring cylinder",
+          "Weighing it",
+          "Using a ruler"
+        ],
+        correctAnswer: 1,
+        explanation: "The stone displaces water equal to its volume (Unit 3, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "In the displacement method, the volume of the irregular solid is:",
+        options: [
+          "Final volume minus initial volume",
+          "Initial volume minus final volume",
+          "Final volume plus initial volume",
+          "Only the final volume"
+        ],
+        correctAnswer: 0,
+        explanation: "Volume of solid = V₂ − V₁ (Unit 3, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "A pipette is used to measure:",
+        options: [
+          "A fixed, precise volume of liquid",
+          "Any volume of liquid",
+          "Volume of a solid",
+          "Mass of a liquid"
+        ],
+        correctAnswer: 0,
+        explanation: "Pipettes deliver a specific volume accurately (Unit 3, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "A burette is commonly used in:",
+        options: [
+          "Weighing solids",
+          "Titration (precise liquid delivery)",
+          "Heating liquids",
+          "Storing liquids"
+        ],
+        correctAnswer: 1,
+        explanation: "Burettes are used for accurate measurement of variable volumes in titrations (Unit 3, Session 3)."
+      },
+      {
+        type: "text-input",
+        question: "What is the volume of a sugar box with length 45 cm, breadth 20 cm, height 15 cm?",
+        correctAnswer: "13500 cm³",
+        acceptableAnswers: ["13500", "13500 cm3", "13500 cubic centimetres"],
+        caseSensitive: false,
+        explanation: "Volume = 45 × 20 × 15 = 13 500 cm³ (Unit 3, Session 3)."
+      },
+      {
+        type: "text-input",
+        question: "What is the name of the method for finding volume of an irregular solid using water?",
+        correctAnswer: "displacement",
+        acceptableAnswers: ["displacement", "displacement method"],
+        caseSensitive: false,
+        explanation: "Water displacement measures volume (Unit 3, Session 3)."
+      },
+
+      // --- SESSION 4: Measurement of Time and Temperature (12 questions) ---
+      // MCQ (10), text-input (2)
+      {
+        type: "multiple-choice",
+        question: "A day is divided into 24 hours, each hour contains 60 minutes, and each minute contains:",
+        options: ["30 seconds", "60 seconds", "100 seconds", "10 seconds"],
+        correctAnswer: 1,
+        explanation: "1 minute = 60 seconds (Unit 3, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "In ancient times, the period of the day was determined using:",
+        options: [
+          "Water clocks",
+          "Rays from the sun",
+          "Mechanical clocks",
+          "Atomic clocks"
+        ],
+        correctAnswer: 1,
+        explanation: "Sun rays were used to tell time (Unit 3, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The caesium atomic clock can measure time intervals with an error of not more than one second in:",
+        options: ["300 years", "3000 years", "30 years", "3 years"],
+        correctAnswer: 1,
+        explanation: "Accuracy is within 1 second in 3000 years (Unit 3, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Temperature is defined as the:",
+        options: [
+          "Mass of a body",
+          "Hotness or coldness of a body on a chosen scale",
+          "Volume of a body",
+          "Density of a body"
+        ],
+        correctAnswer: 1,
+        explanation: "Temperature measures thermal energy level (Unit 3, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Which thermometer is commonly used to measure body temperature?",
+        options: [
+          "Mercury thermometer",
+          "Clinical thermometer",
+          "Six's maximum and minimum thermometer",
+          "Ethanol thermometer"
+        ],
+        correctAnswer: 1,
+        explanation: "Clinical thermometers are designed for human body (Unit 3, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "A mercury thermometer contains mercury in its:",
+        options: ["Stem", "Bulb", "Capillary", "Scale"],
+        correctAnswer: 1,
+        explanation: "The bulb holds the mercury (Unit 3, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The Royal Greenwich Observatory uses:",
+        options: ["Water clocks", "Electric watches controlled by quartz crystals", "Sun dials", "Atomic clocks"],
+        correctAnswer: 1,
+        explanation: "Electric watches with quartz vibrations are used (Unit 3, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The most accurate clocks used as checks on electric clocks are:",
+        options: ["Quartz clocks", "Mechanical clocks", "Caesium atomic clocks", "Water clocks"],
+        correctAnswer: 2,
+        explanation: "Atomic clocks at the National Physical Laboratory in the UK (Unit 3, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "A six's maximum and minimum thermometer records:",
+        options: [
+          "Only maximum temperature",
+          "Only minimum temperature",
+          "Both maximum and minimum temperature over a period",
+          "Instantaneous temperature"
+        ],
+        correctAnswer: 2,
+        explanation: "It shows the highest and lowest temperatures (Unit 3, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Which of the following is NOT a device for measuring time?",
+        options: ["Stopwatch", "Clock", "Thermometer", "Watch"],
+        correctAnswer: 2,
+        explanation: "Thermometers measure temperature, not time (Unit 3, Session 4)."
+      },
+      {
+        type: "text-input",
+        question: "What device is used to measure time intervals with high accuracy in sports?",
+        correctAnswer: "stopwatch",
+        acceptableAnswers: ["stopwatch", "stop clock"],
+        caseSensitive: false,
+        explanation: "Stopwatches are used for short time intervals (Unit 3, Session 4)."
+      },
+      {
+        type: "text-input",
+        question: "What type of thermometer contains coloured ethanol?",
+        correctAnswer: "ethanol thermometer",
+        acceptableAnswers: ["ethanol thermometer", "alcohol thermometer"],
+        caseSensitive: false,
+        explanation: "Ethanol thermometers use coloured alcohol (Unit 3, Session 4)."
+      },
+
+      // --- SESSION 5: Measurement of Density (12 questions) ---
+      // MCQ (10), text-input (2)
+      {
+        type: "multiple-choice",
+        question: "Density is defined as:",
+        options: [
+          "Mass per unit volume",
+          "Volume per unit mass",
+          "Mass per unit area",
+          "Weight per unit volume"
+        ],
+        correctAnswer: 0,
+        explanation: "Density (ρ) = m / v (Unit 3, Session 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The SI unit of density is:",
+        options: ["g/cm³", "kg/m³", "g/mL", "kg/L"],
+        correctAnswer: 1,
+        explanation: "SI uses kg/m³ (Unit 3, Session 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Density is a measure of the:",
+        options: [
+          "Compactness of a body",
+          "Size of a body",
+          "Colour of a body",
+          "Shape of a body"
+        ],
+        correctAnswer: 0,
+        explanation: "Higher compactness means higher density (Unit 3, Session 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "To find the density of a regular solid, you need to measure its mass and:",
+        options: [
+          "Weight",
+          "Volume",
+          "Temperature",
+          "Time"
+        ],
+        correctAnswer: 1,
+        explanation: "Volume of regular solid is calculated from dimensions (Unit 3, Session 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The volume of an irregular solid can be found by the:",
+        options: [
+          "Water displacement method",
+          "Direct measurement with a ruler",
+          "Weighing method",
+          "Using a thermometer"
+        ],
+        correctAnswer: 0,
+        explanation: "Displacement measures the volume of irregular objects (Unit 3, Session 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "When finding the density of a liquid, you must measure the mass of an empty container, the mass with liquid, and the:",
+        options: [
+          "Temperature",
+          "Volume of liquid",
+          "Colour of liquid",
+          "Pressure"
+        ],
+        correctAnswer: 1,
+        explanation: "Volume needed to calculate density (Unit 3, Session 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "A metal cuboid has mass 350 g, length 8 cm, breadth 6 cm, height 3 cm. Its volume is:",
+        options: ["144 cm³", "350 cm³", "100 cm³", "56 cm³"],
+        correctAnswer: 0,
+        explanation: "Volume = 8 × 6 × 3 = 144 cm³ (Unit 3, Session 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "From the previous data (mass 350 g, volume 144 cm³), the density is approximately:",
+        options: ["2.43 g/cm³", "3.50 g/cm³", "1.44 g/cm³", "5.00 g/cm³"],
+        correctAnswer: 0,
+        explanation: "350 ÷ 144 = 2.43 g/cm³ (Unit 3, Session 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "When lowering a stone into a measuring cylinder, the water level rises because:",
+        options: [
+          "The stone pushes water up",
+          "The stone displaces its own volume of water",
+          "The stone absorbs water",
+          "The stone reacts with water"
+        ],
+        correctAnswer: 1,
+        explanation: "Displacement law: volume of water displaced = volume of stone (Unit 3, Session 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "If initial water volume is 50 cm³ and after adding stone it is 80 cm³, the stone's volume is:",
+        options: ["30 cm³", "130 cm³", "50 cm³", "80 cm³"],
+        correctAnswer: 0,
+        explanation: "Volume = 80 − 50 = 30 cm³ (Unit 3, Session 5)."
+      },
+      {
+        type: "text-input",
+        question: "What formula is used for density?",
+        correctAnswer: "m/v",
+        acceptableAnswers: ["m/v", "mass/volume", "mass divided by volume"],
+        caseSensitive: false,
+        explanation: "Density = mass / volume (Unit 3, Session 5)."
+      },
+      {
+        type: "text-input",
+        question: "Name one precaution when measuring dimensions with a metre rule.",
+        correctAnswer: "vertical reading",
+        acceptableAnswers: ["vertical reading", "avoid parallax", "align zero", "eye above mark"],
+        caseSensitive: false,
+        explanation: "Look vertically to avoid parallax error (Unit 3, Session 5)."
+      }
+    ]
+  },
+  "unit4": {
+    name: "Unit 4: Forces",
+    icon: "⚡",
+    questions: [
+      // --- SESSION 1: Definition of Force (12 questions) ---
+      // MCQ (10), text-input (2)
+      {
+        type: "multiple-choice",
+        question: "A force is defined as a:",
+        options: [
+          "Push or pull on a body",
+          "Type of energy",
+          "Form of matter",
+          "Type of motion"
+        ],
+        correctAnswer: 0,
+        explanation: "Force is a push or pull that can change motion or shape (Unit 4, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Force is a vector quantity because it has:",
+        options: [
+          "Only magnitude",
+          "Both magnitude and direction",
+          "Only direction",
+          "Neither magnitude nor direction"
+        ],
+        correctAnswer: 1,
+        explanation: "Vector quantities have magnitude and direction (Unit 4, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The SI unit of force is the:",
+        options: ["Joule (J)", "Newton (N)", "Watt (W)", "Pascal (Pa)"],
+        correctAnswer: 1,
+        explanation: "Force is measured in newtons (Unit 4, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Newton's first law of motion is also called the law of:",
+        options: ["Acceleration", "Inertia", "Action and reaction", "Gravity"],
+        correctAnswer: 1,
+        explanation: "First law is the law of inertia (Unit 4, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Newton's first law states that a body remains at rest or moves at constant velocity unless acted upon by:",
+        options: [
+          "A balanced force",
+          "An external unbalanced force",
+          "Gravity",
+          "Friction"
+        ],
+        correctAnswer: 1,
+        explanation: "An unbalanced external force is needed to change motion (Unit 4, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Shaking a ketchup bottle uses inertia because:",
+        options: [
+          "The bottle stops and ketchup continues moving",
+          "Both move together",
+          "Ketchup stops and bottle continues",
+          "There is no force involved"
+        ],
+        correctAnswer: 0,
+        explanation: "Inertia causes ketchup to keep moving when bottle stops (Unit 4, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Newton's second law of motion states that acceleration is proportional to the:",
+        options: [
+          "Mass of the object",
+          "Velocity of the object",
+          "Force acting upon it",
+          "Time of application"
+        ],
+        correctAnswer: 2,
+        explanation: "a = F/m (Unit 4, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Newton's second law can be written as:",
+        options: ["F = m/v", "F = ma", "F = m/t", "F = m/g"],
+        correctAnswer: 1,
+        explanation: "Force = mass × acceleration (Unit 4, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Newton's third law states that for every action, there is an equal and opposite:",
+        options: ["Force", "Reaction", "Motion", "Mass"],
+        correctAnswer: 1,
+        explanation: "Action and reaction are equal and opposite (Unit 4, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "When you hit a wall with your fist, you get hurt because:",
+        options: [
+          "The wall exerts an equal and opposite force on your fist",
+          "Your fist is weak",
+          "The wall is soft",
+          "There is no reaction"
+        ],
+        correctAnswer: 0,
+        explanation: "Newton's third law explains the reaction force from the wall (Unit 4, Session 1)."
+      },
+      {
+        type: "text-input",
+        question: "What is the name of Newton's first law?",
+        correctAnswer: "inertia",
+        acceptableAnswers: ["inertia", "law of inertia"],
+        caseSensitive: false,
+        explanation: "Newton's first law is the law of inertia (Unit 4, Session 1)."
+      },
+      {
+        type: "text-input",
+        question: "What device is used to measure force?",
+        correctAnswer: "newton meter",
+        acceptableAnswers: ["newton meter", "force meter", "spring balance"],
+        caseSensitive: false,
+        explanation: "Force meters or spring balances measure force (Unit 4, Session 1)."
+      },
+
+      // --- SESSION 2: Types and Uses of Forces (12 questions) ---
+      // MCQ (10), text-input (2)
+      {
+        type: "multiple-choice",
+        question: "Forces that act without physical contact are called:",
+        options: ["Contact forces", "Field forces", "Frictional forces", "Tensional forces"],
+        correctAnswer: 1,
+        explanation: "Field forces (gravity, magnetic) act at a distance (Unit 4, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Magnetic force is an example of a:",
+        options: ["Contact force", "Field force", "Frictional force", "Muscular force"],
+        correctAnswer: 1,
+        explanation: "Magnetic force acts without contact (Unit 4, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Like poles of a magnet:",
+        options: ["Attract", "Repel", "Have no effect", "Cancel each other"],
+        correctAnswer: 1,
+        explanation: "North‑North or South‑South repel (Unit 4, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Unlike poles of a magnet:",
+        options: ["Repel", "Attract", "Cancel", "Rotate"],
+        correctAnswer: 1,
+        explanation: "North and South attract (Unit 4, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Gravitational force pulls objects towards the:",
+        options: ["Sun", "Moon", "Earth", "Stars"],
+        correctAnswer: 2,
+        explanation: "Gravity pulls toward the centre of the Earth (Unit 4, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Tensional force is transmitted through:",
+        options: ["Ropes, strings, or cables", "Solid blocks", "Liquids", "Gases"],
+        correctAnswer: 0,
+        explanation: "Tension is a pulling force through flexible connectors (Unit 4, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "A stretched rubber of a catapult experiences:",
+        options: ["Compressional force", "Tensional force", "Magnetic force", "Gravitational force"],
+        correctAnswer: 1,
+        explanation: "Tension in the stretched rubber (Unit 4, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Centripetal force keeps a body moving in a:",
+        options: ["Straight line", "Circle", "Random path", "Wavy line"],
+        correctAnswer: 1,
+        explanation: "Centripetal force acts toward the centre of the circle (Unit 4, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The force of cohesion is between molecules of:",
+        options: ["Different substances", "The same substance", "Gas only", "Liquid only"],
+        correctAnswer: 1,
+        explanation: "Cohesion is attraction between like molecules (Unit 4, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The force of adhesion is between molecules of:",
+        options: ["The same substance", "Different substances", "Only solids", "Only gases"],
+        correctAnswer: 1,
+        explanation: "Adhesion is attraction between unlike molecules (Unit 4, Session 2)."
+      },
+      {
+        type: "text-input",
+        question: "What type of force is exerted by a fluid on a body immersed in it, upward?",
+        correctAnswer: "upthrust",
+        acceptableAnswers: ["upthrust", "buoyant force"],
+        caseSensitive: false,
+        explanation: "Upthrust is the upward buoyant force (Unit 4, Session 2)."
+      },
+      {
+        type: "text-input",
+        question: "What is the frictional force in a fluid called?",
+        correctAnswer: "viscosity",
+        acceptableAnswers: ["viscosity", "viscous force"],
+        caseSensitive: false,
+        explanation: "Viscosity resists motion within fluids (Unit 4, Session 2)."
+      },
+
+      // --- SESSION 3: Frictional Force (15 questions) ---
+      // MCQ (12), text-input (3)
+      {
+        type: "multiple-choice",
+        question: "Frictional force is the force that:",
+        options: [
+          "Increases motion",
+          "Retards motion between two surfaces in contact",
+          "Changes direction only",
+          "Never produces heat"
+        ],
+        correctAnswer: 1,
+        explanation: "Friction opposes relative motion (Unit 4, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The friction that exists between a stationary object and the surface on which it rests is called:",
+        options: ["Kinetic friction", "Static friction", "Limiting friction", "Rolling friction"],
+        correctAnswer: 1,
+        explanation: "Static friction acts before motion begins (Unit 4, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The friction that exists between two objects moving relative to each other is called:",
+        options: ["Static friction", "Kinetic (sliding) friction", "Limiting friction", "Rolling friction"],
+        correctAnswer: 1,
+        explanation: "Kinetic friction acts during sliding motion (Unit 4, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Which type of friction is usually stronger?",
+        options: ["Kinetic friction", "Static friction", "Rolling friction", "Fluid friction"],
+        correctAnswer: 1,
+        explanation: "Static friction is greater than kinetic friction (Unit 4, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The coefficient of friction is:",
+        options: [
+          "A ratio of two forces, therefore unitless",
+          "Measured in newtons",
+          "The same for all materials",
+          "Always greater than 1"
+        ],
+        correctAnswer: 0,
+        explanation: "Coefficient of friction (μ) has no units (Unit 4, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The expression for static friction is Fₛ = μₛ N, where N is the:",
+        options: ["Applied force", "Normal force", "Gravitational force", "Spring force"],
+        correctAnswer: 1,
+        explanation: "N = mg for flat surfaces (Unit 4, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "If a 5 kg box on a horizontal surface has μₛ = 0.4, the maximum static friction force is (g = 9.8 m/s²):",
+        options: ["19.6 N", "15 N", "5 N", "49 N"],
+        correctAnswer: 0,
+        explanation: "F = 0.4 × (5 × 9.8) = 0.4 × 49 = 19.6 N (Unit 4, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "If a pushing force of 15 N is applied to the 5 kg box in the previous example, the box will:",
+        options: ["Move", "Not move", "Move only if pushed harder", "Slip"],
+        correctAnswer: 1,
+        explanation: "15 N is less than maximum static friction (19.6 N) (Unit 4, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "An advantage of friction is:",
+        options: [
+          "It causes wear and tear",
+          "It helps in walking",
+          "It reduces efficiency",
+          "It produces unwanted heat"
+        ],
+        correctAnswer: 1,
+        explanation: "Friction between feet and ground enables walking (Unit 4, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "A disadvantage of friction is:",
+        options: [
+          "It helps cars stop",
+          "It facilitates grinding",
+          "It causes tear and wear of machines",
+          "It helps in locomotion"
+        ],
+        correctAnswer: 2,
+        explanation: "Wear and tear is a disadvantage (Unit 4, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "One method to reduce friction is:",
+        options: ["Using sandpaper", "Lubrication (oiling/greasing)", "Increasing roughness", "Increasing normal force"],
+        correctAnswer: 1,
+        explanation: "Lubricants reduce friction between surfaces (Unit 4, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "What causes friction between surfaces?",
+        options: [
+          "Perfect smoothness",
+          "Small irregularities becoming interlocked",
+          "Lack of normal force",
+          "High temperature"
+        ],
+        correctAnswer: 1,
+        explanation: "Surface irregularities interlock, creating resistance (Unit 4, Session 3)."
+      },
+      {
+        type: "text-input",
+        question: "What is the term for the maximum friction before an object starts to move?",
+        correctAnswer: "limiting friction",
+        acceptableAnswers: ["limiting friction", "maximum static friction"],
+        caseSensitive: false,
+        explanation: "Limiting friction is the threshold before motion (Unit 4, Session 3)."
+      },
+      {
+        type: "text-input",
+        question: "Name one method of reducing friction in machines.",
+        correctAnswer: "ball bearings",
+        acceptableAnswers: ["ball bearings", "lubrication", "polishing", "rollers"],
+        caseSensitive: false,
+        explanation: "Ball bearings reduce sliding friction (Unit 4, Session 3)."
+      },
+      {
+        type: "text-input",
+        question: "What do brakes of cars depend on to stop?",
+        correctAnswer: "friction",
+        acceptableAnswers: ["friction", "frictional force"],
+        caseSensitive: false,
+        explanation: "Brake pads create friction with the wheel (Unit 4, Session 3)."
+      },
+
+      // --- SESSION 4: Effects of Forces (9 questions) ---
+      // MCQ (7), text-input (2)
+      {
+        type: "multiple-choice",
+        question: "A force can move a stationary object. Example:",
+        options: [
+          "Brakes applied to a moving car",
+          "Kicking a stationary football",
+          "Changing the shape of clay",
+          "A car turning a corner"
+        ],
+        correctAnswer: 1,
+        explanation: "Kicking applies force to start motion (Unit 4, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "A force can stop a moving object. Example:",
+        options: [
+          "Pedalling a bicycle faster",
+          "Applying brakes on a car",
+          "A ball rolling on a flat surface",
+          "Kicking a stationary football"
+        ],
+        correctAnswer: 1,
+        explanation: "Brakes apply force to stop motion (Unit 4, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "A force can change the speed of a moving object. Example:",
+        options: [
+          "Hitting a tennis ball with a racket",
+          "A book resting on a table",
+          "A stone falling straight down",
+          "A satellite orbiting Earth"
+        ],
+        correctAnswer: 0,
+        explanation: "The racket force changes the ball's speed (Unit 4, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "A force can change the direction of a moving object. Example:",
+        options: [
+          "Turning the steering wheel of a car",
+          "Braking a bicycle",
+          "Squeezing a sponge",
+          "Melting ice"
+        ],
+        correctAnswer: 0,
+        explanation: "Steering changes direction (Unit 4, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "A force can change the shape and size of an object. Example:",
+        options: [
+          "Pushing a swing",
+          "Applying force to clay or hitting aluminium sheet with a hammer",
+          "Riding a bicycle",
+          "Throwing a ball"
+        ],
+        correctAnswer: 1,
+        explanation: "Deforming force changes shape (Unit 4, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "We apply forces to stop and move a trolley when:",
+        options: ["Reading", "Shopping in a supermarket", "Sleeping", "Eating"],
+        correctAnswer: 1,
+        explanation: "You push or pull a shopping trolley (Unit 4, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "A force can make an object start moving, stop moving, change speed, change direction, or:",
+        options: ["Change its colour", "Change its shape", "Change its temperature", "Change its smell"],
+        correctAnswer: 1,
+        explanation: "Force also deforms objects (Unit 4, Session 4)."
+      },
+      {
+        type: "text-input",
+        question: "What effect of force does a goalkeeper apply when catching a moving ball?",
+        correctAnswer: "stop",
+        acceptableAnswers: ["stop", "stopping", "stop motion"],
+        caseSensitive: false,
+        explanation: "The goalkeeper applies force to stop the ball (Unit 4, Session 4)."
+      },
+      {
+        type: "text-input",
+        question: "What effect of force is used when squeezing wet clothes?",
+        correctAnswer: "shape change",
+        acceptableAnswers: ["shape change", "deformation", "change shape and size"],
+        caseSensitive: false,
+        explanation: "Squeezing deforms clothes to remove water (Unit 4, Session 4)."
+      },
+
+      // --- SESSION 5: Uses of Forces (12 questions) ---
+      // MCQ (10), text-input (2)
+      {
+        type: "multiple-choice",
+        question: "Which of the following activities requires the use of force?",
+        options: ["Walking", "Sleeping", "Sitting still", "Daydreaming"],
+        correctAnswer: 0,
+        explanation: "Walking requires pushing against the ground (Unit 4, Session 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Driving a car involves putting pressure on the gas pedal, which uses:",
+        options: ["Heat", "Light", "Force", "Sound"],
+        correctAnswer: 2,
+        explanation: "The pedal pushes to apply force (Unit 4, Session 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "When you brush your teeth, you use force to move the brush:",
+        options: ["Up and down", "Side to side", "In circles", "All of the above"],
+        correctAnswer: 3,
+        explanation: "Brushing involves multiple directions of force (Unit 4, Session 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Kicking a football up in the air uses force; the ball comes back down due to:",
+        options: ["Friction", "Gravitational force", "Magnetic force", "Tension"],
+        correctAnswer: 1,
+        explanation: "Gravity pulls the ball back to Earth (Unit 4, Session 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Buildings sticking to the ground is due to:",
+        options: ["Magnetic force", "Gravitational force", "Frictional force", "Tensional force"],
+        correctAnswer: 1,
+        explanation: "Gravity holds buildings to the ground (Unit 4, Session 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Rain falling from the sky is caused by:",
+        options: ["Upthrust", "Gravitational force", "Friction", "Magnetic force"],
+        correctAnswer: 1,
+        explanation: "Gravity pulls raindrops down (Unit 4, Session 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Opening and closing a door requires application of:",
+        options: ["Heat", "Force", "Light", "Sound"],
+        correctAnswer: 1,
+        explanation: "You push or pull the door (Unit 4, Session 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Chewing food uses force applied by:",
+        options: ["Teeth", "Tongue", "Lips", "Palate"],
+        correctAnswer: 0,
+        explanation: "Jaw muscles apply force through teeth (Unit 4, Session 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "When you pick up your phone, you use force to:",
+        options: ["See the screen", "Lift it", "Charge it", "Turn it off"],
+        correctAnswer: 1,
+        explanation: "Lifting requires force against gravity (Unit 4, Session 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Pushing a wheelbarrow uses force to:",
+        options: ["Move it forward", "Stop it", "Change its colour", "Heat it"],
+        correctAnswer: 0,
+        explanation: "Force causes motion of the wheelbarrow (Unit 4, Session 5)."
+      },
+      {
+        type: "text-input",
+        question: "What force is used to pull a blanket over yourself when going to bed?",
+        correctAnswer: "muscular",
+        acceptableAnswers: ["muscular", "muscular force", "pull"],
+        caseSensitive: false,
+        explanation: "Muscular force pulls the blanket (Unit 4, Session 5)."
+      },
+      {
+        type: "text-input",
+        question: "Jumping up and down requires what type of force from your legs?",
+        correctAnswer: "muscular",
+        acceptableAnswers: ["muscular", "muscular force", "push"],
+        caseSensitive: false,
+        explanation: "Leg muscles exert force to push off the ground (Unit 4, Session 5)."
+      }
+    ]
+  },
+  "unit5": {
+    name: "Unit 5: Child Study Styles",
+    icon: "🧒",
+    questions: [
+      // --- SESSION 1: Child Development Theories (Behavioural, Cognitive, Social Learning, Sociocultural) (15 questions) ---
+      // MCQ (12), text-input (3)
+      {
+        type: "multiple-choice",
+        question: "According to the behavioural perspective, all human behaviour can be described in terms of:",
+        options: [
+          "Genetic inheritance",
+          "Environmental influences",
+          "Innate ideas",
+          "Spiritual factors"
+        ],
+        correctAnswer: 1,
+        explanation: "Behaviourism focuses on rewards, punishments, and stimuli (Unit 5, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Classical conditioning involves learning by pairing a naturally occurring stimulus with a:",
+        options: [
+          "Previously neutral stimulus",
+          "Punishment",
+          "Reward",
+          "Negative reinforcer"
+        ],
+        correctAnswer: 0,
+        explanation: "Classical conditioning associates two stimuli (Unit 5, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Operant conditioning utilises reinforcement and punishment to:",
+        options: [
+          "Eliminate all behaviour",
+          "Modify behaviours",
+          "Create instincts",
+          "Develop reflexes"
+        ],
+        correctAnswer: 1,
+        explanation: "Skinner's operant conditioning shapes behaviour through consequences (Unit 5, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "According to Piaget, the sensorimotor stage occurs between:",
+        options: [
+          "Birth and 2 years",
+          "2 and 6 years",
+          "7 and 11 years",
+          "12 years to adulthood"
+        ],
+        correctAnswer: 0,
+        explanation: "Sensorimotor stage: birth to age 2 (Unit 5, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The pre‑operational stage (ages 2‑6) is characterised by the child learning to:",
+        options: [
+          "Think abstractly",
+          "Use language",
+          "Perform mental operations logically",
+          "Understand conservation"
+        ],
+        correctAnswer: 1,
+        explanation: "Language development occurs in pre‑operational stage (Unit 5, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Bruner identified three stages of cognitive representation: enactive, iconic, and:",
+        options: [
+          "Operational",
+          "Symbolic",
+          "Formal",
+          "Concrete"
+        ],
+        correctAnswer: 1,
+        explanation: "Symbolic representation (language‑based) from seven years up (Unit 5, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "In Bruner's enactive stage (0‑1 year), knowledge is represented through:",
+        options: [
+          "Images",
+          "Actions",
+          "Language",
+          "Symbols"
+        ],
+        correctAnswer: 1,
+        explanation: "Enactive stage is action‑based, learning through doing (Unit 5, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Social learning theory, proposed by Albert Bandura, emphasises learning through:",
+        options: [
+          "Trial and error",
+          "Observation and modelling",
+          "Classical conditioning",
+          "Operant conditioning"
+        ],
+        correctAnswer: 1,
+        explanation: "Bandura showed that children learn by observing others (Unit 5, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Vygotsky's sociocultural theory emphasises that learning is an inherently:",
+        options: [
+          "Individual process",
+          "Social process",
+          "Genetic process",
+          "Random process"
+        ],
+        correctAnswer: 1,
+        explanation: "Social interaction is central to Vygotsky's theory (Unit 5, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "According to Vygotsky, higher order functions are developed through interaction with:",
+        options: [
+          "Only teachers",
+          "Parents, caregivers, peers, and culture",
+          "Only the self",
+          "Only nature"
+        ],
+        correctAnswer: 1,
+        explanation: "Social and cultural context shapes cognitive development (Unit 5, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Piaget's concrete operational stage (ages 7‑11) involves children thinking logically about:",
+        options: [
+          "Abstract concepts",
+          "Concrete events",
+          "Hypothetical situations",
+          "Philosophical ideas"
+        ],
+        correctAnswer: 1,
+        explanation: "Concrete operations use real, tangible objects (Unit 5, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Piaget's formal operational stage (age 12+) involves the ability to think about:",
+        options: [
+          "Only concrete objects",
+          "Abstract concepts",
+          "Only memorised facts",
+          "Only physical activities"
+        ],
+        correctAnswer: 1,
+        explanation: "Abstract and hypothetical reasoning emerges (Unit 5, Session 1)."
+      },
+      {
+        type: "text-input",
+        question: "Who proposed the theory of cognitive development with four stages?",
+        correctAnswer: "Piaget",
+        acceptableAnswers: ["Piaget", "Jean Piaget"],
+        caseSensitive: false,
+        explanation: "Jean Piaget proposed sensorimotor, pre‑operational, concrete operational, formal operational stages (Unit 5, Session 1)."
+      },
+      {
+        type: "text-input",
+        question: "Which psychologist is known for Bobo doll experiments and social learning theory?",
+        correctAnswer: "Bandura",
+        acceptableAnswers: ["Bandura", "Albert Bandura"],
+        caseSensitive: false,
+        explanation: "Bandura's Bobo doll experiments demonstrated observational learning (Unit 5, Session 1)."
+      },
+      {
+        type: "text-input",
+        question: "What is Bruner's stage from seven years and up called?",
+        correctAnswer: "symbolic",
+        acceptableAnswers: ["symbolic", "symbolic representation"],
+        caseSensitive: false,
+        explanation: "Symbolic stage uses language and symbols (Unit 5, Session 1)."
+      },
+
+      // --- SESSION 2: Inquiry Approach and Constructivism (15 questions) ---
+      // MCQ (12), text-input (3)
+      {
+        type: "multiple-choice",
+        question: "Constructivist theory regards learning as an active process in which the learner:",
+        options: [
+          "Passively receives information",
+          "Constructs and internalises new concepts based on past and present experiences",
+          "Only memorises facts",
+          "Relies solely on the teacher"
+        ],
+        correctAnswer: 1,
+        explanation: "Knowledge is constructed, not received (Unit 5, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "According to Ausubel, meaningful learning occurs when new knowledge interacts with:",
+        options: [
+          "Rote memorisation",
+          "Relevant concepts already known to the learner",
+          "Rewards and punishments",
+          "Observation of others"
+        ],
+        correctAnswer: 1,
+        explanation: "Relate new information to existing cognitive structure (Unit 5, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Ausubel stressed the importance of reception rather than discovery learning, believing that concepts are achieved through:",
+        options: [
+          "Trial and error",
+          "Deductive reasoning",
+          "Inductive reasoning",
+          "Random guessing"
+        ],
+        correctAnswer: 1,
+        explanation: "Meaningful reception learning uses deductive reasoning (Unit 5, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Inquiry‑based science adopts an investigative approach where students:",
+        options: [
+          "Only listen to lectures",
+          "Investigate problems, search for solutions, make observations, ask questions",
+          "Only read textbooks",
+          "Memorise facts"
+        ],
+        correctAnswer: 1,
+        explanation: "Inquiry engages students in doing science (Unit 5, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "One essential feature of inquiry teaching activities is engaging students by:",
+        options: [
+          "Giving them answers directly",
+          "Scientifically oriented questions",
+          "Only using lectures",
+          "Avoiding questions"
+        ],
+        correctAnswer: 1,
+        explanation: "Questions drive the inquiry process (Unit 5, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "In inquiry teaching, students should be given priority to:",
+        options: [
+          "Memorise teacher explanations",
+          "Evidence from their own investigations",
+          "Only textbook answers",
+          "Teacher opinions"
+        ],
+        correctAnswer: 1,
+        explanation: "Evidence‑based reasoning is central (Unit 5, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Constructivism holds that pupils come into a classroom with:",
+        options: [
+          "Empty minds",
+          "Their own experiences and pre‑existing cognitive structures",
+          "Complete knowledge",
+          "No prior knowledge"
+        ],
+        correctAnswer: 1,
+        explanation: "Prior knowledge must be connected to new ideas (Unit 5, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "In a constructivist classroom, the teacher should:",
+        options: [
+          "Only lecture",
+          "Encourage active techniques, real‑world problem solving, and reflection",
+          "Provide all answers",
+          "Avoid questions"
+        ],
+        correctAnswer: 1,
+        explanation: "Students construct knowledge through experiments and discussions (Unit 5, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Inquiry‑based science challenges students' thinking by engaging them in:",
+        options: [
+          "Rote memorisation",
+          "Investigating scientifically oriented questions and using evidence",
+          "Passive listening",
+          "Copying notes"
+        ],
+        correctAnswer: 1,
+        explanation: "Students must give priority to evidence and evaluate explanations (Unit 5, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Meaningful learning can be contrasted with:",
+        options: [
+          "Deep learning",
+          "Rote learning",
+          "Experiential learning",
+          "Discovery learning"
+        ],
+        correctAnswer: 1,
+        explanation: "Rote learning is memorisation without understanding (Unit 5, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "In inquiry teaching, students should be encouraged to formulate explanations from:",
+        options: [
+          "Personal beliefs",
+          "Experimental evidence",
+          "Teacher's opinion",
+          "Textbook only"
+        ],
+        correctAnswer: 1,
+        explanation: "Evidence‑based explanations are scientific (Unit 5, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "A key strategy for incorporating inquiry is to have students communicate and justify proposed explanations through:",
+        options: [
+          "Silence",
+          "Debates, written and oral presentations",
+          "Only tests",
+          "Only homework"
+        ],
+        correctAnswer: 1,
+        explanation: "Sharing and defending ideas is part of inquiry (Unit 5, Session 2)."
+      },
+      {
+        type: "text-input",
+        question: "Who stressed meaningful learning as opposed to rote memorisation?",
+        correctAnswer: "Ausubel",
+        acceptableAnswers: ["Ausubel", "David Ausubel"],
+        caseSensitive: false,
+        explanation: "Ausubel's theory focuses on meaningful learning (Unit 5, Session 2)."
+      },
+      {
+        type: "text-input",
+        question: "What does inquiry‑based science require students to do with evidence?",
+        correctAnswer: "analyse",
+        acceptableAnswers: ["analyse", "evaluate", "give priority to"],
+        caseSensitive: false,
+        explanation: "Students must analyse and evaluate evidence (Unit 5, Session 2)."
+      },
+      {
+        type: "text-input",
+        question: "What type of learning involves memorising facts without understanding?",
+        correctAnswer: "rote",
+        acceptableAnswers: ["rote", "rote learning", "memorisation"],
+        caseSensitive: false,
+        explanation: "Rote learning is contrasted with meaningful learning (Unit 5, Session 2)."
+      },
+
+      // --- SESSION 3: Self-Awareness Conscientisation (15 questions) ---
+      // MCQ (12), text-input (3)
+      {
+        type: "multiple-choice",
+        question: "Self‑awareness is the ability to recognise oneself as an individual separate from:",
+        options: [
+          "Only one's thoughts",
+          "The environment and other individuals",
+          "Only one's body",
+          "Only one's emotions"
+        ],
+        correctAnswer: 1,
+        explanation: "Self‑awareness involves recognising individuality (Unit 5, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Self‑awareness means paying attention to the way you think, feel, and:",
+        options: [
+          "Only eat",
+          "Behave",
+          "Only sleep",
+          "Only breathe"
+        ],
+        correctAnswer: 1,
+        explanation: "It includes observing patterns in behaviour and emotions (Unit 5, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Consciousness is being aware of one's environment and body, while self‑awareness is the recognition of that:",
+        options: ["Environment", "Awareness", "Body", "Lifestyle"],
+        correctAnswer: 1,
+        explanation: "Self‑awareness is awareness of one's own awareness (Unit 5, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "A person with strong self‑efficacy views challenges as:",
+        options: [
+          "Impossible tasks",
+          "Mere tasks to be overcome",
+          "Reasons to give up",
+          "Unimportant"
+        ],
+        correctAnswer: 1,
+        explanation: "High self‑efficacy leads to resilience (Unit 5, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "A person with weak self‑efficacy tends to:",
+        options: [
+          "Embrace challenges",
+          "Easily feel discouraged and avoid challenges",
+          "Persist longer",
+          "Seek difficult tasks"
+        ],
+        correctAnswer: 1,
+        explanation: "Low self‑efficacy leads to avoidance (Unit 5, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Self‑awareness develops gradually through a succession of behaviours, beginning in:",
+        options: ["Adolescence", "Infancy and early childhood", "Adulthood", "Middle age"],
+        correctAnswer: 1,
+        explanation: "Self‑awareness begins in infancy (Unit 5, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "By what age do most toddlers recognise their own reflection in the mirror?",
+        options: ["6‑12 months", "18‑24 months", "3 years", "5 years"],
+        correctAnswer: 1,
+        explanation: "Self‑recognition appears around 18‑24 months (Unit 5, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "At school age, a child's awareness of personal memory transitions into a sense of:",
+        options: ["Others", "One's own self", "The environment", "Time"],
+        correctAnswer: 1,
+        explanation: "Personal memory contributes to self‑identity (Unit 5, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "During adolescence, self‑awareness becomes more complex due to:",
+        options: [
+          "Physical growth only",
+          "Heightened emotional and social development",
+          "Only academic pressure",
+          "Only hormonal changes"
+        ],
+        correctAnswer: 1,
+        explanation: "Adolescents develop meta‑cognitive emotional awareness (Unit 5, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "One benefit of self‑awareness is:",
+        options: [
+          "Worse relationships",
+          "Improved moods and better relationships",
+          "More confusion",
+          "Lower productivity"
+        ],
+        correctAnswer: 1,
+        explanation: "Self‑awareness helps regulate emotions (Unit 5, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Self‑awareness promotes overall objectivity and helps people make decisions without:",
+        options: [
+          "Any information",
+          "Poor judgment or clouded thinking",
+          "Consulting anyone",
+          "Considering consequences"
+        ],
+        correctAnswer: 1,
+        explanation: "Objectivity comes from knowing yourself (Unit 5, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Self‑awareness training has been linked to lowering:",
+        options: [
+          "Anger management issues and aggressive tendencies",
+          "Memory capacity",
+          "IQ scores",
+          "Physical strength"
+        ],
+        correctAnswer: 0,
+        explanation: "It helps adolescents handle anger (Unit 5, Session 3)."
+      },
+      {
+        type: "text-input",
+        question: "What is the term for awareness of one's own mental states?",
+        correctAnswer: "metacognition",
+        acceptableAnswers: ["metacognition", "meta‑cognition"],
+        caseSensitive: false,
+        explanation: "Metacognition is thinking about one's own thinking (Unit 5, Session 3)."
+      },
+      {
+        type: "text-input",
+        question: "What is the ability to recognise oneself as separate from the environment called?",
+        correctAnswer: "self-awareness",
+        acceptableAnswers: ["self-awareness", "self awareness"],
+        caseSensitive: false,
+        explanation: "Self‑awareness is the recognition of self as an individual (Unit 5, Session 3)."
+      },
+      {
+        type: "text-input",
+        question: "Name one benefit of self‑awareness.",
+        correctAnswer: "leadership",
+        acceptableAnswers: ["leadership", "better relationships", "objectivity", "productivity"],
+        caseSensitive: false,
+        explanation: "Self‑awareness improves leadership and decision‑making (Unit 5, Session 3)."
+      },
+
+      // --- SESSION 4: Concept of a Portfolio (15 questions) ---
+      // MCQ (12), text-input (3)
+      {
+        type: "multiple-choice",
+        question: "A portfolio is a compilation of materials that exemplifies a person's:",
+        options: [
+          "Only test scores",
+          "Beliefs, skills, qualifications, education, training, and experiences",
+          "Only attendance records",
+          "Only disciplinary history"
+        ],
+        correctAnswer: 1,
+        explanation: "Portfolios show a holistic picture of a person (Unit 5, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "A teaching portfolio is specific to and inclusive of:",
+        options: [
+          "Student work only",
+          "Teaching",
+          "School administration",
+          "Co‑curricular activities"
+        ],
+        correctAnswer: 1,
+        explanation: "Teaching portfolios document a teacher's knowledge and skills (Unit 5, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "A student portfolio is used to evaluate coursework quality, learning progress, and:",
+        options: [
+          "Teacher performance",
+          "Academic achievement",
+          "School budget",
+          "Classroom furniture"
+        ],
+        correctAnswer: 1,
+        explanation: "Student portfolios assess learning outcomes (Unit 5, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Portfolio assessment is often considered an authentic form of assessment because it includes:",
+        options: [
+          "Only standardised test results",
+          "Authentic samples of students' work",
+          "Only multiple‑choice questions",
+          "Only teacher observations"
+        ],
+        correctAnswer: 1,
+        explanation: "Real work samples show actual performance (Unit 5, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "One advantage of portfolio assessment is that it shows growth over time in a manner that is:",
+        options: [
+          "More stressful than traditional tests",
+          "Less stressful than traditional testing",
+          "Equally stressful",
+          "Not useful"
+        ],
+        correctAnswer: 1,
+        explanation: "Portfolios provide a broader picture of progress (Unit 5, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Portfolios promote student self‑reflection, evaluation, and:",
+        options: [
+          "Competition",
+          "Critical thinking skills",
+          "Passive learning",
+          "Memorisation"
+        ],
+        correctAnswer: 1,
+        explanation: "Students take ownership of their learning (Unit 5, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Portfolios encourage cooperative learning with peer collaboration and:",
+        options: [
+          "Isolation",
+          "Constructive criticism",
+          "Individual competition",
+          "Silent reading"
+        ],
+        correctAnswer: 1,
+        explanation: "Peers can give helpful feedback (Unit 5, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Portfolios allow for vertical assessment between grades during:",
+        options: [
+          "Examination",
+          "Transition",
+          "Summer break",
+          "Recess"
+        ],
+        correctAnswer: 1,
+        explanation: "Portfolios track progress across grade levels (Unit 5, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "One use of portfolios is to help teachers monitor and evaluate learning progress:",
+        options: [
+          "At the end only",
+          "Over time",
+          "Only at the beginning",
+          "Only during tests"
+        ],
+        correctAnswer: 1,
+        explanation: "Longitudinal monitoring is a key feature (Unit 5, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The first step in developing an assessment portfolio system is to:",
+        options: [
+          "Train teachers",
+          "Determine the curricular objectives to be addressed",
+          "Score assessments",
+          "Make decisions"
+        ],
+        correctAnswer: 1,
+        explanation: "Start with the purpose and objectives (Unit 5, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "After designing assessment tasks, the next step is to:",
+        options: [
+          "Teach the curriculum",
+          "Define the criteria and performance standards",
+          "Score assessments",
+          "Collect portfolios"
+        ],
+        correctAnswer: 1,
+        explanation: "Clear criteria ensure reliable scoring (Unit 5, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Portfolios can help teachers determine whether students can:",
+        options: [
+          "Only repeat facts",
+          "Apply what they have learned to new problems",
+          "Only memorise",
+          "Only take tests"
+        ],
+        correctAnswer: 1,
+        explanation: "Portfolios assess transfer of skills (Unit 5, Session 4)."
+      },
+      {
+        type: "text-input",
+        question: "What type of portfolio is used to reflect a teacher's progress and professional growth?",
+        correctAnswer: "teaching",
+        acceptableAnswers: ["teaching", "teaching portfolio"],
+        caseSensitive: false,
+        explanation: "Teaching portfolios document professional development (Unit 5, Session 4)."
+      },
+      {
+        type: "text-input",
+        question: "Name one purpose of a student portfolio.",
+        correctAnswer: "evaluation",
+        acceptableAnswers: ["evaluation", "reflection", "growth", "achievement"],
+        caseSensitive: false,
+        explanation: "Portfolios help evaluate learning progress (Unit 5, Session 4)."
+      },
+      {
+        type: "text-input",
+        question: "What is the first step in developing an assessment portfolio system?",
+        correctAnswer: "objectives",
+        acceptableAnswers: ["objectives", "determine curricular objectives"],
+        caseSensitive: false,
+        explanation: "First determine the curricular objectives (Unit 5, Session 4)."
+      }
+    ]
+  },
+  "unit6": {
+    name: "Unit 6: The Basic School Science Curriculum",
+    icon: "📐",
+    questions: [
+      // --- SESSION 1: Key Features of the Basic School Science Curriculum (10 questions) ---
+      // MCQ (8), text-input (2)
+      {
+        type: "multiple-choice",
+        question: "The rationale for primary science is that science forms an integral part of everyday life and development is hinged on:",
+        options: [
+          "Arts",
+          "Science and Technology",
+          "Sports",
+          "Religion"
+        ],
+        correctAnswer: 1,
+        explanation: "Science and Technology are the backbone of social, economic, political, and physical development (Unit 6, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The teaching philosophy of the basic science curriculum believes that effective science education should be:",
+        options: [
+          "Lecture‑based",
+          "Inquiry‑based",
+          "Memorisation‑based",
+          "Competition‑based"
+        ],
+        correctAnswer: 1,
+        explanation: "Science education should be learner‑centred and inquiry‑driven (Unit 6, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "According to the learning philosophy, learners are:",
+        options: [
+          "Empty vessels",
+          "Information constructors who operate as researchers",
+          "Passive receivers",
+          "Only listeners"
+        ],
+        correctAnswer: 1,
+        explanation: "Learners actively construct knowledge based on experiences (Unit 6, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The general aim of the science curriculum is to develop individuals who are scientifically literate, good problem solvers, and:",
+        options: [
+          "Only good at memorising",
+          "Confident and competent to participate fully in Ghanaian society",
+          "Only physically fit",
+          "Only skilled in arts"
+        ],
+        correctAnswer: 1,
+        explanation: "Graduates should be both confident and competent citizens (Unit 6, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "One subject aim of the science curriculum is to help learners develop the spirit of curiosity, creativity, innovation, and:",
+        options: [
+          "Rote learning",
+          "Critical thinking for investigating their environment",
+          "Passive reception",
+          "Only memorisation"
+        ],
+        correctAnswer: 1,
+        explanation: "Curiosity and critical thinking are key goals (Unit 6, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The science curriculum aims to help learners live a:",
+        options: [
+          "Wealthy life",
+          "Healthy and quality life",
+          "Sedentary life",
+          "Isolated life"
+        ],
+        correctAnswer: 1,
+        explanation: "Health and quality of life are emphasised (Unit 6, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The curriculum encourages learners to develop skills for using technology to:",
+        options: [
+          "Replace teachers",
+          "Enhance learning",
+          "Play games only",
+          "Avoid studying"
+        ],
+        correctAnswer: 1,
+        explanation: "ICT is integrated as a pedagogical tool (Unit 6, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The science curriculum is concerned with the development of attitudes and therefore it is important for all citizens to be scientifically and technologically:",
+        options: [
+          "Ignorant",
+          "Literate for sustainable development",
+          "Inactive",
+          "Uninterested"
+        ],
+        correctAnswer: 1,
+        explanation: "Scientific literacy is essential for development (Unit 6, Session 1)."
+      },
+      {
+        type: "text-input",
+        question: "What type of science teaching engages learners physically and cognitively in a rich, inquiry‑driven environment?",
+        correctAnswer: "learner-centred",
+        acceptableAnswers: ["learner-centred", "inquiry-based"],
+        caseSensitive: false,
+        explanation: "Learner‑centred approaches engage students actively (Unit 6, Session 1)."
+      },
+      {
+        type: "text-input",
+        question: "What does the science curriculum aim to develop in learners regarding the use of Ghana's resources?",
+        correctAnswer: "responsible attitude",
+        acceptableAnswers: ["responsible attitude", "humane attitude", "sustainable use"],
+        caseSensitive: false,
+        explanation: "Learners should develop humane and responsible attitudes (Unit 6, Session 1)."
+      },
+
+      // --- SESSION 2: Instructional Expectations and Core Competencies (10 questions) ---
+      // MCQ (8), text-input (2)
+      {
+        type: "multiple-choice",
+        question: "One instructional expectation is that teachers should select science content and plan lessons to meet the:",
+        options: [
+          "Teacher's preferences",
+          "Interests, knowledge, understanding, abilities, and experiences of learners",
+          "School's budget",
+          "Principal's orders"
+        ],
+        correctAnswer: 1,
+        explanation: "Differentiation is based on learner characteristics (Unit 6, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Teachers should work together as colleagues within and across disciplines to develop communities of science learners who exhibit:",
+        options: [
+          "Only competition",
+          "Skills of scientific inquiry and positive attitudes",
+          "Only memorisation",
+          "Only individual work"
+        ],
+        correctAnswer: 1,
+        explanation: "Collaboration builds scientific skills and values (Unit 6, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The core competence that develops learners' cognitive and reasoning abilities to analyse and solve problems is:",
+        options: [
+          "Creativity and Innovation",
+          "Critical Thinking and Problem Solving",
+          "Communication and Collaboration",
+          "Digital Literacy"
+        ],
+        correctAnswer: 1,
+        explanation: "Critical Thinking and Problem Solving (CP) is the correct domain (Unit 6, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The competence that promotes entrepreneurial skills and ingenuity of ideas is:",
+        options: [
+          "Personal Development and Leadership",
+          "Creativity and Innovation (CI)",
+          "Cultural Identity and Global Citizenship",
+          "Digital Literacy"
+        ],
+        correctAnswer: 1,
+        explanation: "Creativity and Innovation develops new ways of solving problems (Unit 6, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The competence that involves using languages, symbols, and texts to exchange information is:",
+        options: [
+          "Critical Thinking",
+          "Communication and Collaboration (CC)",
+          "Digital Literacy",
+          "Personal Development"
+        ],
+        correctAnswer: 1,
+        explanation: "Communication and Collaboration focuses on sharing ideas (Unit 6, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The competence that develops learners to put country and service foremost is:",
+        options: [
+          "Digital Literacy",
+          "Cultural Identity and Global Citizenship (CG)",
+          "Creativity and Innovation",
+          "Critical Thinking"
+        ],
+        correctAnswer: 1,
+        explanation: "CG involves understanding active citizenship and global awareness (Unit 6, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Personal Development and Leadership (PL) involves improving self‑awareness, building self‑esteem, and:",
+        options: [
+          "Only academic skills",
+          "Identifying and developing talents",
+          "Only physical strength",
+          "Only competition"
+        ],
+        correctAnswer: 1,
+        explanation: "PL helps learners fulfil dreams and aspirations (Unit 6, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Digital Literacy (DL) develops learners to discover, acquire knowledge, and communicate through ICT, and also:",
+        options: [
+          "Ignore digital media",
+          "Use digital media responsibly",
+          "Only play games",
+          "Avoid technology"
+        ],
+        correctAnswer: 1,
+        explanation: "Responsible use of digital media is key (Unit 6, Session 2)."
+      },
+      {
+        type: "text-input",
+        question: "Which core competence involves developing learners' ability to analyse and solve problems?",
+        correctAnswer: "Critical Thinking",
+        acceptableAnswers: ["Critical Thinking", "CP", "Critical Thinking and Problem Solving"],
+        caseSensitive: false,
+        explanation: "Critical Thinking and Problem Solving (CP) is the skill (Unit 6, Session 2)."
+      },
+      {
+        type: "text-input",
+        question: "What competence involves improving self‑awareness and building self‑esteem?",
+        correctAnswer: "Personal Development",
+        acceptableAnswers: ["Personal Development", "PL", "Personal Development and Leadership"],
+        caseSensitive: false,
+        explanation: "Personal Development and Leadership (PL) addresses these (Unit 6, Session 2)."
+      },
+
+      // --- SESSION 3: Learning Domains (Expected Learning Behaviours) (10 questions) ---
+      // MCQ (8), text-input (2)
+      {
+        type: "multiple-choice",
+        question: "The domain of 'Knowledge, Understanding and Application' includes learning behaviours such as knowing, understanding, applying, and:",
+        options: [
+          "Only memorising",
+          "Analysing, synthesising, evaluating, and creating",
+          "Only listening",
+          "Only repeating"
+        ],
+        correctAnswer: 1,
+        explanation: "Higher‑order thinking includes analysis, synthesis, evaluation, and creation (Unit 6, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The ability to remember, recall, define, and describe is classified under:",
+        options: [
+          "Understanding",
+          "Knowing/Knowledge",
+          "Applying",
+          "Evaluating"
+        ],
+        correctAnswer: 1,
+        explanation: "Knowledge is the lowest level of learning (Unit 6, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The ability to explain, summarise, paraphrase, and give examples is classified as:",
+        options: ["Knowing", "Understanding", "Applying", "Creating"],
+        correctAnswer: 1,
+        explanation: "Understanding involves grasping meaning (Unit 6, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The ability to use knowledge in new and unfamiliar situations is called:",
+        options: ["Remembering", "Understanding", "Applying", "Analysing"],
+        correctAnswer: 2,
+        explanation: "Application is use of knowledge (Unit 6, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The skill of breaking down information into component parts is called:",
+        options: ["Synthesising", "Analysing", "Evaluating", "Creating"],
+        correctAnswer: 1,
+        explanation: "Analysis involves differentiation and comparison (Unit 6, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The ability to put parts together to form a new whole is called:",
+        options: ["Analysing", "Synthesising", "Applying", "Remembering"],
+        correctAnswer: 1,
+        explanation: "Synthesis combines ideas to create something new (Unit 6, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The ability to judge the worth of something based on criteria is called:",
+        options: ["Creating", "Evaluating", "Applying", "Understanding"],
+        correctAnswer: 1,
+        explanation: "Evaluation involves appraising and making judgments (Unit 6, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The highest form of thinking and learning, where learners use information to produce new products, is called:",
+        options: ["Knowing", "Understanding", "Applying", "Creating"],
+        correctAnswer: 3,
+        explanation: "Creating is the highest level in Bloom's taxonomy (Unit 6, Session 3)."
+      },
+      {
+        type: "text-input",
+        question: "What attitude involves the inclination to seek information about how things work?",
+        correctAnswer: "curiosity",
+        acceptableAnswers: ["curiosity", "curiosity"],
+        caseSensitive: false,
+        explanation: "Curiosity is an important scientific attitude (Unit 6, Session 3)."
+      },
+      {
+        type: "text-input",
+        question: "What value involves respect for the nation of Ghana, its institutions, laws, culture, and citizens?",
+        correctAnswer: "respect",
+        acceptableAnswers: ["respect"],
+        caseSensitive: false,
+        explanation: "Respect is a core value in the curriculum (Unit 6, Session 3)."
+      },
+
+      // --- SESSION 4: Assessment (10 questions) ---
+      // MCQ (8), text-input (2)
+      {
+        type: "multiple-choice",
+        question: "Assessment is defined as a process of collecting and evaluating information about learners to:",
+        options: [
+          "Punish learners",
+          "Make decisions to improve their learning",
+          "Rank schools",
+          "Compare teachers"
+        ],
+        correctAnswer: 1,
+        explanation: "Assessment is for improvement of learning (Unit 6, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The purpose of assessment is to identify the strengths and weaknesses of learners to ascertain their response to:",
+        options: [
+          "Punishment",
+          "Instruction",
+          "Rewards",
+          "Competition"
+        ],
+        correctAnswer: 1,
+        explanation: "Assessment informs instructional adjustments (Unit 6, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Formative assessment is viewed in terms of Assessment as learning and:",
+        options: [
+          "Assessment of learning",
+          "Assessment for learning",
+          "Summative assessment",
+          "Standardised assessment"
+        ],
+        correctAnswer: 1,
+        explanation: "Formative includes 'as learning' and 'for learning' (Unit 6, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Assessment as learning engages learners to reflect on the expectations of their learning and:",
+        options: [
+          "Only take tests",
+          "Take responsibility for their own learning",
+          "Ignore feedback",
+          "Rely solely on the teacher"
+        ],
+        correctAnswer: 1,
+        explanation: "Learners set goals and monitor their progress (Unit 6, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Assessment for learning is used to monitor learner's progress and provide timely feedback to:",
+        options: [
+          "Only final exams",
+          "Refine teaching strategies and improve learner performance",
+          "Rank students",
+          "Replace instruction"
+        ],
+        correctAnswer: 1,
+        explanation: "Formative feedback guides instruction (Unit 6, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Assessment of learning is summative assessment that describes the level learners have attained over a period of time, focusing on:",
+        options: [
+          "Daily progress",
+          "Cumulative progress and achievement",
+          "Only their weaknesses",
+          "Only their attendance"
+        ],
+        correctAnswer: 1,
+        explanation: "Summative evaluation summarises overall achievement (Unit 6, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "A total of how many periods per week are allocated to the teaching of Science at the Upper Primary level?",
+        options: ["2 periods", "3 periods", "4 periods", "5 periods"],
+        correctAnswer: 2,
+        explanation: "Four periods per week, each 30 minutes (Unit 6, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "At the Upper Primary level, the theory periods are:",
+        options: ["1 period per week", "2 periods per week", "3 periods per week", "4 periods per week"],
+        correctAnswer: 1,
+        explanation: "Theory: 2 periods of 30 minutes each (Unit 6, Session 4)."
+      },
+      {
+        type: "text-input",
+        question: "What type of assessment is used to promote learning and identify strengths and weaknesses?",
+        correctAnswer: "formative",
+        acceptableAnswers: ["formative", "formative assessment"],
+        caseSensitive: false,
+        explanation: "Formative assessment is for learning (Unit 6, Session 4)."
+      },
+      {
+        type: "text-input",
+        question: "How many double‑periods per week are recommended for practical Science at Upper Primary?",
+        correctAnswer: "one",
+        acceptableAnswers: ["1", "one", "a double‑period"],
+        caseSensitive: false,
+        explanation: "Practical: 2 periods per week (one double‑period) (Unit 6, Session 4)."
+      },
+
+      // --- SESSION 5: Pedagogical Approaches (10 questions) ---
+      // MCQ (8), text-input (2)
+      {
+        type: "multiple-choice",
+        question: "The creation of learning‑centred classrooms through creative approaches is a strategy to ensure:",
+        options: [
+          "Teacher domination",
+          "Learner empowerment and independent learning",
+          "Passive learning",
+          "Rote memorisation"
+        ],
+        correctAnswer: 1,
+        explanation: "Learning‑centred classrooms develop autonomy (Unit 6, Session 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Differentiation is a process that accommodates differences between learners in learning styles, interest, and:",
+        options: [
+          "Age only",
+          "Readiness to learn",
+          "Gender only",
+          "Uniform size"
+        ],
+        correctAnswer: 1,
+        explanation: "Differentiation by readiness, interest, and learning style (Unit 6, Session 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Differentiation by task involves setting:",
+        options: [
+          "The same task for all",
+          "Different tasks for learners of different ability",
+          "Only difficult tasks",
+          "Only easy tasks"
+        ],
+        correctAnswer: 1,
+        explanation: "Tasks are matched to ability (Unit 6, Session 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Differentiation by support involves providing targeted support to learners who are:",
+        options: [
+          "Above average",
+          "Performing below expected standards or at risk",
+          "All learners equally",
+          "Only the gifted"
+        ],
+        correctAnswer: 1,
+        explanation: "Additional support helps struggling learners (Unit 6, Session 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Differentiation by outcome involves allowing learners to respond at different levels, such as:",
+        options: [
+          "Requiring the same product from all",
+          "Allowing more time to complete a task for identified learners",
+          "Giving the same test to all",
+          "Only using multiple‑choice questions"
+        ],
+        correctAnswer: 1,
+        explanation: "Extra time is an accommodation (Unit 6, Session 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Scaffolding involves breaking learning episodes into smaller parts and then providing learners with:",
+        options: [
+          "No support",
+          "The support they need to learn from each part",
+          "Only homework",
+          "Only tests"
+        ],
+        correctAnswer: 1,
+        explanation: "Scaffolding is temporary support (Unit 6, Session 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "One benefit of using ICT in teaching and learning is:",
+        options: [
+          "Increased teacher workload only",
+          "Improved consistency and quality of teaching and learning",
+          "Reduced collaboration",
+          "Less flexibility"
+        ],
+        correctAnswer: 1,
+        explanation: "ICT enhances quality and consistency (Unit 6, Session 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "ICT as a pedagogical tool can provide learners access to:",
+        options: [
+          "Only calculators",
+          "Large quantities of information online",
+          "Only radios",
+          "Only television sets"
+        ],
+        correctAnswer: 1,
+        explanation: "Online access supports research and learning (Unit 6, Session 5)."
+      },
+      {
+        type: "text-input",
+        question: "What pedagogical approach involves moving learners progressively towards greater independence?",
+        correctAnswer: "scaffolding",
+        acceptableAnswers: ["scaffolding", "scaffolding"],
+        caseSensitive: false,
+        explanation: "Scaffolding provides graduated support (Unit 6, Session 5)."
+      },
+      {
+        type: "text-input",
+        question: "What is the term for adapting instruction based on learner readiness, interest, and learning style?",
+        correctAnswer: "differentiation",
+        acceptableAnswers: ["differentiation"],
+        caseSensitive: false,
+        explanation: "Differentiation accommodates diverse learners (Unit 6, Session 5)."
+      },
+
+      // --- SESSION 6: Organisation of the Curriculum (10 questions) ---
+      // MCQ (8), text-input (2)
+      {
+        type: "multiple-choice",
+        question: "In the curriculum organisation, 'Strands' refer to:",
+        options: [
+          "Individual lessons",
+          "Broad areas/sections of the science content to be studied",
+          "Assessment tasks",
+          "Teaching methods"
+        ],
+        correctAnswer: 1,
+        explanation: "Strands are the main content areas (Unit 6, Session 6)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Sub‑strands are the:",
+        options: [
+          "Teaching hours",
+          "Topics within each strand under which content is organised",
+          "Learning outcomes",
+          "Textbook chapters"
+        ],
+        correctAnswer: 1,
+        explanation: "Sub‑strands break down strands into manageable topics (Unit 6, Session 6)."
+      },
+      {
+        type: "multiple-choice",
+        question: "A content standard refers to the pre‑determined level of knowledge, skill, and/or attitude that a learner attains by:",
+        options: [
+          "The end of the lesson",
+          "A set stage of education",
+          "The teacher's whim",
+          "Random chance"
+        ],
+        correctAnswer: 1,
+        explanation: "Standards define expected achievements (Unit 6, Session 6)."
+      },
+      {
+        type: "multiple-choice",
+        question: "An indicator is a clear outcome or milestone that learners must exhibit each year to meet the:",
+        options: [
+          "Teacher's expectation",
+          "Content standard expectation",
+          "Parent's desire",
+          "School's budget"
+        ],
+        correctAnswer: 1,
+        explanation: "Indicators operationalise content standards (Unit 6, Session 6)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Exemplars provide support and guidance to explain expected outcomes and suggest:",
+        options: [
+          "Only grading",
+          "What teaching and learning activities could take place",
+          "Only homework",
+          "Only punishment"
+        ],
+        correctAnswer: 1,
+        explanation: "Exemplars help teachers deliver the curriculum (Unit 6, Session 6)."
+      },
+      {
+        type: "multiple-choice",
+        question: "In the annotation B4.2.4.1.2, the 'B4' stands for:",
+        options: [
+          "Basic 4",
+          "Strand number",
+          "Sub‑strand number",
+          "Indicator number"
+        ],
+        correctAnswer: 0,
+        explanation: "B4 = Basic 4 (Year or Class) (Unit 6, Session 6)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The science curriculum for B1 to B3 and B4 to B6 is structured under how many strands?",
+        options: ["3", "4", "5", "6"],
+        correctAnswer: 2,
+        explanation: "There are five strands: Diversity of Matter, Cycles, Systems, Forces and Energy, Humans and the Environment (Unit 6, Session 6)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The strand 'Forces and Energy' includes sub‑strands such as Sources and Forms of Energy, Electricity and electronics, and:",
+        options: [
+          "Living and Non‑Living Things",
+          "Forces and Movement",
+          "Earth Science",
+          "The Human Body Systems"
+        ],
+        correctAnswer: 1,
+        explanation: "Forces and Movement is a sub‑strand under Forces and Energy (Unit 6, Session 6)."
+      },
+      {
+        type: "text-input",
+        question: "What does the term 'Strand' represent in the curriculum organisation?",
+        correctAnswer: "broad area",
+        acceptableAnswers: ["broad area", "content area", "section"],
+        caseSensitive: false,
+        explanation: "Strands are broad sections of science content (Unit 6, Session 6)."
+      },
+      {
+        type: "text-input",
+        question: "What is the second part of the annotation B4.2.4.1.2 (the '2')?",
+        correctAnswer: "strand",
+        acceptableAnswers: ["strand", "strand number"],
+        caseSensitive: false,
+        explanation: "The second digit is the Strand number (Unit 6, Session 6)."
+      }
+    ]
+  }
+};
+
+    // ========== DOM ELEMENTS ==========
+    const subjectSelectionContainer = document.getElementById('subject-selection-container');
+    const subjectGrid = document.getElementById('subject-grid');
+    const quizContainer = document.getElementById('quiz-container');
+    const resultContainer = document.getElementById('result-container');
+    const currentSubjectName = document.getElementById('current-subject-name');
+    const questionContainer = document.getElementById('question-container');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const submitBtn = document.getElementById('submit-btn');
+    const restartBtn = document.getElementById('restart-btn');
+    const backFromResultBtn = document.getElementById('back-from-result-btn');
+    const backToSubjectsBtn = document.getElementById('back-to-subjects-btn');
+    const currentQuestionEl = document.getElementById('current-question');
+    const totalQuestionsEl = document.getElementById('total-questions');
+    const progressBar = document.getElementById('progress-bar');
+    const scoreEl = document.getElementById('score');
+    const maxScoreEl = document.getElementById('max-score');
+    const scoreTextEl = document.getElementById('score-text');
+    const feedbackEl = document.getElementById('feedback');
+    const timerEl = document.getElementById('timer');
+    const instantFeedbackEl = document.getElementById('instant-feedback');
+    const correctAnswersEl = document.getElementById('correct-answers');
+    const incorrectAnswersEl = document.getElementById('incorrect-answers');
+    const averageTimeEl = document.getElementById('average-time');
+
+    // ========== STATE ==========
+    let currentSubject = null;          // subject ID
+    let quizData = [];
+    let currentQuestionIndex = 0;
+    let userAnswers = [];               // null = unanswered, string for text-input, number for MC
+    let quizSubmitted = false;
+    let timer = null;
+    let timeLeft = 60;
+    let timeSpentPerQuestion = [];
+    let feedbackTimeout = null;
+    let isNavigating = false;
+    const TIME_PER_QUESTION = 60;
+    const WARNING_TIME = 10;
+    const DANGER_TIME = 5;
+
+    // ========== HELPER FUNCTIONS ==========
+    function shuffleArray(arr) {
+        const shuffled = [...arr];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        return shuffled;
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function clearFeedback() {
+        if (feedbackTimeout) { clearTimeout(feedbackTimeout); feedbackTimeout = null; }
+        instantFeedbackEl.style.display = 'none';
+    }
+
+    function stopTimer() {
+        if (timer) { clearInterval(timer); timer = null; }
+    }
+
+    function isQuestionAnswered(index) {
+        if (index === undefined) index = currentQuestionIndex;
+        const answer = userAnswers[index];
+        if (answer === null || answer === undefined) return false;
+        if (typeof answer === 'string') return answer.trim().length > 0;
+        return true;
+    }
+
+    function updateTimerDisplay() {
+        timerEl.textContent = `${timeLeft}s`;
+        timerEl.classList.remove('timer-warning', 'timer-danger');
+        if (timeLeft <= WARNING_TIME) timerEl.classList.add('timer-warning');
+        if (timeLeft <= DANGER_TIME) timerEl.classList.add('timer-danger');
+    }
+
+    function startTimer() {
+        stopTimer();
+        if (isQuestionAnswered()) {
+            timeLeft = 0;
+            updateTimerDisplay();
+            return;
+        }
+        timeLeft = TIME_PER_QUESTION;
+        updateTimerDisplay();
+        timer = setInterval(() => {
+            timeLeft--;
+            updateTimerDisplay();
+            if (timeLeft <= 0) {
+                stopTimer();
+                handleTimeExpired();
+            }
+        }, 1000);
+    }
+
+    function handleTimeExpired() {
+        savePendingTextInput();
+        if (!isQuestionAnswered()) {
+            timeSpentPerQuestion[currentQuestionIndex] = TIME_PER_QUESTION;
+            const isLast = currentQuestionIndex === quizData.length - 1;
+            clearFeedback();
+            instantFeedbackEl.textContent = isLast 
+                ? "⏰ Time's up! You can still submit an answer." 
+                : "⏰ Time's up! Moving to next question...";
+            instantFeedbackEl.className = "instant-feedback feedback-incorrect";
+            instantFeedbackEl.style.display = 'block';
+            if (!isLast) {
+                feedbackTimeout = setTimeout(() => {
+                    instantFeedbackEl.style.display = 'none';
+                    feedbackTimeout = null;
+                    goToNextQuestion();
+                }, 2000);
+            } else {
+                feedbackTimeout = setTimeout(() => {
+                    instantFeedbackEl.style.display = 'none';
+                    feedbackTimeout = null;
+                }, 2000);
+                updateNavigation();
+            }
+        }
+    }
+
+    function checkTextAnswer(userAnswer, question) {
+        if (!userAnswer || typeof userAnswer !== 'string') return false;
+        const normalized = userAnswer.trim();
+        if (normalized.length === 0) return false;
+        const compare = question.caseSensitive === false 
+            ? (a, b) => a.toLowerCase() === b.toLowerCase()
+            : (a, b) => a === b;
+        return question.acceptableAnswers.some(accepted => compare(normalized, accepted));
+    }
+
+    function getQuestionTypeBadge(question) {
+        if (question.type === 'text-input') 
+            return '<span class="question-type-badge badge-text-input">Fill in the blank</span>';
+        return '<span class="question-type-badge badge-multiple-choice">Multiple Choice</span>';
+    }
+
+    function savePendingTextInput() {
+        if (quizSubmitted) return;
+        const question = quizData[currentQuestionIndex];
+        if (question.type !== 'text-input') return;
+        const textInput = document.getElementById('text-answer');
+        if (textInput) userAnswers[currentQuestionIndex] = textInput.value;
+    }
+
+    function finalizeTextInput() {
+        if (quizSubmitted) return;
+        const question = quizData[currentQuestionIndex];
+        if (question.type !== 'text-input') return;
+        const textInput = document.getElementById('text-answer');
+        if (!textInput) return;
+        const answer = textInput.value.trim();
+        if (answer.length === 0) return;
+        userAnswers[currentQuestionIndex] = answer;
+        timeSpentPerQuestion[currentQuestionIndex] = TIME_PER_QUESTION - timeLeft;
+        stopTimer();
+        const isCorrect = checkTextAnswer(answer, question);
+        clearFeedback();
+        instantFeedbackEl.textContent = isCorrect 
+            ? "✅ Correct! Well done!" 
+            : `❌ Incorrect. The correct answer is: ${question.correctAnswer}`;
+        instantFeedbackEl.className = `instant-feedback ${isCorrect ? 'feedback-correct' : 'feedback-incorrect'}`;
+        instantFeedbackEl.style.display = 'block';
+        feedbackTimeout = setTimeout(() => {
+            instantFeedbackEl.style.display = 'none';
+            feedbackTimeout = null;
+        }, 3000);
+        renderQuestion();
+    }
+
+    // ========== RENDER FUNCTIONS ==========
+    function renderSubjectSelection() {
+        subjectGrid.innerHTML = '';
+        Object.keys(subjectsData).forEach(subjectId => {
+            const subject = subjectsData[subjectId];
+            const card = document.createElement('div');
+            card.className = 'subject-card';
+            card.innerHTML = `
+                <div class="subject-icon">${subject.icon}</div>
+                <div class="subject-name">${subject.name}</div>
+                <div class="question-count">${subject.questions.length} questions</div>
+            `;
+            card.addEventListener('click', () => selectSubject(subjectId));
+            subjectGrid.appendChild(card);
+        });
+    }
+
+    function selectSubject(subjectId) {
+        stopTimer();
+        clearFeedback();
+        currentSubject = subjectId;
+        const subject = subjectsData[subjectId];
+        // Shuffle questions each time we start
+        quizData = shuffleArray(subject.questions);
+        currentQuestionIndex = 0;
+        userAnswers = new Array(quizData.length).fill(null);
+        timeSpentPerQuestion = new Array(quizData.length).fill(0);
+        quizSubmitted = false;
+
+        // Update UI
+        currentSubjectName.textContent = subject.name;
+        totalQuestionsEl.textContent = quizData.length;
+        maxScoreEl.textContent = quizData.length;
+        scoreEl.textContent = '0';
+        correctAnswersEl.textContent = '0';
+        incorrectAnswersEl.textContent = '0';
+        averageTimeEl.textContent = '0s';
+        scoreTextEl.textContent = '';
+        feedbackEl.innerHTML = '';
+
+        subjectSelectionContainer.style.display = 'none';
+        quizContainer.style.display = 'block';
+        resultContainer.style.display = 'none';
+        renderQuestion();
+        startTimer();
+    }
+
+    function renderQuestion() {
+        clearFeedback();
+        const question = quizData[currentQuestionIndex];
+        currentQuestionEl.textContent = currentQuestionIndex + 1;
+        progressBar.style.width = `${((currentQuestionIndex + 1) / quizData.length) * 100}%`;
+
+        let html = `<div class="question active" role="group" aria-labelledby="question-text">`;
+        html += `<div class="question-text" id="question-text">${question.question}${getQuestionTypeBadge(question)}</div>`;
+
+        if (question.type === 'text-input') {
+            const userAnswer = userAnswers[currentQuestionIndex] || '';
+            const hasSubmitted = isQuestionAnswered();
+            let inputClass = '';
+            if (quizSubmitted || hasSubmitted) {
+                const answer = typeof userAnswer === 'string' ? userAnswer : '';
+                const isCorrect = checkTextAnswer(answer, question);
+                inputClass = isCorrect ? 'correct-input' : 'incorrect-input';
+            }
+            html += `<div class="text-input-container">`;
+            html += `<input type="text" class="text-input-field ${inputClass}" 
+                        id="text-answer" placeholder="Type your answer here..." 
+                        value="${escapeHtml(typeof userAnswer === 'string' ? userAnswer : '')}"
+                        ${quizSubmitted || hasSubmitted ? 'disabled' : ''}>`;
+            if (!quizSubmitted && !hasSubmitted) {
+                html += `<div class="text-input-hint">Press Enter to submit your answer</div>`;
+            }
+            html += `</div>`;
+        } else {
+            html += `<div class="options">`;
+            const groupName = `question-${currentQuestionIndex}`;
+            question.options.forEach((option, index) => {
+                const isSelected = userAnswers[currentQuestionIndex] === index;
+                let optionClass = '';
+                if (quizSubmitted) {
+                    if (index === question.correctAnswer) optionClass = 'correct';
+                    else if (isSelected) optionClass = 'incorrect';
+                } else if (isSelected) optionClass = 'selected';
+                html += `
+                    <label class="option ${optionClass}">
+                        <input type="radio" name="${groupName}" value="${index}" 
+                            ${isSelected ? 'checked' : ''} ${quizSubmitted ? 'disabled' : ''}>
+                        <span class="option-indicator"></span>
+                        ${option}
+                    </label>`;
+            });
+            html += `</div>`;
+        }
+
+        const explanationDisplay = quizSubmitted ? 'display: block;' : 'display: none;';
+        html += `
+            <div class="explanation" style="${explanationDisplay}">
+                <div class="explanation-title">Explanation:</div>
+                ${question.explanation}
+            </div>`;
+        html += `</div>`;
+        questionContainer.innerHTML = html;
+
+        if (!quizSubmitted) {
+            if (question.type === 'text-input') {
+                const textInput = document.getElementById('text-answer');
+                if (textInput && !isQuestionAnswered()) {
+                    textInput.addEventListener('input', handleTextInputChange);
+                    textInput.addEventListener('keypress', handleTextInputKeypress);
+                    setTimeout(() => textInput.focus(), 100);
+                }
+            } else {
+                const radios = questionContainer.querySelectorAll('input[type="radio"]');
+                radios.forEach(radio => radio.addEventListener('change', handleOptionChange));
+            }
+        }
+        updateNavigation();
+    }
+
+    function updateNavigation() {
+        prevBtn.disabled = currentQuestionIndex === 0;
+        const isLast = currentQuestionIndex === quizData.length - 1;
+        if (isLast) {
+            nextBtn.style.display = 'none';
+            submitBtn.style.display = 'block';
+            submitBtn.disabled = !isQuestionAnswered();
+        } else {
+            nextBtn.style.display = 'block';
+            submitBtn.style.display = 'none';
+            nextBtn.disabled = !isQuestionAnswered() && !quizSubmitted;
+        }
+    }
+
+    // ========== EVENT HANDLERS ==========
+    function handleTextInputChange(e) {
+        if (quizSubmitted) return;
+        userAnswers[currentQuestionIndex] = e.target.value;
+        updateNavigation();
+    }
+
+    function handleTextInputKeypress(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            finalizeTextInput();
+        }
+    }
+
+    function handleOptionChange(e) {
+        if (quizSubmitted) return;
+        const selectedIndex = parseInt(e.target.value, 10);
+        userAnswers[currentQuestionIndex] = selectedIndex;
+        timeSpentPerQuestion[currentQuestionIndex] = TIME_PER_QUESTION - timeLeft;
+        stopTimer();
+        const isCorrect = selectedIndex === quizData[currentQuestionIndex].correctAnswer;
+        clearFeedback();
+        instantFeedbackEl.textContent = isCorrect ? "✅ Correct! Well done!" : "❌ Incorrect. Try the next question!";
+        instantFeedbackEl.className = `instant-feedback ${isCorrect ? 'feedback-correct' : 'feedback-incorrect'}`;
+        instantFeedbackEl.style.display = 'block';
+        feedbackTimeout = setTimeout(() => {
+            instantFeedbackEl.style.display = 'none';
+            feedbackTimeout = null;
+        }, 3000);
+        renderQuestion();
+    }
+
+    function goToPreviousQuestion() {
+        if (currentQuestionIndex > 0) {
+            isNavigating = true;
+            savePendingTextInput();
+            currentQuestionIndex--;
+            renderQuestion();
+            startTimer();
+            isNavigating = false;
+        }
+    }
+
+    function goToNextQuestion() {
+        if (currentQuestionIndex < quizData.length - 1) {
+            isNavigating = true;
+            savePendingTextInput();
+            currentQuestionIndex++;
+            renderQuestion();
+            startTimer();
+            isNavigating = false;
+        }
+    }
+
+    function submitQuiz() {
+        savePendingTextInput();
+        quizSubmitted = true;
+        stopTimer();
+        clearFeedback();
+        
+        let correctCount = 0, incorrectCount = 0;
+        quizData.forEach((q, i) => {
+            const userAnswer = userAnswers[i];
+            if (userAnswer === null || userAnswer === undefined) { incorrectCount++; return; }
+            let isCorrect = false;
+            if (q.type === 'text-input') isCorrect = checkTextAnswer(String(userAnswer), q);
+            else isCorrect = userAnswer === q.correctAnswer;
+            isCorrect ? correctCount++ : incorrectCount++;
+        });
+
+        const answeredCount = userAnswers.filter(a => a !== null && a !== undefined && 
+            (typeof a === 'number' || (typeof a === 'string' && a.trim().length > 0))).length;
+        const totalTime = timeSpentPerQuestion.reduce((sum, t) => sum + t, 0);
+        const avgTime = answeredCount > 0 ? Math.round(totalTime / answeredCount) : 0;
+
+        quizContainer.style.display = 'none';
+        resultContainer.style.display = 'block';
+        scoreEl.textContent = correctCount;
+        correctAnswersEl.textContent = correctCount;
+        incorrectAnswersEl.textContent = incorrectCount;
+        averageTimeEl.textContent = `${avgTime}s`;
+        const percentage = (correctCount / quizData.length) * 100;
+        let message, feedbackText;
+        if (percentage >= 80) {
+            message = 'Excellent! Great understanding.';
+            feedbackText = 'You demonstrated comprehensive knowledge.';
+        } else if (percentage >= 60) {
+            message = 'Good job! Solid foundation.';
+            feedbackText = 'Review a few areas to strengthen further.';
+        } else if (percentage >= 40) {
+            message = 'Not bad. Keep learning.';
+            feedbackText = 'Focus on the fundamentals.';
+        } else {
+            message = 'Keep practicing!';
+            feedbackText = 'Machine learning is a journey. Review the explanations and try again.';
+        }
+        scoreTextEl.textContent = message;
+        feedbackEl.innerHTML = feedbackText;
+        renderReview();
+    }
+
+    function renderReview() {
+        let reviewHTML = '<div class="review-wrapper">';
+        quizData.forEach((q, idx) => {
+            const userAnswer = userAnswers[idx];
+            let isCorrect = false;
+            if (q.type === 'text-input') isCorrect = userAnswer ? checkTextAnswer(String(userAnswer), q) : false;
+            else isCorrect = userAnswer === q.correctAnswer;
+
+            reviewHTML += `<div class="question review-question">`;
+            reviewHTML += `<div class="question-text">${idx+1}. ${q.question}${getQuestionTypeBadge(q)}</div>`;
+            if (q.type === 'text-input') {
+                const displayAnswer = (userAnswer && typeof userAnswer === 'string' && userAnswer.trim().length > 0)
+                    ? userAnswer : 'No answer';
+                reviewHTML += `<input type="text" class="text-input-field ${isCorrect ? 'correct-input' : 'incorrect-input'}"
+                    value="${escapeHtml(displayAnswer)}" disabled>`;
+                if (!isCorrect) {
+                    reviewHTML += `<div class="user-text-answer"><span class="answer-label">Correct answer:</span> ${q.correctAnswer}</div>`;
+                }
+            } else {
+                reviewHTML += `<div class="options">`;
+                q.options.forEach((opt, optIdx) => {
+                    let cls = '';
+                    if (optIdx === q.correctAnswer) cls = 'correct';
+                    else if (userAnswer === optIdx) cls = 'incorrect';
+                    reviewHTML += `<div class="option ${cls}"><span class="option-indicator"></span>${opt}</div>`;
+                });
+                reviewHTML += `</div>`;
+            }
+            reviewHTML += `<div class="explanation" style="display:block;"><div class="explanation-title">Explanation:</div>${q.explanation}</div>`;
+            reviewHTML += `<div style="margin-top:10px; font-size:0.9rem; color:var(--dark-gray);">Time spent: ${timeSpentPerQuestion[idx]}s | ${isCorrect ? '✅ Correct' : '❌ Incorrect'}</div>`;
+            reviewHTML += `</div>`;
+        });
+        reviewHTML += '</div>';
+        feedbackEl.insertAdjacentHTML('beforeend', reviewHTML);
+    }
+
+    function restartQuiz() {
+        stopTimer();
+        clearFeedback();
+        if (!currentSubject) return;
+        const subject = subjectsData[currentSubject];
+        quizData = shuffleArray(subject.questions);
+        currentQuestionIndex = 0;
+        userAnswers = new Array(quizData.length).fill(null);
+        timeSpentPerQuestion = new Array(quizData.length).fill(0);
+        quizSubmitted = false;
+        totalQuestionsEl.textContent = quizData.length;
+        maxScoreEl.textContent = quizData.length;
+        resultContainer.style.display = 'none';
+        quizContainer.style.display = 'block';
+        renderQuestion();
+        startTimer();
+    }
+
+    function backToSubjectSelection() {
+        stopTimer();
+        clearFeedback();
+        quizContainer.style.display = 'none';
+        resultContainer.style.display = 'none';
+        subjectSelectionContainer.style.display = 'block';
+        currentSubject = null;
+        quizData = [];
+        userAnswers = [];
+        timeSpentPerQuestion = [];
+    }
+
+    // Confirm before leaving quiz mid-way
+    function confirmChangeSubject() {
+        if (quizSubmitted || !isQuestionAnswered() && userAnswers.every(a => a === null)) {
+            backToSubjectSelection();
+        } else {
+            if (confirm("Are you sure you want to change subject? Your current progress will be lost.")) {
+                backToSubjectSelection();
+            }
+        }
+    }
+
+    // Window blur handler saves text
+    window.addEventListener('blur', () => {
+        if (!isNavigating && currentSubject && !quizSubmitted) savePendingTextInput();
+    });
+    window.addEventListener('beforeunload', () => {
+        if (currentSubject && !quizSubmitted) savePendingTextInput();
+    });
+
+    // Navigation button listeners
+    prevBtn.addEventListener('click', goToPreviousQuestion);
+    nextBtn.addEventListener('click', goToNextQuestion);
+    submitBtn.addEventListener('click', submitQuiz);
+    restartBtn.addEventListener('click', restartQuiz);
+    backFromResultBtn.addEventListener('click', backToSubjectSelection);
+    backToSubjectsBtn.addEventListener('click', confirmChangeSubject);
+
+    // Initialize subject selection
+    renderSubjectSelection();
+})();
+</script>
+</body>
+</html>

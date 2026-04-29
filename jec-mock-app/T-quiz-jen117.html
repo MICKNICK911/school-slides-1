@@ -1,0 +1,4297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz App - Multiple Subjects</title>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --primary-hover: #2980b9;
+            --success-color: #2ecc71;
+            --error-color: #e74c3c;
+            --warning-color: #f39c12;
+            --light-gray: #f5f5f5;
+            --medium-gray: #e0e0e0;
+            --dark-gray: #333;
+            --text-color: #2c3e50;
+            --white: #ffffff;
+            --border-radius: 8px;
+            --box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background-color: var(--light-gray);
+            color: var(--text-color);
+            padding: 20px;
+        }
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        header { text-align: center; margin-bottom: 30px; }
+        h1 { color: var(--text-color); margin-bottom: 10px; font-size: 2.2rem; }
+        .description { color: var(--dark-gray); font-size: 1.1rem; max-width: 600px; margin: 0 auto; }
+
+        /* Subject Selection */
+        .subject-selection-container {
+            background: var(--white);
+            border-radius: var(--border-radius);
+            padding: 30px;
+            box-shadow: var(--box-shadow);
+        }
+        .subject-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .subject-card {
+            background: var(--light-gray);
+            border: 2px solid var(--medium-gray);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+        .subject-card:hover {
+            border-color: var(--primary-color);
+            background: rgba(52, 152, 219, 0.05);
+            transform: translateY(-2px);
+        }
+        .subject-card .subject-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        .subject-card .subject-name { font-size: 1.1rem; }
+        .subject-card .question-count {
+            font-size: 0.85rem;
+            color: var(--dark-gray);
+            margin-top: 5px;
+        }
+
+        /* Quiz Container */
+        .quiz-container {
+            background-color: var(--white);
+            border-radius: var(--border-radius);
+            padding: 30px;
+            box-shadow: var(--box-shadow);
+            display: none;
+        }
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .back-link {
+            color: var(--primary-color);
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            background: none;
+            border: none;
+            padding: 5px 0;
+        }
+        .back-link:hover { text-decoration: underline; }
+
+        .progress-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+        .progress-text { font-weight: 600; font-size: 1.1rem; }
+        .progress-bar {
+            height: 8px;
+            background-color: var(--medium-gray);
+            border-radius: 4px;
+            flex-grow: 1;
+            margin: 0 15px;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background-color: var(--primary-color);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .timer-container { display: flex; align-items: center; margin-bottom: 15px; }
+        .timer { font-size: 1rem; font-weight: 600; color: var(--text-color); margin-left: 8px; }
+        .timer-icon { width: 20px; height: 20px; }
+        .timer-warning { color: var(--warning-color); }
+        .timer-danger { color: var(--error-color); animation: pulse 1s infinite; }
+        @keyframes pulse {
+            0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; }
+        }
+
+        .question {
+            margin-bottom: 25px;
+            padding: 20px;
+            background-color: var(--light-gray);
+            border-radius: var(--border-radius);
+            display: none;
+            animation: fadeIn 0.2s ease;
+        }
+        .question.active { display: block; }
+        .review-question { display: block !important; margin-bottom: 30px; animation: none; }
+
+        .question-text { font-size: 1.2rem; font-weight: 600; margin-bottom: 20px; }
+        .question-type-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: 12px;
+            margin-left: 10px;
+            vertical-align: middle;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .badge-multiple-choice { background-color: rgba(52,152,219,0.15); color: #2471a3; }
+        .badge-text-input { background-color: rgba(46,204,113,0.15); color: #1e8449; }
+
+        .options { display: grid; grid-template-columns: 1fr; gap: 12px; }
+        .option {
+            position: relative;
+            padding: 15px;
+            padding-left: 50px;
+            background-color: var(--white);
+            border: 2px solid var(--medium-gray);
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            display: block;
+            user-select: none;
+        }
+        .option:hover { border-color: var(--primary-color); background-color: rgba(52,152,219,0.05); }
+        .option input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
+        .option .option-indicator {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 22px;
+            height: 22px;
+            border: 2px solid var(--medium-gray);
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .option input[type="radio"]:focus-visible + .option-indicator {
+            outline: 2px solid var(--primary-color);
+            outline-offset: 2px;
+        }
+        .option.selected { border-color: var(--primary-color); background-color: rgba(52,152,219,0.1); }
+        .option.selected .option-indicator { border-color: var(--primary-color); background-color: var(--primary-color); }
+        .option.selected .option-indicator::after {
+            content: '';
+            width: 10px; height: 10px;
+            background-color: var(--white);
+            border-radius: 50%;
+        }
+        .option.correct { border-color: var(--success-color); background-color: rgba(46,204,113,0.1); }
+        .option.correct .option-indicator { border-color: var(--success-color); background-color: var(--success-color); }
+        .option.incorrect { border-color: var(--error-color); background-color: rgba(231,76,60,0.1); }
+        .option.incorrect .option-indicator { border-color: var(--error-color); background-color: var(--error-color); }
+
+        .text-input-field {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid var(--medium-gray);
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            background-color: var(--white);
+            color: var(--text-color);
+        }
+        .text-input-field:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(52,152,219,0.1); }
+        .text-input-field:disabled { background-color: var(--light-gray); cursor: not-allowed; }
+        .text-input-field.correct-input { border-color: var(--success-color); background-color: rgba(46,204,113,0.05); }
+        .text-input-field.incorrect-input { border-color: var(--error-color); background-color: rgba(231,76,60,0.05); }
+        .text-input-hint { font-size: 0.85rem; color: var(--dark-gray); margin-top: 8px; font-style: italic; }
+
+        .instant-feedback {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: var(--border-radius);
+            display: none;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            animation: slideIn 0.3s ease;
+        }
+        .feedback-correct { background-color: rgba(46,204,113,0.1); border-left: 4px solid var(--success-color); color: #27ae60; }
+        .feedback-incorrect { background-color: rgba(231,76,60,0.1); border-left: 4px solid var(--error-color); color: #c0392b; }
+
+        .explanation {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: rgba(52,152,219,0.05);
+            border-left: 4px solid var(--primary-color);
+            border-radius: 0 var(--border-radius) var(--border-radius) 0;
+            display: none;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        .explanation-title { font-weight: 600; margin-bottom: 8px; color: var(--text-color); }
+
+        .navigation { display: flex; justify-content: space-between; margin-top: 25px; }
+        button {
+            padding: 12px 24px;
+            background-color: var(--primary-color);
+            color: var(--white);
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        button:hover { background-color: var(--primary-hover); transform: translateY(-2px); }
+        button:disabled { background-color: var(--medium-gray); cursor: not-allowed; transform: none; }
+        .secondary-btn { background-color: var(--medium-gray); color: var(--text-color); }
+        .secondary-btn:hover { background-color: #bbb; transform: translateY(-2px); }
+
+        .result-container {
+            text-align: center;
+            padding: 30px;
+            display: none;
+            background-color: var(--white);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-top: 20px;
+        }
+        .result-title { font-size: 1.8rem; margin-bottom: 15px; color: var(--text-color); }
+        .score { font-size: 2.5rem; font-weight: 700; margin-bottom: 20px; color: var(--primary-color); }
+        .score-text { font-size: 1.2rem; margin-bottom: 30px; }
+        .feedback { margin-top: 20px; font-size: 1.1rem; line-height: 1.6; text-align: left; }
+        .stats { margin-top: 20px; display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; }
+        .stat-item { padding: 15px; background-color: var(--light-gray); border-radius: var(--border-radius); min-width: 120px; }
+        .stat-value { font-size: 1.8rem; font-weight: 700; color: var(--primary-color); }
+        .stat-label { font-size: 0.9rem; color: var(--dark-gray); }
+        .review-wrapper { margin-top: 30px; max-height: 60vh; overflow-y: auto; padding-right: 10px; }
+        .user-text-answer {
+            background-color: rgba(52,152,219,0.05);
+            padding: 10px 15px;
+            border-radius: var(--border-radius);
+            margin-top: 10px;
+            font-size: 0.95rem;
+        }
+        .user-text-answer .answer-label { font-weight: 600; color: var(--dark-gray); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+        @media (max-width: 600px) {
+            .container { padding: 10px; }
+            .quiz-container, .subject-selection-container { padding: 20px; }
+            h1 { font-size: 1.8rem; }
+            .question { padding: 15px; }
+            button { padding: 10px 15px; font-size: 0.9rem; }
+            .stats { flex-direction: column; gap: 10px; align-items: center; }
+            .stat-item { width: 100%; max-width: 200px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>JEN117 Quiz</h1>
+        <p class="description">Choose a subject, then answer questions within the time limit</p>
+    </header>
+
+    <!-- Subject Selection Screen -->
+    <div id="subject-selection-container" class="subject-selection-container">
+        <h2 style="text-align:center;">Select a Subject</h2>
+        <div class="subject-grid" id="subject-grid"></div>
+    </div>
+
+    <!-- Quiz Screen -->
+    <div id="quiz-container" class="quiz-container">
+        <div class="quiz-header">
+            <button class="back-link" id="back-to-subjects-btn">← Change Subject</button>
+            <span style="font-weight:600;" id="current-subject-name"></span>
+        </div>
+        <div class="progress-container">
+            <span class="progress-text">Question <span id="current-question">1</span> of <span id="total-questions">10</span></span>
+            <div class="progress-bar">
+                <div class="progress-bar-fill" id="progress-bar"></div>
+            </div>
+        </div>
+        <div class="timer-container">
+            <svg class="timer-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M12 6V12L16 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="timer" id="timer">30s</span>
+        </div>
+        <div id="question-container"></div>
+        <div class="instant-feedback" id="instant-feedback"></div>
+        <div class="navigation">
+            <button id="prev-btn" disabled>Previous</button>
+            <button id="next-btn">Next</button>
+            <button id="submit-btn" style="display: none;">Submit Quiz</button>
+        </div>
+    </div>
+
+    <!-- Result Screen -->
+    <div id="result-container" class="result-container">
+        <h2 class="result-title">Quiz Completed!</h2>
+        <div class="score">Your Score: <span id="score">0</span>/<span id="max-score">10</span></div>
+        <p class="score-text" id="score-text"></p>
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-value" id="correct-answers">0</div>
+                <div class="stat-label">Correct</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="incorrect-answers">0</div>
+                <div class="stat-label">Incorrect</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="average-time">0s</div>
+                <div class="stat-label">Avg Time</div>
+            </div>
+        </div>
+        <div class="feedback" id="feedback"></div>
+        <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+            <button id="restart-btn">Restart This Quiz</button>
+            <button id="back-from-result-btn" class="secondary-btn">Back to Subjects</button>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    // ========== SUBJECTS DATA ==========
+    const subjectsData = {
+  "unit1": {
+    name: "Unit 1: Nature and Concept of Language and Literacy",
+    icon: "📖",
+    questions: [
+      // --- SESSION 1: Definition of Language (15 questions) ---
+      // MCQ (12), text-input (3)
+      {
+        type: "multiple-choice",
+        question: "According to Sapir (1921), language is:",
+        options: [
+          "A system of instinctive animal sounds",
+          "A purely human and non‑instinctive method of communicating ideas by voluntarily produced symbols",
+          "A set of written rules only",
+          "A genetic inheritance"
+        ],
+        correctAnswer: 1,
+        explanation: "Sapir defined language as purely human and non‑instinctive using voluntarily produced symbols (Unit 1, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Crystal (1992) defines language as the systematic, conventional use of sounds, signs or written symbols in human society for:",
+        options: [
+          "Only reading",
+          "Communication and self‑expression",
+          "Only writing",
+          "Only listening"
+        ],
+        correctAnswer: 1,
+        explanation: "Crystal emphasised both communication and self‑expression (Unit 1, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Bloomfield (1933) defined language in terms of:",
+        options: [
+          "Innate grammar",
+          "The situation in which the speaker utters a word and the response it calls forth in the hearer",
+          "Written texts only",
+          "Animal communication"
+        ],
+        correctAnswer: 1,
+        explanation: "Bloomfield focused on the interaction between speaker and hearer (Unit 1, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "According to Hall (1970), language is an institution whereby humans communicate by means of habitually used:",
+        options: [
+          "Written symbols only",
+          "Oral‑auditory arbitrary symbols",
+          "Gestures only",
+          "Musical notes"
+        ],
+        correctAnswer: 1,
+        explanation: "Hall emphasised oral‑auditory arbitrary symbols and habit (Unit 1, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Chomsky (1957) defined language as a set of sentences constructed out of a finite set of elements, focusing on:",
+        options: [
+          "Communicative function",
+          "Purely structural properties",
+          "Social context",
+          "Historical change"
+        ],
+        correctAnswer: 1,
+        explanation: "Chomsky focused on structural properties from a mathematically precise view (Unit 1, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The property of language that means there is no natural relation between words and their meanings is called:",
+        options: [
+          "Systematicity",
+          "Arbitrariness",
+          "Productivity",
+          "Displacement"
+        ],
+        correctAnswer: 1,
+        explanation: "Arbitrariness means no inherent connection between word and meaning (Unit 1, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Language is systematic because:",
+        options: [
+          "It has no rules",
+          "Its symbols are arranged in a particular system with rules of usage",
+          "It changes randomly",
+          "It is only spoken"
+        ],
+        correctAnswer: 1,
+        explanation: "All languages have phonological, morphological, and syntactic systems (Unit 1, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Which property of language allows humans to talk about events not happening in the immediate environment?",
+        options: [
+          "Arbitrariness",
+          "Displacement",
+          "Cultural transmission",
+          "Duality"
+        ],
+        correctAnswer: 1,
+        explanation: "Displacement enables talking across time and space (Unit 1, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The property of language that allows humans to produce new utterances never spoken before is called:",
+        options: [
+          "Creativity or productivity",
+          "Discreteness",
+          "Interchangeability",
+          "Specialization"
+        ],
+        correctAnswer: 0,
+        explanation: "Language is creative and productive, allowing infinite novel utterances (Unit 1, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Duality as a property of language means:",
+        options: [
+          "Language has two dialects",
+          "Language serves two purposes: speaking and writing (sound and meaning systems)",
+          "Only two languages exist",
+          "Language is binary"
+        ],
+        correctAnswer: 1,
+        explanation: "Duality refers to the two systems of sound and meaning (Unit 1, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The fact that language is culturally transmitted means:",
+        options: [
+          "It is inherited genetically",
+          "It is learned from elders, parents, and community",
+          "It is the same in all cultures",
+          "It cannot change"
+        ],
+        correctAnswer: 1,
+        explanation: "Language is acquired from the community, not inherited (Unit 1, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Vocal‑auditory channel as a property of language means:",
+        options: [
+          "Language is only written",
+          "Most human language occurs through vocal organs and is perceived by ears",
+          "Language is only signed",
+          "Language uses only gestures"
+        ],
+        correctAnswer: 1,
+        explanation: "Speech is primary; writing is secondary and marginal (Unit 1, Session 1)."
+      },
+      {
+        type: "text-input",
+        question: "What is the property of language where specific signals match specific meanings?",
+        correctAnswer: "semanticity",
+        acceptableAnswers: ["semanticity", "semanticity"],
+        caseSensitive: false,
+        explanation: "Semanticity is the ability to convey meaning through associative ties (Unit 1, Session 1)."
+      },
+      {
+        type: "text-input",
+        question: "What term describes the property that human utterances do not persist over time?",
+        correctAnswer: "transitoriness",
+        acceptableAnswers: ["transitoriness", "rapid fading"],
+        caseSensitive: false,
+        explanation: "Transitoriness (rapid fading) means speech signals fade quickly (Unit 1, Session 1)."
+      },
+      {
+        type: "text-input",
+        question: "Which property means speakers can both broadcast and receive a message?",
+        correctAnswer: "interchangeability",
+        acceptableAnswers: ["interchangeability"],
+        caseSensitive: false,
+        explanation: "Humans can both send and receive linguistic messages (Unit 1, Session 1)."
+      },
+
+      // --- SESSION 2: The Concept of Literacy (12 questions) ---
+      // MCQ (10), text-input (2)
+      {
+        type: "multiple-choice",
+        question: "In the narrow sense, literacy is defined as:",
+        options: [
+          "Knowledge of a foreign language",
+          "Ability to read and write (conventional literacy)",
+          "Ability to speak only",
+          "Ability to understand spoken language"
+        ],
+        correctAnswer: 1,
+        explanation: "Conventional literacy focuses on reading and writing skills (Unit 1, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "In a broader sense, literacy can refer to:",
+        options: [
+          "Only reading novels",
+          "A body of knowledge and skills in a field (e.g., literacy in medicine)",
+          "Only writing letters",
+          "Only speaking fluently"
+        ],
+        correctAnswer: 1,
+        explanation: "Broad literacy includes specialised knowledge and skills in any domain (Unit 1, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "According to the manual, a literate person can:",
+        options: [
+          "Only speak the language",
+          "Decode and understand messages from both oral and written forms",
+          "Only read",
+          "Only write"
+        ],
+        correctAnswer: 1,
+        explanation: "Literacy includes both oral and written comprehension (Unit 1, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "One difference between language and literacy is that L1 is acquired:",
+        options: [
+          "Artificially in school",
+          "Naturally from caregivers, parents, and siblings",
+          "Only through reading",
+          "Only through writing"
+        ],
+        correctAnswer: 1,
+        explanation: "First language is acquired naturally; literacy is artificially learned in organised settings (Unit 1, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Conventional literacy helps a person to:",
+        options: [
+          "Only speak",
+          "Participate in social media such as WhatsApp and Facebook",
+          "Only listen",
+          "Only sing"
+        ],
+        correctAnswer: 1,
+        explanation: "Reading and writing enable digital communication (Unit 1, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "A person who knows a spoken language but cannot read or write is traditionally labelled:",
+        options: [
+          "Literate",
+          "Illiterate",
+          "Bilingual",
+          "Multilingual"
+        ],
+        correctAnswer: 1,
+        explanation: "The traditional notion of literacy focuses on reading and writing (Unit 1, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "According to Edward and Potts (2008), most definitions of literacy focus on:",
+        options: [
+          "Oral storytelling",
+          "Conventional form associated with technical skills of reading and writing",
+          "Body language",
+          "Sign language"
+        ],
+        correctAnswer: 1,
+        explanation: "Conventional literacy is tied to school and academic progression (Unit 1, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Literacy helps a citizen meet civic obligations such as:",
+        options: [
+          "Only speaking",
+          "Knowing rules, group discussion, and voting without help",
+          "Only singing national anthem",
+          "Only dancing"
+        ],
+        correctAnswer: 1,
+        explanation: "Reading and writing enable informed civic participation (Unit 1, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Compared to a person who only knows a spoken language, a literate person can:",
+        options: [
+          "Function in fewer ways",
+          "Function and adapt in more ways in society",
+          "Never get a job",
+          "Only communicate with family"
+        ],
+        correctAnswer: 1,
+        explanation: "Literacy expands opportunities for social and economic participation (Unit 1, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The traditional notion that the ability to read and write is vital because it:",
+        options: [
+          "Makes people rich",
+          "Helps people face problems intelligently and enrich their lives",
+          "Is only for school",
+          "Replaces speaking"
+        ],
+        correctAnswer: 1,
+        explanation: "Literacy empowers intelligent problem‑solving (Unit 1, Session 2)."
+      },
+      {
+        type: "text-input",
+        question: "What is the term for literacy that involves specialised knowledge in a field (e.g., computer literacy)?",
+        correctAnswer: "broad literacy",
+        acceptableAnswers: ["broad literacy", "broader definition", "specialised literacy"],
+        caseSensitive: false,
+        explanation: "Broad literacy goes beyond reading and writing to include domain knowledge (Unit 1, Session 2)."
+      },
+      {
+        type: "text-input",
+        question: "What is the skill of decoding and understanding written texts called?",
+        correctAnswer: "reading",
+        acceptableAnswers: ["reading", "conventional literacy"],
+        caseSensitive: false,
+        explanation: "Reading is a core component of conventional literacy (Unit 1, Session 2)."
+      },
+
+      // --- SESSION 3: Stages of Literacy Development/Acquisition (15 questions) ---
+      // MCQ (12), text-input (3)
+      {
+        type: "multiple-choice",
+        question: "The first stage of literacy development is called:",
+        options: [
+          "Beginning literacy",
+          "Foundation for literacy stage",
+          "Consolidation stage",
+          "Literacy for growth"
+        ],
+        correctAnswer: 1,
+        explanation: "Foundation for literacy stage develops building blocks for reading and writing (Unit 1, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Phonics requires children to master the:",
+        options: [
+          "Alphabetic principle",
+          "Grammar rules only",
+          "Vocabulary only",
+          "Spelling only"
+        ],
+        correctAnswer: 0,
+        explanation: "Phonics involves understanding the correspondence between letters and sounds (Unit 1, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Phonemic awareness is the ability to:",
+        options: [
+          "Write sentences",
+          "Hear, identify, and manipulate individual units of sound (phonemes)",
+          "Read whole words",
+          "Understand grammar"
+        ],
+        correctAnswer: 1,
+        explanation: "Phonemic awareness is fundamental for learning to read (Unit 1, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "High frequency sight words such as 'the', 'and', 'is' make up more than what percentage of most texts for early readers?",
+        options: ["25%", "50%", "75%", "90%"],
+        correctAnswer: 1,
+        explanation: "The first 10 sight words make up over 50% of early reader texts (Unit 1, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "In the beginning literacy stage, students move from learning about reading and writing to:",
+        options: [
+          "Only listening",
+          "Actually doing it (decoding and encoding)",
+          "Only speaking",
+          "Only drawing"
+        ],
+        correctAnswer: 1,
+        explanation: "Students learn the code to decode (read) and encode (spell) (Unit 1, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "At the beginning literacy stage, children develop book handling skills such as:",
+        options: [
+          "Tearing pages",
+          "Holding books the correct way and identifying the cover",
+          "Eating books",
+          "Throwing books"
+        ],
+        correctAnswer: 1,
+        explanation: "Early literacy includes orientation to books and print (Unit 1, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The consolidation/fluency stage is where students must apply their skills with:",
+        options: [
+          "Great effort",
+          "Less effort and become fluent",
+          "No practice",
+          "Only writing"
+        ],
+        correctAnswer: 1,
+        explanation: "Fluency reduces the effort of mechanics, allowing focus on ideas (Unit 1, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "In the literacy for growth stage, students use reading and writing to:",
+        options: [
+          "Only pass exams",
+          "Acquire new information, conduct research, and reflect on deeper thoughts",
+          "Avoid thinking",
+          "Only copy texts"
+        ],
+        correctAnswer: 1,
+        excerpt: "Students extend and apply literacy skills for intellectual growth (Unit 1, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "What two skills do children need to grasp the alphabetic principle?",
+        options: [
+          "Phonological awareness and letter knowledge",
+          "Grammar and spelling",
+          "Vocabulary and fluency",
+          "Comprehension and writing"
+        ],
+        correctAnswer: 0,
+        explanation: "Phonological awareness and letter knowledge are essential (Unit 1, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Fluency in reading develops as a child practices:",
+        options: [
+          "Only writing",
+          "Phonemic awareness, phonic skills, vocabulary, and regular reading",
+          "Only listening",
+          "Only speaking"
+        ],
+        correctAnswer: 1,
+        explanation: "Fluency comes from integrated practice in multiple areas (Unit 1, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "At the foundation for literacy stage, children are greatly immersed in stories they hear, which helps develop:",
+        options: [
+          "Only spelling",
+          "Comprehension skills",
+          "Only handwriting",
+          "Only grammar"
+        ],
+        correctAnswer: 1,
+        explanation: "Listening to stories builds comprehension and prediction skills (Unit 1, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "In the beginning literacy stage, students need to learn to read and spell common:",
+        options: [
+          "Regularly spelled words only",
+          "Irregularly spelled words (sight words)",
+          "Only nouns",
+          "Only verbs"
+        ],
+        correctAnswer: 1,
+        explanation: "High‑frequency irregular words must be recognized easily (Unit 1, Session 3)."
+      },
+      {
+        type: "text-input",
+        question: "What term describes the ability to hear and manipulate individual sounds in words?",
+        correctAnswer: "phonemic awareness",
+        acceptableAnswers: ["phonemic awareness", "phonological awareness"],
+        caseSensitive: false,
+        explanation: "Phonemic awareness is a subset of phonological awareness (Unit 1, Session 3)."
+      },
+      {
+        type: "text-input",
+        question: "What does 'decoding' refer to in reading?",
+        correctAnswer: "sounding out",
+        acceptableAnswers: ["sounding out", "sounding out words"],
+        caseSensitive: false,
+        explanation: "Decoding is putting sounds to letters to read written language (Unit 1, Session 3)."
+      },
+      {
+        type: "text-input",
+        question: "At what stage do children begin to use grammatical elements like auxiliaries and determiners?",
+        correctAnswer: "later multiword",
+        acceptableAnswers: ["later multiword", "later multi‑word stage"],
+        caseSensitive: false,
+        explanation: "After 30 months, children use articles, verb tense, and pronouns (Unit 1, Session 3)."
+      },
+
+      // --- SESSION 4: Challenges to Developing Literacy Among Learners (9 questions) ---
+      // MCQ (7), text-input (2)
+      {
+        type: "multiple-choice",
+        question: "Decoding refers to:",
+        options: [
+          "Understanding a story",
+          "Putting sounds to letters to sound out written language",
+          "Writing sentences",
+          "Spelling correctly"
+        ],
+        correctAnswer: 1,
+        explanation: "Decoding is sounding out written words (Unit 1, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "A student who struggles with decoding may have a specific learning difficulty such as:",
+        options: [
+          "Dyslexia",
+          "Excellent hearing",
+          "High IQ",
+          "Fast processing"
+        ],
+        correctAnswer: 0,
+        explanation: "Dyslexia is a common cause of decoding difficulties (Unit 1, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Poor comprehension can occur when a student:",
+        options: [
+          "Has a large vocabulary",
+          "Struggles with decoding, has limited vocabulary, or reads text too difficult",
+          "Reads slowly",
+          "Reads quickly"
+        ],
+        correctAnswer: 1,
+        explanation: "Multiple factors contribute to poor comprehension (Unit 1, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Slow processing speed means the brain takes longer to:",
+        options: [
+          "Only see",
+          "Receive, understand, and respond to information",
+          "Only hear",
+          "Only write"
+        ],
+        correctAnswer: 1,
+        explanation: "Processing speed affects all stages of information handling (Unit 1, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "A challenge related to the physical environment in the classroom that can affect literacy is:",
+        options: [
+          "Teacher's mood",
+          "Sitting arrangement and ventilation",
+          "School uniform",
+          "Break time"
+        ],
+        correctAnswer: 1,
+        explanation: "Poor seating and ventilation can hinder concentration (Unit 1, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Reading is a cognitively demanding task that can exhaust children with:",
+        options: [
+          "High intelligence",
+          "Slow processing",
+          "Fast reading",
+          "Large vocabulary"
+        ],
+        correctAnswer: 1,
+        explanation: "Slow processing makes holding and processing text difficult (Unit 1, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "One way to support children with slow processing is to:",
+        options: [
+          "Give less time",
+          "Allow extra time to complete reading tasks",
+          "Rush them",
+          "Ignore their pace"
+        ],
+        correctAnswer: 1,
+        explanation: "Extra time reduces cognitive load (Unit 1, Session 4)."
+      },
+      {
+        type: "text-input",
+        question: "What is one factor linked to struggling readers in the classroom environment?",
+        correctAnswer: "ventilation",
+        acceptableAnswers: ["ventilation", "sitting arrangement", "lighting"],
+        caseSensitive: false,
+        explanation: "Poor physical conditions can hinder literacy development (Unit 1, Session 4)."
+      },
+      {
+        type: "text-input",
+        question: "What term describes the inability to sound out new or unfamiliar words?",
+        correctAnswer: "decoding difficulty",
+        acceptableAnswers: ["decoding difficulty", "decoding problem"],
+        caseSensitive: false,
+        explanation: "Decoding difficulty is a common challenge (Unit 1, Session 4)."
+      },
+
+      // --- SESSION 5: Promoting Literacy Development among Children (9 questions) ---
+      // MCQ (7), text-input (2)
+      {
+        type: "multiple-choice",
+        question: "Explicit literacy instruction means the instruction should be:",
+        options: [
+          "Long and complex",
+          "Teacher explanatory, short, and concise",
+          "Student‑led only",
+          "No explanation"
+        ],
+        correctAnswer: 1,
+        explanation: "Explicit instruction provides clear, brief objectives (Unit 1, Session 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "In explicit instruction, a 'cue' is a quick reminder of what students are being asked to do, such as:",
+        options: [
+          "Silence",
+          "Sound (during sounds practice)",
+          "Stand up",
+          "Write an essay"
+        ],
+        correctAnswer: 1,
+        explanation: "Cues help students focus on the task (Unit 1, Session 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Think time in explicit instruction allows learners to:",
+        options: [
+          "Leave the class",
+          "Think about and formulate their response before answering",
+          "Chat with friends",
+          "Draw pictures"
+        ],
+        correctAnswer: 1,
+        explanation: "Think time ensures all students can process and respond (Unit 1, Session 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Choral responding is used when:",
+        options: [
+          "Answers vary widely",
+          "Answers are the same and short; all respond together",
+          "Only one student answers",
+          "No one answers"
+        ],
+        correctAnswer: 1,
+        explanation: "Choral response engages the whole class quickly (Unit 1, Session 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "According to Brian Cambourne, the condition 'Immersion' means children need to be surrounded by:",
+        options: [
+          "Only textbooks",
+          "Interesting high‑quality children's books and different kinds of texts",
+          "Only digital screens",
+          "Only worksheets"
+        ],
+        correctAnswer: 1,
+        explanation: "Immersion exposes children to a print‑rich environment (Unit 1, Session 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The condition 'Demonstration' requires teachers to:",
+        options: [
+          "Only talk",
+          "Model reading and writing, showing how to hold a book and read aloud",
+          "Only give tests",
+          "Only assign homework"
+        ],
+        correctAnswer: 1,
+        explanation: "Teachers show literacy behaviours for children to imitate (Unit 1, Session 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The condition 'Engagement' involves setting up a risk‑free environment so children can:",
+        options: [
+          "Avoid learning",
+          "Experiment with language and literacy",
+          "Only write without reading",
+          "Only read without writing"
+        ],
+        correctAnswer: 1,
+        explanation: "Low‑risk environments encourage exploration (Unit 1, Session 5)."
+      },
+      {
+        type: "text-input",
+        question: "What is one of Brian Cambourne's eight conditions of literacy development?",
+        correctAnswer: "expectation",
+        acceptableAnswers: ["expectation", "responsibilities", "use", "response", "immersion", "demonstration", "engagement"],
+        caseSensitive: false,
+        explanation: "The eight conditions are immersion, demonstration, engagement, expectation, responsibility, use, response, and approximation (Unit 1, Session 5)."
+      },
+      {
+        type: "text-input",
+        question: "What component of explicit instruction includes the focus, cue, think time, and signal?",
+        correctAnswer: "signal",
+        acceptableAnswers: ["signal", "signal for response"],
+        caseSensitive: false,
+        explanation: "The four parts are focus, cue, think time, and signal for response (Unit 1, Session 5)."
+      }
+    ]
+  },
+  "unit2": {
+    name: "Unit 2: Theories of Language Acquisition/Learning",
+    icon: "🧠",
+    questions: [
+      // --- SESSION 1: The Behaviourist Theory (12 questions) ---
+      // MCQ (10), text-input (2)
+      {
+        type: "multiple-choice",
+        question: "The Behaviourist theory of language acquisition was propounded by:",
+        options: [
+          "Noam Chomsky",
+          "B.F. Skinner",
+          "Jean Piaget",
+          "Stephen Krashen"
+        ],
+        correctAnswer: 1,
+        explanation: "B.F. Skinner is the main proponent of Behaviourist theory (Unit 2, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "According to Behaviourists, children learn language through:",
+        options: [
+          "Innate grammar",
+          "Imitation, rewards, and practice",
+          "Cognitive development",
+          "Social interaction only"
+        ],
+        correctAnswer: 1,
+        explanation: "Behaviourists believe environment shapes language via imitation and reinforcement (Unit 2, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "In Behaviourist theory, praise and affection given to a child for speaking are examples of:",
+        options: [
+          "Negative reinforcement",
+          "Positive reinforcement",
+          "Punishment",
+          "Displacement"
+        ],
+        correctAnswer: 1,
+        explanation: "Positive reinforcement strengthens the behaviour (Unit 2, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "According to Behaviourists, an Ewe child who lives among the Gas is likely to speak Ga instead of Ewe. This illustrates the importance of:",
+        options: [
+          "Innate ability",
+          "Environment and exposure",
+          "Cognitive development",
+          "Universal Grammar"
+        ],
+        correctAnswer: 1,
+        explanation: "The child learns the language of the surrounding environment (Unit 2, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "An implication of Behaviourist theory for language teaching is that teachers should:",
+        options: [
+          "Avoid repetition",
+          "Provide the right models in listening, speaking, reading, and writing",
+          "Never correct errors",
+          "Use only written materials"
+        ],
+        correctAnswer: 1,
+        explanation: "Teachers serve as role models for learners to imitate (Unit 2, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Language drills are used in Behaviourist teaching to ensure:",
+        options: [
+          "Creative thinking",
+          "Memorisation and habit formation through repetition",
+          "Critical analysis",
+          "Error avoidance"
+        ],
+        correctAnswer: 1,
+        explanation: "Drills build habits via repeated practice (Unit 2, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "A teacher who asks the class to clap for a student who gives a correct answer is using:",
+        options: [
+          "Negative reinforcement",
+          "Positive reinforcement",
+          "Punishment",
+          "Flooding"
+        ],
+        correctAnswer: 1,
+        explanation: "Clapping is a reward that encourages more participation (Unit 2, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "One weakness of the Behaviourist theory is that it:",
+        options: [
+          "Encourages discovery learning",
+          "Makes the learner passive and encourages rote learning",
+          "Focuses on meaning",
+          "Considers innate factors"
+        ],
+        correctAnswer: 1,
+        explanation: "Behaviourism emphasises repetition over active discovery (Unit 2, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "According to Behaviourists, the quality and quantity of language a child hears, coupled with consistent reinforcement, affect:",
+        options: [
+          "Only pronunciation",
+          "The child's success in language learning",
+          "Only vocabulary",
+          "Only grammar"
+        ],
+        correctAnswer: 1,
+        explanation: "Input and reinforcement determine learning outcomes (Unit 2, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "A repetition drill is an example of a technique that promotes:",
+        options: [
+          "Spontaneous speech",
+          "Habit formation",
+          "Creative language use",
+          "Error analysis"
+        ],
+        correctAnswer: 1,
+        explanation: "Drills automate correct forms through repetition (Unit 2, Session 1)."
+      },
+      {
+        type: "text-input",
+        question: "Name one proponent of the Behaviourist theory.",
+        correctAnswer: "Pavlov",
+        acceptableAnswers: ["Pavlov", "Ivan Pavlov", "Watson", "Thorndike"],
+        caseSensitive: false,
+        explanation: "Pavlov, Watson, Thorndike, and Skinner are Behaviourists (Unit 2, Session 1)."
+      },
+      {
+        type: "text-input",
+        question: "What term describes the process where a student feels embarrassed after a wrong answer and becomes reluctant to participate?",
+        correctAnswer: "negative reinforcement",
+        acceptableAnswers: ["negative reinforcement", "negative reinforcement"],
+        caseSensitive: false,
+        explanation: "Negative reinforcement can discourage future responses (Unit 2, Session 1)."
+      },
+
+      // --- SESSION 2: The Innatist Theory (12 questions) ---
+      // MCQ (10), text-input (2)
+      {
+        type: "multiple-choice",
+        question: "The Innatist theory of language acquisition is primarily associated with:",
+        options: [
+          "B.F. Skinner",
+          "Noam Chomsky",
+          "Jean Piaget",
+          "Lev Vygotsky"
+        ],
+        correctAnswer: 1,
+        explanation: "Noam Chomsky is the leading proponent of Innatism (Unit 2, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "According to Chomsky, the in‑built mechanism in the mind that helps humans acquire language is called:",
+        options: [
+          "Universal Grammar (UG)",
+          "Language Acquisition Device (LAD)",
+          "Zone of Proximal Development (ZPD)",
+          "Affective Filter"
+        ],
+        correctAnswer: 1,
+        explanation: "LAD is the hypothetical black box that processes language (Unit 2, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Innatists argue that children are credited with a special ability to:",
+        options: [
+          "Imitate sounds perfectly",
+          "Discover the underlying rules of a language system within themselves",
+          "Learn only through rewards",
+          "Acquire language only from formal instruction"
+        ],
+        correctAnswer: 1,
+        explanation: "Innatists believe rule discovery is innate (Unit 2, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "For the LAD to work, the child needs:",
+        options: [
+          "Formal grammar lessons",
+          "Samples or inputs of natural language",
+          "Constant correction",
+          "No exposure to language"
+        ],
+        correctAnswer: 1,
+        explanation: "Input triggers the LAD to develop grammar (Unit 2, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "According to Innatist theory, new grammatical forms are acquired:",
+        options: [
+          "Through imitation and practice only",
+          "Not solely through imitation but through innate ability",
+          "Only by reading",
+          "Only by writing"
+        ],
+        correctAnswer: 1,
+        explanation: "Innatists reject the idea that imitation alone accounts for grammar acquisition (Unit 2, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "An implication of Innatist theory for teaching a second language is that the teacher should:",
+        options: [
+          "Condemn slow learners",
+          "Motivate the child to learn at their own pace and create a natural environment",
+          "Use only drills",
+          "Ignore the child's developmental level"
+        ],
+        correctAnswer: 1,
+        explanation: "Teachers should respect individual pacing and natural communication (Unit 2, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Chomsky's LAD is often described as:",
+        options: [
+          "A physical part of the brain",
+          "An imaginary 'black box' somewhere in the brain",
+          "A teaching method",
+          "A textbook"
+        ],
+        correctAnswer: 1,
+        explanation: "LAD is a conceptual device, not a physical location (Unit 2, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Innatists believe that linguistic knowledge is:",
+        options: [
+          "Purely mechanical habits",
+          "An abstract nature not solely based on habits",
+          "Only learned through repetition",
+          "Identical across species"
+        ],
+        correctAnswer: 1,
+        explanation: "Innatism posits abstract mental grammar (Unit 2, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "According to Innatist theory, the teacher should present language items:",
+        options: [
+          "Randomly",
+          "According to the child's age, experience, and level of development",
+          "In a fixed order regardless of the child",
+          "Only in writing"
+        ],
+        correctAnswer: 1,
+        explanation: "Maturation and readiness guide instruction (Unit 2, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Innatist theory draws the teacher's attention to teaching L2 as:",
+        options: [
+          "A completely separate process",
+          "An extension of L1, applying the same principles",
+          "Only through grammar translation",
+          "Only through drills"
+        ],
+        correctAnswer: 1,
+        explanation: "L1 acquisition principles can support L2 learning (Unit 2, Session 2)."
+      },
+      {
+        type: "text-input",
+        question: "What does LAD stand for?",
+        correctAnswer: "Language Acquisition Device",
+        acceptableAnswers: ["Language Acquisition Device", "LAD"],
+        caseSensitive: false,
+        explanation: "LAD is Chomsky's proposed innate language processor (Unit 2, Session 2)."
+      },
+      {
+        type: "text-input",
+        question: "Who argued that children are born with a special ability to discover language rules?",
+        correctAnswer: "Chomsky",
+        acceptableAnswers: ["Chomsky", "Noam Chomsky"],
+        caseSensitive: false,
+        explanation: "Chomsky is the main proponent of Innatist theory (Unit 2, Session 2)."
+      },
+
+      // --- SESSION 3: The Cognitivist Theory (Jean Piaget) (12 questions) ---
+      // MCQ (10), text-input (2)
+      {
+        type: "multiple-choice",
+        question: "The Cognitivist theory of language acquisition is associated with:",
+        options: [
+          "Skinner",
+          "Piaget",
+          "Krashen",
+          "Halliday"
+        ],
+        correctAnswer: 1,
+        explanation: "Jean Piaget is the key proponent of Cognitivist theory (Unit 2, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "According to Cognitivists, learners use their cognitive abilities to:",
+        options: [
+          "Imitate sounds",
+          "Work out hypotheses about the structure of the L2",
+          "Only memorise vocabulary",
+          "Only repeat phrases"
+        ],
+        correctAnswer: 1,
+        explanation: "Learners actively construct and test rules (Unit 2, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Cognitivist theory says that language learning proceeds in:",
+        options: [
+          "A random order",
+          "A series of transitional stages as learners acquire more knowledge",
+          "A single fixed stage",
+          "No stages at all"
+        ],
+        correctAnswer: 1,
+        explanation: "Learning is gradual and sequential (Unit 2, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Error analysis plays a central role in the Cognitivist approach because errors:",
+        options: [
+          "Should be ignored",
+          "Provide positive evidence about the nature of the learning process",
+          "Indicate failure",
+          "Must be punished"
+        ],
+        correctAnswer: 1,
+        explanation: "Errors show how learners are constructing their interlanguage (Unit 2, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "One implication of Cognitivist theory for teaching is that:",
+        options: [
+          "All children learn the same way",
+          "Teachers should plan lessons to suit all levels of children in the classroom",
+          "Only gifted children can learn",
+          "Drills are the only method"
+        ],
+        correctAnswer: 1,
+        explanation: "Individual differences in intelligence and aptitude require differentiation (Unit 2, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Cognitivist theory advocates that teaching should be done in:",
+        options: [
+          "Random order",
+          "Transitional stages",
+          "Only one stage",
+          "No stages"
+        ],
+        correctAnswer: 1,
+        explanation: "Staged learning allows gradual mastery (Unit 2, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "According to Cognitivists, language is related to the child's:",
+        options: [
+          "Social environment only",
+          "Intellectual development",
+          "Genetics only",
+          "Imitation ability"
+        ],
+        correctAnswer: 1,
+        explanation: "Cognitive development and language are linked (Unit 2, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The Cognitivist theory exposes learners to authentic use of L2 in:",
+        options: [
+          "Artificial situations",
+          "Near‑natural situations using natural strategies",
+          "Only written texts",
+          "Only isolated grammar exercises"
+        ],
+        correctAnswer: 1,
+        explanation: "Authentic communication promotes natural acquisition (Unit 2, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "A child who says 'This stick is longer than that one' has developed the concept of:",
+        options: [
+          "Counting",
+          "Length comparison",
+          "Color",
+          "Shape"
+        ],
+        correctAnswer: 1,
+        explanation: "Cognitive understanding of length precedes or accompanies language (Unit 2, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Cognitivist theory helps teachers to:",
+        options: [
+          "Ignore errors",
+          "Correct errors by teaching correct grammatical forms to forestall fossilisation",
+          "Never correct",
+          "Only praise"
+        ],
+        correctAnswer: 1,
+        explanation: "Timely correction prevents wrong structures becoming permanent (Unit 2, Session 3)."
+      },
+      {
+        type: "text-input",
+        question: "What is the main proponent of Cognitivist theory?",
+        correctAnswer: "Piaget",
+        acceptableAnswers: ["Piaget", "Jean Piaget"],
+        caseSensitive: false,
+        explanation: "Jean Piaget founded Cognitivist theory (Unit 2, Session 3)."
+      },
+      {
+        type: "text-input",
+        question: "What does error analysis study?",
+        correctAnswer: "learner errors",
+        acceptableAnswers: ["learner errors", "mistakes", "errors"],
+        caseSensitive: false,
+        explanation: "Error analysis examines patterns in learner mistakes (Unit 2, Session 3)."
+      },
+
+      // --- SESSION 4: Monitor Model (Stephen Krashen) (12 questions) ---
+      // MCQ (10), text-input (2)
+      {
+        type: "multiple-choice",
+        question: "The Monitor Model of language acquisition was propounded by:",
+        options: [
+          "Chomsky",
+          "Krashen",
+          "Piaget",
+          "Halliday"
+        ],
+        correctAnswer: 1,
+        explanation: "Stephen Krashen proposed the Monitor Model in 1982 (Unit 2, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "According to Krashen's Acquisition‑Learning Hypothesis, acquisition is:",
+        options: [
+          "A conscious process",
+          "A subconscious process focused on meaning",
+          "Formal rule learning",
+          "Only reading"
+        ],
+        correctAnswer: 1,
+        explanation: "Acquisition occurs naturally through meaningful communication (Unit 2, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "In Krashen's view, learning is:",
+        options: [
+          "Subconscious",
+          "A conscious process of studying language rules",
+          "Only for children",
+          "The same as acquisition"
+        ],
+        correctAnswer: 1,
+        explanation: "Learning is formal, explicit, and rule‑based (Unit 2, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The Monitor Hypothesis states that the monitor serves to:",
+        options: [
+          "Produce all utterances",
+          "Edit utterances produced through the acquired system",
+          "Block all speech",
+          "Replace acquired knowledge"
+        ],
+        correctAnswer: 1,
+        explanation: "The monitor checks and corrects output (Unit 2, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Which condition limits the usefulness of the monitor?",
+        options: [
+          "Lack of vocabulary",
+          "Time, focus on correctness, and knowledge of rules",
+          "Too much practice",
+          "Young age"
+        ],
+        correctAnswer: 1,
+        explanation: "These three conditions must be met for monitoring to work (Unit 2, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The Natural Order Hypothesis claims that language rules are acquired in:",
+        options: [
+          "A random order",
+          "A predictable, natural order",
+          "The order they are taught",
+          "Reverse order of difficulty"
+        ],
+        correctAnswer: 1,
+        explanation: "Certain grammatical structures are acquired earlier than others (Unit 2, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The Input Hypothesis states that acquisition occurs through:",
+        options: [
+          "Production of language",
+          "Comprehensible input (i+1)",
+          "Formal grammar instruction",
+          "Error correction"
+        ],
+        correctAnswer: 1,
+        explanation: "Learners acquire when they understand messages slightly above their current level (Unit 2, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The Affective Filter Hypothesis concerns learner's:",
+        options: [
+          "Age",
+          "Motivation, self‑confidence, and anxiety",
+          "First language",
+          "Memory"
+        ],
+        correctAnswer: 1,
+        explanation: "Low anxiety and high motivation lower the filter, allowing input to become intake (Unit 2, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "According to Krashen, children learn language faster than adults because of:",
+        options: [
+          "Higher intelligence",
+          "The presence of LAD that matures with age",
+          "More formal instruction",
+          "Greater motivation"
+        ],
+        correctAnswer: 1,
+        explanation: "LAD is active during childhood and helps natural acquisition (Unit 2, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "An implication of the Monitor Model for teaching is to:",
+        options: [
+          "Focus only on grammar rules",
+          "Use inductive techniques and teach from simple to complex",
+          "Avoid repetition",
+          "Teach all rules at once"
+        ],
+        correctAnswer: 1,
+        explanation: "Inductive learning allows natural order to operate (Unit 2, Session 4)."
+      },
+      {
+        type: "text-input",
+        question: "What does 'i+1' refer to in Krashen's Input Hypothesis?",
+        correctAnswer: "comprehensible input",
+        acceptableAnswers: ["comprehensible input", "i+1", "input slightly above current level"],
+        caseSensitive: false,
+        explanation: "i+1 is input that is just beyond the learner's current competence (Unit 2, Session 4)."
+      },
+      {
+        type: "text-input",
+        question: "Name one of Krashen's five hypotheses.",
+        correctAnswer: "acquisition-learning",
+        acceptableAnswers: ["acquisition-learning", "monitor", "natural order", "input", "affective filter"],
+        caseSensitive: false,
+        explanation: "The five are: Acquisition‑Learning, Monitor, Natural Order, Input, and Affective Filter (Unit 2, Session 4)."
+      },
+
+      // --- SESSION 5: The Discourse Theory (Halliday) (12 questions) ---
+      // MCQ (10), text-input (2)
+      {
+        type: "multiple-choice",
+        question: "The Discourse Theory of language acquisition is propounded by:",
+        options: [
+          "Chomsky",
+          "Halliday",
+          "Krashen",
+          "Piaget"
+        ],
+        correctAnswer: 1,
+        explanation: "Michael Halliday proposed the Discourse Theory in 1975 (Unit 2, Session 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "According to Halliday, language development should be based on:",
+        options: [
+          "Grammar rules",
+          "How the learner takes part in communication",
+          "Vocabulary memorisation",
+          "Writing exercises"
+        ],
+        correctAnswer: 1,
+        explanation: "Meaningful communication drives language acquisition (Unit 2, Session 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "One implication of the Discourse Theory is that teachers must:",
+        options: [
+          "Avoid conversation",
+          "Motivate pupils to communicate in the target language",
+          "Only use written tests",
+          "Ignore speaking"
+        ],
+        correctAnswer: 1,
+        explanation: "Active communication is central to learning (Unit 2, Session 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The Discourse Theory recommends using conversation as a teaching strategy through:",
+        options: [
+          "Only lectures",
+          "Storytelling, verse, and drama",
+          "Only grammar translation",
+          "Only silent reading"
+        ],
+        correctAnswer: 1,
+        explanation: "Drama and storytelling encourage natural language use (Unit 2, Session 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "According to Halliday, through communicating with others, children:",
+        options: [
+          "Only learn vocabulary",
+          "Fulfill actions and develop rules of language structure and use",
+          "Only learn pronunciation",
+          "Only learn writing"
+        ],
+        correctAnswer: 1,
+        explanation: "Communication leads to both linguistic and pragmatic competence (Unit 2, Session 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Using role play to let learners act out characters is a technique aligned with:",
+        options: [
+          "Behaviourism",
+          "Discourse Theory",
+          "Innatism",
+          "Cognitivism"
+        ],
+        correctAnswer: 1,
+        explanation: "Role play involves meaningful communication in context (Unit 2, Session 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The Discourse Theory suggests that teachers should use a lot of:",
+        options: [
+          "Drills",
+          "Teaching and Learning Materials (TLMs) to depict lessons",
+          "Grammar worksheets",
+          "Dictation"
+        ],
+        correctAnswer: 1,
+        explanation: "TLMs help learners understand and use language appropriately (Unit 2, Session 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "One way to adopt good communication relationships among pupils is to:",
+        options: [
+          "Prevent them from speaking",
+          "Organise debates among pupils",
+          "Only use pair work",
+          "Only use group work"
+        ],
+        correctAnswer: 1,
+        explanation: "Debates encourage purposeful oral interaction (Unit 2, Session 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The Discourse Theory emphasises that language is learned by:",
+        options: [
+          "Memorising rules",
+          "Using it to communicate with others about real life situations",
+          "Reading alone",
+          "Writing alone"
+        ],
+        correctAnswer: 1,
+        explanation: "Real communication is the engine of acquisition (Unit 2, Session 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "According to Halliday, learners discover the meaning of language through:",
+        options: [
+          "Formal instruction",
+          "Participation in communication",
+          "Imitating the teacher",
+          "Drills"
+        ],
+        correctAnswer: 1,
+        explanation: "Meaning is discovered in use, not taught in isolation (Unit 2, Session 5)."
+      },
+      {
+        type: "text-input",
+        question: "Who propounded the Discourse Theory?",
+        correctAnswer: "Halliday",
+        acceptableAnswers: ["Halliday", "Michael Halliday"],
+        caseSensitive: false,
+        explanation: "Halliday's Discourse Theory focuses on communication (Unit 2, Session 5)."
+      },
+      {
+        type: "text-input",
+        question: "Name one teaching strategy recommended by the Discourse Theory.",
+        correctAnswer: "debates",
+        acceptableAnswers: ["debates", "storytelling", "drama", "role play"],
+        caseSensitive: false,
+        explanation: "Debates, role play, and storytelling promote communication (Unit 2, Session 5)."
+      }
+    ]
+  },
+  "unit3": {
+    name: "Unit 3: L1 Acquisition",
+    icon: "🗣️",
+    questions: [
+      // --- SESSION 1: Stages of L1 Acquisition (15 questions) ---
+      // MCQ (12), text-input (3)
+      {
+        type: "multiple-choice",
+        question: "Lennenberg (1967) defines first language as the language the child picks during:",
+        options: [
+          "Infancy",
+          "The critical period",
+          "Adolescence",
+          "Adulthood"
+        ],
+        correctAnswer: 1,
+        explanation: "The critical period is a biologically determined window for L1 acquisition (Unit 3, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The pre‑language stage in L1 acquisition lasts from:",
+        options: [
+          "0-6 months",
+          "0-13 months",
+          "9-18 months",
+          "24-30 months"
+        ],
+        correctAnswer: 1,
+        explanation: "The pre‑language stage occurs before meaningful speech, roughly 0‑13 months (Unit 3, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "During the cooing stage (0‑6 months), babies produce vowel‑like sounds such as:",
+        options: [
+          "ba ba",
+          "oh, uh, ah",
+          "da da",
+          "ma ma"
+        ],
+        correctAnswer: 1,
+        explanation: "Cooing involves back vowels like /u/ and /o/ showing emotions (Unit 3, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Babbling phase typically occurs from approximately:",
+        options: [
+          "0-6 months",
+          "6-8 months",
+          "9-18 months",
+          "18-24 months"
+        ],
+        correctAnswer: 1,
+        explanation: "Babbling starts around 6‑8 months with sound experimentation (Unit 3, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The holophrastic stage is characterised by:",
+        options: [
+          "Two‑word sentences",
+          "The child's first single word that relates to a sentence",
+          "Babbling",
+          "Telegraphic speech"
+        ],
+        correctAnswer: 1,
+        explanation: "Holophrastic means one word stands for a whole sentence (Unit 3, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "In the holophrastic stage, infants' vocabulary is dominated by approximately what percentage of nouns?",
+        options: ["30%", "50%", "70%", "90%"],
+        correctAnswer: 1,
+        explanation: "Nouns make up about 50% of early vocabulary (Unit 3, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The two‑word stage is characterised by sentences such as:",
+        options: [
+          "Mama come",
+          "Daddy walk",
+          "Baby crying",
+          "All of the above"
+        ],
+        correctAnswer: 3,
+        explanation: "Two‑word combinations include subject‑predicate structures (Unit 3, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The telegraphic stage occurs from approximately:",
+        options: [
+          "9-18 months",
+          "18-24 months",
+          "24-30 months",
+          "30+ months"
+        ],
+        correctAnswer: 2,
+        explanation: "Telegraphic stage (24‑30 months) involves multiple‑word utterances with inflections (Unit 3, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "By three years of age, a child has acquired hundreds of words and pronunciation is close to:",
+        options: [
+          "Animal sounds",
+          "Adult language",
+          "Babbling",
+          "Cooing"
+        ],
+        correctAnswer: 1,
+        explanation: "Speech becomes recognisably adult‑like by age three (Unit 3, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "One determinant of L1 acquisition according to O'Grady et al. (1991) is:",
+        options: [
+          "Imitation and correction",
+          "Only genetics",
+          "Only school instruction",
+          "Only television"
+        ],
+        correctAnswer: 0,
+        explanation: "Imitation, parental speech, cognitive development, and inborn knowledge are determinants (Unit 3, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Children who are not exposed to language do not develop linguistic skills beyond:",
+        options: [
+          "Telegraphic speech",
+          "Babbling",
+          "Holophrastic stage",
+          "Two‑word stage"
+        ],
+        correctAnswer: 1,
+        explanation: "Lack of exposure prevents progression beyond babbling (Unit 3, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The pre‑production stage of L2 acquisition is also known as the:",
+        options: [
+          "Babbling stage",
+          "Silent period",
+          "Holophrastic stage",
+          "Telegraphic stage"
+        ],
+        correctAnswer: 1,
+        explanation: "Learners listen attentively and may not speak yet (Unit 3, Session 1)."
+      },
+      {
+        type: "text-input",
+        question: "What is the term for the stage where children produce multiple‑word utterances with grammatical inflections?",
+        correctAnswer: "telegraphic",
+        acceptableAnswers: ["telegraphic", "telegraphic stage"],
+        caseSensitive: false,
+        explanation: "Telegraphic speech occurs from 24‑30 months (Unit 3, Session 1)."
+      },
+      {
+        type: "text-input",
+        question: "What does UG stand for in Innatist theory?",
+        correctAnswer: "Universal Grammar",
+        acceptableAnswers: ["Universal Grammar", "UG"],
+        caseSensitive: false,
+        explanation: "Universal Grammar is the set of inborn principles common to all languages (Unit 3, Session 1)."
+      },
+      {
+        type: "text-input",
+        question: "At what stage do learners begin to use simple phrases and sentences (about 3000 words)?",
+        correctAnswer: "speech emergence",
+        acceptableAnswers: ["speech emergence", "speech emergence stage"],
+        caseSensitive: false,
+        explanation: "Speech emergence stage is when students communicate with simple phrases (Unit 3, Session 1)."
+      },
+
+      // --- SESSION 2: Bilingual Education (15 questions) ---
+      // MCQ (12), text-input (3)
+      {
+        type: "multiple-choice",
+        question: "Bilingual education involves the use of two languages as:",
+        options: [
+          "Only a subject",
+          "Medium of instruction",
+          "Only for playground communication",
+          "Only for administration"
+        ],
+        correctAnswer: 1,
+        explanation: "Two languages are used for teaching content (Unit 3, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Additive bilingualism is when students:",
+        options: [
+          "Lose their L1 while learning L2",
+          "Maintain their minority language while learning L2",
+          "Only learn L2",
+          "Reject L1"
+        ],
+        correctAnswer: 1,
+        explanation: "Additive bilingualism adds L2 without losing L1 (Unit 3, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Subtractive bilingualism occurs when students:",
+        options: [
+          "Maintain L1",
+          "Lose their minority language in the process of acquiring L2",
+          "Become fluent in both",
+          "Refuse to learn L2"
+        ],
+        correctAnswer: 1,
+        explanation: "L1 is replaced by L2, often due to social pressure (Unit 3, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Transitional bilingual education allows early exit after how many years of L1 use?",
+        options: [
+          "5 years",
+          "2‑3 years",
+          "6 months",
+          "10 years"
+        ],
+        correctAnswer: 1,
+        explanation: "Early exit transitional programs use L1 for 2‑3 years (Unit 3, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Maintenance bilingual education is also known as:",
+        options: [
+          "Submersion",
+          "Enrichment bilingual education",
+          "Transitional",
+          "Immersion"
+        ],
+        correctAnswer: 1,
+        explanation: "Developmental maintenance aims for full proficiency in both languages (Unit 3, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Submersion bilingual education prevents students from using their home language, leading to:",
+        options: [
+          "Additive bilingualism",
+          "Negative cognitive effects and school dropout",
+          "High academic achievement",
+          "Maintenance of L1"
+        ],
+        correctAnswer: 1,
+        explanation: "Cummins (1981) linked submersion to negative outcomes (Unit 3, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Immersion bilingual education has as its goal:",
+        options: [
+          "Losing the minority language",
+          "Ensuring proficiency in the minority language for language majority students",
+          "Monolingualism",
+          "Replacing L1"
+        ],
+        correctAnswer: 1,
+        explanation: "Immersion programs teach majority students a minority language (Unit 3, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "According to research, bilingual education has _______ benefits.",
+        options: [
+          "Negative",
+          "Cognitive, linguistic, academic, and social",
+          "Only linguistic",
+          "Only academic"
+        ],
+        correctAnswer: 1,
+        explanation: "Bilingualism enhances cognitive flexibility, creativity, and metalinguistic ability (Unit 3, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Cognitive flexibility in bilinguals means they:",
+        options: [
+          "Struggle with information",
+          "Have a more flexible view of the world and are versatile in processing information",
+          "Are slower thinkers",
+          "Cannot switch tasks"
+        ],
+        correctAnswer: 1,
+        explanation: "Bilinguals show superior mental flexibility (Unit 3, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Bilinguals perform better on tests of linear measurement and concept formation, according to:",
+        options: [
+          "Skinner",
+          "Liedtke & Nelson (1968)",
+          "Chomsky",
+          "Krashen"
+        ],
+        correctAnswer: 1,
+        explanation: "Diverse linguistic experience gives advantage in concept formation (Unit 3, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Critics argue that bilingual education is costly and a drain on government finances (Crawford, 1998). This is a:",
+        options: [
+          "Benefit",
+          "Criticism",
+          "Cognitive advantage",
+          "Linguistic advantage"
+        ],
+        correctAnswer: 1,
+        explanation: "Cost is a common criticism of bilingual programmes (Unit 3, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Bilingual individuals can communicate with family members and maintain a healthy sense of:",
+        options: [
+          "Monolingualism",
+          "Multiculturalism",
+          "Isolation",
+          "Separatism"
+        ],
+        correctAnswer: 1,
+        explanation: "Bilingualism supports cultural identity and family ties (Unit 3, Session 2)."
+      },
+      {
+        type: "text-input",
+        question: "What type of bilingualism adds a second language without losing the first?",
+        correctAnswer: "additive",
+        acceptableAnswers: ["additive", "additive bilingualism"],
+        caseSensitive: false,
+        explanation: "Additive bilingualism maintains L1 while learning L2 (Unit 3, Session 2)."
+      },
+      {
+        type: "text-input",
+        question: "Name one criticism of bilingual education.",
+        correctAnswer: "costly",
+        acceptableAnswers: ["costly", "drain on finances", "hinders national integration"],
+        caseSensitive: false,
+        explanation: "Critics say it is expensive and may impede integration (Unit 3, Session 2)."
+      },
+      {
+        type: "text-input",
+        question: "What term describes the ability to separate word sound from word meaning?",
+        correctAnswer: "metalinguistic",
+        acceptableAnswers: ["metalinguistic", "metalinguistic awareness"],
+        caseSensitive: false,
+        explanation: "Metalinguistic ability is enhanced in bilinguals (Unit 3, Session 2)."
+      },
+
+      // --- SESSION 3: The Language Situation of Ghana (10 questions) ---
+      // MCQ (8), text-input (2)
+      {
+        type: "multiple-choice",
+        question: "The indigenous languages of Ghana are grouped under which language family?",
+        options: [
+          "Afro‑Asiatic",
+          "Niger‑Congo",
+          "Nilo‑Saharan",
+          "Khoisan"
+        ],
+        correctAnswer: 1,
+        explanation: "Ghanaian languages belong to the Niger‑Congo family (Unit 3, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The Kwa group of languages is found in which part of Ghana?",
+        options: [
+          "Northern Ghana",
+          "Southern Ghana",
+          "Eastern Ghana",
+          "Western Ghana"
+        ],
+        correctAnswer: 1,
+        explanation: "Southern languages belong to the Kwa group (Unit 3, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The Gur group of languages is found in which part of Ghana?",
+        options: [
+          "Southern Ghana",
+          "Northern Ghana",
+          "Coastal Ghana",
+          "Volta Region only"
+        ],
+        correctAnswer: 1,
+        explanation: "Northern languages are classified under the Gur group (Unit 3, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "According to Hall (1983), how many mutually unintelligible languages exist in Ghana?",
+        options: ["40", "44", "50", "57"],
+        correctAnswer: 1,
+        explanation: "Hall estimated 44 mutually unintelligible languages (Unit 3, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Why is it difficult to know the exact number of languages in Ghana?",
+        options: [
+          "All languages are the same",
+          "Difficulty distinguishing between languages and dialects",
+          "No research has been done",
+          "Only one language exists"
+        ],
+        correctAnswer: 1,
+        explanation: "Blurred boundaries between language and dialect cause variation (Unit 3, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Akan is considered by some as one language with three major dialects: Fante, Asante‑Twi, and:",
+        options: [
+          "Nzema",
+          "Akuapem‑Twi",
+          "Ga",
+          "Ewe"
+        ],
+        correctAnswer: 1,
+        explanation: "Akuapem‑Twi is the third major dialect (Unit 3, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Which language is widely spoken in the Northern part of Ghana as a lingua franca?",
+        options: [
+          "Ewe",
+          "Hausa",
+          "Ga",
+          "Nzema"
+        ],
+        correctAnswer: 1,
+        explanation: "Hausa (Chadic‑Afro‑Asiatic) is spoken widely in the North (Unit 3, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "According to Andoh‑Kumi (1994), one factor causing differing language counts is:",
+        options: [
+          "All languages are written",
+          "Lack of limited and outdated data on many Ghanaian languages",
+          "All languages have the same number of speakers",
+          "No controversy exists"
+        ],
+        correctAnswer: 1,
+        explanation: "Outdated or limited data leads to varying estimates (Unit 3, Session 3)."
+      },
+      {
+        type: "text-input",
+        question: "What is the unofficial language of Ghana?",
+        correctAnswer: "English",
+        acceptableAnswers: ["English"],
+        caseSensitive: false,
+        explanation: "English is the official language, but some call it unofficial (Unit 3, Session 3)."
+      },
+      {
+        type: "text-input",
+        question: "Name one Mande language group found in Ghana.",
+        correctAnswer: "Lighi",
+        acceptableAnswers: ["Lighi", "Bisa"],
+        caseSensitive: false,
+        explanation: "Lighi and Bisa are Mande languages in Ghana (Unit 3, Session 3)."
+      },
+
+      // --- SESSION 4: Language Policy of Education in Ghana (10 questions) ---
+      // MCQ (8), text-input (2)
+      {
+        type: "multiple-choice",
+        question: "Language policy is defined by Bamgbose (1990) as a program of action on the role or status of a language in a given:",
+        options: [
+          "School",
+          "Community",
+          "Family",
+          "Textbook"
+        ],
+        correctAnswer: 1,
+        explanation: "Language policy determines how languages are used in public contexts (Unit 3, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "According to Noss (1971), the three types of language policy are:",
+        options: [
+          "Official, educational, and general",
+          "Formal, informal, and non‑formal",
+          "Local, national, and international",
+          "Spoken, written, and signed"
+        ],
+        correctAnswer: 0,
+        explanation: "Official, educational, and general language policies are the three types (Unit 3, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Educational language policy involves recognition given to languages for use as:",
+        options: [
+          "Only in parliament",
+          "Medium of instruction in schools",
+          "Only in courts",
+          "Only in the media"
+        ],
+        correctAnswer: 1,
+        explanation: "It guides which languages are used for teaching (Unit 3, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Explicit language policy is stated clearly in:",
+        options: [
+          "Unofficial practice",
+          "A document",
+          "Oral tradition",
+          "Community norms"
+        ],
+        correctAnswer: 1,
+        explanation: "Explicit policy is written and official (Unit 3, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "One challenge of language policy implementation in Ghana is:",
+        options: [
+          "Too many trained teachers",
+          "Frequent changes in government",
+          "Excessive funding",
+          "Over‑enforcement"
+        ],
+        correctAnswer: 1,
+        explanation: "Each government change may alter policy and resources (Unit 3, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Some educated Africans think that 'real' education can only be acquired in a world language like:",
+        options: [
+          "Twi",
+          "English or French",
+          "Ga",
+          "Ewe"
+        ],
+        correctAnswer: 1,
+        explanation: "Negative attitudes towards L1 stem from colonial legacies (Unit 3, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Implementing a language policy in a multilingual society is expensive because of:",
+        options: [
+          "Low cost of materials",
+          "Producing teacher‑learner resources for various local languages",
+          "Few languages exist",
+          "No need for resources"
+        ],
+        correctAnswer: 1,
+        explanation: "Developing materials for many languages is costly (Unit 3, Session 4)."
+      },
+      {
+        type: "multiple-choice",
+        question: "One way to address language policy challenges is to:",
+        options: [
+          "Ignore the multilingual nature",
+          "Conduct effective advocacy on the benefits of L1 education",
+          "Eliminate all local languages",
+          "Use only English from KG"
+        ],
+        correctAnswer: 1,
+        explanation: "Advocacy changes negative perceptions (Unit 3, Session 4)."
+      },
+      {
+        type: "text-input",
+        question: "What type of language policy is inferred from practices without official backing?",
+        correctAnswer: "implicit",
+        acceptableAnswers: ["implicit", "implicit policy"],
+        caseSensitive: false,
+        explanation: "Implicit policy is not written but observed in practice (Unit 3, Session 4)."
+      },
+      {
+        type: "text-input",
+        question: "Name one factor that influences language planning.",
+        correctAnswer: "political",
+        acceptableAnswers: ["political", "financial", "linguistic", "social"],
+        caseSensitive: false,
+        explanation: "Political, financial, and linguistic factors influence planning (Unit 3, Session 4)."
+      },
+
+      // --- SESSION 5: Misconceptions of Using L1 as Medium of Instruction (10 questions) ---
+      // MCQ (8), text-input (2)
+      {
+        type: "multiple-choice",
+        question: "A common misconception about using L1 as medium of instruction is that it:",
+        options: [
+          "Improves cognitive development",
+          "Cannot be used to express modern concepts",
+          "Enhances L2 learning",
+          "Reduces dropout rates"
+        ],
+        correctAnswer: 1,
+        explanation: "Many believe L1 lacks vocabulary for modern education, but research disproves this (Unit 3, Session 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Research by Cummins (2000) and Thomas & Collier (2002) shows that:",
+        options: [
+          "L1 skills hinder L2 learning",
+          "The more highly developed the L1 skills, the better the results in L2",
+          "L1 should be abandoned",
+          "Only L2 matters"
+        ],
+        correctAnswer: 1,
+        explanation: "L1 literacy transfers positively to L2 (Unit 3, Session 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Some parents and teachers want children to be educated well in L2 because they believe it is:",
+        options: [
+          "The best language of education",
+          "Inferior to L1",
+          "Too difficult",
+          "Not useful"
+        ],
+        correctAnswer: 0,
+        explanation: "Colonial language prestige persists (Unit 3, Session 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "When parents are educated on the benefits of L1 use, they often opt for:",
+        options: [
+          "Only L2",
+          "Both L1 and L2",
+          "Only L1",
+          "Neither"
+        ],
+        correctAnswer: 1,
+        explanation: "Informed parents support bilingual education (Unit 3, Session 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The argument that the multilingual nature of Ghana does not allow L1 as medium of instruction can be addressed by:",
+        options: [
+          "Ignoring the diversity",
+          "Taking a sociolinguistic mapping of lower primary classrooms",
+          "Using only English",
+          "Banning local languages"
+        ],
+        correctAnswer: 1,
+        explanation: "Mapping reveals which languages are present in each classroom (Unit 3, Session 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Some claim that posting teachers to their language areas will bring about:",
+        options: [
+          "Unity",
+          "Divisiveness and work against integration",
+          "Better communication",
+          "Higher salaries"
+        ],
+        correctAnswer: 1,
+        explanation: "Critics fear ethnic separation, but early education needs familiar language (Unit 3, Session 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Phillipson (1992) argues that the promotion of foreign languages is the result of:",
+        options: [
+          "Neutral choice",
+          "Deliberate promotion by powerful countries",
+          "Teacher preference",
+          "Parent demand"
+        ],
+        correctAnswer: 1,
+        explanation: "Linguistic imperialism influences language policies (Unit 3, Session 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The misconception that bilingualism causes confusion has been proven false because:",
+        options: [
+          "L1 and L2 compete",
+          "The more developed L1, the better L2 results",
+          "Bilingualism lowers IQ",
+          "Only monolinguals succeed"
+        ],
+        correctAnswer: 1,
+        explanation: "L1 supports cognitive and linguistic development for L2 (Unit 3, Session 5)."
+      },
+      {
+        type: "text-input",
+        question: "What is a misconception in terms of L1 acquisition?",
+        correctAnswer: "wrong perception",
+        acceptableAnswers: ["wrong perception", "false belief", "misunderstanding"],
+        caseSensitive: false,
+        explanation: "Misconceptions are incorrect ideas about using L1 in education (Unit 3, Session 5)."
+      },
+      {
+        type: "text-input",
+        question: "Name one misconception about using L1 as a medium of instruction.",
+        correctAnswer: "causes confusion",
+        acceptableAnswers: ["causes confusion", "cannot express modern concepts", "hinders national integration"],
+        caseSensitive: false,
+        explanation: "Many believe bilingualism confuses children, which is false (Unit 3, Session 5)."
+      }
+    ]
+  },
+  "unit4": {
+    name: "Unit 4: The Language/Literacy Teacher",
+    icon: "👩‍🏫",
+    questions: [
+      // --- SESSION 1: Characteristics of a Good Language Teacher (20 questions) ---
+      // MCQ (16), text-input (4)
+      {
+        type: "multiple-choice",
+        question: "One characteristic of a good language teacher is understanding the:",
+        options: [
+          "School budget",
+          "Language learners' development stages",
+          "Principal's schedule",
+          "Examination timetable"
+        ],
+        correctAnswer: 1,
+        explanation: "Knowing developmental stages helps tailor instruction to learner needs (Unit 4, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "A good language teacher should explore different teaching methods because:",
+        options: [
+          "All methods are the same",
+          "Technology has changed language teaching and learners have different learning styles",
+          "Only one method works",
+          "Teachers should not change"
+        ],
+        correctAnswer: 1,
+        explanation: "Effective teachers adapt to incorporate technology and varied approaches (Unit 4, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Competence in a language teacher means:",
+        options: [
+          "Knowing the subject area very well",
+          "Being popular with students",
+          "Having a loud voice",
+          "Using only the textbook"
+        ],
+        correctAnswer: 0,
+        explanation: "Content knowledge allows explaining concepts clearly (Unit 4, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Patience is important in language teaching because:",
+        options: [
+          "Learners all progress at the same pace",
+          "Some learners may be beginners or lack confidence",
+          "Teachers should rush",
+          "Only fast learners matter"
+        ],
+        correctAnswer: 1,
+        explanation: "Patience gives learners time to learn at their own pace (Unit 4, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Encouragement from a language teacher helps learners to:",
+        options: [
+          "Drop out",
+          "Take active part in learning and succeed",
+          "Avoid participation",
+          "Ignore the teacher"
+        ],
+        correctAnswer: 1,
+        explanation: "Positive reinforcement boosts engagement and success (Unit 4, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "A good literacy teacher knows the literacy processes and pedagogy, which means they can:",
+        options: [
+          "Only give tests",
+          "Plan lessons to suit the needs and interests of learners",
+          "Ignore curriculum",
+          "Use only one method"
+        ],
+        correctAnswer: 1,
+        explanation: "Pedagogical knowledge enables tailored instruction (Unit 4, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Assessment by a language teacher helps them to:",
+        options: [
+          "Punish students",
+          "Make changes in teaching methods based on what works",
+          "Only assign grades",
+          "Avoid teaching"
+        ],
+        correctAnswer: 1,
+        explanation: "Formative assessment guides instructional adjustments (Unit 4, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "A teacher who can explain key language concepts in ways students can relate to is demonstrating:",
+        options: [
+          "Competence",
+          "Patience",
+          "Encouragement",
+          "Assessment skills"
+        ],
+        correctAnswer: 0,
+        explanation: "Competence includes making content accessible and relevant (Unit 4, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Using technology and learner‑friendly apps/websites in language teaching enhances:",
+        options: [
+          "Only teacher's workload",
+          "Teaching and learning in a multimedia classroom",
+          "Only entertainment",
+          "Student isolation"
+        ],
+        correctAnswer: 1,
+        explanation: "Technology engages students and supports diverse learning styles (Unit 4, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "A good language teacher should be able to connect with learners and execute:",
+        options: [
+          "Only whole‑class instruction",
+          "Personalised as well as customised teaching",
+          "Only group work",
+          "Only lectures"
+        ],
+        correctAnswer: 1,
+        explanation: "Individualised instruction addresses each learner's needs (Unit 4, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Being fluent in a language is not enough to be a good language teacher because teaching requires:",
+        options: [
+          "Only speaking ability",
+          "Pedagogical skills and understanding learners",
+          "Only writing ability",
+          "Only grammar knowledge"
+        ],
+        correctAnswer: 1,
+        explanation: "Effective teaching involves pedagogy, not just proficiency (Unit 4, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "A teacher who gives space and time for learners to learn at their own pace is showing:",
+        options: [
+          "Impatience",
+          "Encouragement",
+          "Patience",
+          "Rigidity"
+        ],
+        correctAnswer: 2,
+        explanation: "Patience builds confidence and reduces anxiety (Unit 4, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "One way to encourage learners to take active part is to:",
+        options: [
+          "Ignore them",
+          "Execute distinct means to involve participation",
+          "Only call on high achievers",
+          "Avoid questions"
+        ],
+        correctAnswer: 1,
+        explanation: "Varied engagement strategies include all learners (Unit 4, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "A teacher who studies the language development stages can:",
+        options: [
+          "Teach the same thing to all",
+          "Customise teaching to suit the level and individual needs of learners",
+          "Ignore individual differences",
+          "Only lecture"
+        ],
+        correctAnswer: 1,
+        explanation: "Understanding stages prevents wasted time on inappropriate content (Unit 4, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "A competent language teacher must be able to:",
+        options: [
+          "Only read aloud",
+          "Learn to explain key language concepts, patterns, and ideas",
+          "Only write on board",
+          "Only mark exams"
+        ],
+        correctAnswer: 1,
+        explanation: "Clear explanation helps students understand and apply (Unit 4, Session 1)."
+      },
+      {
+        type: "multiple-choice",
+        question: "A language teacher who assesses learners and makes changes based on those assessments is:",
+        options: [
+          "Inflexible",
+          "Reflective and adaptive",
+          "Lazy",
+          "Unprepared"
+        ],
+        correctAnswer: 1,
+        explanation: "Adapting teaching based on assessment data improves outcomes (Unit 4, Session 1)."
+      },
+      {
+        type: "text-input",
+        question: "What should a language teacher do to understand what works and what does not?",
+        correctAnswer: "assess",
+        acceptableAnswers: ["assess", "evaluate", "reflect"],
+        caseSensitive: false,
+        explanation: "Assessment helps teachers improve their methods (Unit 4, Session 1)."
+      },
+      {
+        type: "text-input",
+        question: "Name one quality of a good language teacher.",
+        correctAnswer: "patience",
+        acceptableAnswers: ["patience", "competence", "encouragement", "flexibility"],
+        caseSensitive: false,
+        explanation: "Patience, competence, encouragement are key traits (Unit 4, Session 1)."
+      },
+      {
+        type: "text-input",
+        question: "What is the term for adjusting teaching to suit each learner's level?",
+        correctAnswer: "personalised",
+        acceptableAnswers: ["personalised", "customised", "differentiated"],
+        caseSensitive: false,
+        explanation: "Personalised teaching meets individual needs (Unit 4, Session 1)."
+      },
+      {
+        type: "text-input",
+        question: "What should a teacher do to keep up with changes in language teaching?",
+        correctAnswer: "use technology",
+        acceptableAnswers: ["use technology", "explore methods", "continuous learning"],
+        caseSensitive: false,
+        explanation: "Incorporating technology and new methods is essential (Unit 4, Session 1)."
+      },
+
+      // --- SESSION 2: Challenges to Developing Literacy at Early Grade Level (20 questions) ---
+      // MCQ (16), text-input (4)
+      {
+        type: "multiple-choice",
+        question: "Decoding in reading refers to:",
+        options: [
+          "Understanding the story",
+          "Putting sounds to letters to sound out written language",
+          "Writing sentences",
+          "Spelling correctly"
+        ],
+        correctAnswer: 1,
+        explanation: "Decoding is the ability to sound out words (Unit 4, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "A child who struggles to sound out new or unfamiliar words may have a specific learning difficulty such as:",
+        options: [
+          "Dyslexia",
+          "Excellent hearing",
+          "High IQ",
+          "Fast processing"
+        ],
+        correctAnswer: 0,
+        explanation: "Dyslexia often involves decoding difficulties (Unit 4, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Poor comprehension occurs when a student:",
+        options: [
+          "Has a large vocabulary",
+          "Struggles with decoding, has limited vocabulary, or reads text too difficult",
+          "Reads quickly",
+          "Has excellent phonemic awareness"
+        ],
+        correctAnswer: 1,
+        explanation: "Multiple factors cause poor reading comprehension (Unit 4, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Processing speed describes how the brain:",
+        options: [
+          "Only sees",
+          "Receives, understands, and responds to information",
+          "Only hears",
+          "Only moves"
+        ],
+        correctAnswer: 1,
+        explanation: "Slow processing affects reading and task completion (Unit 4, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Reading is a cognitively demanding task that can exhaust children with:",
+        options: [
+          "High intelligence",
+          "Slow processing",
+          "Fast reading",
+          "Large vocabulary"
+        ],
+        correctAnswer: 1,
+        explanation: "Slow processing makes holding and processing text difficult (Unit 4, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "One way to support children with slow processing is to:",
+        options: [
+          "Give less time",
+          "Allow extra time to complete tasks that require extensive reading",
+          "Rush them",
+          "Skip reading tasks"
+        ],
+        correctAnswer: 1,
+        explanation: "Extra time reduces cognitive overload (Unit 4, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Poor sitting arrangement and ventilation in the classroom can be a factor:",
+        options: [
+          "Unrelated to literacy",
+          "Linked to struggling readers",
+          "Only affects math",
+          "Only affects writing"
+        ],
+        correctAnswer: 1,
+        explanation: "Physical environment affects concentration and learning (Unit 4, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "A child who reads a text that is too high for their level may experience:",
+        options: [
+          "Improved comprehension",
+          "Frustration and poor comprehension",
+          "Increased speed",
+          "Better vocabulary"
+        ],
+        correctAnswer: 1,
+        explanation: "Mismatched text level leads to frustration and failure to understand (Unit 4, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "When a beginner skips unfamiliar words, they leave blanks and find it difficult to:",
+        options: [
+          "Decode the next word",
+          "Make meaning out of the text",
+          "Spell the word",
+          "Pronounce the word"
+        ],
+        correctAnswer: 1,
+        explanation: "Skipping words disrupts comprehension (Unit 4, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Children with slow processing speed may struggle to follow lessons and:",
+        options: [
+          "Excel in sports",
+          "Complete tasks at school",
+          "Make friends",
+          "Draw pictures"
+        ],
+        correctAnswer: 1,
+        explanation: "Slow processing affects academic task completion (Unit 4, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "One underlying problem for literacy difficulties could be:",
+        options: [
+          "Too much reading",
+          "Slow processing",
+          "Fast processing",
+          "Over‑practicing"
+        ],
+        correctAnswer: 1,
+        explanation: "Processing speed is a cognitive factor (Unit 4, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Decoding is also known as:",
+        options: [
+          "Sounding out words",
+          "Reading comprehension",
+          "Fluency",
+          "Vocabulary building"
+        ],
+        correctAnswer: 0,
+        explanation: "Decoding involves translating letters into sounds (Unit 4, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Limited vocabulary is a contributing factor to:",
+        options: [
+          "Excellent reading",
+          "Poor comprehension",
+          "Fast reading",
+          "Good spelling"
+        ],
+        correctAnswer: 1,
+        explanation: "Unknown words hinder understanding of text (Unit 4, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Teacher strategy instruction for slow processing may help, but it is important to:",
+        options: [
+          "Ignore the problem",
+          "Allow extra time",
+          "Reduce all reading",
+          "Increase speed demands"
+        ],
+        correctAnswer: 1,
+        explanation: "Accommodations like extra time are essential (Unit 4, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "A child who has difficulty with visual discrimination may struggle with:",
+        options: [
+          "Listening",
+          "Recognising letter shapes",
+          "Speaking",
+          "Memorising songs"
+        ],
+        correctAnswer: 1,
+        explanation: "Visual impairment or issues affect decoding (Unit 4, Session 2)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Hearing impairment can affect literacy development because:",
+        options: [
+          "It only affects math",
+          "Phonemic awareness depends on hearing sounds",
+          "It only affects writing",
+          "It has no effect"
+        ],
+        correctAnswer: 1,
+        explanation: "Hearing loss hinders sound‑letter correspondence (Unit 4, Session 2)."
+      },
+      {
+        type: "text-input",
+        question: "What is one factor linked to struggling readers in the classroom environment?",
+        correctAnswer: "ventilation",
+        acceptableAnswers: ["ventilation", "seating", "lighting"],
+        caseSensitive: false,
+        explanation: "Poor physical conditions hinder concentration (Unit 4, Session 2)."
+      },
+      {
+        type: "text-input",
+        question: "What term describes the inability to sound out new words?",
+        correctAnswer: "decoding difficulty",
+        acceptableAnswers: ["decoding difficulty", "decoding problem"],
+        caseSensitive: false,
+        explanation: "Decoding is the main challenge for many struggling readers (Unit 4, Session 2)."
+      },
+      {
+        type: "text-input",
+        question: "What is a common specific learning difficulty associated with reading?",
+        correctAnswer: "dyslexia",
+        acceptableAnswers: ["dyslexia"],
+        caseSensitive: false,
+        explanation: "Dyslexia affects reading and decoding (Unit 4, Session 2)."
+      },
+      {
+        type: "text-input",
+        question: "Name one sign of poor comprehension.",
+        correctAnswer: "skipping blanks",
+        acceptableAnswers: ["skipping blanks", "frustration", "cannot answer questions"],
+        caseSensitive: false,
+        explanation: "Leaving blanks in text indicates comprehension failure (Unit 4, Session 2)."
+      },
+
+      // --- SESSION 3: Promoting Literary Development among Children (20 questions) ---
+      // MCQ (16), text-input (4)
+      {
+        type: "multiple-choice",
+        question: "Explicit literacy instruction means the instruction should be:",
+        options: [
+          "Long and complex",
+          "Teacher explanatory, short, and concise",
+          "Student‑led only",
+          "No explanation"
+        ],
+        correctAnswer: 1,
+        explanation: "Explicit instruction provides clear, brief objectives (Unit 4, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "In explicit instruction, the 'cue' is a quick reminder of what students are being asked to do, such as:",
+        options: [
+          "Silence",
+          "Sound (during sounds practice)",
+          "Stand up",
+          "Write an essay"
+        ],
+        correctAnswer: 1,
+        explanation: "Cues help students focus on the task (Unit 4, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Think time in explicit instruction allows learners to:",
+        options: [
+          "Leave the class",
+          "Think about and formulate their response before answering",
+          "Chat with friends",
+          "Draw pictures"
+        ],
+        correctAnswer: 1,
+        explanation: "Think time ensures all students can process and respond (Unit 4, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Choral responding is used when:",
+        options: [
+          "Answers vary widely",
+          "Answers are the same and short; all respond together",
+          "Only one student answers",
+          "No one answers"
+        ],
+        correctAnswer: 1,
+        explanation: "Choral response engages the whole class quickly (Unit 4, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "According to Brian Cambourne, the condition 'Immersion' means children need to be surrounded by:",
+        options: [
+          "Only textbooks",
+          "Interesting high‑quality children's books and different kinds of texts",
+          "Only digital screens",
+          "Only worksheets"
+        ],
+        correctAnswer: 1,
+        explanation: "Immersion exposes children to a print‑rich environment (Unit 4, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The condition 'Demonstration' requires teachers to:",
+        options: [
+          "Only talk",
+          "Model reading and writing, showing how to hold a book and read aloud",
+          "Only give tests",
+          "Only assign homework"
+        ],
+        correctAnswer: 1,
+        explanation: "Teachers show literacy behaviours for children to imitate (Unit 4, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The condition 'Engagement' involves setting up a risk‑free environment so children can:",
+        options: [
+          "Avoid learning",
+          "Experiment with language and literacy",
+          "Only write without reading",
+          "Only read without writing"
+        ],
+        correctAnswer: 1,
+        explanation: "Low‑risk environments encourage exploration (Unit 4, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The condition 'Expectation' means teachers should set:",
+        options: [
+          "Unrealistic goals",
+          "Realistic expectations and become familiar with developmental stages",
+          "No expectations",
+          "Only high‑pressure goals"
+        ],
+        correctAnswer: 1,
+        explanation: "Realistic expectations support gradual growth (Unit 4, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The condition 'Responsibilities' involves giving children choices and promoting:",
+        options: [
+          "Teacher dependence",
+          "Self‑direction",
+          "Rote learning",
+          "Passivity"
+        ],
+        correctAnswer: 1,
+        explanation: "Choice and access nurture independence (Unit 4, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The condition 'Use' means creating a climate for functional and meaningful uses of:",
+        options: [
+          "Only reading",
+          "Oral and written language",
+          "Only writing",
+          "Only listening"
+        ],
+        correctAnswer: 1,
+        explanation: "Authentic uses of language motivate learners (Unit 4, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The condition 'Response' involves listening to children and extending their use of:",
+        options: [
+          "Only silent reading",
+          "Oral and written language",
+          "Only grammar exercises",
+          "Only spelling tests"
+        ],
+        correctAnswer: 1,
+        explanation: "Responsive teaching builds on children's contributions (Unit 4, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "According to Cambourne, teachers should accept children's mistakes because:",
+        options: [
+          "Mistakes are never corrected",
+          "When learning to talk, read, and write, mistakes are natural and children will self‑correct with guidance",
+          "Mistakes mean failure",
+          "Only correct answers matter"
+        ],
+        correctAnswer: 1,
+        explanation: "A supportive attitude fosters risk‑taking (Unit 4, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Immediate error correction in explicit instruction should be done in a:",
+        options: [
+          "Punitive tone",
+          "Non‑punitive tone",
+          "Loud voice",
+          "Public manner"
+        ],
+        correctAnswer: 1,
+        explanation: "Non‑punitive correction maintains a safe learning environment (Unit 4, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The two parts of error correction are: actual error correction (model correct answer) and:",
+        options: [
+          "Ignoring the error",
+          "Part firming (looping back later to ensure effectiveness)",
+          "Punishment",
+          "Reward"
+        ],
+        correctAnswer: 1,
+        explanation: "Part firming reinforces correct forms after a delay (Unit 4, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Through systematic explicit instruction, learners are given multiple opportunities to practice and:",
+        options: [
+          "No support",
+          "Support they need to promote literacy development",
+          "Only independent work",
+          "Only tests"
+        ],
+        correctAnswer: 1,
+        explanation: "Practice with support builds competence (Unit 4, Session 3)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Children who do not have a literacy‑rich home depend on the school and teacher for:",
+        options: [
+          "Only discipline",
+          "Literacy development",
+          "Only meals",
+          "Only sports"
+        ],
+        correctAnswer: 1,
+        explanation: "School becomes the primary literacy resource (Unit 4, Session 3)."
+      },
+      {
+        type: "text-input",
+        question: "What is one of Brian Cambourne's eight conditions of literacy development?",
+        correctAnswer: "immersion",
+        acceptableAnswers: ["immersion", "demonstration", "engagement", "expectation", "responsibility", "use", "response", "approximation"],
+        caseSensitive: false,
+        explanation: "The eight conditions are essential for natural literacy acquisition (Unit 4, Session 3)."
+      },
+      {
+        type: "text-input",
+        question: "What component of explicit instruction includes focus, cue, think time, and signal?",
+        correctAnswer: "signal",
+        acceptableAnswers: ["signal", "signal for response"],
+        caseSensitive: false,
+        explanation: "The signal prompts student responses (Unit 4, Session 3)."
+      },
+      {
+        type: "text-input",
+        question: "What does a teacher model during demonstration?",
+        correctAnswer: "reading",
+        acceptableAnswers: ["reading", "writing", "book handling"],
+        caseSensitive: false,
+        explanation: "Demonstration includes read‑alouds and showing how to handle books (Unit 4, Session 3)."
+      },
+      {
+        type: "text-input",
+        question: "What should teachers do to help children become self‑directed readers?",
+        correctAnswer: "provide choice",
+        acceptableAnswers: ["provide choice", "give access", "set up environment"],
+        caseSensitive: false,
+        explanation: "Choice and access promote self‑direction (Unit 4, Session 3)."
+      }
+    ]
+  },
+  "unit5": {
+    name: "Unit 5: The Role of Literacy in Learning Across Academic Disciplines",
+    icon: "🏫",
+    questions: [
+      // --- Based on the unit content (Dimensions of Effective Literacy Practice, Effective Teachers, Small Group Interaction) ---
+      // 48 MCQ, 12 text-input
+      {
+        type: "multiple-choice",
+        question: "According to the manual, effective teachers of literacy have an in‑depth understanding of:",
+        options: [
+          "Only classroom management",
+          "The nuances and cumulative processing of reading and writing",
+          "Only school administration",
+          "Only examination marking"
+        ],
+        correctAnswer: 1,
+        explanation: "Effective teachers know the complexity of reading and writing processes (Unit 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Effective teachers understand the developmental nature of literacy learning, recognising the sequence of events that occur:",
+        options: [
+          "Only in the home",
+          "Within the classroom and how students apply knowledge outside",
+          "Only in the library",
+          "Only during tests"
+        ],
+        correctAnswer: 1,
+        explanation: "They connect classroom learning to real‑world application (Unit 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Effective teachers strategically gather, analyse, and use information to:",
+        options: [
+          "Only assign grades",
+          "Guide students' learning",
+          "Only fill reports",
+          "Only punish students"
+        ],
+        correctAnswer: 1,
+        explanation: "Data informs instructional decisions (Unit 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "According to research, a powerful indicator of students' success is:",
+        options: [
+          "School facilities",
+          "The expectations of teachers",
+          "Parent income",
+          "Textbook availability"
+        ],
+        correctAnswer: 1,
+        explanation: "Teacher expectations strongly influence student achievement (Unit 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Effective teachers create conducive learning environments that are alive with purposeful print where students have access to:",
+        options: [
+          "Only computers",
+          "Reading and creating a wide range of texts",
+          "Only worksheets",
+          "Only tests"
+        ],
+        correctAnswer: 1,
+        explanation: "Print‑rich environments support literacy growth (Unit 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Effective teachers are flexible in their approach, planning for:",
+        options: [
+          "Only whole class instruction",
+          "Whole class, small groups, and independent teaching",
+          "Only individual work",
+          "Only pair work"
+        ],
+        correctAnswer: 1,
+        explanation: "Varied grouping meets diverse student needs (Unit 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Effective teachers provide varying degrees of support that reflect:",
+        options: [
+          "The teacher's preference",
+          "The needs of the students and their challenges",
+          "The principal's orders",
+          "The textbook only"
+        ],
+        correctAnswer: 1,
+        explanation: "Differentiated support addresses individual learning gaps (Unit 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "To ensure students are in line with career and college work, effective teachers know what literacy skills and understanding their students:",
+        options: [
+          "Already have",
+          "Require",
+          "Will never need",
+          "Only need for exams"
+        ],
+        correctAnswer: 1,
+        explanation: "Teachers align instruction with future demands (Unit 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "According to Ausubel (1968), the most important single factor that influences learning is:",
+        options: [
+          "Teacher's voice",
+          "The previous knowledge of the learner",
+          "Classroom size",
+          "School location"
+        ],
+        correctAnswer: 1,
+        explanation: "Prior knowledge is key for new learning (Unit 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Effective teachers know their students as learners and collect information from different sources on students':",
+        options: [
+          "Only test scores",
+          "Strategies, understandings, attitudes, and previous learning experiences",
+          "Only attendance",
+          "Only behaviour"
+        ],
+        correctAnswer: 1,
+        explanation: "Multiple data sources build complete learner profiles (Unit 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Effective teachers recognise assessment as pivotal to their classroom practice and gather data from:",
+        options: [
+          "Only final exams",
+          "A range of sources",
+          "Only homework",
+          "Only quizzes"
+        ],
+        correctAnswer: 1,
+        explanation: "Varied assessment informs teaching (Unit 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Effective teachers create conditions that allow interesting tasks to be demonstrated to ensure:",
+        options: [
+          "Teacher domination",
+          "Active participation of all learners",
+          "Only silent reading",
+          "Only individual work"
+        ],
+        correctAnswer: 1,
+        explanation: "Engaging tasks promote universal participation (Unit 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Effective teachers understand that learning takes place in the:",
+        options: [
+          "Teacher's desk",
+          "Zone of Proximal Development (ZPD)",
+          "Library only",
+          "Playground"
+        ],
+        correctAnswer: 1,
+        explanation: "Vygotsky's ZPD is where optimal learning occurs (Unit 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Small group instruction usually follows a whole group instruction to reinforce or reteach specific skills and concepts, and it produces a:",
+        options: [
+          "Larger teacher‑student ratio",
+          "Minimal student‑teacher ratio",
+          "No interaction",
+          "Only lecture format"
+        ],
+        correctAnswer: 1,
+        explanation: "Small groups allow closer teacher‑student interaction (Unit 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The recommended size for a small group in literacy instruction is:",
+        options: [
+          "10-12 students",
+          "4-6 students",
+          "2-3 students",
+          "15-20 students"
+        ],
+        correctAnswer: 1,
+        explanation: "Groups of 4‑6 allow effective interaction (Unit 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "One benefit of small group interaction is that it allows teachers to:",
+        options: [
+          "Ignore slow learners",
+          "Work closely with individual students",
+          "Only lecture",
+          "Avoid feedback"
+        ],
+        correctAnswer: 1,
+        explanation: "Close work enables targeted support (Unit 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Small group interaction allows teachers to effectively monitor students' work more closely and ensure:",
+        options: [
+          "Only summative assessment",
+          "Regular and individualised feedback",
+          "No feedback",
+          "Only peer feedback"
+        ],
+        correctAnswer: 1,
+        explanation: "Timely, individualised feedback improves specific skills (Unit 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Small group instruction allows the teacher to provide additional teaching to remedy students' challenges over a particular concept taught during:",
+        options: [
+          "Recess",
+          "Lessons",
+          "Lunch break",
+          "Home time"
+        ],
+        correctAnswer: 1,
+        explanation: "Immediate intervention addresses gaps (Unit 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "One benefit of small group interaction is that it helps to build pupils' confidence through:",
+        options: [
+          "Competition",
+          "Collaboration",
+          "Isolation",
+          "Testing"
+        ],
+        correctAnswer: 1,
+        explanation: "Collaboration creates a supportive learning environment (Unit 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Small group interaction encourages teamwork and builds a comfortable environment for students to:",
+        options: [
+          "Compete",
+          "Operate and learn",
+          "Avoid tasks",
+          "Work alone"
+        ],
+        correctAnswer: 1,
+        explanation: "Comfortable settings promote risk‑taking and participation (Unit 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Effective teachers need to continuously update their skills and knowledge in response to:",
+        options: [
+          "Only new textbooks",
+          "The changing world, new research, and emerging information",
+          "Only government directives",
+          "Only parent requests"
+        ],
+        correctAnswer: 1,
+        explanation: "Lifelong learning keeps teachers effective (Unit 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Effective teachers understand that while the new standards set rigorous expectations for students, they do not require:",
+        options: [
+          "High expectations",
+          "Equal input for every student",
+          "Differentiated instruction",
+          "Assessment"
+        ],
+        correctAnswer: 1,
+        explanation: "Equal outcomes do not mean identical teaching for all (Unit 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Knowing the student as an individual involves understanding their world because students interact with print during the reading process. This is claimed by:",
+        options: [
+          "Skinner",
+          "Ausubel (1968)",
+          "Chomsky",
+          "Krashen"
+        ],
+        correctAnswer: 1,
+        explanation: "Prior knowledge shapes reading comprehension (Unit 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Effective teachers extensively and continuously develop their knowledge of students' individual learning profiles and the implications for:",
+        options: [
+          "School budget",
+          "Teaching",
+          "Cafeteria menu",
+          "Uniform policy"
+        ],
+        correctAnswer: 1,
+        explanation: "Learner profiles directly inform instructional planning (Unit 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Effective teachers create conditions that allow interesting tasks to be demonstrated in the classroom to ensure active participation. This refers to:",
+        options: [
+          "Passive learning",
+          "Challenging learning",
+          "Rote memorisation",
+          "Lecture only"
+        ],
+        correctAnswer: 1,
+        explanation: "Challenging tasks engage all learners (Unit 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The ability to provide appropriate challenge for each student is based on understanding that learning takes place in the:",
+        options: [
+          "Home environment",
+          "Zone of Proximal Development",
+          "School library",
+          "Playground"
+        ],
+        correctAnswer: 1,
+        explanation: "ZPD is the sweet spot for learning (Unit 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Small group interaction has a significant impact on students' achievement according to research on:",
+        options: [
+          "Individual learning",
+          "Cooperative learning",
+          "Competitive learning",
+          "Lecture‑based learning"
+        ],
+        correctAnswer: 1,
+        explanation: "Cooperative learning boosts outcomes (Unit 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "When teachers set high expectations for students and encourage risk taking, students are more likely to:",
+        options: [
+          "Give up",
+          "Succeed",
+          "Drop out",
+          "Misbehave"
+        ],
+        correctAnswer: 1,
+        explanation: "High expectations drive achievement (Unit 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Effective teachers use a flexible range of teaching strategies, including:",
+        options: [
+          "Only lectures",
+          "Whole class, small group, and independent work",
+          "Only worksheets",
+          "Only tests"
+        ],
+        correctAnswer: 1,
+        explanation: "Flexibility addresses diverse learning needs (Unit 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Engaging students in challenging content means providing tasks that are:",
+        options: [
+          "Too easy",
+          "Appropriately difficult and within their ZPD",
+          "Impossible",
+          "Unrelated to curriculum"
+        ],
+        correctAnswer: 1,
+        explanation: "Challenge must match learner readiness (Unit 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Small group instruction should follow whole group instruction to:",
+        options: [
+          "Replace it",
+          "Reinforce or reteach specific skills",
+          "Eliminate group work",
+          "Avoid interaction"
+        ],
+        correctAnswer: 1,
+        explanation: "Small groups provide targeted support after whole class teaching (Unit 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "One benefit of small group interaction is that it allows the teacher to provide additional teaching to remedy students' challenges over a particular concept taught during lessons. This is an example of:",
+        options: [
+          "Summative assessment",
+          "Formative intervention",
+          "Final evaluation",
+          "Standardised testing"
+        ],
+        correctAnswer: 1,
+        explanation: "Ongoing support based on formative data (Unit 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Research shows that students know when teachers have higher expectations of some students than others. This is from:",
+        options: [
+          "Piaget",
+          "Weinstein (2002)",
+          "Chomsky",
+          "Krashen"
+        ],
+        correctAnswer: 1,
+        explanation: "Weinstein studied differential teacher expectations (Unit 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Effective teachers know their students as literacy learners and collect information from different sources including:",
+        options: [
+          "Only tests",
+          "Strategies, understandings, attitudes, and previous learning experiences",
+          "Only attendance",
+          "Only behaviour records"
+        ],
+        correctAnswer: 1,
+        explanation: "Comprehensive data paints a full picture (Unit 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The condition where effective teachers have an in‑depth understanding of the nuances of reading and writing is part of:",
+        options: [
+          "Classroom management",
+          "Understanding literacy learning",
+          "Discipline",
+          "Assessment"
+        ],
+        correctAnswer: 1,
+        explanation: "Deep content knowledge is foundational (Unit 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Effective teachers recognise the sequence of events that occur within the classroom and how students apply this knowledge outside the classroom. This describes:",
+        options: [
+          "Behaviourism",
+          "Developmental nature of literacy learning",
+          "Rote learning",
+          "Standardisation"
+        ],
+        correctAnswer: 1,
+        explanation: "Understanding development guides instruction (Unit 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Teachers who are effective strategically gather, analyse, and use information to guide student learning. This is accomplished by their own understanding of literacy learning and:",
+        options: [
+          "School rules",
+          "What is expected as a measure of success",
+          "Parent income",
+          "Teacher salary"
+        ],
+        correctAnswer: 1,
+        explanation: "Benchmarks and standards provide targets (Unit 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Weinstein (2002) found that students know that they are treated differently and that teachers have higher expectations of some than others. This affects:",
+        options: [
+          "Only teacher salary",
+          "Student patterns of progress and achievement",
+          "Lunch menu",
+          "School holidays"
+        ],
+        correctAnswer: 1,
+        explanation: "Expectations influence student outcomes (Unit 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Effective teachers create conducive learning environments that are alive with purposeful print. This includes access to:",
+        options: [
+          "Only textbooks",
+          "A wide range of texts for reading and creating",
+          "Only worksheets",
+          "Only digital screens"
+        ],
+        correctAnswer: 1,
+        explanation: "Variety of texts supports literacy growth (Unit 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The ability to provide appropriate challenge for each student is based on understanding that learning takes place in the Zone of Proximal Development. This concept was developed by:",
+        options: [
+          "Piaget",
+          "Vygotsky",
+          "Skinner",
+          "Chomsky"
+        ],
+        correctAnswer: 1,
+        explanation: "Vygotsky's ZPD is key to challenging learning (Unit 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Small group instruction usually follows whole group instruction to reinforce or reteach specific skills. This approach is known as:",
+        options: [
+          "Direct instruction",
+          "Gradual release of responsibility",
+          "Rote learning",
+          "Independent study"
+        ],
+        correctAnswer: 1,
+        explanation: "Small groups provide scaffolded support (Unit 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "One benefit of small group interaction is that it helps to build pupils' confidence through collaboration, which is an example of:",
+        options: [
+          "Competitive learning",
+          "Cooperative learning",
+          "Isolated learning",
+          "Passive learning"
+        ],
+        correctAnswer: 1,
+        explanation: "Cooperation builds social and academic confidence (Unit 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Effective teachers need to extensively and continuously develop their knowledge of students' individual learning profiles and the patterns of progress as students become literate. This requires:",
+        options: [
+          "Only doing once",
+          "Ongoing assessment and reflection",
+          "Ignoring data",
+          "Using only standardised tests"
+        ],
+        correctAnswer: 1,
+        explanation: "Continuous monitoring informs responsive teaching (Unit 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "The most important single factor which influences learning, according to Ausubel (1968), is:",
+        options: [
+          "Motivation",
+          "Previous knowledge",
+          "Environment",
+          "Teacher expertise"
+        ],
+        correctAnswer: 1,
+        explanation: "Prior knowledge is the foundation for new learning (Unit 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Effective teachers understand that while the students set common outcomes for students, it does not require equal input. This means:",
+        options: [
+          "All students need the same instruction",
+          "Differentiation is necessary",
+          "Only high achievers matter",
+          "Low achievers should be ignored"
+        ],
+        correctAnswer: 1,
+        explanation: "Differentiated instruction meets each student where they are (Unit 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "Effective teachers know their students as learners and collect information from different sources on students' strategies, understandings, attitudes, and previous learning experiences. This practice is known as:",
+        options: [
+          "Assessment for learning",
+          "Summative assessment",
+          "Standardised testing",
+          "Norm‑referenced assessment"
+        ],
+        correctAnswer: 0,
+        explanation: "Assessment for learning guides instruction (Unit 5)."
+      },
+      {
+        type: "multiple-choice",
+        question: "A small group size of four to six students allows the teacher to:",
+        options: [
+          "Ignore individual needs",
+          "Work closely with each student and provide individualised feedback",
+          "Only lecture",
+          "Avoid interaction"
+        ],
+        correctAnswer: 1,
+        explanation: "Optimal group size balances interaction and manageability (Unit 5)."
+      },
+      {
+        type: "text-input",
+        question: "What acronym describes the optimal learning zone according to Vygotsky?",
+        correctAnswer: "ZPD",
+        acceptableAnswers: ["ZPD", "Zone of Proximal Development"],
+        caseSensitive: false,
+        explanation: "ZPD is the Zone of Proximal Development (Unit 5)."
+      },
+      {
+        type: "text-input",
+        question: "Name one dimension of effective literacy practice.",
+        correctAnswer: "high expectations",
+        acceptableAnswers: ["high expectations", "knowing students", "flexible strategies"],
+        caseSensitive: false,
+        explanation: "High expectations are a key dimension (Unit 5)."
+      },
+      {
+        type: "text-input",
+        question: "What type of environment should effective teachers create with purposeful print?",
+        correctAnswer: "print-rich",
+        acceptableAnswers: ["print-rich", "literacy-rich", "conducive"],
+        caseSensitive: false,
+        explanation: "Print‑rich environments support literacy (Unit 5)."
+      },
+      {
+        type: "text-input",
+        question: "According to Ausubel, the most important factor influencing learning is what?",
+        correctAnswer: "prior knowledge",
+        acceptableAnswers: ["prior knowledge", "previous knowledge"],
+        caseSensitive: false,
+        explanation: "Previous knowledge is the key (Unit 5)."
+      },
+      {
+        type: "text-input",
+        question: "What size (number of students) is recommended for small group instruction?",
+        correctAnswer: "4-6",
+        acceptableAnswers: ["4-6", "four to six"],
+        caseSensitive: false,
+        explanation: "Small groups of 4‑6 are ideal (Unit 5)."
+      },
+      {
+        type: "text-input",
+        question: "What is one benefit of small group interaction mentioned in the manual?",
+        correctAnswer: "confidence",
+        acceptableAnswers: ["confidence", "teamwork", "feedback", "monitoring"],
+        caseSensitive: false,
+        explanation: "Small groups build confidence and collaboration (Unit 5)."
+      },
+      {
+        type: "text-input",
+        question: "What should teachers do to keep students engaged with challenging content?",
+        correctAnswer: "use ZPD",
+        acceptableAnswers: ["use ZPD", "provide appropriate challenge", "differentiate"],
+        caseSensitive: false,
+        explanation: "Instruction within the ZPD provides optimal challenge (Unit 5)."
+      },
+      {
+        type: "text-input",
+        question: "Name one source from which effective teachers collect information about students.",
+        correctAnswer: "attitudes",
+        acceptableAnswers: ["attitudes", "strategies", "understandings", "previous experiences"],
+        caseSensitive: false,
+        explanation: "Multiple sources include attitudes, strategies, and experiences (Unit 5)."
+      },
+      {
+        type: "text-input",
+        question: "What type of grouping promotes teamwork and a comfortable learning environment?",
+        correctAnswer: "small group",
+        acceptableAnswers: ["small group", "cooperative groups"],
+        caseSensitive: false,
+        explanation: "Small group interaction encourages teamwork (Unit 5)."
+      },
+      {
+        type: "text-input",
+        question: "What does ZPD stand for?",
+        correctAnswer: "Zone of Proximal Development",
+        acceptableAnswers: ["Zone of Proximal Development", "ZPD"],
+        caseSensitive: false,
+        explanation: "ZPD is the key concept for challenging learning (Unit 5)."
+      },
+      {
+        type: "text-input",
+        question: "What is the term for adjusting teaching based on student data?",
+        correctAnswer: "differentiation",
+        acceptableAnswers: ["differentiation", "adaptive teaching", "personalised instruction"],
+        caseSensitive: false,
+        explanation: "Differentiation tailors instruction to individual needs (Unit 5)."
+      }
+    ]
+  }
+};
+
+    // ========== DOM ELEMENTS ==========
+    const subjectSelectionContainer = document.getElementById('subject-selection-container');
+    const subjectGrid = document.getElementById('subject-grid');
+    const quizContainer = document.getElementById('quiz-container');
+    const resultContainer = document.getElementById('result-container');
+    const currentSubjectName = document.getElementById('current-subject-name');
+    const questionContainer = document.getElementById('question-container');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const submitBtn = document.getElementById('submit-btn');
+    const restartBtn = document.getElementById('restart-btn');
+    const backFromResultBtn = document.getElementById('back-from-result-btn');
+    const backToSubjectsBtn = document.getElementById('back-to-subjects-btn');
+    const currentQuestionEl = document.getElementById('current-question');
+    const totalQuestionsEl = document.getElementById('total-questions');
+    const progressBar = document.getElementById('progress-bar');
+    const scoreEl = document.getElementById('score');
+    const maxScoreEl = document.getElementById('max-score');
+    const scoreTextEl = document.getElementById('score-text');
+    const feedbackEl = document.getElementById('feedback');
+    const timerEl = document.getElementById('timer');
+    const instantFeedbackEl = document.getElementById('instant-feedback');
+    const correctAnswersEl = document.getElementById('correct-answers');
+    const incorrectAnswersEl = document.getElementById('incorrect-answers');
+    const averageTimeEl = document.getElementById('average-time');
+
+    // ========== STATE ==========
+    let currentSubject = null;          // subject ID
+    let quizData = [];
+    let currentQuestionIndex = 0;
+    let userAnswers = [];               // null = unanswered, string for text-input, number for MC
+    let quizSubmitted = false;
+    let timer = null;
+    let timeLeft = 60;
+    let timeSpentPerQuestion = [];
+    let feedbackTimeout = null;
+    let isNavigating = false;
+    const TIME_PER_QUESTION = 60;
+    const WARNING_TIME = 10;
+    const DANGER_TIME = 5;
+
+    // ========== HELPER FUNCTIONS ==========
+    function shuffleArray(arr) {
+        const shuffled = [...arr];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        return shuffled;
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function clearFeedback() {
+        if (feedbackTimeout) { clearTimeout(feedbackTimeout); feedbackTimeout = null; }
+        instantFeedbackEl.style.display = 'none';
+    }
+
+    function stopTimer() {
+        if (timer) { clearInterval(timer); timer = null; }
+    }
+
+    function isQuestionAnswered(index) {
+        if (index === undefined) index = currentQuestionIndex;
+        const answer = userAnswers[index];
+        if (answer === null || answer === undefined) return false;
+        if (typeof answer === 'string') return answer.trim().length > 0;
+        return true;
+    }
+
+    function updateTimerDisplay() {
+        timerEl.textContent = `${timeLeft}s`;
+        timerEl.classList.remove('timer-warning', 'timer-danger');
+        if (timeLeft <= WARNING_TIME) timerEl.classList.add('timer-warning');
+        if (timeLeft <= DANGER_TIME) timerEl.classList.add('timer-danger');
+    }
+
+    function startTimer() {
+        stopTimer();
+        if (isQuestionAnswered()) {
+            timeLeft = 0;
+            updateTimerDisplay();
+            return;
+        }
+        timeLeft = TIME_PER_QUESTION;
+        updateTimerDisplay();
+        timer = setInterval(() => {
+            timeLeft--;
+            updateTimerDisplay();
+            if (timeLeft <= 0) {
+                stopTimer();
+                handleTimeExpired();
+            }
+        }, 1000);
+    }
+
+    function handleTimeExpired() {
+        savePendingTextInput();
+        if (!isQuestionAnswered()) {
+            timeSpentPerQuestion[currentQuestionIndex] = TIME_PER_QUESTION;
+            const isLast = currentQuestionIndex === quizData.length - 1;
+            clearFeedback();
+            instantFeedbackEl.textContent = isLast 
+                ? "⏰ Time's up! You can still submit an answer." 
+                : "⏰ Time's up! Moving to next question...";
+            instantFeedbackEl.className = "instant-feedback feedback-incorrect";
+            instantFeedbackEl.style.display = 'block';
+            if (!isLast) {
+                feedbackTimeout = setTimeout(() => {
+                    instantFeedbackEl.style.display = 'none';
+                    feedbackTimeout = null;
+                    goToNextQuestion();
+                }, 2000);
+            } else {
+                feedbackTimeout = setTimeout(() => {
+                    instantFeedbackEl.style.display = 'none';
+                    feedbackTimeout = null;
+                }, 2000);
+                updateNavigation();
+            }
+        }
+    }
+
+    function checkTextAnswer(userAnswer, question) {
+        if (!userAnswer || typeof userAnswer !== 'string') return false;
+        const normalized = userAnswer.trim();
+        if (normalized.length === 0) return false;
+        const compare = question.caseSensitive === false 
+            ? (a, b) => a.toLowerCase() === b.toLowerCase()
+            : (a, b) => a === b;
+        return question.acceptableAnswers.some(accepted => compare(normalized, accepted));
+    }
+
+    function getQuestionTypeBadge(question) {
+        if (question.type === 'text-input') 
+            return '<span class="question-type-badge badge-text-input">Fill in the blank</span>';
+        return '<span class="question-type-badge badge-multiple-choice">Multiple Choice</span>';
+    }
+
+    function savePendingTextInput() {
+        if (quizSubmitted) return;
+        const question = quizData[currentQuestionIndex];
+        if (question.type !== 'text-input') return;
+        const textInput = document.getElementById('text-answer');
+        if (textInput) userAnswers[currentQuestionIndex] = textInput.value;
+    }
+
+    function finalizeTextInput() {
+        if (quizSubmitted) return;
+        const question = quizData[currentQuestionIndex];
+        if (question.type !== 'text-input') return;
+        const textInput = document.getElementById('text-answer');
+        if (!textInput) return;
+        const answer = textInput.value.trim();
+        if (answer.length === 0) return;
+        userAnswers[currentQuestionIndex] = answer;
+        timeSpentPerQuestion[currentQuestionIndex] = TIME_PER_QUESTION - timeLeft;
+        stopTimer();
+        const isCorrect = checkTextAnswer(answer, question);
+        clearFeedback();
+        instantFeedbackEl.textContent = isCorrect 
+            ? "✅ Correct! Well done!" 
+            : `❌ Incorrect. The correct answer is: ${question.correctAnswer}`;
+        instantFeedbackEl.className = `instant-feedback ${isCorrect ? 'feedback-correct' : 'feedback-incorrect'}`;
+        instantFeedbackEl.style.display = 'block';
+        feedbackTimeout = setTimeout(() => {
+            instantFeedbackEl.style.display = 'none';
+            feedbackTimeout = null;
+        }, 3000);
+        renderQuestion();
+    }
+
+    // ========== RENDER FUNCTIONS ==========
+    function renderSubjectSelection() {
+        subjectGrid.innerHTML = '';
+        Object.keys(subjectsData).forEach(subjectId => {
+            const subject = subjectsData[subjectId];
+            const card = document.createElement('div');
+            card.className = 'subject-card';
+            card.innerHTML = `
+                <div class="subject-icon">${subject.icon}</div>
+                <div class="subject-name">${subject.name}</div>
+                <div class="question-count">${subject.questions.length} questions</div>
+            `;
+            card.addEventListener('click', () => selectSubject(subjectId));
+            subjectGrid.appendChild(card);
+        });
+    }
+
+    function selectSubject(subjectId) {
+        stopTimer();
+        clearFeedback();
+        currentSubject = subjectId;
+        const subject = subjectsData[subjectId];
+        // Shuffle questions each time we start
+        quizData = shuffleArray(subject.questions);
+        currentQuestionIndex = 0;
+        userAnswers = new Array(quizData.length).fill(null);
+        timeSpentPerQuestion = new Array(quizData.length).fill(0);
+        quizSubmitted = false;
+
+        // Update UI
+        currentSubjectName.textContent = subject.name;
+        totalQuestionsEl.textContent = quizData.length;
+        maxScoreEl.textContent = quizData.length;
+        scoreEl.textContent = '0';
+        correctAnswersEl.textContent = '0';
+        incorrectAnswersEl.textContent = '0';
+        averageTimeEl.textContent = '0s';
+        scoreTextEl.textContent = '';
+        feedbackEl.innerHTML = '';
+
+        subjectSelectionContainer.style.display = 'none';
+        quizContainer.style.display = 'block';
+        resultContainer.style.display = 'none';
+        renderQuestion();
+        startTimer();
+    }
+
+    function renderQuestion() {
+        clearFeedback();
+        const question = quizData[currentQuestionIndex];
+        currentQuestionEl.textContent = currentQuestionIndex + 1;
+        progressBar.style.width = `${((currentQuestionIndex + 1) / quizData.length) * 100}%`;
+
+        let html = `<div class="question active" role="group" aria-labelledby="question-text">`;
+        html += `<div class="question-text" id="question-text">${question.question}${getQuestionTypeBadge(question)}</div>`;
+
+        if (question.type === 'text-input') {
+            const userAnswer = userAnswers[currentQuestionIndex] || '';
+            const hasSubmitted = isQuestionAnswered();
+            let inputClass = '';
+            if (quizSubmitted || hasSubmitted) {
+                const answer = typeof userAnswer === 'string' ? userAnswer : '';
+                const isCorrect = checkTextAnswer(answer, question);
+                inputClass = isCorrect ? 'correct-input' : 'incorrect-input';
+            }
+            html += `<div class="text-input-container">`;
+            html += `<input type="text" class="text-input-field ${inputClass}" 
+                        id="text-answer" placeholder="Type your answer here..." 
+                        value="${escapeHtml(typeof userAnswer === 'string' ? userAnswer : '')}"
+                        ${quizSubmitted || hasSubmitted ? 'disabled' : ''}>`;
+            if (!quizSubmitted && !hasSubmitted) {
+                html += `<div class="text-input-hint">Press Enter to submit your answer</div>`;
+            }
+            html += `</div>`;
+        } else {
+            html += `<div class="options">`;
+            const groupName = `question-${currentQuestionIndex}`;
+            question.options.forEach((option, index) => {
+                const isSelected = userAnswers[currentQuestionIndex] === index;
+                let optionClass = '';
+                if (quizSubmitted) {
+                    if (index === question.correctAnswer) optionClass = 'correct';
+                    else if (isSelected) optionClass = 'incorrect';
+                } else if (isSelected) optionClass = 'selected';
+                html += `
+                    <label class="option ${optionClass}">
+                        <input type="radio" name="${groupName}" value="${index}" 
+                            ${isSelected ? 'checked' : ''} ${quizSubmitted ? 'disabled' : ''}>
+                        <span class="option-indicator"></span>
+                        ${option}
+                    </label>`;
+            });
+            html += `</div>`;
+        }
+
+        const explanationDisplay = quizSubmitted ? 'display: block;' : 'display: none;';
+        html += `
+            <div class="explanation" style="${explanationDisplay}">
+                <div class="explanation-title">Explanation:</div>
+                ${question.explanation}
+            </div>`;
+        html += `</div>`;
+        questionContainer.innerHTML = html;
+
+        if (!quizSubmitted) {
+            if (question.type === 'text-input') {
+                const textInput = document.getElementById('text-answer');
+                if (textInput && !isQuestionAnswered()) {
+                    textInput.addEventListener('input', handleTextInputChange);
+                    textInput.addEventListener('keypress', handleTextInputKeypress);
+                    setTimeout(() => textInput.focus(), 100);
+                }
+            } else {
+                const radios = questionContainer.querySelectorAll('input[type="radio"]');
+                radios.forEach(radio => radio.addEventListener('change', handleOptionChange));
+            }
+        }
+        updateNavigation();
+    }
+
+    function updateNavigation() {
+        prevBtn.disabled = currentQuestionIndex === 0;
+        const isLast = currentQuestionIndex === quizData.length - 1;
+        if (isLast) {
+            nextBtn.style.display = 'none';
+            submitBtn.style.display = 'block';
+            submitBtn.disabled = !isQuestionAnswered();
+        } else {
+            nextBtn.style.display = 'block';
+            submitBtn.style.display = 'none';
+            nextBtn.disabled = !isQuestionAnswered() && !quizSubmitted;
+        }
+    }
+
+    // ========== EVENT HANDLERS ==========
+    function handleTextInputChange(e) {
+        if (quizSubmitted) return;
+        userAnswers[currentQuestionIndex] = e.target.value;
+        updateNavigation();
+    }
+
+    function handleTextInputKeypress(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            finalizeTextInput();
+        }
+    }
+
+    function handleOptionChange(e) {
+        if (quizSubmitted) return;
+        const selectedIndex = parseInt(e.target.value, 10);
+        userAnswers[currentQuestionIndex] = selectedIndex;
+        timeSpentPerQuestion[currentQuestionIndex] = TIME_PER_QUESTION - timeLeft;
+        stopTimer();
+        const isCorrect = selectedIndex === quizData[currentQuestionIndex].correctAnswer;
+        clearFeedback();
+        instantFeedbackEl.textContent = isCorrect ? "✅ Correct! Well done!" : "❌ Incorrect. Try the next question!";
+        instantFeedbackEl.className = `instant-feedback ${isCorrect ? 'feedback-correct' : 'feedback-incorrect'}`;
+        instantFeedbackEl.style.display = 'block';
+        feedbackTimeout = setTimeout(() => {
+            instantFeedbackEl.style.display = 'none';
+            feedbackTimeout = null;
+        }, 3000);
+        renderQuestion();
+    }
+
+    function goToPreviousQuestion() {
+        if (currentQuestionIndex > 0) {
+            isNavigating = true;
+            savePendingTextInput();
+            currentQuestionIndex--;
+            renderQuestion();
+            startTimer();
+            isNavigating = false;
+        }
+    }
+
+    function goToNextQuestion() {
+        if (currentQuestionIndex < quizData.length - 1) {
+            isNavigating = true;
+            savePendingTextInput();
+            currentQuestionIndex++;
+            renderQuestion();
+            startTimer();
+            isNavigating = false;
+        }
+    }
+
+    function submitQuiz() {
+        savePendingTextInput();
+        quizSubmitted = true;
+        stopTimer();
+        clearFeedback();
+        
+        let correctCount = 0, incorrectCount = 0;
+        quizData.forEach((q, i) => {
+            const userAnswer = userAnswers[i];
+            if (userAnswer === null || userAnswer === undefined) { incorrectCount++; return; }
+            let isCorrect = false;
+            if (q.type === 'text-input') isCorrect = checkTextAnswer(String(userAnswer), q);
+            else isCorrect = userAnswer === q.correctAnswer;
+            isCorrect ? correctCount++ : incorrectCount++;
+        });
+
+        const answeredCount = userAnswers.filter(a => a !== null && a !== undefined && 
+            (typeof a === 'number' || (typeof a === 'string' && a.trim().length > 0))).length;
+        const totalTime = timeSpentPerQuestion.reduce((sum, t) => sum + t, 0);
+        const avgTime = answeredCount > 0 ? Math.round(totalTime / answeredCount) : 0;
+
+        quizContainer.style.display = 'none';
+        resultContainer.style.display = 'block';
+        scoreEl.textContent = correctCount;
+        correctAnswersEl.textContent = correctCount;
+        incorrectAnswersEl.textContent = incorrectCount;
+        averageTimeEl.textContent = `${avgTime}s`;
+        const percentage = (correctCount / quizData.length) * 100;
+        let message, feedbackText;
+        if (percentage >= 80) {
+            message = 'Excellent! Great understanding.';
+            feedbackText = 'You demonstrated comprehensive knowledge.';
+        } else if (percentage >= 60) {
+            message = 'Good job! Solid foundation.';
+            feedbackText = 'Review a few areas to strengthen further.';
+        } else if (percentage >= 40) {
+            message = 'Not bad. Keep learning.';
+            feedbackText = 'Focus on the fundamentals.';
+        } else {
+            message = 'Keep practicing!';
+            feedbackText = 'Machine learning is a journey. Review the explanations and try again.';
+        }
+        scoreTextEl.textContent = message;
+        feedbackEl.innerHTML = feedbackText;
+        renderReview();
+    }
+
+    function renderReview() {
+        let reviewHTML = '<div class="review-wrapper">';
+        quizData.forEach((q, idx) => {
+            const userAnswer = userAnswers[idx];
+            let isCorrect = false;
+            if (q.type === 'text-input') isCorrect = userAnswer ? checkTextAnswer(String(userAnswer), q) : false;
+            else isCorrect = userAnswer === q.correctAnswer;
+
+            reviewHTML += `<div class="question review-question">`;
+            reviewHTML += `<div class="question-text">${idx+1}. ${q.question}${getQuestionTypeBadge(q)}</div>`;
+            if (q.type === 'text-input') {
+                const displayAnswer = (userAnswer && typeof userAnswer === 'string' && userAnswer.trim().length > 0)
+                    ? userAnswer : 'No answer';
+                reviewHTML += `<input type="text" class="text-input-field ${isCorrect ? 'correct-input' : 'incorrect-input'}"
+                    value="${escapeHtml(displayAnswer)}" disabled>`;
+                if (!isCorrect) {
+                    reviewHTML += `<div class="user-text-answer"><span class="answer-label">Correct answer:</span> ${q.correctAnswer}</div>`;
+                }
+            } else {
+                reviewHTML += `<div class="options">`;
+                q.options.forEach((opt, optIdx) => {
+                    let cls = '';
+                    if (optIdx === q.correctAnswer) cls = 'correct';
+                    else if (userAnswer === optIdx) cls = 'incorrect';
+                    reviewHTML += `<div class="option ${cls}"><span class="option-indicator"></span>${opt}</div>`;
+                });
+                reviewHTML += `</div>`;
+            }
+            reviewHTML += `<div class="explanation" style="display:block;"><div class="explanation-title">Explanation:</div>${q.explanation}</div>`;
+            reviewHTML += `<div style="margin-top:10px; font-size:0.9rem; color:var(--dark-gray);">Time spent: ${timeSpentPerQuestion[idx]}s | ${isCorrect ? '✅ Correct' : '❌ Incorrect'}</div>`;
+            reviewHTML += `</div>`;
+        });
+        reviewHTML += '</div>';
+        feedbackEl.insertAdjacentHTML('beforeend', reviewHTML);
+    }
+
+    function restartQuiz() {
+        stopTimer();
+        clearFeedback();
+        if (!currentSubject) return;
+        const subject = subjectsData[currentSubject];
+        quizData = shuffleArray(subject.questions);
+        currentQuestionIndex = 0;
+        userAnswers = new Array(quizData.length).fill(null);
+        timeSpentPerQuestion = new Array(quizData.length).fill(0);
+        quizSubmitted = false;
+        totalQuestionsEl.textContent = quizData.length;
+        maxScoreEl.textContent = quizData.length;
+        resultContainer.style.display = 'none';
+        quizContainer.style.display = 'block';
+        renderQuestion();
+        startTimer();
+    }
+
+    function backToSubjectSelection() {
+        stopTimer();
+        clearFeedback();
+        quizContainer.style.display = 'none';
+        resultContainer.style.display = 'none';
+        subjectSelectionContainer.style.display = 'block';
+        currentSubject = null;
+        quizData = [];
+        userAnswers = [];
+        timeSpentPerQuestion = [];
+    }
+
+    // Confirm before leaving quiz mid-way
+    function confirmChangeSubject() {
+        if (quizSubmitted || !isQuestionAnswered() && userAnswers.every(a => a === null)) {
+            backToSubjectSelection();
+        } else {
+            if (confirm("Are you sure you want to change subject? Your current progress will be lost.")) {
+                backToSubjectSelection();
+            }
+        }
+    }
+
+    // Window blur handler saves text
+    window.addEventListener('blur', () => {
+        if (!isNavigating && currentSubject && !quizSubmitted) savePendingTextInput();
+    });
+    window.addEventListener('beforeunload', () => {
+        if (currentSubject && !quizSubmitted) savePendingTextInput();
+    });
+
+    // Navigation button listeners
+    prevBtn.addEventListener('click', goToPreviousQuestion);
+    nextBtn.addEventListener('click', goToNextQuestion);
+    submitBtn.addEventListener('click', submitQuiz);
+    restartBtn.addEventListener('click', restartQuiz);
+    backFromResultBtn.addEventListener('click', backToSubjectSelection);
+    backToSubjectsBtn.addEventListener('click', confirmChangeSubject);
+
+    // Initialize subject selection
+    renderSubjectSelection();
+})();
+</script>
+</body>
+</html>
