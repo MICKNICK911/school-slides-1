@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Overlay Sentinel Pro | Advanced Screen Monitor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none; /* prevent accidental text selection during test */
+        }
+
+        body {
+            background: linear-gradient(145deg, #0a0f1e 0%, #0c1222 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', 'Inter', system-ui, -apple-system, 'Roboto', sans-serif;
+            padding: 1rem;
+        }
+
+        /* Main container */
+        .test-container {
+            max-width: 650px;
+            width: 100%;
+            background: rgba(18, 25, 45, 0.75);
+            backdrop-filter: blur(2px);
+            border-radius: 2.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(72, 187, 255, 0.2);
+            transition: all 0.2s ease;
+        }
+
+        /* header zone */
+        .header {
+            text-align: center;
+            margin-bottom: 1.8rem;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #1e2a4a;
+            padding: 0.3rem 1rem;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            color: #7aa9ff;
+            text-transform: uppercase;
+            margin-bottom: 0.8rem;
+            border: 1px solid #2d3b60;
+        }
+
+        h1 {
+            font-size: 1.9rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #ffffff, #90c6ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: -0.3px;
+        }
+
+        .sub {
+            color: #8e9fc3;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        /* live stream indicator */
+        .live-monitor {
+            background: #030617;
+            border-radius: 2rem;
+            padding: 1.2rem;
+            margin-bottom: 1.8rem;
+            border: 1px solid #2a3757;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .status-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .status-led {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #0e1428;
+            padding: 0.3rem 1rem;
+            border-radius: 60px;
+        }
+
+        .led {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #2aff9e;
+            box-shadow: 0 0 6px #2aff9e;
+            transition: all 0.1s ease;
+        }
+
+        .led.warning {
+            background-color: #ff4d4d;
+            box-shadow: 0 0 12px #ff4d4d;
+        }
+
+        .led.blink {
+            animation: pulse-red 0.6s ease-out;
+        }
+
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(255, 77, 77, 0.7); transform: scale(0.9);}
+            100% { box-shadow: 0 0 0 12px rgba(255, 77, 77, 0); transform: scale(1);}
+        }
+
+        .event-log-area {
+            background: #01020b;
+            border-radius: 1.5rem;
+            padding: 1rem;
+            min-height: 280px;
+            max-height: 320px;
+            overflow-y: auto;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.8rem;
+            margin-top: 0.8rem;
+            border: 1px solid #243153;
+        }
+
+        .log-entry {
+            padding: 0.6rem 0.8rem;
+            border-bottom: 1px solid #1a2340;
+            display: flex;
+            gap: 12px;
+            font-size: 0.8rem;
+            align-items: flex-start;
+            transition: background 0.1s;
+        }
+
+        .log-time {
+            color: #5f7bbf;
+            font-weight: 500;
+            min-width: 70px;
+        }
+
+        .log-icon {
+            font-size: 1.1rem;
+            min-width: 28px;
+        }
+
+        .log-text {
+            color: #cbd5ff;
+            word-break: break-word;
+            flex: 1;
+        }
+
+        .log-text strong {
+            color: #ffbc6e;
+            font-weight: 600;
+        }
+
+        .violation {
+            background: rgba(255, 60, 60, 0.1);
+            border-left: 3px solid #ff4d4d;
+        }
+
+        .info-entry {
+            background: rgba(60, 130, 255, 0.05);
+            border-left: 3px solid #3a86ff;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 1.8rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn {
+            background: #111a2e;
+            border: 1px solid #2d4070;
+            padding: 0.7rem 1.5rem;
+            border-radius: 3rem;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #e0ecff;
+            cursor: pointer;
+            transition: 0.2s;
+            backdrop-filter: blur(4px);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #1f3a7a;
+            border-color: #5480ff;
+            color: white;
+            box-shadow: 0 2px 8px rgba(0, 80, 255, 0.2);
+        }
+
+        .btn-primary:active {
+            transform: scale(0.97);
+            background: #0f2a62;
+        }
+
+        .btn-danger {
+            border-color: #b33030;
+            color: #ffaeae;
+        }
+
+        .btn-danger:active {
+            background: #3a1a1a;
+        }
+
+        .counter-panel {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1.2rem;
+            background: #060b19;
+            padding: 0.8rem 1rem;
+            border-radius: 2rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .viol-count {
+            color: #ff8888;
+        }
+
+        .footer-note {
+            text-align: center;
+            margin-top: 1.5rem;
+            font-size: 0.7rem;
+            color: #5b6d97;
+        }
+
+        ::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #060b19;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #2a4370;
+            border-radius: 10px;
+        }
+
+        @keyframes subtlePulse {
+            0% { opacity: 0.9; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+<div class="test-container" id="appRoot">
+    <div class="header">
+        <div class="badge">🔍 PROCTOR SIMULATOR • OVERLAY DETECTION ENGINE</div>
+        <h1>Overlay Sentinel</h1>
+        <div class="sub">Real-time screen overlay & visibility detection — test how proctored apps catch overlays</div>
+    </div>
+
+    <div class="live-monitor">
+        <div class="status-header">
+            <div class="status-led">
+                <div class="led" id="liveLed"></div>
+                <span style="font-weight: 500;">🛡️ MONITORING ACTIVE</span>
+            </div>
+            <div class="status-led" style="background: #0b0f1c;">
+                <span>📱 focus: </span>
+                <span id="focusState" style="font-weight: bold; color:#b9d0ff;">visible</span>
+            </div>
+        </div>
+
+        <div class="event-log-area" id="logArea">
+            <div class="log-entry info-entry">
+                <span class="log-time">system</span>
+                <span class="log-icon">🟢</span>
+                <span class="log-text">Overlay detection engine initialized. Try any overlay: Messenger chat heads, floating keyboard, split-screen, or pull down notification shade (overlay mode). Every visibility change will be logged.</span>
+            </div>
+            <div class="log-entry info-entry">
+                <span class="log-time">info</span>
+                <span class="log-icon">🧪</span>
+                <span class="log-text"><strong>Test guideline:</strong> Open a floating window / chat bubble / gesture overlay. This web app will instantly detect loss of full visibility & flag as suspicious overlay event.</span>
+            </div>
+        </div>
+
+        <div class="counter-panel">
+            <span>🚨 Overlay violations detected:</span>
+            <span class="viol-count" id="violationCounter">0</span>
+        </div>
+    </div>
+
+    <div class="btn-group">
+        <button class="btn" id="simulateOverlayBtn">🔲 SIMULATE OVERLAY EVENT</button>
+        <button class="btn btn-primary" id="copyLogsBtn">📋 Copy Report</button>
+        <button class="btn btn-danger" id="clearLogsBtn">🗑️ Clear Logs</button>
+    </div>
+    <div class="footer-note">
+        💡 This app simulates proctoring detection logic: uses Page Visibility API, blur/focus, resize & fullscreen exit events. Overlay detection flags appear when page becomes hidden (chat heads, floating windows, split screen covering).
+    </div>
+</div>
+
+<script>
+    // ========================  OVERLAY & VISIBILITY DETECTOR  ========================
+    // This replicates advanced screen overlay detection used by proctoring apps.
+    // Detects:
+    // - page visibility change (hidden/visible): overlay or app switch
+    // - window blur (when overlay takes focus)
+    // - resize events that might indicate split-screen or popup
+    // - fullscreen exit attempt (some overlays force exit)
+    // - additional continuous verification + timestamps
+    
+    (function() {
+        // DOM elements
+        const logContainer = document.getElementById('logArea');
+        const violationSpan = document.getElementById('violationCounter');
+        const focusStateSpan = document.getElementById('focusState');
+        const liveLed = document.getElementById('liveLed');
+        
+        let violationCount = 0;
+        let initialTimestamp = Date.now();
+        
+        // to avoid duplicate consecutive same-type spam, but we still track all major changes
+        let lastVisibilityState = document.visibilityState;
+        let lastFocused = true;
+        
+        // Helper: format HH:MM:SS.ms
+        function getFormattedTime() {
+            const now = new Date();
+            const hours = now.getHours().toString().padStart(2,'0');
+            const minutes = now.getMinutes().toString().padStart(2,'0');
+            const seconds = now.getSeconds().toString().padStart(2,'0');
+            const ms = now.getMilliseconds().toString().padStart(3,'0');
+            return `${hours}:${minutes}:${seconds}.${ms}`;
+        }
+        
+        // Add log entry: type can be 'violation' (overlay suspicious) or 'info' (state info)
+        function addLogEntry(message, eventType = 'info', extraIcon = null) {
+            const logDiv = document.createElement('div');
+            logDiv.className = 'log-entry';
+            if (eventType === 'violation') {
+                logDiv.classList.add('violation');
+            } else if (eventType === 'info') {
+                logDiv.classList.add('info-entry');
+            }
+            
+            const timeSpan = document.createElement('span');
+            timeSpan.className = 'log-time';
+            timeSpan.innerText = getFormattedTime();
+            
+            const iconSpan = document.createElement('span');
+            iconSpan.className = 'log-icon';
+            if (extraIcon) {
+                iconSpan.innerText = extraIcon;
+            } else {
+                iconSpan.innerText = eventType === 'violation' ? '⚠️' : 'ℹ️';
+            }
+            
+            const textSpan = document.createElement('span');
+            textSpan.className = 'log-text';
+            textSpan.innerHTML = message;
+            
+            logDiv.appendChild(timeSpan);
+            logDiv.appendChild(iconSpan);
+            logDiv.appendChild(textSpan);
+            
+            logContainer.appendChild(logDiv);
+            // auto-scroll to bottom
+            logContainer.scrollTop = logContainer.scrollHeight;
+            
+            // limit logs to 200 entries to avoid performance issues
+            while (logContainer.children.length > 200) {
+                logContainer.removeChild(logContainer.firstChild);
+            }
+        }
+        
+        function updateViolationCounterUI() {
+            violationSpan.innerText = violationCount;
+            // also update led to warning state briefly if violations >0 (visual feedback)
+            if (violationCount > 0 && liveLed) {
+                liveLed.classList.add('warning');
+                liveLed.classList.add('blink');
+                setTimeout(() => {
+                    if (violationCount === 0) liveLed.classList.remove('warning');
+                    liveLed.classList.remove('blink');
+                }, 500);
+            } else if (violationCount === 0) {
+                liveLed.classList.remove('warning');
+            }
+        }
+        
+        function incrementViolation(reason, details = '') {
+            violationCount++;
+            updateViolationCounterUI();
+            let message = `<strong>⚠️ OVERLAY DETECTED</strong> — ${reason}`;
+            if (details) message += ` (${details})`;
+            addLogEntry(message, 'violation', '🚨');
+            // extra haptic / visual LED pulse
+            if (liveLed) {
+                liveLed.classList.add('blink');
+                setTimeout(() => liveLed.classList.remove('blink'), 400);
+            }
+        }
+        
+        function addInfoLog(message, icon = '📌') {
+            addLogEntry(message, 'info', icon);
+        }
+        
+        // core: handle visibility change (most reliable overlay detection)
+        function handleVisibilityChange() {
+            const currentState = document.visibilityState;
+            const hidden = (currentState === 'hidden');
+            focusStateSpan.innerText = hidden ? 'hidden (overlay/background)' : 'visible';
+            
+            if (hidden && lastVisibilityState !== 'hidden') {
+                // page becomes hidden -> typical overlay (chat head, split, another app)
+                incrementViolation('Page visibility lost → overlay or app switch active', 
+                    'Overlay window (chat bubble, notification shade, or app switcher) detected');
+                addInfoLog(`❗ Visibility: ${currentState}. Screen is partially/completely covered.`, '🔒');
+                // additional log for proctoring context
+            } else if (!hidden && lastVisibilityState === 'hidden') {
+                // returning to visible after overlay removal
+                addInfoLog(`✅ Page visible again — overlay dismissed or closed. Monitoring resumed.`, '🔄');
+                // no violation added, but state restored.
+            }
+            lastVisibilityState = currentState;
+            
+            // extra LED behavior
+            if (hidden) {
+                liveLed.style.opacity = '0.5';
+            } else {
+                liveLed.style.opacity = '1';
+            }
+        }
+        
+        // window blur detection: when overlay takes focus (keyboard, assistant, etc)
+        function handleWindowBlur() {
+            if (lastFocused === true) {
+                // Overlay that partially covers screen might cause blur, but not always hidden? Still suspicious.
+                // Proctoring apps treat blur as potential overlay or voice assistant activation.
+                incrementViolation('Window blur / focus lost', 'Possible system overlay (AI assistant, notification panel, or third-party bubble) captured focus');
+                addInfoLog(`⚠️ Window blur event — focus moved outside test context.`, '🎯');
+                lastFocused = false;
+                focusStateSpan.innerHTML += ' [blurred]';
+            }
+        }
+        
+        function handleWindowFocus() {
+            if (lastFocused === false) {
+                addInfoLog(`🟢 Window focus regained — user returned to test interface.`, '🔓');
+                lastFocused = true;
+                focusStateSpan.innerText = document.visibilityState === 'hidden' ? 'hidden (overlay)' : 'visible';
+            }
+        }
+        
+        // resize detection: split screen or overlay popup that changes viewport size
+        let lastWidth = window.innerWidth;
+        let lastHeight = window.innerHeight;
+        function handleResize() {
+            const newWidth = window.innerWidth;
+            const newHeight = window.innerHeight;
+            const widthDiff = Math.abs(newWidth - lastWidth);
+            const heightDiff = Math.abs(newHeight - lastHeight);
+            if (widthDiff > 50 || heightDiff > 50) {
+                // significant resize likely due to split-screen, keyboard overlay or popup
+                incrementViolation('Window resize / split-screen detected', `Viewport changed from ${lastWidth}x${lastHeight} to ${newWidth}x${newHeight}`);
+                addInfoLog(`📐 Resize: possible split-screen or floating keyboard overlay triggered layout change.`, '📏');
+                lastWidth = newWidth;
+                lastHeight = newHeight;
+            } else {
+                lastWidth = newWidth;
+                lastHeight = newHeight;
+            }
+        }
+        
+        // Fullscreen change detection: some overlays force exit fullscreen
+        let wasFullscreen = false;
+        function handleFullscreenChange() {
+            const isFullscreen = !!document.fullscreenElement;
+            if (!isFullscreen && wasFullscreen) {
+                // exited fullscreen - could be caused by overlay
+                incrementViolation('Fullscreen exit — overlay intervention suspected', 'App left fullscreen mode while monitoring');
+                addInfoLog(`🖥️ Fullscreen exit registered: an overlay or system UI may have triggered this.`, '⚠️');
+            }
+            wasFullscreen = isFullscreen;
+        }
+        
+        // manual simulation for testing users without actual overlay: same violation logic
+        function simulateOverlay() {
+            incrementViolation('Manual overlay simulation triggered', 'User-initiated test event (mimics chat head / screen overlay detection)');
+            addInfoLog(`🧪 Simulated overlay injection: proctoring hooks would record this as positive violation.`, '🔎');
+            // also temporary visual
+            const ledTemp = liveLed;
+            if (ledTemp) {
+                ledTemp.classList.add('warning');
+                ledTemp.classList.add('blink');
+                setTimeout(() => {
+                    if (violationCount === 0) ledTemp.classList.remove('warning');
+                    ledTemp.classList.remove('blink');
+                }, 600);
+            }
+        }
+        
+        // copy logs to clipboard for debugging/report
+        function copyLogsToClipboard() {
+            const logEntries = Array.from(logContainer.querySelectorAll('.log-entry'));
+            let reportText = `📋 OVERLAY SENTINEL REPORT\nTimestamp: ${new Date().toLocaleString()}\nTotal Violations: ${violationCount}\n----------------------------\n`;
+            logEntries.forEach(entry => {
+                const timeElem = entry.querySelector('.log-time')?.innerText || '??';
+                const textElem = entry.querySelector('.log-text')?.innerText || '';
+                const iconElem = entry.querySelector('.log-icon')?.innerText || '';
+                reportText += `[${timeElem}] ${iconElem} ${textElem}\n`;
+            });
+            reportText += `\n--- End of report ---\nDetection engine: visibility + blur + resize + fullscreen API`;
+            navigator.clipboard.writeText(reportText).then(() => {
+                addInfoLog(`📋 Report copied to clipboard (${violationCount} violations recorded)`, '📋');
+            }).catch(() => {
+                addInfoLog(`❌ Could not copy report automatically, but logs are visible`, '❌');
+            });
+        }
+        
+        function clearLogs() {
+            // preserve first two info lines but remove dynamic logs
+            while (logContainer.children.length > 2) {
+                logContainer.removeChild(logContainer.lastChild);
+            }
+            // but we want to add a clear marker
+            addInfoLog(`Logs manually cleared — monitoring continues without resetting violation counter.`, '🧹');
+            // violation count resets? we give option: NOT resetting counter (proctoring keeps total flags). but user can reset via clearViolations optionally
+            // But I'll provide separate hidden reset by long press? Better add button to reset violation count: but UX: maybe add from buttons
+        }
+        
+        function resetViolationCounter() {
+            violationCount = 0;
+            updateViolationCounterUI();
+            addInfoLog(`🔄 Violation counter reset to 0 — all overlay flags cleared locally.`, '🧽');
+            // also set led to normal if needed
+            if (violationCount === 0) liveLed.classList.remove('warning');
+            liveLed.classList.remove('blink');
+        }
+        
+        // additional heartbeat: periodic check for any extra hijack simulation (double-check visibility consistency)
+        let heartbeatInterval = null;
+        function startHeartbeat() {
+            if (heartbeatInterval) clearInterval(heartbeatInterval);
+            heartbeatInterval = setInterval(() => {
+                // extra reliability: check visibility again to avoid missed transitions (edge cases)
+                const currentVis = document.visibilityState;
+                if (currentVis !== lastVisibilityState) {
+                    // forced sync
+                    handleVisibilityChange();
+                }
+                // also monitor if there is active overlay but no event? we use passive detection.
+                // add small badge for status
+                const ledDiv = liveLed;
+                if (ledDiv && document.visibilityState === 'hidden') {
+                    ledDiv.style.opacity = '0.4';
+                } else if (ledDiv) {
+                    ledDiv.style.opacity = '1';
+                }
+            }, 800);
+        }
+        
+        // also intercept pagehide / beforeunload just to avoid cheating but not needed overlay specific
+        function initDetection() {
+            // initial states
+            lastVisibilityState = document.visibilityState;
+            lastFocused = document.hasFocus();
+            focusStateSpan.innerText = lastVisibilityState === 'hidden' ? 'hidden (overlay?)' : 'visible';
+            if (lastVisibilityState === 'hidden') {
+                addInfoLog(`⚠️ Page started in hidden state — possible overlay already present.`, '🔮');
+            } else {
+                addInfoLog(`✅ Monitoring active: visibility API listening for any overlay (chat heads, split screen, system overlays).`, '🛡️');
+            }
+            // Event listeners - core proctoring simulation
+            document.addEventListener('visibilitychange', handleVisibilityChange);
+            window.addEventListener('blur', handleWindowBlur);
+            window.addEventListener('focus', handleWindowFocus);
+            window.addEventListener('resize', handleResize);
+            document.addEventListener('fullscreenchange', handleFullscreenChange);
+            window.addEventListener('pagehide', () => {
+                addInfoLog(`📴 Page hide triggered — potential task switch / overlay that cloaks the window.`, '📴');
+                if (violationCount >= 0) incrementViolation('pagehide event (complete window cover / app switch)', 'Browser sent pagehide');
+            });
+            startHeartbeat();
+            
+            // Optional: detect pointerleave? not needed.
+            addInfoLog(`🔧 Advanced detection active — try any system overlay: Messenger bubble, Google Assistant overlay, split screen, notification panel. Each hidden state registers as violation.`, '⚙️');
+        }
+        
+        // register UI buttons
+        document.getElementById('simulateOverlayBtn').addEventListener('click', simulateOverlay);
+        document.getElementById('copyLogsBtn').addEventListener('click', copyLogsToClipboard);
+        document.getElementById('clearLogsBtn').addEventListener('click', clearLogs);
+        
+        // extra reset violation button maybe hidden but useful? let's embed a small hidden reset? Add as optional long press, but better create extra small but legitimate UI:
+        const resetViolBtn = document.createElement('button');
+        resetViolBtn.innerText = '↺ Reset Counter';
+        resetViolBtn.className = 'btn';
+        resetViolBtn.style.background = '#1b1f2e';
+        resetViolBtn.style.borderColor = '#4a5378';
+        const btnGroup = document.querySelector('.btn-group');
+        if (btnGroup) {
+            resetViolBtn.addEventListener('click', resetViolationCounter);
+            btnGroup.appendChild(resetViolBtn);
+        }
+        
+        // final initialization
+        initDetection();
+        
+        // set initial LED state
+        if (liveLed) {
+            liveLed.style.backgroundColor = '#2aff9e';
+            liveLed.classList.remove('warning');
+        }
+        updateViolationCounterUI();
+    })();
+</script>
+</body>
+</html>
