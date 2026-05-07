@@ -3,631 +3,516 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Overlay Sentinel Pro | Advanced Screen Monitor</title>
+    <title>Lockdown Proctor | Fullscreen Exam Simulation</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            user-select: none; /* prevent accidental text selection during test */
+            user-select: none;
         }
 
         body {
-            background: linear-gradient(145deg, #0a0f1e 0%, #0c1222 100%);
+            background: radial-gradient(circle at 20% 30%, #0a0f1e, #03060f);
+            font-family: 'Segoe UI', 'Inter', system-ui, -apple-system, 'Roboto', sans-serif;
             min-height: 100vh;
             display: flex;
-            justify-content: center;
             align-items: center;
-            font-family: 'Segoe UI', 'Inter', system-ui, -apple-system, 'Roboto', sans-serif;
+            justify-content: center;
             padding: 1rem;
+            transition: background 0.2s;
         }
 
-        /* Main container */
-        .test-container {
-            max-width: 650px;
+        /* main exam panel */
+        .exam-panel {
+            max-width: 800px;
             width: 100%;
-            background: rgba(18, 25, 45, 0.75);
-            backdrop-filter: blur(2px);
-            border-radius: 2.5rem;
-            padding: 1.5rem;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(72, 187, 255, 0.2);
-            transition: all 0.2s ease;
+            background: rgba(10, 18, 30, 0.9);
+            backdrop-filter: blur(8px);
+            border-radius: 2rem;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            box-shadow: 0 25px 40px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.05);
+            padding: 1.8rem;
+            transition: all 0.2s;
         }
 
-        /* header zone */
-        .header {
-            text-align: center;
-            margin-bottom: 1.8rem;
-        }
-
-        .badge {
-            display: inline-block;
-            background: #1e2a4a;
-            padding: 0.3rem 1rem;
-            border-radius: 40px;
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            background: #010615;
+            border-radius: 2rem;
+            padding: 0.6rem 1.2rem;
+            margin-bottom: 1.5rem;
             font-size: 0.75rem;
             font-weight: 600;
-            letter-spacing: 1px;
-            color: #7aa9ff;
-            text-transform: uppercase;
-            margin-bottom: 0.8rem;
-            border: 1px solid #2d3b60;
-        }
-
-        h1 {
-            font-size: 1.9rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, #ffffff, #90c6ff);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            letter-spacing: -0.3px;
-        }
-
-        .sub {
-            color: #8e9fc3;
-            margin-top: 0.5rem;
-            font-size: 0.9rem;
-            font-weight: 500;
-        }
-
-        /* live stream indicator */
-        .live-monitor {
-            background: #030617;
-            border-radius: 2rem;
-            padding: 1.2rem;
-            margin-bottom: 1.8rem;
-            border: 1px solid #2a3757;
-            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3);
-        }
-
-        .status-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            margin-bottom: 1rem;
+            border: 1px solid #1f3a5f;
             flex-wrap: wrap;
-            gap: 0.5rem;
+            gap: 8px;
         }
 
-        .status-led {
+        .status-item {
             display: flex;
             align-items: center;
             gap: 8px;
-            background: #0e1428;
-            padding: 0.3rem 1rem;
-            border-radius: 60px;
+            background: #0b1022;
+            padding: 0.2rem 0.8rem;
+            border-radius: 40px;
         }
 
-        .led {
+        .led-red {
             width: 12px;
             height: 12px;
+            background: #2aff9e;
             border-radius: 50%;
-            background-color: #2aff9e;
             box-shadow: 0 0 6px #2aff9e;
-            transition: all 0.1s ease;
+            transition: all 0.1s;
         }
-
-        .led.warning {
-            background-color: #ff4d4d;
-            box-shadow: 0 0 12px #ff4d4d;
+        .led-red.warning {
+            background: #ff3a3a;
+            box-shadow: 0 0 12px #ff3a3a;
         }
-
-        .led.blink {
-            animation: pulse-red 0.6s ease-out;
+        .badge-icon {
+            font-size: 1rem;
         }
-
-        @keyframes pulse-red {
-            0% { box-shadow: 0 0 0 0 rgba(255, 77, 77, 0.7); transform: scale(0.9);}
-            100% { box-shadow: 0 0 0 12px rgba(255, 77, 77, 0); transform: scale(1);}
+        h2 {
+            color: #c6e0ff;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
         }
-
-        .event-log-area {
-            background: #01020b;
+        .question {
+            background: #07112a;
+            padding: 1.8rem;
             border-radius: 1.5rem;
+            margin: 1rem 0;
+            border-left: 6px solid #2d7aff;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.3);
+        }
+        .question p {
+            color: #eef5ff;
+            font-size: 1.2rem;
+            line-height: 1.4;
+        }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin: 1.5rem 0;
+        }
+        .opt {
+            background: #0c1632;
             padding: 1rem;
-            min-height: 280px;
-            max-height: 320px;
-            overflow-y: auto;
-            font-family: 'JetBrains Mono', 'Fira Code', monospace;
-            font-size: 0.8rem;
-            margin-top: 0.8rem;
-            border: 1px solid #243153;
-        }
-
-        .log-entry {
-            padding: 0.6rem 0.8rem;
-            border-bottom: 1px solid #1a2340;
-            display: flex;
-            gap: 12px;
-            font-size: 0.8rem;
-            align-items: flex-start;
-            transition: background 0.1s;
-        }
-
-        .log-time {
-            color: #5f7bbf;
+            border-radius: 1.2rem;
+            border: 1px solid #2a3c66;
+            color: #bdd4ff;
             font-weight: 500;
-            min-width: 70px;
+            transition: 0.1s;
         }
-
-        .log-icon {
-            font-size: 1.1rem;
-            min-width: 28px;
+        button {
+            background: #1f3a7a;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 3rem;
+            font-weight: bold;
+            color: white;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            cursor: pointer;
+            transition: 0.1s linear;
         }
-
-        .log-text {
-            color: #cbd5ff;
-            word-break: break-word;
-            flex: 1;
+        button:active {
+            transform: scale(0.97);
         }
-
-        .log-text strong {
-            color: #ffbc6e;
-            font-weight: 600;
+        .violation-log {
+            background: #01050f;
+            border-radius: 1.2rem;
+            padding: 1rem;
+            margin-top: 1.5rem;
+            max-height: 220px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 0.75rem;
         }
-
-        .violation {
-            background: rgba(255, 60, 60, 0.1);
-            border-left: 3px solid #ff4d4d;
-        }
-
-        .info-entry {
-            background: rgba(60, 130, 255, 0.05);
-            border-left: 3px solid #3a86ff;
-        }
-
-        .btn-group {
+        .log-line {
+            padding: 0.5rem;
+            border-bottom: 1px solid #19233f;
+            color: #9bb4e6;
             display: flex;
             gap: 12px;
-            margin-top: 1.8rem;
-            flex-wrap: wrap;
-            justify-content: center;
         }
-
-        .btn {
-            background: #111a2e;
-            border: 1px solid #2d4070;
-            padding: 0.7rem 1.5rem;
-            border-radius: 3rem;
-            font-weight: 600;
-            font-size: 0.85rem;
-            color: #e0ecff;
-            cursor: pointer;
-            transition: 0.2s;
-            backdrop-filter: blur(4px);
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
+        .violation-line {
+            background: rgba(255, 70, 70, 0.15);
+            border-left: 3px solid #ff6a6a;
         }
-
-        .btn-primary {
-            background: #1f3a7a;
-            border-color: #5480ff;
-            color: white;
-            box-shadow: 0 2px 8px rgba(0, 80, 255, 0.2);
-        }
-
-        .btn-primary:active {
-            transform: scale(0.97);
-            background: #0f2a62;
-        }
-
-        .btn-danger {
-            border-color: #b33030;
-            color: #ffaeae;
-        }
-
-        .btn-danger:active {
-            background: #3a1a1a;
-        }
-
-        .counter-panel {
+        .fullscreen-warning {
+            background: #ff880033;
+            border: 1px solid #ffaa55;
+            border-radius: 2rem;
+            padding: 0.6rem 1rem;
+            text-align: center;
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+            color: #ffcf9a;
             display: flex;
             justify-content: space-between;
-            margin-top: 1.2rem;
-            background: #060b19;
-            padding: 0.8rem 1rem;
-            border-radius: 2rem;
-            font-size: 0.8rem;
-            font-weight: 600;
+            align-items: center;
+            flex-wrap: wrap;
         }
-
-        .viol-count {
-            color: #ff8888;
-        }
-
-        .footer-note {
-            text-align: center;
-            margin-top: 1.5rem;
+        .btn-warning {
+            background: #7a3b1f;
+            padding: 0.3rem 1rem;
             font-size: 0.7rem;
-            color: #5b6d97;
         }
-
-        ::-webkit-scrollbar {
-            width: 5px;
+        footer {
+            font-size: 0.65rem;
+            text-align: center;
+            margin-top: 1.2rem;
+            color: #5e77a5;
         }
-
-        ::-webkit-scrollbar-track {
-            background: #060b19;
-            border-radius: 10px;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #2a4370;
-            border-radius: 10px;
-        }
-
-        @keyframes subtlePulse {
-            0% { opacity: 0.9; }
-            100% { opacity: 1; }
+        button.danger {
+            background: #631d1d;
+            border: 1px solid #ff7b7b;
         }
     </style>
 </head>
 <body>
-<div class="test-container" id="appRoot">
-    <div class="header">
-        <div class="badge">🔍 PROCTOR SIMULATOR • OVERLAY DETECTION ENGINE</div>
-        <h1>Overlay Sentinel</h1>
-        <div class="sub">Real-time screen overlay & visibility detection — test how proctored apps catch overlays</div>
+
+<div class="exam-panel" id="examRoot">
+    <div class="status-bar">
+        <div class="status-item"><span class="badge-icon">🔒</span> LOCKDOWN MODE</div>
+        <div class="status-item"><span class="led-red" id="fullscreenLed"></span> <span id="fsStatusText">Fullscreen: OFF</span></div>
+        <div class="status-item"><span class="badge-icon">👁️</span> <span id="visibilityStatus">Visible</span></div>
+        <div class="status-item"><span id="violationCounterBadge">🚨 0</span></div>
     </div>
 
-    <div class="live-monitor">
-        <div class="status-header">
-            <div class="status-led">
-                <div class="led" id="liveLed"></div>
-                <span style="font-weight: 500;">🛡️ MONITORING ACTIVE</span>
-            </div>
-            <div class="status-led" style="background: #0b0f1c;">
-                <span>📱 focus: </span>
-                <span id="focusState" style="font-weight: bold; color:#b9d0ff;">visible</span>
-            </div>
+    <div class="fullscreen-warning" id="fsWarningBanner" style="display: none;">
+        ⚠️ FULLSCREEN REQUIRED! Exam will lock if you exit.
+        <button id="reForceFullscreenBtn" class="btn-warning">🔁 Re-enter Fullscreen</button>
+    </div>
+
+    <div class="question">
+        <h2>📘 Sample Exam Question</h2>
+        <p>Which method is primarily used by proctoring apps to detect screen overlays or app switching?</p>
+        <div class="options">
+            <div class="opt">A) Microphone noise analysis</div>
+            <div class="opt">B) Page Visibility API + Window Blur events</div>
+            <div class="opt">C) GPS location tracking</div>
+            <div class="opt">D) Battery level monitoring</div>
         </div>
-
-        <div class="event-log-area" id="logArea">
-            <div class="log-entry info-entry">
-                <span class="log-time">system</span>
-                <span class="log-icon">🟢</span>
-                <span class="log-text">Overlay detection engine initialized. Try any overlay: Messenger chat heads, floating keyboard, split-screen, or pull down notification shade (overlay mode). Every visibility change will be logged.</span>
-            </div>
-            <div class="log-entry info-entry">
-                <span class="log-time">info</span>
-                <span class="log-icon">🧪</span>
-                <span class="log-text"><strong>Test guideline:</strong> Open a floating window / chat bubble / gesture overlay. This web app will instantly detect loss of full visibility & flag as suspicious overlay event.</span>
-            </div>
-        </div>
-
-        <div class="counter-panel">
-            <span>🚨 Overlay violations detected:</span>
-            <span class="viol-count" id="violationCounter">0</span>
-        </div>
+        <button id="mockAnswerBtn">✅ Submit Mock Answer (demo)</button>
     </div>
 
-    <div class="btn-group">
-        <button class="btn" id="simulateOverlayBtn">🔲 SIMULATE OVERLAY EVENT</button>
-        <button class="btn btn-primary" id="copyLogsBtn">📋 Copy Report</button>
-        <button class="btn btn-danger" id="clearLogsBtn">🗑️ Clear Logs</button>
+    <div class="violation-log" id="logContainer">
+        <div class="log-line">🔷 Proctor engine ready. Force fullscreen to begin lockdown simulation.</div>
     </div>
-    <div class="footer-note">
-        💡 This app simulates proctoring detection logic: uses Page Visibility API, blur/focus, resize & fullscreen exit events. Overlay detection flags appear when page becomes hidden (chat heads, floating windows, split screen covering).
-    </div>
+    <footer>
+        🛡️ REAL PROCTORING SIMULATION | Fullscreen enforced + overlay detection. Exiting fullscreen or using overlays triggers violations.
+    </footer>
 </div>
 
 <script>
-    // ========================  OVERLAY & VISIBILITY DETECTOR  ========================
-    // This replicates advanced screen overlay detection used by proctoring apps.
-    // Detects:
-    // - page visibility change (hidden/visible): overlay or app switch
-    // - window blur (when overlay takes focus)
-    // - resize events that might indicate split-screen or popup
-    // - fullscreen exit attempt (some overlays force exit)
-    // - additional continuous verification + timestamps
-    
     (function() {
-        // DOM elements
-        const logContainer = document.getElementById('logArea');
-        const violationSpan = document.getElementById('violationCounter');
-        const focusStateSpan = document.getElementById('focusState');
-        const liveLed = document.getElementById('liveLed');
-        
+        // ---------- DOM elements ----------
+        const fsLed = document.getElementById('fullscreenLed');
+        const fsStatusSpan = document.getElementById('fsStatusText');
+        const visibilitySpan = document.getElementById('visibilityStatus');
+        const violationCounterSpan = document.getElementById('violationCounterBadge');
+        const logContainer = document.getElementById('logContainer');
+        const fsWarningBanner = document.getElementById('fsWarningBanner');
+        const reForceBtn = document.getElementById('reForceFullscreenBtn');
+        const mockAnswerBtn = document.getElementById('mockAnswerBtn');
+
+        // State variables
         let violationCount = 0;
-        let initialTimestamp = Date.now();
-        
-        // to avoid duplicate consecutive same-type spam, but we still track all major changes
+        let isFullscreenActive = false;
         let lastVisibilityState = document.visibilityState;
         let lastFocused = true;
-        
-        // Helper: format HH:MM:SS.ms
-        function getFormattedTime() {
-            const now = new Date();
-            const hours = now.getHours().toString().padStart(2,'0');
-            const minutes = now.getMinutes().toString().padStart(2,'0');
-            const seconds = now.getSeconds().toString().padStart(2,'0');
-            const ms = now.getMilliseconds().toString().padStart(3,'0');
-            return `${hours}:${minutes}:${seconds}.${ms}`;
+        let fullscreenExitAttempts = 0;
+        let fullscreenRetryInterval = null;
+
+        // Helper: format timestamp
+        function getTime() {
+            const d = new Date();
+            return `${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}:${d.getSeconds().toString().padStart(2,'0')}.${d.getMilliseconds().toString().padStart(3,'0')}`;
         }
-        
-        // Add log entry: type can be 'violation' (overlay suspicious) or 'info' (state info)
-        function addLogEntry(message, eventType = 'info', extraIcon = null) {
+
+        // Add log entry (type: violation, info, system)
+        function addLog(message, type = 'info') {
             const logDiv = document.createElement('div');
-            logDiv.className = 'log-entry';
-            if (eventType === 'violation') {
-                logDiv.classList.add('violation');
-            } else if (eventType === 'info') {
-                logDiv.classList.add('info-entry');
-            }
-            
-            const timeSpan = document.createElement('span');
-            timeSpan.className = 'log-time';
-            timeSpan.innerText = getFormattedTime();
-            
-            const iconSpan = document.createElement('span');
-            iconSpan.className = 'log-icon';
-            if (extraIcon) {
-                iconSpan.innerText = extraIcon;
+            logDiv.className = 'log-line';
+            if (type === 'violation') {
+                logDiv.classList.add('violation-line');
+                logDiv.innerHTML = `<span style="min-width: 70px;">${getTime()}</span> <span>⚠️ VIOLATION: ${message}</span>`;
+            } else if (type === 'warning') {
+                logDiv.innerHTML = `<span style="min-width: 70px;">${getTime()}</span> <span>⚠️ ${message}</span>`;
             } else {
-                iconSpan.innerText = eventType === 'violation' ? '⚠️' : 'ℹ️';
+                logDiv.innerHTML = `<span style="min-width: 70px;">${getTime()}</span> <span>ℹ️ ${message}</span>`;
             }
-            
-            const textSpan = document.createElement('span');
-            textSpan.className = 'log-text';
-            textSpan.innerHTML = message;
-            
-            logDiv.appendChild(timeSpan);
-            logDiv.appendChild(iconSpan);
-            logDiv.appendChild(textSpan);
-            
             logContainer.appendChild(logDiv);
-            // auto-scroll to bottom
             logContainer.scrollTop = logContainer.scrollHeight;
-            
-            // limit logs to 200 entries to avoid performance issues
-            while (logContainer.children.length > 200) {
-                logContainer.removeChild(logContainer.firstChild);
-            }
+            // keep last 150 logs
+            while (logContainer.children.length > 150) logContainer.removeChild(logContainer.firstChild);
         }
-        
-        function updateViolationCounterUI() {
-            violationSpan.innerText = violationCount;
-            // also update led to warning state briefly if violations >0 (visual feedback)
-            if (violationCount > 0 && liveLed) {
-                liveLed.classList.add('warning');
-                liveLed.classList.add('blink');
-                setTimeout(() => {
-                    if (violationCount === 0) liveLed.classList.remove('warning');
-                    liveLed.classList.remove('blink');
-                }, 500);
-            } else if (violationCount === 0) {
-                liveLed.classList.remove('warning');
+
+        function updateUI() {
+            // update violation badge
+            violationCounterSpan.innerText = `🚨 ${violationCount}`;
+            // update led and text accordingly
+            if (isFullscreenActive) {
+                fsLed.classList.remove('warning');
+                fsLed.style.background = '#2aff9e';
+                fsStatusSpan.innerText = 'Fullscreen: ACTIVE';
+                if (fsWarningBanner.style.display !== 'none') fsWarningBanner.style.display = 'none';
+            } else {
+                fsLed.classList.add('warning');
+                fsLed.style.background = '#ff4d4d';
+                fsStatusSpan.innerText = 'Fullscreen: LOST ⚠️';
+                fsWarningBanner.style.display = 'flex';
             }
+            // visibility LED effect (just text)
+            visibilitySpan.innerText = (document.visibilityState === 'visible') ? 'Visible' : 'HIDDEN (OVERLAY)';
         }
-        
-        function incrementViolation(reason, details = '') {
+
+        function addViolation(reason, details = '') {
             violationCount++;
-            updateViolationCounterUI();
-            let message = `<strong>⚠️ OVERLAY DETECTED</strong> — ${reason}`;
-            if (details) message += ` (${details})`;
-            addLogEntry(message, 'violation', '🚨');
-            // extra haptic / visual LED pulse
-            if (liveLed) {
-                liveLed.classList.add('blink');
-                setTimeout(() => liveLed.classList.remove('blink'), 400);
+            updateUI();
+            const fullMsg = reason + (details ? ` | ${details}` : '');
+            addLog(fullMsg, 'violation');
+            // extra deterrent: if fullscreen lost, also show aggressive warning
+            if (!isFullscreenActive) {
+                addLog('Fullscreen not active! Overlay detection critical.', 'warning');
+            }
+            // attempt to re-force fullscreen if lost (aggressive)
+            if (!isFullscreenActive && document.fullscreenEnabled) {
+                attemptForceFullscreen();
             }
         }
-        
-        function addInfoLog(message, icon = '📌') {
-            addLogEntry(message, 'info', icon);
+
+        // ----- Fullscreen enforcement (aggressive with retries) -----
+        async function attemptForceFullscreen() {
+            if (!document.fullscreenEnabled) {
+                addLog('Fullscreen API not supported by browser', 'warning');
+                return false;
+            }
+            try {
+                // if already in fullscreen, return true
+                if (document.fullscreenElement) {
+                    if (!isFullscreenActive) {
+                        isFullscreenActive = true;
+                        updateUI();
+                        addLog('Fullscreen mode restored / active.', 'info');
+                    }
+                    return true;
+                }
+                // request fullscreen on document.documentElement
+                await document.documentElement.requestFullscreen({ navigationUI: 'hide' });
+                isFullscreenActive = true;
+                updateUI();
+                addLog('Fullscreen enforced — lockdown active. Exiting fullscreen will be flagged.', 'info');
+                return true;
+            } catch (err) {
+                addLog(`Fullscreen request failed: ${err.message}`, 'warning');
+                isFullscreenActive = false;
+                updateUI();
+                return false;
+            }
         }
-        
-        // core: handle visibility change (most reliable overlay detection)
-        function handleVisibilityChange() {
-            const currentState = document.visibilityState;
-            const hidden = (currentState === 'hidden');
-            focusStateSpan.innerText = hidden ? 'hidden (overlay/background)' : 'visible';
-            
+
+        // monitor fullscreen change event (user exit or system)
+        function onFullscreenChange() {
+            const fsElement = document.fullscreenElement;
+            const nowActive = (fsElement !== null);
+            if (nowActive !== isFullscreenActive) {
+                if (!nowActive && isFullscreenActive) {
+                    // user just exited fullscreen manually -> violation
+                    fullscreenExitAttempts++;
+                    addViolation('EXITED FULLSCREEN MODE', 'User attempted to leave secure exam environment. Screen not in fullscreen.');
+                    addLog('Aggressive re-lock: attempting to re-engage fullscreen...', 'warning');
+                    // immediate re-engagement attempt
+                    attemptForceFullscreen();
+                } else if (nowActive && !isFullscreenActive) {
+                    addLog('Fullscreen re-acquired successfully.', 'info');
+                }
+                isFullscreenActive = nowActive;
+                updateUI();
+            }
+            // extra safety: if not active, try every 1 second until active (but avoid spamming)
+            if (!isFullscreenActive) {
+                if (fullscreenRetryInterval === null) {
+                    fullscreenRetryInterval = setInterval(() => {
+                        if (!document.fullscreenElement && isFullscreenActive === false) {
+                            attemptForceFullscreen().catch(e=>{});
+                        } else if (document.fullscreenElement) {
+                            isFullscreenActive = true;
+                            updateUI();
+                            if (fullscreenRetryInterval) clearInterval(fullscreenRetryInterval);
+                            fullscreenRetryInterval = null;
+                        } else {
+                            // if still not active, keep trying but limit logs
+                        }
+                    }, 2000);
+                }
+            } else {
+                if (fullscreenRetryInterval) {
+                    clearInterval(fullscreenRetryInterval);
+                    fullscreenRetryInterval = null;
+                }
+            }
+        }
+
+        // ----- Overlay detection: visibility + blur + resize + orientation + keyboard overlay detection -----
+        function onVisibilityChange() {
+            const hidden = (document.visibilityState === 'hidden');
             if (hidden && lastVisibilityState !== 'hidden') {
-                // page becomes hidden -> typical overlay (chat head, split, another app)
-                incrementViolation('Page visibility lost → overlay or app switch active', 
-                    'Overlay window (chat bubble, notification shade, or app switcher) detected');
-                addInfoLog(`❗ Visibility: ${currentState}. Screen is partially/completely covered.`, '🔒');
-                // additional log for proctoring context
+                // overlay detected: notification shade, split screen, chat heads, app switch
+                addViolation('SCREEN OVERLAY / APP SWITCH DETECTED', 'Page visibility hidden – overlay, split screen, or task switch.');
+                // extra fullscreen check if still active
+                if (!document.fullscreenElement && isFullscreenActive) {
+                    addViolation('Fullscreen lost due to overlay', 'Overlay forced exit from fullscreen');
+                    isFullscreenActive = false;
+                    updateUI();
+                    attemptForceFullscreen();
+                }
             } else if (!hidden && lastVisibilityState === 'hidden') {
-                // returning to visible after overlay removal
-                addInfoLog(`✅ Page visible again — overlay dismissed or closed. Monitoring resumed.`, '🔄');
-                // no violation added, but state restored.
+                addLog('Returned to exam view — overlay dismissed.', 'info');
+                // ensure fullscreen is still active after returning
+                if (!document.fullscreenElement) attemptForceFullscreen();
             }
-            lastVisibilityState = currentState;
-            
-            // extra LED behavior
-            if (hidden) {
-                liveLed.style.opacity = '0.5';
-            } else {
-                liveLed.style.opacity = '1';
-            }
-        }
-        
-        // window blur detection: when overlay takes focus (keyboard, assistant, etc)
-        function handleWindowBlur() {
-            if (lastFocused === true) {
-                // Overlay that partially covers screen might cause blur, but not always hidden? Still suspicious.
-                // Proctoring apps treat blur as potential overlay or voice assistant activation.
-                incrementViolation('Window blur / focus lost', 'Possible system overlay (AI assistant, notification panel, or third-party bubble) captured focus');
-                addInfoLog(`⚠️ Window blur event — focus moved outside test context.`, '🎯');
-                lastFocused = false;
-                focusStateSpan.innerHTML += ' [blurred]';
-            }
-        }
-        
-        function handleWindowFocus() {
-            if (lastFocused === false) {
-                addInfoLog(`🟢 Window focus regained — user returned to test interface.`, '🔓');
-                lastFocused = true;
-                focusStateSpan.innerText = document.visibilityState === 'hidden' ? 'hidden (overlay)' : 'visible';
-            }
-        }
-        
-        // resize detection: split screen or overlay popup that changes viewport size
-        let lastWidth = window.innerWidth;
-        let lastHeight = window.innerHeight;
-        function handleResize() {
-            const newWidth = window.innerWidth;
-            const newHeight = window.innerHeight;
-            const widthDiff = Math.abs(newWidth - lastWidth);
-            const heightDiff = Math.abs(newHeight - lastHeight);
-            if (widthDiff > 50 || heightDiff > 50) {
-                // significant resize likely due to split-screen, keyboard overlay or popup
-                incrementViolation('Window resize / split-screen detected', `Viewport changed from ${lastWidth}x${lastHeight} to ${newWidth}x${newHeight}`);
-                addInfoLog(`📐 Resize: possible split-screen or floating keyboard overlay triggered layout change.`, '📏');
-                lastWidth = newWidth;
-                lastHeight = newHeight;
-            } else {
-                lastWidth = newWidth;
-                lastHeight = newHeight;
-            }
-        }
-        
-        // Fullscreen change detection: some overlays force exit fullscreen
-        let wasFullscreen = false;
-        function handleFullscreenChange() {
-            const isFullscreen = !!document.fullscreenElement;
-            if (!isFullscreen && wasFullscreen) {
-                // exited fullscreen - could be caused by overlay
-                incrementViolation('Fullscreen exit — overlay intervention suspected', 'App left fullscreen mode while monitoring');
-                addInfoLog(`🖥️ Fullscreen exit registered: an overlay or system UI may have triggered this.`, '⚠️');
-            }
-            wasFullscreen = isFullscreen;
-        }
-        
-        // manual simulation for testing users without actual overlay: same violation logic
-        function simulateOverlay() {
-            incrementViolation('Manual overlay simulation triggered', 'User-initiated test event (mimics chat head / screen overlay detection)');
-            addInfoLog(`🧪 Simulated overlay injection: proctoring hooks would record this as positive violation.`, '🔎');
-            // also temporary visual
-            const ledTemp = liveLed;
-            if (ledTemp) {
-                ledTemp.classList.add('warning');
-                ledTemp.classList.add('blink');
-                setTimeout(() => {
-                    if (violationCount === 0) ledTemp.classList.remove('warning');
-                    ledTemp.classList.remove('blink');
-                }, 600);
-            }
-        }
-        
-        // copy logs to clipboard for debugging/report
-        function copyLogsToClipboard() {
-            const logEntries = Array.from(logContainer.querySelectorAll('.log-entry'));
-            let reportText = `📋 OVERLAY SENTINEL REPORT\nTimestamp: ${new Date().toLocaleString()}\nTotal Violations: ${violationCount}\n----------------------------\n`;
-            logEntries.forEach(entry => {
-                const timeElem = entry.querySelector('.log-time')?.innerText || '??';
-                const textElem = entry.querySelector('.log-text')?.innerText || '';
-                const iconElem = entry.querySelector('.log-icon')?.innerText || '';
-                reportText += `[${timeElem}] ${iconElem} ${textElem}\n`;
-            });
-            reportText += `\n--- End of report ---\nDetection engine: visibility + blur + resize + fullscreen API`;
-            navigator.clipboard.writeText(reportText).then(() => {
-                addInfoLog(`📋 Report copied to clipboard (${violationCount} violations recorded)`, '📋');
-            }).catch(() => {
-                addInfoLog(`❌ Could not copy report automatically, but logs are visible`, '❌');
-            });
-        }
-        
-        function clearLogs() {
-            // preserve first two info lines but remove dynamic logs
-            while (logContainer.children.length > 2) {
-                logContainer.removeChild(logContainer.lastChild);
-            }
-            // but we want to add a clear marker
-            addInfoLog(`Logs manually cleared — monitoring continues without resetting violation counter.`, '🧹');
-            // violation count resets? we give option: NOT resetting counter (proctoring keeps total flags). but user can reset via clearViolations optionally
-            // But I'll provide separate hidden reset by long press? Better add button to reset violation count: but UX: maybe add from buttons
-        }
-        
-        function resetViolationCounter() {
-            violationCount = 0;
-            updateViolationCounterUI();
-            addInfoLog(`🔄 Violation counter reset to 0 — all overlay flags cleared locally.`, '🧽');
-            // also set led to normal if needed
-            if (violationCount === 0) liveLed.classList.remove('warning');
-            liveLed.classList.remove('blink');
-        }
-        
-        // additional heartbeat: periodic check for any extra hijack simulation (double-check visibility consistency)
-        let heartbeatInterval = null;
-        function startHeartbeat() {
-            if (heartbeatInterval) clearInterval(heartbeatInterval);
-            heartbeatInterval = setInterval(() => {
-                // extra reliability: check visibility again to avoid missed transitions (edge cases)
-                const currentVis = document.visibilityState;
-                if (currentVis !== lastVisibilityState) {
-                    // forced sync
-                    handleVisibilityChange();
-                }
-                // also monitor if there is active overlay but no event? we use passive detection.
-                // add small badge for status
-                const ledDiv = liveLed;
-                if (ledDiv && document.visibilityState === 'hidden') {
-                    ledDiv.style.opacity = '0.4';
-                } else if (ledDiv) {
-                    ledDiv.style.opacity = '1';
-                }
-            }, 800);
-        }
-        
-        // also intercept pagehide / beforeunload just to avoid cheating but not needed overlay specific
-        function initDetection() {
-            // initial states
             lastVisibilityState = document.visibilityState;
-            lastFocused = document.hasFocus();
-            focusStateSpan.innerText = lastVisibilityState === 'hidden' ? 'hidden (overlay?)' : 'visible';
-            if (lastVisibilityState === 'hidden') {
-                addInfoLog(`⚠️ Page started in hidden state — possible overlay already present.`, '🔮');
-            } else {
-                addInfoLog(`✅ Monitoring active: visibility API listening for any overlay (chat heads, split screen, system overlays).`, '🛡️');
+            updateUI();
+        }
+
+        let lastWidth = window.innerWidth, lastHeight = window.innerHeight;
+        function onResize() {
+            const newW = window.innerWidth, newH = window.innerHeight;
+            const deltaW = Math.abs(newW - lastWidth);
+            const deltaH = Math.abs(newH - lastHeight);
+            // detect significant resize: can be split screen or keyboard overlay resize
+            if ((deltaW > 80 || deltaH > 80) && (deltaW > 0 || deltaH > 0)) {
+                addViolation('WINDOW RESIZE / SPLIT-SCREEN DETECTED', `Viewport changed ${lastWidth}x${lastHeight} → ${newW}x${newH}`);
+                // after resize, force fullscreen again if not active
+                if (!document.fullscreenElement) attemptForceFullscreen();
             }
-            // Event listeners - core proctoring simulation
-            document.addEventListener('visibilitychange', handleVisibilityChange);
-            window.addEventListener('blur', handleWindowBlur);
-            window.addEventListener('focus', handleWindowFocus);
-            window.addEventListener('resize', handleResize);
-            document.addEventListener('fullscreenchange', handleFullscreenChange);
-            window.addEventListener('pagehide', () => {
-                addInfoLog(`📴 Page hide triggered — potential task switch / overlay that cloaks the window.`, '📴');
-                if (violationCount >= 0) incrementViolation('pagehide event (complete window cover / app switch)', 'Browser sent pagehide');
-            });
-            startHeartbeat();
+            lastWidth = newW;
+            lastHeight = newH;
+        }
+
+        function onWindowBlur() {
+            if (lastFocused === true) {
+                // blur can be caused by system dialog, AI assistant, notification panel overlay
+                addViolation('WINDOW FOCUS LOST', 'System overlay, voice assistant, or notification panel gained focus.');
+                lastFocused = false;
+                // double-check fullscreen
+                if (!document.fullscreenElement) attemptForceFullscreen();
+            }
+        }
+
+        function onWindowFocus() {
+            if (lastFocused === false) {
+                addLog('Window focus regained — overlay likely dismissed.', 'info');
+                lastFocused = true;
+                // after focus, ensure fullscreen is active
+                if (!document.fullscreenElement) attemptForceFullscreen();
+            }
+        }
+
+        // Orientation change can also indicate split-screen or overlay
+        function onOrientationChange() {
+            addViolation('DEVICE ORIENTATION CHANGE', 'Possible split-screen or overlay triggered rotation.');
+            // attempt to restore fullscreen after orientation
+            setTimeout(() => {
+                if (!document.fullscreenElement) attemptForceFullscreen();
+            }, 100);
+        }
+
+        // Additional: detect when user tries to escape using back button or similar (pagehide)
+        function onPageHide() {
+            addViolation('PAGE HIDE / NAVIGATION ATTEMPT', 'User tried to navigate away or close tab.');
+        }
+
+        // Simulate answer for realism
+        function mockAnswer() {
+            if (!isFullscreenActive) {
+                addLog('⚠️ Cannot submit: fullscreen not active. Re-enter fullscreen to continue exam.', 'warning');
+                attemptForceFullscreen();
+                return;
+            }
+            addLog('Sample answer recorded (demo purpose, no actual cheating detected).', 'info');
+        }
+
+        // Manual fullscreen reforce button
+        async function manualReforce() {
+            addLog('Manual re-fullscreen requested by user.', 'info');
+            await attemptForceFullscreen();
+        }
+
+        // Edge case: user might tap "exit fullscreen" via browser UI; we already handle fullscreenchange.
+        // Also handle keydown to prevent Esc from exiting (partial prevention, but cannot fully block Esc in most browsers, but we detect and re-engage)
+        function onKeyDown(e) {
+            if (e.key === 'Escape' || e.key === 'Esc') {
+                // Esc key is often used to exit fullscreen; we detect this and flag violation instantly
+                addViolation('ESC KEY PRESSED', 'Attempt to exit fullscreen using escape key.');
+                // refullscreen soon after esc
+                setTimeout(() => {
+                    if (!document.fullscreenElement) attemptForceFullscreen();
+                }, 50);
+                // prevent default if possible (doesn't block fullscreen exit but we re-engage)
+                e.preventDefault();
+            }
+            // also F11 can toggle, but we monitor fullscreenchange
+        }
+
+        // Detect touch/mouse outside? but fullscreen should cover.
+
+        // ---- Initialization and aggressive lockdown ----
+        async function initProctor() {
+            addLog('🔐 Lockdown Proctor Engine started. Requesting fullscreen...', 'info');
+            // Bind all events
+            document.addEventListener('visibilitychange', onVisibilityChange);
+            window.addEventListener('resize', onResize);
+            window.addEventListener('blur', onWindowBlur);
+            window.addEventListener('focus', onWindowFocus);
+            window.addEventListener('pagehide', onPageHide);
+            document.addEventListener('fullscreenchange', onFullscreenChange);
+            window.addEventListener('orientationchange', onOrientationChange);
+            document.addEventListener('keydown', onKeyDown);
+            mockAnswerBtn.addEventListener('click', mockAnswer);
+            if (reForceBtn) reForceBtn.addEventListener('click', manualReforce);
             
-            // Optional: detect pointerleave? not needed.
-            addInfoLog(`🔧 Advanced detection active — try any system overlay: Messenger bubble, Google Assistant overlay, split screen, notification panel. Each hidden state registers as violation.`, '⚙️');
+            // initial fullscreen request with high priority
+            const fsGranted = await attemptForceFullscreen();
+            if (!fsGranted) {
+                addLog('⚠️ Fullscreen not allowed initially. User interaction may be needed. Tap anywhere to retry.', 'warning');
+                // add one-time tap to retry fullscreen
+                const retryOnTap = () => {
+                    attemptForceFullscreen();
+                    document.body.removeEventListener('click', retryOnTap);
+                };
+                document.body.addEventListener('click', retryOnTap);
+            } else {
+                addLog('✅ Secure lockdown active. Any overlay, split-screen, notification pull-down, or fullscreen exit will be recorded as violation.', 'info');
+            }
+            // periodic check (every 2s) to ensure fullscreen is still active (edge case handling)
+            setInterval(() => {
+                if (!document.fullscreenElement && isFullscreenActive === true) {
+                    addViolation('Fullscreen lost unexpectedly (periodic check)', 'Re-engaging lockdown');
+                    isFullscreenActive = false;
+                    updateUI();
+                    attemptForceFullscreen();
+                } else if (document.fullscreenElement && isFullscreenActive === false) {
+                    isFullscreenActive = true;
+                    updateUI();
+                    addLog('Fullscreen regained automatically.', 'info');
+                } else if (!document.fullscreenElement && isFullscreenActive === false) {
+                    // still lost, try to re-engage
+                    attemptForceFullscreen();
+                }
+            }, 3000);
         }
-        
-        // register UI buttons
-        document.getElementById('simulateOverlayBtn').addEventListener('click', simulateOverlay);
-        document.getElementById('copyLogsBtn').addEventListener('click', copyLogsToClipboard);
-        document.getElementById('clearLogsBtn').addEventListener('click', clearLogs);
-        
-        // extra reset violation button maybe hidden but useful? let's embed a small hidden reset? Add as optional long press, but better create extra small but legitimate UI:
-        const resetViolBtn = document.createElement('button');
-        resetViolBtn.innerText = '↺ Reset Counter';
-        resetViolBtn.className = 'btn';
-        resetViolBtn.style.background = '#1b1f2e';
-        resetViolBtn.style.borderColor = '#4a5378';
-        const btnGroup = document.querySelector('.btn-group');
-        if (btnGroup) {
-            resetViolBtn.addEventListener('click', resetViolationCounter);
-            btnGroup.appendChild(resetViolBtn);
-        }
-        
-        // final initialization
-        initDetection();
-        
-        // set initial LED state
-        if (liveLed) {
-            liveLed.style.backgroundColor = '#2aff9e';
-            liveLed.classList.remove('warning');
-        }
-        updateViolationCounterUI();
+
+        // Edge case: if any overlay causes break of fullscreen request due to pending dialog, we retry.
+        window.addEventListener('load', () => {
+            initProctor();
+        });
     })();
 </script>
 </body>
