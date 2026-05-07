@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>🔒 Fullscreen Lockdown | Proctor Simulator</title>
+    <title>🔒 Lockdown Proctor | Fullscreen + Screen Capture Detection</title>
     <style>
-        /* RESET: No safe area, complete fullscreen takeover */
         * {
             margin: 0;
             padding: 0;
@@ -21,12 +20,10 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            /* NO safe-area padding - full bleed */
             padding: 0;
             margin: 0;
         }
 
-        /* main exam panel - full width, no external margins */
         .exam-panel {
             width: 100%;
             min-height: 100vh;
@@ -41,7 +38,6 @@
             justify-content: center;
         }
 
-        /* top status bar - no sticky, just visible */
         .status-bar {
             display: flex;
             justify-content: space-between;
@@ -83,7 +79,6 @@
             font-size: 1rem;
         }
         
-        /* BIG counter - impossible to miss */
         .big-counter {
             background: #000000bb;
             border-radius: 3rem;
@@ -219,7 +214,6 @@
 <body>
 
 <div class="exam-panel" id="examRoot">
-    <!-- top status bar -->
     <div class="status-bar">
         <div class="status-item"><span class="badge-icon">🔒</span> LOCKDOWN</div>
         <div class="status-item"><span class="led-red" id="fullscreenLed"></span> <span id="fsStatusText">Fullscreen: OFF</span></div>
@@ -227,9 +221,8 @@
         <div class="status-item"><span id="violationCounterBadge">🚨 0</span></div>
     </div>
 
-    <!-- HUGE violation counter (visible even under notch) -->
     <div class="big-counter">
-        <span>🚨 TOTAL OVERLAY DETECTIONS 🚨</span>
+        <span>🚨 TOTAL VIOLATIONS (OVERLAY + SCREEN CAPTURE) 🚨</span>
         <span id="bigViolationNumber">0</span>
     </div>
 
@@ -251,10 +244,10 @@
     </div>
 
     <div class="violation-log" id="logContainer">
-        <div class="log-line">🔷 Proctor engine ready. Force fullscreen to begin lockdown simulation.</div>
+        <div class="log-line">🔷 Proctor engine ready. Screen capture detection active. Force fullscreen to begin lockdown simulation.</div>
     </div>
     <footer>
-        🛡️ REAL PROCTORING SIMULATION | Fullscreen enforced + overlay detection. Exiting fullscreen or using overlays triggers violations.
+        🛡️ REAL PROCTORING SIMULATION | Fullscreen enforced + Overlay detection + Screen capture (screenshot) detection.
     </footer>
 </div>
 
@@ -277,6 +270,11 @@
         let lastFocused = true;
         let fullscreenRetryInterval = null;
 
+        // Screen capture detection helpers
+        let lastBlurTime = 0;
+        let lastFocusTime = 0;
+        let potentialScreenshotTimer = null;
+
         function getTime() {
             const d = new Date();
             return `${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}:${d.getSeconds().toString().padStart(2,'0')}.${d.getMilliseconds().toString().padStart(3,'0')}`;
@@ -295,7 +293,7 @@
             }
             logContainer.appendChild(logDiv);
             logContainer.scrollTop = logContainer.scrollHeight;
-            while (logContainer.children.length > 150) logContainer.removeChild(logContainer.firstChild);
+            while (logContainer.children.length > 180) logContainer.removeChild(logContainer.firstChild);
         }
 
         function updateUI() {
@@ -328,6 +326,65 @@
             }
         }
 
+        // ----- SCREEN CAPTURE DETECTION (Screenshots, native tools) -----
+        function onKeyDownForCapture(e) {
+            // Detect Print Screen key (key = 'PrintScreen' or code 44)
+            if (e.key === 'PrintScreen' || e.key === 'Snapshot' || e.code === 'PrintScreen') {
+                e.preventDefault();
+                addViolation('SCREEN CAPTURE ATTEMPT', 'Print Screen key pressed (screenshot or screen capture tool).');
+                return;
+            }
+            // Detect common screenshot shortcuts: Ctrl+Shift+S, Cmd+Shift+S, Ctrl+Alt+PrtSc, etc.
+            if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 's' || e.key === 'S')) {
+                e.preventDefault();
+                addViolation('SCREEN CAPTURE ATTEMPT', 'Screenshot shortcut (Ctrl/Cmd+Shift+S) detected.');
+            }
+            if (e.ctrlKey && e.altKey && e.key === 'PrintScreen') {
+                e.preventDefault();
+                addViolation('SCREEN CAPTURE ATTEMPT', 'Ctrl+Alt+PrintScreen (active window screenshot) detected.');
+            }
+            // Windows + Shift + S (Snipping Tool)
+            if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'S') {
+                // already covered above, but extra safeguard
+                addViolation('SCREEN CAPTURE ATTEMPT', 'Possible snipping tool / region capture shortcut.');
+            }
+        }
+
+        // Detect rapid blur/focus pattern that indicates system screenshot UI
+        function onBlurForCapture() {
+            lastBlurTime = Date.now();
+            if (potentialScreenshotTimer) clearTimeout(potentialScreenshotTimer);
+            potentialScreenshotTimer = setTimeout(() => {
+                if (lastFocusTime > lastBlurTime && (lastFocusTime - lastBlurTime) < 800) {
+                    // Very quick blur->focus could be a screenshot overlay popping up and disappearing
+                    addViolation('SCREEN CAPTURE TOOL SUSPECTED', 'Rapid focus loss/gain - typical of screenshot UI or system capture overlay.');
+                }
+            }, 900);
+        }
+
+        function onFocusForCapture() {
+            lastFocusTime = Date.now();
+            if (lastBlurTime > 0 && (lastFocusTime - lastBlurTime) < 800 && (lastFocusTime - lastBlurTime) > 30) {
+                addViolation('SCREEN CAPTURE TOOL SUSPECTED', 'System capture overlay likely used (quick blur/focus cycle).');
+            }
+        }
+
+        // Detect visibility change pattern: hidden->visible within short time = screenshot taken
+        let lastHiddenTime = 0;
+        function onVisibilityForCapture() {
+            const now = Date.now();
+            if (document.visibilityState === 'hidden') {
+                lastHiddenTime = now;
+            } else if (document.visibilityState === 'visible' && lastHiddenTime > 0) {
+                const hiddenDuration = now - lastHiddenTime;
+                if (hiddenDuration > 50 && hiddenDuration < 1200) {
+                    addViolation('SCREEN CAPTURE OR OVERLAY', 'Page quickly hidden and restored - typical of native screenshot or notification overlay.');
+                }
+                lastHiddenTime = 0;
+            }
+        }
+
+        // ----- Fullscreen & Overlay detection (original) -----
         async function attemptForceFullscreen() {
             if (!document.fullscreenEnabled) {
                 addLog('Fullscreen API not supported by browser', 'warning');
@@ -342,7 +399,6 @@
                     }
                     return true;
                 }
-                // Request fullscreen on root element - complete coverage
                 await document.documentElement.requestFullscreen({ navigationUI: 'hide' });
                 isFullscreenActive = true;
                 updateUI();
@@ -391,6 +447,7 @@
         }
 
         function onVisibilityChange() {
+            onVisibilityForCapture(); // additional capture detection
             const hidden = (document.visibilityState === 'hidden');
             if (hidden && lastVisibilityState !== 'hidden') {
                 addViolation('SCREEN OVERLAY / APP SWITCH DETECTED', 'Page hidden – overlay, split screen, or task switch.');
@@ -422,6 +479,7 @@
         }
 
         function onWindowBlur() {
+            onBlurForCapture();
             if (lastFocused === true) {
                 addViolation('WINDOW FOCUS LOST', 'System overlay, voice assistant, or notification panel gained focus.');
                 lastFocused = false;
@@ -430,6 +488,7 @@
         }
 
         function onWindowFocus() {
+            onFocusForCapture();
             if (lastFocused === false) {
                 addLog('Window focus regained — overlay likely dismissed.', 'info');
                 lastFocused = true;
@@ -449,6 +508,7 @@
         }
 
         function onKeyDown(e) {
+            onKeyDownForCapture(e);
             if (e.key === 'Escape' || e.key === 'Esc') {
                 addViolation('ESC KEY PRESSED', 'Attempt to exit fullscreen using escape key.');
                 setTimeout(() => {
@@ -473,7 +533,7 @@
         }
 
         async function initProctor() {
-            addLog('🔐 Lockdown Proctor Engine started. Requesting fullscreen...', 'info');
+            addLog('🔐 Lockdown Proctor Engine started. SCREEN CAPTURE DETECTION ACTIVE. Requesting fullscreen...', 'info');
             document.addEventListener('visibilitychange', onVisibilityChange);
             window.addEventListener('resize', onResize);
             window.addEventListener('blur', onWindowBlur);
@@ -494,7 +554,7 @@
                 };
                 document.body.addEventListener('click', retryOnTap);
             } else {
-                addLog('✅ Secure lockdown active. Any overlay, split-screen, notification pull-down, or fullscreen exit will be recorded as violation.', 'info');
+                addLog('✅ Secure lockdown active. Violations will be recorded for overlays, fullscreen exit, AND screen capture attempts (screenshots).', 'info');
             }
             setInterval(() => {
                 if (!document.fullscreenElement && isFullscreenActive === true) {
