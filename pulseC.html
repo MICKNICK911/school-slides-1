@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Lockdown Proctor | Fullscreen Exam Simulation</title>
+    <title>🔒 Fullscreen Lockdown | Proctor Simulator</title>
     <style>
+        /* RESET: No safe area, complete fullscreen takeover */
         * {
             margin: 0;
             padding: 0;
@@ -16,52 +17,59 @@
             background: radial-gradient(circle at 20% 30%, #0a0f1e, #03060f);
             font-family: 'Segoe UI', 'Inter', system-ui, -apple-system, 'Roboto', sans-serif;
             min-height: 100vh;
+            width: 100%;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 1rem;
-            transition: background 0.2s;
+            /* NO safe-area padding - full bleed */
+            padding: 0;
+            margin: 0;
         }
 
-        /* main exam panel */
+        /* main exam panel - full width, no external margins */
         .exam-panel {
-            max-width: 800px;
             width: 100%;
-            background: rgba(10, 18, 30, 0.9);
-            backdrop-filter: blur(8px);
-            border-radius: 2rem;
-            border: 1px solid rgba(0, 255, 255, 0.3);
-            box-shadow: 0 25px 40px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.05);
-            padding: 1.8rem;
-            transition: all 0.2s;
+            min-height: 100vh;
+            background: rgba(10, 18, 30, 0.96);
+            backdrop-filter: blur(10px);
+            border-radius: 0;
+            border: none;
+            box-shadow: none;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
 
+        /* top status bar - no sticky, just visible */
         .status-bar {
             display: flex;
             justify-content: space-between;
-            background: #010615;
+            background: #010615cc;
+            backdrop-filter: blur(8px);
             border-radius: 2rem;
-            padding: 0.6rem 1.2rem;
-            margin-bottom: 1.5rem;
-            font-size: 0.75rem;
+            padding: 0.7rem 1.2rem;
+            margin-bottom: 1rem;
+            font-size: 0.8rem;
             font-weight: 600;
             border: 1px solid #1f3a5f;
             flex-wrap: wrap;
-            gap: 8px;
+            gap: 10px;
         }
 
         .status-item {
             display: flex;
             align-items: center;
             gap: 8px;
-            background: #0b1022;
-            padding: 0.2rem 0.8rem;
+            background: #0b1022cc;
+            padding: 0.3rem 1rem;
             border-radius: 40px;
+            font-size: 0.75rem;
         }
 
         .led-red {
-            width: 12px;
-            height: 12px;
+            width: 14px;
+            height: 14px;
             background: #2aff9e;
             border-radius: 50%;
             box-shadow: 0 0 6px #2aff9e;
@@ -74,6 +82,40 @@
         .badge-icon {
             font-size: 1rem;
         }
+        
+        /* BIG counter - impossible to miss */
+        .big-counter {
+            background: #000000bb;
+            border-radius: 3rem;
+            padding: 0.8rem 1rem;
+            text-align: center;
+            margin-bottom: 1rem;
+            border: 2px solid #ff6666;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            backdrop-filter: blur(4px);
+        }
+        .big-counter span:first-child {
+            font-weight: bold;
+            color: #ffaaaa;
+            font-size: 1rem;
+            letter-spacing: 1px;
+        }
+        .big-counter span:last-child {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: #ff000030;
+            padding: 0.2rem 1.2rem;
+            border-radius: 3rem;
+            color: #ff8888;
+            font-family: monospace;
+            min-width: 80px;
+            text-align: center;
+        }
+        
         h2 {
             color: #c6e0ff;
             font-weight: 600;
@@ -81,7 +123,7 @@
         }
         .question {
             background: #07112a;
-            padding: 1.8rem;
+            padding: 1.5rem;
             border-radius: 1.5rem;
             margin: 1rem 0;
             border-left: 6px solid #2d7aff;
@@ -89,7 +131,7 @@
         }
         .question p {
             color: #eef5ff;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             line-height: 1.4;
         }
         .options {
@@ -100,12 +142,11 @@
         }
         .opt {
             background: #0c1632;
-            padding: 1rem;
+            padding: 0.9rem;
             border-radius: 1.2rem;
             border: 1px solid #2a3c66;
             color: #bdd4ff;
             font-weight: 500;
-            transition: 0.1s;
         }
         button {
             background: #1f3a7a;
@@ -123,7 +164,7 @@
             transform: scale(0.97);
         }
         .violation-log {
-            background: #01050f;
+            background: #01050fe6;
             border-radius: 1.2rem;
             padding: 1rem;
             margin-top: 1.5rem;
@@ -140,7 +181,7 @@
             gap: 12px;
         }
         .violation-line {
-            background: rgba(255, 70, 70, 0.15);
+            background: rgba(255, 70, 70, 0.2);
             border-left: 3px solid #ff6a6a;
         }
         .fullscreen-warning {
@@ -168,20 +209,28 @@
             margin-top: 1.2rem;
             color: #5e77a5;
         }
-        button.danger {
-            background: #631d1d;
-            border: 1px solid #ff7b7b;
+        @media (max-width: 550px) {
+            .status-item { font-size: 0.65rem; padding: 0.2rem 0.7rem; }
+            .big-counter span:last-child { font-size: 1.8rem; }
+            .big-counter span:first-child { font-size: 0.85rem; }
         }
     </style>
 </head>
 <body>
 
 <div class="exam-panel" id="examRoot">
+    <!-- top status bar -->
     <div class="status-bar">
-        <div class="status-item"><span class="badge-icon">🔒</span> LOCKDOWN MODE</div>
+        <div class="status-item"><span class="badge-icon">🔒</span> LOCKDOWN</div>
         <div class="status-item"><span class="led-red" id="fullscreenLed"></span> <span id="fsStatusText">Fullscreen: OFF</span></div>
         <div class="status-item"><span class="badge-icon">👁️</span> <span id="visibilityStatus">Visible</span></div>
         <div class="status-item"><span id="violationCounterBadge">🚨 0</span></div>
+    </div>
+
+    <!-- HUGE violation counter (visible even under notch) -->
+    <div class="big-counter">
+        <span>🚨 TOTAL OVERLAY DETECTIONS 🚨</span>
+        <span id="bigViolationNumber">0</span>
     </div>
 
     <div class="fullscreen-warning" id="fsWarningBanner" style="display: none;">
@@ -211,31 +260,28 @@
 
 <script>
     (function() {
-        // ---------- DOM elements ----------
+        // DOM elements
         const fsLed = document.getElementById('fullscreenLed');
         const fsStatusSpan = document.getElementById('fsStatusText');
         const visibilitySpan = document.getElementById('visibilityStatus');
         const violationCounterSpan = document.getElementById('violationCounterBadge');
+        const bigViolationSpan = document.getElementById('bigViolationNumber');
         const logContainer = document.getElementById('logContainer');
         const fsWarningBanner = document.getElementById('fsWarningBanner');
         const reForceBtn = document.getElementById('reForceFullscreenBtn');
         const mockAnswerBtn = document.getElementById('mockAnswerBtn');
 
-        // State variables
         let violationCount = 0;
         let isFullscreenActive = false;
         let lastVisibilityState = document.visibilityState;
         let lastFocused = true;
-        let fullscreenExitAttempts = 0;
         let fullscreenRetryInterval = null;
 
-        // Helper: format timestamp
         function getTime() {
             const d = new Date();
             return `${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}:${d.getSeconds().toString().padStart(2,'0')}.${d.getMilliseconds().toString().padStart(3,'0')}`;
         }
 
-        // Add log entry (type: violation, info, system)
         function addLog(message, type = 'info') {
             const logDiv = document.createElement('div');
             logDiv.className = 'log-line';
@@ -249,14 +295,12 @@
             }
             logContainer.appendChild(logDiv);
             logContainer.scrollTop = logContainer.scrollHeight;
-            // keep last 150 logs
             while (logContainer.children.length > 150) logContainer.removeChild(logContainer.firstChild);
         }
 
         function updateUI() {
-            // update violation badge
             violationCounterSpan.innerText = `🚨 ${violationCount}`;
-            // update led and text accordingly
+            bigViolationSpan.innerText = violationCount;
             if (isFullscreenActive) {
                 fsLed.classList.remove('warning');
                 fsLed.style.background = '#2aff9e';
@@ -268,7 +312,6 @@
                 fsStatusSpan.innerText = 'Fullscreen: LOST ⚠️';
                 fsWarningBanner.style.display = 'flex';
             }
-            // visibility LED effect (just text)
             visibilitySpan.innerText = (document.visibilityState === 'visible') ? 'Visible' : 'HIDDEN (OVERLAY)';
         }
 
@@ -277,24 +320,20 @@
             updateUI();
             const fullMsg = reason + (details ? ` | ${details}` : '');
             addLog(fullMsg, 'violation');
-            // extra deterrent: if fullscreen lost, also show aggressive warning
             if (!isFullscreenActive) {
                 addLog('Fullscreen not active! Overlay detection critical.', 'warning');
             }
-            // attempt to re-force fullscreen if lost (aggressive)
             if (!isFullscreenActive && document.fullscreenEnabled) {
                 attemptForceFullscreen();
             }
         }
 
-        // ----- Fullscreen enforcement (aggressive with retries) -----
         async function attemptForceFullscreen() {
             if (!document.fullscreenEnabled) {
                 addLog('Fullscreen API not supported by browser', 'warning');
                 return false;
             }
             try {
-                // if already in fullscreen, return true
                 if (document.fullscreenElement) {
                     if (!isFullscreenActive) {
                         isFullscreenActive = true;
@@ -303,7 +342,7 @@
                     }
                     return true;
                 }
-                // request fullscreen on document.documentElement
+                // Request fullscreen on root element - complete coverage
                 await document.documentElement.requestFullscreen({ navigationUI: 'hide' });
                 isFullscreenActive = true;
                 updateUI();
@@ -317,17 +356,12 @@
             }
         }
 
-        // monitor fullscreen change event (user exit or system)
         function onFullscreenChange() {
             const fsElement = document.fullscreenElement;
             const nowActive = (fsElement !== null);
             if (nowActive !== isFullscreenActive) {
                 if (!nowActive && isFullscreenActive) {
-                    // user just exited fullscreen manually -> violation
-                    fullscreenExitAttempts++;
-                    addViolation('EXITED FULLSCREEN MODE', 'User attempted to leave secure exam environment. Screen not in fullscreen.');
-                    addLog('Aggressive re-lock: attempting to re-engage fullscreen...', 'warning');
-                    // immediate re-engagement attempt
+                    addViolation('EXITED FULLSCREEN MODE', 'User attempted to leave secure exam environment.');
                     attemptForceFullscreen();
                 } else if (nowActive && !isFullscreenActive) {
                     addLog('Fullscreen re-acquired successfully.', 'info');
@@ -335,7 +369,6 @@
                 isFullscreenActive = nowActive;
                 updateUI();
             }
-            // extra safety: if not active, try every 1 second until active (but avoid spamming)
             if (!isFullscreenActive) {
                 if (fullscreenRetryInterval === null) {
                     fullscreenRetryInterval = setInterval(() => {
@@ -346,8 +379,6 @@
                             updateUI();
                             if (fullscreenRetryInterval) clearInterval(fullscreenRetryInterval);
                             fullscreenRetryInterval = null;
-                        } else {
-                            // if still not active, keep trying but limit logs
                         }
                     }, 2000);
                 }
@@ -359,13 +390,10 @@
             }
         }
 
-        // ----- Overlay detection: visibility + blur + resize + orientation + keyboard overlay detection -----
         function onVisibilityChange() {
             const hidden = (document.visibilityState === 'hidden');
             if (hidden && lastVisibilityState !== 'hidden') {
-                // overlay detected: notification shade, split screen, chat heads, app switch
-                addViolation('SCREEN OVERLAY / APP SWITCH DETECTED', 'Page visibility hidden – overlay, split screen, or task switch.');
-                // extra fullscreen check if still active
+                addViolation('SCREEN OVERLAY / APP SWITCH DETECTED', 'Page hidden – overlay, split screen, or task switch.');
                 if (!document.fullscreenElement && isFullscreenActive) {
                     addViolation('Fullscreen lost due to overlay', 'Overlay forced exit from fullscreen');
                     isFullscreenActive = false;
@@ -374,7 +402,6 @@
                 }
             } else if (!hidden && lastVisibilityState === 'hidden') {
                 addLog('Returned to exam view — overlay dismissed.', 'info');
-                // ensure fullscreen is still active after returning
                 if (!document.fullscreenElement) attemptForceFullscreen();
             }
             lastVisibilityState = document.visibilityState;
@@ -386,10 +413,8 @@
             const newW = window.innerWidth, newH = window.innerHeight;
             const deltaW = Math.abs(newW - lastWidth);
             const deltaH = Math.abs(newH - lastHeight);
-            // detect significant resize: can be split screen or keyboard overlay resize
             if ((deltaW > 80 || deltaH > 80) && (deltaW > 0 || deltaH > 0)) {
                 addViolation('WINDOW RESIZE / SPLIT-SCREEN DETECTED', `Viewport changed ${lastWidth}x${lastHeight} → ${newW}x${newH}`);
-                // after resize, force fullscreen again if not active
                 if (!document.fullscreenElement) attemptForceFullscreen();
             }
             lastWidth = newW;
@@ -398,10 +423,8 @@
 
         function onWindowBlur() {
             if (lastFocused === true) {
-                // blur can be caused by system dialog, AI assistant, notification panel overlay
                 addViolation('WINDOW FOCUS LOST', 'System overlay, voice assistant, or notification panel gained focus.');
                 lastFocused = false;
-                // double-check fullscreen
                 if (!document.fullscreenElement) attemptForceFullscreen();
             }
         }
@@ -410,26 +433,31 @@
             if (lastFocused === false) {
                 addLog('Window focus regained — overlay likely dismissed.', 'info');
                 lastFocused = true;
-                // after focus, ensure fullscreen is active
                 if (!document.fullscreenElement) attemptForceFullscreen();
             }
         }
 
-        // Orientation change can also indicate split-screen or overlay
         function onOrientationChange() {
             addViolation('DEVICE ORIENTATION CHANGE', 'Possible split-screen or overlay triggered rotation.');
-            // attempt to restore fullscreen after orientation
             setTimeout(() => {
                 if (!document.fullscreenElement) attemptForceFullscreen();
             }, 100);
         }
 
-        // Additional: detect when user tries to escape using back button or similar (pagehide)
         function onPageHide() {
             addViolation('PAGE HIDE / NAVIGATION ATTEMPT', 'User tried to navigate away or close tab.');
         }
 
-        // Simulate answer for realism
+        function onKeyDown(e) {
+            if (e.key === 'Escape' || e.key === 'Esc') {
+                addViolation('ESC KEY PRESSED', 'Attempt to exit fullscreen using escape key.');
+                setTimeout(() => {
+                    if (!document.fullscreenElement) attemptForceFullscreen();
+                }, 50);
+                e.preventDefault();
+            }
+        }
+
         function mockAnswer() {
             if (!isFullscreenActive) {
                 addLog('⚠️ Cannot submit: fullscreen not active. Re-enter fullscreen to continue exam.', 'warning');
@@ -439,34 +467,13 @@
             addLog('Sample answer recorded (demo purpose, no actual cheating detected).', 'info');
         }
 
-        // Manual fullscreen reforce button
         async function manualReforce() {
             addLog('Manual re-fullscreen requested by user.', 'info');
             await attemptForceFullscreen();
         }
 
-        // Edge case: user might tap "exit fullscreen" via browser UI; we already handle fullscreenchange.
-        // Also handle keydown to prevent Esc from exiting (partial prevention, but cannot fully block Esc in most browsers, but we detect and re-engage)
-        function onKeyDown(e) {
-            if (e.key === 'Escape' || e.key === 'Esc') {
-                // Esc key is often used to exit fullscreen; we detect this and flag violation instantly
-                addViolation('ESC KEY PRESSED', 'Attempt to exit fullscreen using escape key.');
-                // refullscreen soon after esc
-                setTimeout(() => {
-                    if (!document.fullscreenElement) attemptForceFullscreen();
-                }, 50);
-                // prevent default if possible (doesn't block fullscreen exit but we re-engage)
-                e.preventDefault();
-            }
-            // also F11 can toggle, but we monitor fullscreenchange
-        }
-
-        // Detect touch/mouse outside? but fullscreen should cover.
-
-        // ---- Initialization and aggressive lockdown ----
         async function initProctor() {
             addLog('🔐 Lockdown Proctor Engine started. Requesting fullscreen...', 'info');
-            // Bind all events
             document.addEventListener('visibilitychange', onVisibilityChange);
             window.addEventListener('resize', onResize);
             window.addEventListener('blur', onWindowBlur);
@@ -478,11 +485,9 @@
             mockAnswerBtn.addEventListener('click', mockAnswer);
             if (reForceBtn) reForceBtn.addEventListener('click', manualReforce);
             
-            // initial fullscreen request with high priority
             const fsGranted = await attemptForceFullscreen();
             if (!fsGranted) {
-                addLog('⚠️ Fullscreen not allowed initially. User interaction may be needed. Tap anywhere to retry.', 'warning');
-                // add one-time tap to retry fullscreen
+                addLog('⚠️ Fullscreen not allowed initially. Tap anywhere to retry.', 'warning');
                 const retryOnTap = () => {
                     attemptForceFullscreen();
                     document.body.removeEventListener('click', retryOnTap);
@@ -491,7 +496,6 @@
             } else {
                 addLog('✅ Secure lockdown active. Any overlay, split-screen, notification pull-down, or fullscreen exit will be recorded as violation.', 'info');
             }
-            // periodic check (every 2s) to ensure fullscreen is still active (edge case handling)
             setInterval(() => {
                 if (!document.fullscreenElement && isFullscreenActive === true) {
                     addViolation('Fullscreen lost unexpectedly (periodic check)', 'Re-engaging lockdown');
@@ -503,13 +507,11 @@
                     updateUI();
                     addLog('Fullscreen regained automatically.', 'info');
                 } else if (!document.fullscreenElement && isFullscreenActive === false) {
-                    // still lost, try to re-engage
                     attemptForceFullscreen();
                 }
             }, 3000);
         }
 
-        // Edge case: if any overlay causes break of fullscreen request due to pending dialog, we retry.
         window.addEventListener('load', () => {
             initProctor();
         });
