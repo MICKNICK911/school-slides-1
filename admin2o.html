@@ -107,8 +107,8 @@
             justify-content: flex-end;
         }
         .icon-btn, .user-btn {
-            width: 42px;
-            height: 42px;
+            width: 44px;
+            height: 44px;
             border-radius: 60px;
             background: var(--surface);
             border: 1px solid var(--border);
@@ -142,14 +142,8 @@
             box-shadow: 0 20px 25px -12px rgba(0,0,0,0.3);
             backdrop-filter: blur(8px);
         }
-        /* On mobile screens, center the dropdown under the button */
+        /* On mobile screens, center the dropdown under the button and center the buttons group */
         @media (max-width: 640px) {
-            .dropdown-menu {
-                right: auto;
-                left: 50%;
-                transform: translateX(-50%);
-                min-width: 200px;
-            }
             .header-content {
                 flex-direction: row;
                 flex-wrap: wrap;
@@ -157,8 +151,20 @@
             }
             .logo { order: 1; }
             .search-container { order: 3; width: 100%; margin-top: 0.5rem; flex: auto; }
-            .controls { order: 2; }
-            .icon-btn, .user-btn { width: 44px; height: 44px; }
+            .controls { 
+                order: 2; 
+                justify-content: center;  /* CENTER THE CONTROL BUTTONS GROUP */
+                flex: 1;
+                gap: 0.75rem;
+            }
+            .dropdown-menu {
+                right: auto;
+                left: 50%;
+                transform: translateX(-50%);
+                min-width: 200px;
+                top: 52px;
+            }
+            .icon-btn, .user-btn { width: 46px; height: 46px; font-size: 1.3rem; }
         }
         .dropdown-menu.active { display: flex; }
         .dropdown-menu > div {
@@ -406,11 +412,11 @@
             opacity: 0;
             transition: 0.25s;
             z-index: 2000;
-            white-space: nowrap;
             font-size: 0.9rem;
             max-width: 90vw;
             white-space: normal;
             text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
         .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
         .loading-overlay {
@@ -444,6 +450,7 @@
             .container { padding: 0 0.75rem; }
             .card { padding: 1.2rem; }
             .examples-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
+            .controls { gap: 0.6rem; }
         }
     </style>
 </head>
