@@ -42,22 +42,23 @@
             transition: background 0.2s, color 0.2s;
             line-height: 1.5;
         }
-        .container { max-width: 1280px; margin: 0 auto; padding: 0 1.5rem; }
-        /* Header */
+        .container { max-width: 1280px; margin: 0 auto; padding: 0 1rem; }
+        
+        /* HEADER - FLEXIBLE FOR MOBILE */
         header {
             position: sticky;
             top: 0;
-            background: rgba(255,255,255,0.8);
+            background: rgba(255,255,255,0.85);
             backdrop-filter: blur(12px);
             border-bottom: 1px solid var(--border);
             z-index: 100;
         }
-        .dark header { background: rgba(15,23,42,0.8); }
+        .dark header { background: rgba(15,23,42,0.85); }
         .header-content {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 1rem;
+            gap: 0.75rem;
             flex-wrap: wrap;
             padding: 0.75rem 0;
         }
@@ -65,51 +66,49 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            font-size: calc(1.4rem * var(--font-base));
+            font-size: calc(1.2rem * var(--font-base));
             font-weight: 700;
             color: var(--primary);
             cursor: pointer;
+            white-space: nowrap;
         }
         .search-container {
-            flex: 1;
-            max-width: 500px;
+            flex: 2;
+            min-width: 180px;
             display: flex;
             background: var(--surface);
             border-radius: 60px;
             border: 1px solid var(--border);
             transition: 0.2s;
         }
-        .search-container:focus-within {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(53,89,233,0.2);
-        }
         .search-container input {
             flex: 1;
-            padding: 0.75rem 1.5rem;
+            padding: 0.6rem 1rem;
             background: transparent;
             border: none;
-            font-size: 1rem;
+            font-size: 0.9rem;
             outline: none;
             color: var(--text);
         }
         .search-btn {
             background: var(--primary);
             border: none;
-            padding: 0 1.5rem;
+            padding: 0 1.2rem;
             border-radius: 60px;
             color: white;
             font-weight: 600;
             cursor: pointer;
-            transition: 0.2s;
+            white-space: nowrap;
         }
         .controls {
             display: flex;
-            gap: 0.75rem;
+            gap: 0.5rem;
             align-items: center;
+            justify-content: flex-end;
         }
         .icon-btn, .user-btn {
-            width: 44px;
-            height: 44px;
+            width: 42px;
+            height: 42px;
             border-radius: 60px;
             background: var(--surface);
             border: 1px solid var(--border);
@@ -117,29 +116,49 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             transition: 0.2s;
-            box-shadow: var(--shadow);
+            flex-shrink: 0;
         }
         .user-btn {
             background: var(--secondary);
             color: white;
             border: none;
         }
-        /* Dropdown */
+        
+        /* DROPDOWN - CENTERED ON MOBILE, RIGHT ALIGN ON DESKTOP */
         .dropdown { position: relative; }
         .dropdown-menu {
             position: absolute;
-            top: 52px;
+            top: 48px;
             right: 0;
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: 1.25rem;
-            min-width: 180px;
+            min-width: 190px;
             display: none;
             flex-direction: column;
             z-index: 200;
-            box-shadow: 0 20px 25px -12px rgba(0,0,0,0.2);
+            box-shadow: 0 20px 25px -12px rgba(0,0,0,0.3);
+            backdrop-filter: blur(8px);
+        }
+        /* On mobile screens, center the dropdown under the button */
+        @media (max-width: 640px) {
+            .dropdown-menu {
+                right: auto;
+                left: 50%;
+                transform: translateX(-50%);
+                min-width: 200px;
+            }
+            .header-content {
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: space-between;
+            }
+            .logo { order: 1; }
+            .search-container { order: 3; width: 100%; margin-top: 0.5rem; flex: auto; }
+            .controls { order: 2; }
+            .icon-btn, .user-btn { width: 44px; height: 44px; }
         }
         .dropdown-menu.active { display: flex; }
         .dropdown-menu > div {
@@ -149,34 +168,37 @@
             gap: 0.75rem;
             cursor: pointer;
             transition: 0.1s;
+            font-size: 0.95rem;
         }
         .dropdown-menu > div:hover { background: var(--primary); color: white; }
-        /* Card */
+        
+        /* CARDS & UI */
         .card {
             background: var(--surface);
             border-radius: var(--radius);
             box-shadow: var(--shadow);
-            padding: 1.75rem;
-            margin-bottom: 2rem;
-            border-left: 6px solid var(--primary);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border-left: 5px solid var(--primary);
         }
-        .card h1 { font-size: calc(2rem * var(--font-base)); color: var(--primary); margin-bottom: 0.5rem; }
-        .desc { font-size: calc(1.3rem * var(--font-base)); line-height: 1.5; white-space: pre-wrap; margin: 1rem 0; }
+        .card h1 { font-size: calc(1.8rem * var(--font-base)); color: var(--primary); margin-bottom: 0.5rem; }
+        .desc { font-size: calc(1.2rem * var(--font-base)); line-height: 1.5; white-space: pre-wrap; margin: 1rem 0; }
         .examples-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            gap: 0.75rem;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 0.7rem;
             margin-top: 1rem;
         }
         .example-chip {
             background: var(--bg);
             border: 1px solid var(--border);
             border-radius: 60px;
-            padding: 0.6rem 1rem;
+            padding: 0.5rem 1rem;
             text-align: center;
             cursor: pointer;
             transition: 0.1s;
             font-weight: 500;
+            font-size: 0.9rem;
         }
         .example-chip.selected {
             background: #e53e3e;
@@ -187,14 +209,15 @@
         .panel {
             position: fixed;
             top: 0;
-            width: 320px;
+            width: 85%;
+            max-width: 320px;
             height: 100vh;
             background: var(--surface);
             padding: 1.5rem;
             z-index: 1000;
             transition: transform 0.25s ease;
             overflow-y: auto;
-            box-shadow: 0 0 30px rgba(0,0,0,0.2);
+            box-shadow: 0 0 30px rgba(0,0,0,0.3);
         }
         .history-panel { right: 0; transform: translateX(100%); }
         .topics-panel { left: 0; transform: translateX(-100%); }
@@ -215,22 +238,22 @@
             background: var(--bg);
             z-index: 1000;
             overflow-y: auto;
-            padding: 2rem;
+            padding: 1rem;
             display: none;
         }
         .builder.active { display: block; }
         .builder-card {
-            max-width: 800px;
+            max-width: 700px;
             margin: 0 auto;
             background: var(--surface);
             border-radius: var(--radius);
-            padding: 2rem;
+            padding: 1.5rem;
         }
-        .input-group { margin-bottom: 1.5rem; }
-        .input-group label { display: block; font-weight: 600; margin-bottom: 0.5rem; }
+        .input-group { margin-bottom: 1.2rem; }
+        .input-group label { display: block; font-weight: 600; margin-bottom: 0.4rem; font-size: 0.9rem; }
         .input-group input, .input-group textarea {
             width: 100%;
-            padding: 0.75rem;
+            padding: 0.7rem;
             border-radius: 1rem;
             border: 1px solid var(--border);
             background: var(--bg);
@@ -238,11 +261,12 @@
         }
         .btn {
             border: none;
-            padding: 0.6rem 1.5rem;
+            padding: 0.5rem 1.2rem;
             border-radius: 60px;
             font-weight: 600;
             cursor: pointer;
             transition: 0.2s;
+            font-size: 0.9rem;
         }
         .btn-primary { background: var(--primary); color: white; }
         .btn-accent { background: var(--accent); color: #1e293b; }
@@ -260,22 +284,22 @@
         }
         .slideshow.active { display: flex; }
         .slideshow-content {
-            max-width: 90vw;
-            max-height: 80vh;
+            max-width: 94vw;
+            max-height: 75vh;
             overflow-y: auto;
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 0.8rem 1.5rem;
-            font-size: clamp(1.6rem, 7vw, 3.5rem);
+            gap: 0.8rem 1.2rem;
+            font-size: clamp(1.4rem, 6vw, 3rem);
             font-weight: 600;
             text-align: center;
-            padding: 1.5rem;
+            padding: 1rem;
         }
         .slide-word {
             color: var(--primary);
             cursor: pointer;
-            padding: 0.1rem 0.3rem;
+            padding: 0.2rem 0.4rem;
             border-radius: 1rem;
             transition: 0.1s;
         }
@@ -316,7 +340,7 @@
             background: var(--surface);
             padding: 0.4rem 1rem;
             border-radius: 60px;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
         /* Modals */
         .modal {
@@ -326,10 +350,10 @@
             transform: translate(-50%, -50%);
             background: var(--surface);
             border-radius: var(--radius);
-            padding: 2rem;
+            padding: 1.5rem;
             z-index: 200;
             max-width: 90%;
-            width: 450px;
+            width: 400px;
             text-align: center;
             display: none;
         }
@@ -337,7 +361,7 @@
         .auth-modal {
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.7);
+            background: rgba(0,0,0,0.8);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -346,16 +370,16 @@
         .auth-box {
             background: var(--surface);
             border-radius: var(--radius);
-            padding: 2rem;
+            padding: 1.5rem;
             width: 90%;
-            max-width: 400px;
+            max-width: 380px;
         }
-        .tabs { display: flex; gap: 0.5rem; border-bottom: 1px solid var(--border); margin-bottom: 1.5rem; }
+        .tabs { display: flex; gap: 0.5rem; border-bottom: 1px solid var(--border); margin-bottom: 1.2rem; justify-content: center; }
         .tab { background: none; border: none; padding: 0.5rem 1rem; cursor: pointer; font-weight: 600; color: var(--text); border-bottom: 2px solid transparent; }
         .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
         .auth-form { display: none; flex-direction: column; gap: 1rem; }
         .auth-form.active { display: flex; }
-        .auth-form input { padding: 0.75rem; border-radius: 60px; border: 1px solid var(--border); background: var(--bg); color: var(--text); }
+        .auth-form input { padding: 0.7rem; border-radius: 60px; border: 1px solid var(--border); background: var(--bg); color: var(--text); }
         .splash {
             position: fixed;
             inset: 0;
@@ -370,20 +394,25 @@
         .toast {
             position: fixed;
             bottom: 1.5rem;
-            right: 1.5rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
             background: var(--primary);
             color: white;
-            padding: 0.75rem 1.5rem;
+            padding: 0.7rem 1.5rem;
             border-radius: 60px;
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            transform: translateY(100px);
             opacity: 0;
             transition: 0.25s;
             z-index: 2000;
+            white-space: nowrap;
+            font-size: 0.9rem;
+            max-width: 90vw;
+            white-space: normal;
+            text-align: center;
         }
-        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
         .loading-overlay {
             position: fixed;
             inset: 0;
@@ -393,7 +422,7 @@
             justify-content: center;
             z-index: 2000;
         }
-        .font-controls { display: flex; gap: 0.5rem; justify-content: center; margin-top: 1rem; }
+        .font-controls { display: flex; gap: 0.5rem; justify-content: center; margin-top: 1rem; flex-wrap: wrap; }
         .font-btn {
             width: 40px;
             height: 40px;
@@ -404,47 +433,50 @@
         }
         .font-btn.active { background: var(--primary); color: white; }
         .topic-item, .dataset-item, .history-item {
-            padding: 0.75rem;
+            padding: 0.7rem;
             border-bottom: 1px solid var(--border);
             cursor: pointer;
+            font-size: 0.95rem;
         }
-        .dataset-item { border: 1px solid var(--border); border-radius: 1rem; margin-bottom: 0.75rem; }
-        @media (max-width: 680px) {
-            .container { padding: 0 1rem; }
-            .header-content { flex-direction: column; align-items: stretch; }
+        .dataset-item { border: 1px solid var(--border); border-radius: 1rem; margin-bottom: 0.7rem; padding: 0.8rem; }
+        .theme-color { background: rgba(61,125,219,0.2); padding: 0 0.2rem; border-radius: 0.3rem; }
+        @media (max-width: 480px) {
+            .container { padding: 0 0.75rem; }
+            .card { padding: 1.2rem; }
+            .examples-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
         }
     </style>
 </head>
 <body>
 <div id="splash" class="splash">
-    <div style="background:white; width:100px; height:100px; border-radius:60px; display:flex; align-items:center; justify-content:center; font-size:3rem;">📚</div>
-    <h1 style="color:white; margin-top:1rem;">Digital Notes</h1>
+    <div style="background:white; width:90px; height:90px; border-radius:60px; display:flex; align-items:center; justify-content:center; font-size:2.8rem;">📚</div>
+    <h1 style="color:white; margin-top:1rem; font-size:1.8rem;">Digital Notes</h1>
     <p style="color:white;">Cloud-Powered Learning</p>
-    <div style="width:200px; height:4px; background:rgba(255,255,255,0.3); border-radius:4px; margin-top:2rem;"><div id="splashProgress" style="width:0%; height:100%; background:white; border-radius:4px; transition:width 5s linear;"></div></div>
+    <div style="width:180px; height:4px; background:rgba(255,255,255,0.3); border-radius:4px; margin-top:1.5rem;"><div id="splashProgress" style="width:0%; height:100%; background:white; border-radius:4px; transition:width 5s linear;"></div></div>
 </div>
 <div id="authContainer" class="auth-modal" style="display:none;">
     <div class="auth-box">
         <div class="tabs"><button class="tab active" data-tab="login">Login</button><button class="tab" data-tab="register">Register</button><button class="tab" data-tab="reset">Reset</button></div>
         <div id="loginForm" class="auth-form active"><input type="email" id="loginEmail" placeholder="Email"><input type="password" id="loginPassword" placeholder="Password"><button id="doLogin" class="btn btn-primary">Login</button></div>
         <div id="registerForm" class="auth-form"><input type="email" id="regEmail" placeholder="Email"><input type="password" id="regPass" placeholder="Password"><input type="password" id="regConfirm" placeholder="Confirm"><button id="doRegister" class="btn btn-primary">Register</button></div>
-        <div id="resetForm" class="auth-form"><input type="email" id="resetEmail" placeholder="Email"><button id="doReset" class="btn btn-primary">Send Reset</button></div>
+        <div id="resetForm" class="auth-form"><input type="email" id="resetEmail" placeholder="Email"><button id="doReset" class="btn btn-primary">Send Reset Email</button></div>
     </div>
 </div>
 <div id="app" style="display:none;">
     <div id="overlay" class="overlay"></div>
     <div id="toast" class="toast"><span id="toastIcon">✅</span><span id="toastMsg"></span></div>
-    <div id="loadingOverlay" class="loading-overlay" style="display:none;"><div style="background:var(--surface); padding:2rem; border-radius:60px;"><i class="fas fa-circle-notch fa-spin"></i><p>Loading...</p></div></div>
+    <div id="loadingOverlay" class="loading-overlay" style="display:none;"><div style="background:var(--surface); padding:1.5rem; border-radius:60px;"><i class="fas fa-circle-notch fa-spin"></i><p>Loading...</p></div></div>
     <input type="file" id="importFile" accept=".json" style="display:none"><input type="file" id="bulkImportFile" accept=".json" style="display:none">
     <!-- Builder -->
-    <div id="builder" class="builder"><div class="builder-card"><div style="display:flex; justify-content:space-between; margin-bottom:1.5rem;"><h2>📝 Create/Edit Topic</h2><div><button id="cancelBuilder" class="btn" style="background:#6c757d; color:white;">Cancel</button><button id="exportDatasetBtn" class="btn" style="background:var(--export-color); color:white; margin-left:0.5rem;">Export Dataset</button></div></div><div class="input-group"><label>Topic name</label><input id="topicName" placeholder="e.g., verbs"></div><div class="input-group"><label>Description (markdown: ###, [color], _underline_, *italic*)</label><textarea id="topicDesc" rows="3"></textarea></div><div class="input-group"><label>Examples (comma separated)</label><input id="topicExamples" placeholder="run, jump, eat"></div><div><button id="saveTopicBtn" class="btn btn-primary">+ Add Topic</button><button id="cancelEditBtn" class="btn" style="background:#ff9800; color:white; display:none;">Cancel Edit</button></div><div style="margin-top:2rem;"><h3>Manage Topics</h3><div id="manageTopicsList"></div><button id="clearAllTopicsBtn" class="btn btn-accent" style="margin-top:1rem;">🗑️ Clear All Topics</button></div></div></div>
+    <div id="builder" class="builder"><div class="builder-card"><div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:1rem;"><h2 style="font-size:1.4rem;">📝 Create/Edit</h2><div><button id="cancelBuilder" class="btn" style="background:#6c757d; color:white;">Cancel</button><button id="exportDatasetBtn" class="btn" style="background:var(--export-color); color:white; margin-left:0.5rem;">Export</button></div></div><div class="input-group"><label>Topic name</label><input id="topicName" placeholder="e.g., verbs"></div><div class="input-group"><label>Description (markdown: ###, [color], _underline_, *italic*)</label><textarea id="topicDesc" rows="3"></textarea></div><div class="input-group"><label>Examples (comma separated)</label><input id="topicExamples" placeholder="run, jump, eat"></div><div><button id="saveTopicBtn" class="btn btn-primary">+ Add Topic</button><button id="cancelEditBtn" class="btn" style="background:#ff9800; color:white; display:none; margin-left:0.5rem;">Cancel Edit</button></div><div style="margin-top:1.5rem;"><h3>Manage Topics</h3><div id="manageTopicsList"></div><button id="clearAllTopicsBtn" class="btn btn-accent" style="margin-top:1rem;">🗑️ Clear All Topics</button></div></div></div>
     <!-- Slideshow -->
     <div id="slideshow" class="slideshow"><div id="slideshowClose" class="slideshow-close">✕</div><div id="slideshowTop" class="slideshow-nav-top"></div><div id="slideshowContent" class="slideshow-content"></div><div id="slideshowBottom" class="slideshow-nav-bottom"></div><div id="slideshowIndicator" class="slideshow-indicator"></div></div>
-    <div id="slideInstruction" class="modal"><h2>Slide Mode</h2><p>Tap top half → next, bottom half → previous. Tap words to highlight.</p><button id="startSlideBtn" class="btn btn-primary">Start</button></div>
+    <div id="slideInstruction" class="modal"><h2 style="margin-bottom:0.5rem;">Slide Mode</h2><p>Tap top half → next, bottom half → previous. Tap words to highlight.</p><button id="startSlideBtn" class="btn btn-primary" style="margin-top:1rem;">Start</button></div>
     <!-- Panels -->
-    <div id="historyPanel" class="panel history-panel"><div style="display:flex; justify-content:space-between;"><h2>📜 History</h2><span id="closeHistory" style="cursor:pointer;">✕</span></div><div id="historyList"></div></div>
-    <div id="topicsPanel" class="panel topics-panel"><div style="display:flex; justify-content:space-between;"><h2>📚 Topics</h2><span id="closeTopics" style="cursor:pointer;">✕</span></div><div id="topicsList"></div></div>
-    <div id="datasetPanel" class="panel dataset-panel"><div style="display:flex; justify-content:space-between;"><h2>📂 Datasets</h2><span id="closeDataset" style="cursor:pointer;">✕</span></div><button id="newDatasetBtn" class="btn btn-primary" style="width:100%; margin:1rem 0;">+ New Dataset</button><div id="datasetsList"></div></div>
-    <div id="helpModal" class="modal"><h2>Help</h2><ul style="text-align:left; margin:1rem 0;"><li>🔍 Search topics in current dataset</li><li>📂 Switch/rename/delete datasets</li><li>📝 Create topics with markdown</li><li>▶️ Slideshow responsive</li><li>🌙 Theme & case toggle</li><li>📤 Export All / Bulk Import (IDs refreshed)</li></ul><button id="closeHelp" class="btn btn-primary">Got it</button></div>
+    <div id="historyPanel" class="panel history-panel"><div style="display:flex; justify-content:space-between; margin-bottom:1rem;"><h2>📜 History</h2><span id="closeHistory" style="cursor:pointer; font-size:1.3rem;">✕</span></div><div id="historyList"></div></div>
+    <div id="topicsPanel" class="panel topics-panel"><div style="display:flex; justify-content:space-between; margin-bottom:1rem;"><h2>📚 Topics</h2><span id="closeTopics" style="cursor:pointer; font-size:1.3rem;">✕</span></div><div id="topicsList"></div></div>
+    <div id="datasetPanel" class="panel dataset-panel"><div style="display:flex; justify-content:space-between; margin-bottom:1rem;"><h2>📂 Datasets</h2><span id="closeDataset" style="cursor:pointer; font-size:1.3rem;">✕</span></div><button id="newDatasetBtn" class="btn btn-primary" style="width:100%; margin-bottom:1rem;">+ New Dataset</button><div id="datasetsList"></div></div>
+    <div id="helpModal" class="modal"><h2>Help</h2><ul style="text-align:left; margin:1rem 0; padding-left:1.2rem;"><li>🔍 Search topics in current dataset</li><li>📂 Switch/rename/delete datasets</li><li>📝 Create topics with markdown</li><li>▶️ Slideshow responsive</li><li>🌙 Theme & case toggle</li><li>📤 Export All / Bulk Import (IDs refreshed)</li></ul><button id="closeHelp" class="btn btn-primary">Got it</button></div>
     <div class="container"><header><div class="header-content"><div class="logo" id="logoHome">📚 Digital Notes</div><div class="search-container"><input type="text" id="searchInput" placeholder="Search topic..."><button id="searchBtn" class="search-btn">🔍</button></div><div class="controls"><div class="dropdown"><button class="icon-btn" id="dataDropdownBtn">📁</button><div class="dropdown-menu" id="dataMenu"><div id="openDatasets">📂 Datasets</div><div id="importTopicsBtn">📥 Import Topics</div><div id="openBuilderBtn">📝 Create</div><div id="exportAllBtn">📤 Export All</div><div id="bulkImportBtn">📥 Bulk Import</div></div></div><div class="dropdown"><button class="icon-btn" id="browseDropdownBtn">🔍</button><div class="dropdown-menu" id="browseMenu"><div id="openTopicsPanel">📚 Topics</div><div id="openHistoryPanel">🕒 History</div></div></div><div class="dropdown"><button class="icon-btn" id="toolsDropdownBtn">🛠️</button><div class="dropdown-menu" id="toolsMenu"><div id="themeToggleBtn">🌙 Theme</div><div id="caseToggleBtn">Aa</div><div id="helpBtn">❓ Help</div><div id="slideshowBtn">▶️ Slide</div></div></div><div id="userBtn" class="user-btn">👤</div></div></div></header>
     <main id="mainContent"><div class="card" style="text-align:center;"><span>📖</span><h2>Welcome</h2><p>Select a dataset or search a topic</p><div class="font-controls"><span>Font:</span><button class="font-btn" data-size="0.9">S</button><button class="font-btn active" data-size="1">M</button><button class="font-btn" data-size="1.1">L</button><button class="font-btn" data-size="1.2">XL</button></div></div></main></div></div>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -452,132 +484,116 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script>
 (function(){
-    // Firebase
     const firebaseConfig = { apiKey: "AIzaSyCw1UnzkY4Eq_ImEnRDRFYmUMhSc95T-NU", authDomain: "lesson-notes-2025.firebaseapp.com", projectId: "lesson-notes-2025", storageBucket: "lesson-notes-2025.firebasestorage.app", messagingSenderId: "757231923808", appId: "1:757231923808:web:3c72026662c8a296134905" };
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
     db.enablePersistence({ synchronizeTabs: true }).catch(()=>{});
-
-    // helpers
     const uid = () => Date.now().toString(36) + Math.random().toString(36).substr(2,6);
-    const showToast = (msg, isError=false) => {
-        let toast = document.getElementById('toast');
-        document.getElementById('toastIcon').innerText = isError ? '❌' : '✅';
-        document.getElementById('toastMsg').innerText = msg;
-        toast.classList.add('show');
-        setTimeout(()=>toast.classList.remove('show'), 3000);
-    };
+    const showToast = (msg, isErr=false) => { let t=document.getElementById('toast'); document.getElementById('toastIcon').innerText=isErr?'❌':'✅'; document.getElementById('toastMsg').innerText=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000); };
     const loading = (show) => document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
-    const exportJSON = (data, filename) => { const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename; a.click(); URL.revokeObjectURL(a.href); };
-
-    // DataManager
+    const exportJSON = (data, fn) => { const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=fn; a.click(); URL.revokeObjectURL(a.href); };
     class DataManager {
-        constructor() { this.userId = null; this.datasets = []; this.currentId = null; this.localData = null; }
-        setUser(uid) { this.userId = uid; if(uid) this.syncFromFirestore(); else this.datasets = []; }
-        getCurrent() { return this.datasets.find(d => d.id === this.currentId); }
-        saveLocal() { localStorage.setItem('notes_data', JSON.stringify({ datasets: this.datasets, currentId: this.currentId, updated: Date.now() })); }
-        loadLocal() { const raw = localStorage.getItem('notes_data'); if(raw) { const d = JSON.parse(raw); this.datasets = d.datasets || []; this.currentId = d.currentId || (this.datasets[0]?.id || null); this.localData = d; } }
-        async syncFromFirestore() { if(!this.userId) return; loading(true); const doc = await db.collection('users').doc(this.userId).get(); if(doc.exists && doc.data().data) { const cloud = doc.data().data; if(cloud.datasets) { this.datasets = cloud.datasets; this.currentId = cloud.currentId || (this.datasets[0]?.id || null); this.saveLocal(); } } else if(this.datasets.length === 0) { await this.createDataset('My Notes'); } loading(false); if(window.ui) window.ui.refreshUI(); }
-        async pushToFirestore() { if(!this.userId) return; await db.collection('users').doc(this.userId).set({ data: { datasets: this.datasets, currentId: this.currentId, updated: Date.now() } }, { merge: true }); this.saveLocal(); }
-        async createDataset(name) { const id = uid(); this.datasets.push({ id, name, topics: {} }); this.currentId = id; this.saveLocal(); if(this.userId) await this.pushToFirestore(); return id; }
-        async addTopic(topicKey, desc, examples) { const ds = this.getCurrent(); if(ds) { ds.topics[topicKey] = { desc, ex: examples }; this.saveLocal(); if(this.userId) await this.pushToFirestore(); } }
-        async updateTopic(topicKey, desc, examples) { await this.addTopic(topicKey, desc, examples); }
-        async deleteTopic(topicKey) { const ds = this.getCurrent(); if(ds && ds.topics[topicKey]) { delete ds.topics[topicKey]; this.saveLocal(); if(this.userId) await this.pushToFirestore(); } }
-        async clearAllTopics() { const ds = this.getCurrent(); if(ds) { ds.topics = {}; this.saveLocal(); if(this.userId) await this.pushToFirestore(); } }
-        async importTopics(newTopics, merge=true) { const ds = this.getCurrent(); if(ds) { ds.topics = merge ? { ...ds.topics, ...newTopics } : newTopics; this.saveLocal(); if(this.userId) await this.pushToFirestore(); } }
-        async deleteDataset(id) { const idx = this.datasets.findIndex(d => d.id === id); if(idx === -1) return; this.datasets.splice(idx,1); if(this.datasets.length === 0) await this.createDataset('My Notes'); else if(this.currentId === id) this.currentId = this.datasets[0].id; this.saveLocal(); if(this.userId) await this.pushToFirestore(); }
-        async renameDataset(id, newName) { const ds = this.datasets.find(d => d.id === id); if(ds) { ds.name = newName; this.saveLocal(); if(this.userId) await this.pushToFirestore(); } }
-        async importDatasets(arr, replace=false) { const validated = arr.map(d => ({ id: uid(), name: d.name, topics: d.topics || {} })); if(replace) this.datasets = validated; else this.datasets.push(...validated); if(!this.datasets.length) await this.createDataset('My Notes'); if(!this.datasets.find(d => d.id === this.currentId)) this.currentId = this.datasets[0]?.id; this.saveLocal(); if(this.userId) await this.pushToFirestore(); }
+        constructor() { this.userId=null; this.datasets=[]; this.currentId=null; this.localData=null; }
+        setUser(uid) { this.userId=uid; if(uid) this.syncFromFirestore(); else this.datasets=[]; }
+        getCurrent() { return this.datasets.find(d=>d.id===this.currentId); }
+        saveLocal() { localStorage.setItem('notes_data', JSON.stringify({ datasets:this.datasets, currentId:this.currentId, updated:Date.now() })); }
+        loadLocal() { const raw=localStorage.getItem('notes_data'); if(raw){ const d=JSON.parse(raw); this.datasets=d.datasets||[]; this.currentId=d.currentId||(this.datasets[0]?.id||null); this.localData=d; } }
+        async syncFromFirestore() { if(!this.userId) return; loading(true); const doc=await db.collection('users').doc(this.userId).get(); if(doc.exists && doc.data().data){ const cloud=doc.data().data; if(cloud.datasets){ this.datasets=cloud.datasets; this.currentId=cloud.currentId||(this.datasets[0]?.id||null); this.saveLocal(); } } else if(this.datasets.length===0) await this.createDataset('My Notes'); loading(false); if(window.ui) window.ui.refreshUI(); }
+        async pushToFirestore() { if(!this.userId) return; await db.collection('users').doc(this.userId).set({ data:{ datasets:this.datasets, currentId:this.currentId, updated:Date.now() } },{merge:true}); this.saveLocal(); }
+        async createDataset(name) { const id=uid(); this.datasets.push({ id, name, topics:{} }); this.currentId=id; this.saveLocal(); if(this.userId) await this.pushToFirestore(); return id; }
+        async addTopic(key,desc,ex) { const ds=this.getCurrent(); if(ds){ ds.topics[key]={ desc, ex }; this.saveLocal(); if(this.userId) await this.pushToFirestore(); } }
+        async updateTopic(key,desc,ex) { await this.addTopic(key,desc,ex); }
+        async deleteTopic(key) { const ds=this.getCurrent(); if(ds?.topics[key]){ delete ds.topics[key]; this.saveLocal(); if(this.userId) await this.pushToFirestore(); } }
+        async clearAllTopics() { const ds=this.getCurrent(); if(ds){ ds.topics={}; this.saveLocal(); if(this.userId) await this.pushToFirestore(); } }
+        async importTopics(newTopics,merge=true) { const ds=this.getCurrent(); if(ds){ ds.topics=merge?{...ds.topics,...newTopics}:newTopics; this.saveLocal(); if(this.userId) await this.pushToFirestore(); } }
+        async deleteDataset(id) { const idx=this.datasets.findIndex(d=>d.id===id); if(idx===-1) return; this.datasets.splice(idx,1); if(this.datasets.length===0) await this.createDataset('My Notes'); else if(this.currentId===id) this.currentId=this.datasets[0].id; this.saveLocal(); if(this.userId) await this.pushToFirestore(); }
+        async renameDataset(id,newName) { const ds=this.datasets.find(d=>d.id===id); if(ds){ ds.name=newName; this.saveLocal(); if(this.userId) await this.pushToFirestore(); } }
+        async importDatasets(arr,replace=false) { const validated=arr.map(d=>({ id:uid(), name:d.name, topics:d.topics||{} })); if(replace) this.datasets=validated; else this.datasets.push(...validated); if(!this.datasets.length) await this.createDataset('My Notes'); if(!this.datasets.find(d=>d.id===this.currentId)) this.currentId=this.datasets[0]?.id; this.saveLocal(); if(this.userId) await this.pushToFirestore(); }
         exportAll() { return JSON.parse(JSON.stringify(this.datasets)); }
     }
     const DM = new DataManager();
-
-    // UI
     class UI {
-        constructor() { this.currentTopic = null; this.editKey = null; this.caseState = (localStorage.getItem('case') === 'upper' ? 1 : (localStorage.getItem('case') === 'lower' ? 2 : 0)); this.dark = localStorage.getItem('theme') === 'dark'; if(this.dark) document.body.classList.add('dark'); this.fontBase = parseFloat(localStorage.getItem('fontSize') || '1'); document.documentElement.style.setProperty('--font-base', this.fontBase); this.searchHistory = JSON.parse(localStorage.getItem('searchHistory') || '[]'); this.attachEvents(); this.refreshUI(); }
+        constructor() { this.currentTopic=null; this.editKey=null; this.caseState=(localStorage.getItem('case')==='upper'?1:(localStorage.getItem('case')==='lower'?2:0)); this.dark=localStorage.getItem('theme')==='dark'; if(this.dark) document.body.classList.add('dark'); this.fontBase=parseFloat(localStorage.getItem('fontSize')||'1'); document.documentElement.style.setProperty('--font-base',this.fontBase); this.searchHistory=JSON.parse(localStorage.getItem('searchHistory')||'[]'); this.attachEvents(); this.refreshUI(); }
         attachEvents() {
-            document.getElementById('themeToggleBtn').onclick = () => { this.dark = !this.dark; document.body.classList.toggle('dark', this.dark); localStorage.setItem('theme', this.dark ? 'dark' : 'light'); };
-            document.getElementById('caseToggleBtn').onclick = () => { this.caseState = (this.caseState+1)%3; localStorage.setItem('case', this.caseState===1?'upper':(this.caseState===2?'lower':'original')); document.getElementById('caseToggleBtn').innerText = this.caseState===0?'Aa':(this.caseState===1?'AA':'aa'); if(this.currentTopic) this.showTopic(this.currentTopic); };
-            document.querySelectorAll('.font-btn').forEach(btn => btn.onclick = () => { let sz = parseFloat(btn.dataset.size); document.documentElement.style.setProperty('--font-base', sz); localStorage.setItem('fontSize', sz); document.querySelectorAll('.font-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); if(this.currentTopic) this.showTopic(this.currentTopic); });
-            document.getElementById('searchBtn').onclick = () => this.search(); document.getElementById('searchInput').onkeyup = e => { if(e.key === 'Enter') this.search(); };
-            document.getElementById('logoHome').onclick = () => this.showHome();
-            document.getElementById('openDatasets').onclick = () => this.openPanel('dataset'); document.getElementById('openTopicsPanel').onclick = () => this.openPanel('topics'); document.getElementById('openHistoryPanel').onclick = () => this.openPanel('history');
-            document.getElementById('closeHistory').onclick = () => this.closePanels(); document.getElementById('closeTopics').onclick = () => this.closePanels(); document.getElementById('closeDataset').onclick = () => this.closePanels(); document.getElementById('overlay').onclick = () => this.closePanels();
-            document.getElementById('importTopicsBtn').onclick = () => document.getElementById('importFile').click(); document.getElementById('importFile').onchange = e => this.handleImport(e);
-            document.getElementById('exportAllBtn').onclick = () => { const all = DM.exportAll(); exportJSON(all, `all_datasets_${new Date().toISOString().slice(0,10)}.json`); showToast(`Exported ${all.length} datasets`); };
-            document.getElementById('bulkImportBtn').onclick = () => document.getElementById('bulkImportFile').click(); document.getElementById('bulkImportFile').onchange = e => this.handleBulkImport(e);
-            document.getElementById('openBuilderBtn').onclick = () => { document.getElementById('builder').classList.add('active'); this.resetBuilder(); this.refreshManageList(); };
-            document.getElementById('cancelBuilder').onclick = () => document.getElementById('builder').classList.remove('active');
-            document.getElementById('saveTopicBtn').onclick = () => this.saveTopic();
-            document.getElementById('cancelEditBtn').onclick = () => this.resetBuilder();
-            document.getElementById('exportDatasetBtn').onclick = () => { const ds = DM.getCurrent(); if(ds) exportJSON(ds.topics, `${ds.name.replace(/\s+/g,'_')}.json`); };
-            document.getElementById('clearAllTopicsBtn').onclick = async () => { if(confirm('Clear ALL topics in current dataset?')) { await DM.clearAllTopics(); this.refreshUI(); this.refreshManageList(); } };
-            document.getElementById('newDatasetBtn').onclick = async () => { let name = prompt('Dataset name:'); if(name) { await DM.createDataset(name); this.refreshUI(); this.closePanels(); } };
-            document.getElementById('slideshowBtn').onclick = () => this.startSlideshow();
-            document.getElementById('slideshowClose').onclick = () => this.closeSlideshow();
-            document.getElementById('slideshowTop').onclick = () => this.nextSlide();
-            document.getElementById('slideshowBottom').onclick = () => this.prevSlide();
-            document.getElementById('startSlideBtn').onclick = () => { document.getElementById('slideInstruction').classList.remove('active'); document.getElementById('overlay').classList.remove('active'); this.beginSlideshow(); };
-            document.getElementById('helpBtn').onclick = () => { document.getElementById('helpModal').classList.add('active'); document.getElementById('overlay').classList.add('active'); };
-            document.getElementById('closeHelp').onclick = () => { document.getElementById('helpModal').classList.remove('active'); document.getElementById('overlay').classList.remove('active'); };
-            document.getElementById('userBtn').onclick = () => auth.signOut();
-            document.addEventListener('click', (e) => { if(!e.target.closest('.dropdown')) document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('active')); });
-            document.getElementById('dataDropdownBtn').onclick = (e) => { e.stopPropagation(); document.querySelectorAll('.dropdown-menu').forEach(m=>m.classList.remove('active')); document.getElementById('dataMenu').classList.toggle('active'); };
-            document.getElementById('browseDropdownBtn').onclick = (e) => { e.stopPropagation(); document.querySelectorAll('.dropdown-menu').forEach(m=>m.classList.remove('active')); document.getElementById('browseMenu').classList.toggle('active'); };
-            document.getElementById('toolsDropdownBtn').onclick = (e) => { e.stopPropagation(); document.querySelectorAll('.dropdown-menu').forEach(m=>m.classList.remove('active')); document.getElementById('toolsMenu').classList.toggle('active'); };
+            document.getElementById('themeToggleBtn').onclick=()=>{ this.dark=!this.dark; document.body.classList.toggle('dark',this.dark); localStorage.setItem('theme',this.dark?'dark':'light'); };
+            document.getElementById('caseToggleBtn').onclick=()=>{ this.caseState=(this.caseState+1)%3; localStorage.setItem('case',this.caseState===1?'upper':(this.caseState===2?'lower':'original')); document.getElementById('caseToggleBtn').innerText=this.caseState===0?'Aa':(this.caseState===1?'AA':'aa'); if(this.currentTopic) this.showTopic(this.currentTopic); };
+            document.querySelectorAll('.font-btn').forEach(btn=>btn.onclick=()=>{ let sz=parseFloat(btn.dataset.size); document.documentElement.style.setProperty('--font-base',sz); localStorage.setItem('fontSize',sz); document.querySelectorAll('.font-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); if(this.currentTopic) this.showTopic(this.currentTopic); });
+            document.getElementById('searchBtn').onclick=()=>this.search(); document.getElementById('searchInput').onkeyup=e=>{if(e.key==='Enter')this.search();};
+            document.getElementById('logoHome').onclick=()=>this.showHome();
+            document.getElementById('openDatasets').onclick=()=>this.openPanel('dataset'); document.getElementById('openTopicsPanel').onclick=()=>this.openPanel('topics'); document.getElementById('openHistoryPanel').onclick=()=>this.openPanel('history');
+            document.getElementById('closeHistory').onclick=()=>this.closePanels(); document.getElementById('closeTopics').onclick=()=>this.closePanels(); document.getElementById('closeDataset').onclick=()=>this.closePanels(); document.getElementById('overlay').onclick=()=>this.closePanels();
+            document.getElementById('importTopicsBtn').onclick=()=>document.getElementById('importFile').click(); document.getElementById('importFile').onchange=e=>this.handleImport(e);
+            document.getElementById('exportAllBtn').onclick=()=>{ const all=DM.exportAll(); exportJSON(all,`all_datasets_${new Date().toISOString().slice(0,10)}.json`); showToast(`Exported ${all.length} datasets`); };
+            document.getElementById('bulkImportBtn').onclick=()=>document.getElementById('bulkImportFile').click(); document.getElementById('bulkImportFile').onchange=e=>this.handleBulkImport(e);
+            document.getElementById('openBuilderBtn').onclick=()=>{ document.getElementById('builder').classList.add('active'); this.resetBuilder(); this.refreshManageList(); };
+            document.getElementById('cancelBuilder').onclick=()=>document.getElementById('builder').classList.remove('active');
+            document.getElementById('saveTopicBtn').onclick=()=>this.saveTopic();
+            document.getElementById('cancelEditBtn').onclick=()=>this.resetBuilder();
+            document.getElementById('exportDatasetBtn').onclick=()=>{ const ds=DM.getCurrent(); if(ds) exportJSON(ds.topics,`${ds.name.replace(/\s+/g,'_')}.json`); };
+            document.getElementById('clearAllTopicsBtn').onclick=async()=>{ if(confirm('Clear ALL topics?')){ await DM.clearAllTopics(); this.refreshUI(); this.refreshManageList(); } };
+            document.getElementById('newDatasetBtn').onclick=async()=>{ let name=prompt('Dataset name:'); if(name){ await DM.createDataset(name); this.refreshUI(); this.closePanels(); } };
+            document.getElementById('slideshowBtn').onclick=()=>this.startSlideshow();
+            document.getElementById('slideshowClose').onclick=()=>this.closeSlideshow();
+            document.getElementById('slideshowTop').onclick=()=>this.nextSlide();
+            document.getElementById('slideshowBottom').onclick=()=>this.prevSlide();
+            document.getElementById('startSlideBtn').onclick=()=>{ document.getElementById('slideInstruction').classList.remove('active'); document.getElementById('overlay').classList.remove('active'); this.beginSlideshow(); };
+            document.getElementById('helpBtn').onclick=()=>{ document.getElementById('helpModal').classList.add('active'); document.getElementById('overlay').classList.add('active'); };
+            document.getElementById('closeHelp').onclick=()=>{ document.getElementById('helpModal').classList.remove('active'); document.getElementById('overlay').classList.remove('active'); };
+            document.getElementById('userBtn').onclick=()=>auth.signOut();
+            document.addEventListener('click',(e)=>{ if(!e.target.closest('.dropdown')) document.querySelectorAll('.dropdown-menu').forEach(m=>m.classList.remove('active')); });
+            document.getElementById('dataDropdownBtn').onclick=(e)=>{ e.stopPropagation(); document.querySelectorAll('.dropdown-menu').forEach(m=>m.classList.remove('active')); document.getElementById('dataMenu').classList.toggle('active'); };
+            document.getElementById('browseDropdownBtn').onclick=(e)=>{ e.stopPropagation(); document.querySelectorAll('.dropdown-menu').forEach(m=>m.classList.remove('active')); document.getElementById('browseMenu').classList.toggle('active'); };
+            document.getElementById('toolsDropdownBtn').onclick=(e)=>{ e.stopPropagation(); document.querySelectorAll('.dropdown-menu').forEach(m=>m.classList.remove('active')); document.getElementById('toolsMenu').classList.toggle('active'); };
         }
-        applyCase(str) { if(this.caseState === 1) return str.toUpperCase(); if(this.caseState === 2) return str.toLowerCase(); return str; }
-        formatMarkdown(text) { let lines = text.split('\n'); let out = ''; for(let line of lines) { line = line.trim(); if(!line) continue; if(line.startsWith('### ')) out += `<h2 style="color:var(--primary); margin:1rem 0 0.5rem;">${this.inline(line.slice(4))}</h2>`; else if(line.startsWith('## ')) out += `<h3 style="color:var(--secondary);">${this.inline(line.slice(3))}</h3>`; else if(line.startsWith('- ')) out += `<li>${this.inline(line.slice(2))}</li>`; else if(line.startsWith('+ ')) out += `<li style="list-style-type:circle;">${this.inline(line.slice(2))}</li>`; else out += `<p>${this.inline(line)}</p>`; } return out; }
-        inline(t) { return t.replace(/\[([^\]]+)\]/g,'<span class="theme-color" style="background:rgba(61,125,219,0.2); padding:0 0.2rem;">$1</span>').replace(/_([^_]+)_/g,'<u style="text-decoration:underline red;">$1</u>').replace(/\*([^*]+)\*/g,'<em style="font-style:italic; color:#2ecc71;">$1</em>'); }
-        search() { let term = document.getElementById('searchInput').value.trim(); if(!term) return; let ds = DM.getCurrent(); if(ds && ds.topics[term]) { this.showTopic(term); let arr = [{term, time: new Date().toLocaleTimeString()}, ...this.searchHistory.filter(h=>h.term!==term)].slice(0,20); this.searchHistory = arr; localStorage.setItem('searchHistory', JSON.stringify(arr)); } else showToast('Topic not found', true); }
-        showTopic(key) { this.currentTopic = key; let topic = DM.getCurrent()?.topics[key]; if(!topic) return; let desc = this.applyCase(topic.desc); let exs = topic.ex.map(e => this.applyCase(e)); let html = `<div class="card"><h1>${this.applyCase(key)}</h1><div class="desc">${this.formatMarkdown(desc)}</div><h3>Examples</h3><div class="examples-grid">${exs.map((ex,i)=>`<div class="example-chip" data-i="${i}">${ex}</div>`).join('')}</div><button id="clearSelection" class="btn btn-accent" style="margin-top:1rem;">✕ Clear Selection</button></div>`;
-            document.getElementById('mainContent').innerHTML = html; document.querySelectorAll('.example-chip').forEach(el => el.onclick = () => el.classList.toggle('selected')); document.getElementById('clearSelection')?.addEventListener('click',()=>document.querySelectorAll('.example-chip').forEach(c=>c.classList.remove('selected'))); }
-        showHome() { this.currentTopic = null; let ds = DM.getCurrent(); let topics = ds ? Object.keys(ds.topics) : []; let html = `<div class="card" style="text-align:center;"><span>📖</span><h2>${ds?.name || 'My Notes'}</h2><p>${topics.length} topics</p><div style="display:flex; flex-wrap:wrap; gap:0.5rem; justify-content:center;">${topics.slice(0,12).map(t=>`<div class="example-chip" style="cursor:pointer;">🔍 ${t}</div>`).join('')||'<p>Create topics via 📝 menu</p>'}</div><div class="font-controls"><span>Font:</span><button class="font-btn" data-size="0.9">S</button><button class="font-btn active" data-size="1">M</button><button class="font-btn" data-size="1.1">L</button><button class="font-btn" data-size="1.2">XL</button></div></div>`;
-            document.getElementById('mainContent').innerHTML = html; document.querySelectorAll('.example-chip').forEach(el => el.onclick = () => { document.getElementById('searchInput').value = el.innerText.replace('🔍','').trim(); this.search(); }); this.attachFontButtons(); }
-        attachFontButtons() { document.querySelectorAll('.font-btn').forEach(btn => btn.onclick = () => { let sz = parseFloat(btn.dataset.size); document.documentElement.style.setProperty('--font-base', sz); localStorage.setItem('fontSize', sz); document.querySelectorAll('.font-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); if(this.currentTopic) this.showTopic(this.currentTopic); }); }
-        refreshUI() { this.renderTopicsPanel(); this.renderDatasetsPanel(); this.renderHistoryPanel(); if(this.currentTopic && !DM.getCurrent()?.topics[this.currentTopic]) this.showHome(); else if(this.currentTopic) this.showTopic(this.currentTopic); else this.showHome(); this.refreshManageList(); }
-        renderTopicsPanel() { let ds = DM.getCurrent(); let topics = ds?.topics || {}; let html = Object.keys(topics).sort().map(k => `<div class="topic-item" data-key="${k}">📄 ${k}</div>`).join('') || '<p>No topics</p>'; document.getElementById('topicsList').innerHTML = html; document.querySelectorAll('.topic-item').forEach(el => el.onclick = () => { this.showTopic(el.dataset.key); this.closePanels(); }); }
-        renderDatasetsPanel() { let html = DM.datasets.map(ds => `<div class="dataset-item ${ds.id === DM.currentId ? 'active' : ''}" data-id="${ds.id}"><strong>${ds.name}</strong> (${Object.keys(ds.topics).length} topics)<div style="display:flex; gap:0.5rem; margin-top:0.5rem;"><button class="switchDs btn" data-id="${ds.id}" style="background:var(--primary); color:white; border:none; padding:0.2rem 0.8rem; border-radius:60px;">Switch</button><button class="renameDs btn" data-id="${ds.id}">Rename</button><button class="deleteDs btn" data-id="${ds.id}">Delete</button></div></div>`).join(''); document.getElementById('datasetsList').innerHTML = html; document.querySelectorAll('.switchDs').forEach(btn => btn.onclick = async (e) => { e.stopPropagation(); DM.currentId = btn.dataset.id; DM.saveLocal(); if(DM.userId) await DM.pushToFirestore(); this.refreshUI(); this.closePanels(); showToast(`Switched to ${DM.getCurrent()?.name}`); }); document.querySelectorAll('.renameDs').forEach(btn => btn.onclick = async (e) => { e.stopPropagation(); let newName = prompt('New name'); if(newName) { await DM.renameDataset(btn.dataset.id, newName); this.renderDatasetsPanel(); } }); document.querySelectorAll('.deleteDs').forEach(btn => btn.onclick = async (e) => { e.stopPropagation(); if(DM.datasets.length === 1) return showToast('Cannot delete last dataset', true); if(confirm('Delete dataset?')) { await DM.deleteDataset(btn.dataset.id); this.refreshUI(); this.closePanels(); } }); }
-        renderHistoryPanel() { let html = this.searchHistory.map(h => `<div class="history-item" data-term="${h.term}">🔍 ${h.term} <span style="font-size:0.8rem;">${h.time}</span></div>`).join('') || '<p>No search history</p>'; document.getElementById('historyList').innerHTML = html; document.querySelectorAll('.history-item').forEach(el => el.onclick = () => { document.getElementById('searchInput').value = el.dataset.term; this.search(); this.closePanels(); }); }
-        refreshManageList() { let ds = DM.getCurrent(); let topics = ds?.topics || {}; let html = Object.keys(topics).sort().map(k => `<div class="topic-manage-item" style="display:flex; justify-content:space-between; background:var(--bg); padding:0.75rem; border-radius:1rem; margin-bottom:0.5rem;"><span><strong>${k}</strong><br><small>${topics[k].desc.substring(0,50)}...</small></span><div><button class="editTopicBtn" data-key="${k}" style="margin-right:0.5rem;">✏️</button><button class="deleteTopicBtn" data-key="${k}">🗑️</button></div></div>`).join('') || '<p>No topics</p>'; document.getElementById('manageTopicsList').innerHTML = html; document.querySelectorAll('.editTopicBtn').forEach(btn => btn.onclick = () => this.editTopic(btn.dataset.key)); document.querySelectorAll('.deleteTopicBtn').forEach(btn => btn.onclick = async () => { if(confirm(`Delete "${btn.dataset.key}"?`)) { await DM.deleteTopic(btn.dataset.key); this.refreshUI(); this.refreshManageList(); } }); }
-        editTopic(key) { let ds = DM.getCurrent(); let t = ds?.topics[key]; if(t) { document.getElementById('topicName').value = key; document.getElementById('topicDesc').value = t.desc; document.getElementById('topicExamples').value = t.ex.join(', '); this.editKey = key; document.getElementById('saveTopicBtn').innerHTML = '✏️ Update Topic'; document.getElementById('cancelEditBtn').style.display = 'inline-block'; document.getElementById('builder').classList.add('active'); } }
-        saveTopic() { let name = document.getElementById('topicName').value.trim(); let desc = document.getElementById('topicDesc').value.trim(); let exStr = document.getElementById('topicExamples').value.trim(); if(!name || !desc || !exStr) return showToast('All fields required', true); let ex = exStr.split(',').map(s=>s.trim()); if(this.editKey) { if(this.editKey !== name) DM.deleteTopic(this.editKey).then(()=>DM.addTopic(name,desc,ex)); else DM.updateTopic(name,desc,ex); this.resetBuilder(); this.refreshUI(); } else { DM.addTopic(name,desc,ex).then(()=>{ document.getElementById('topicName').value = ''; document.getElementById('topicDesc').value = ''; document.getElementById('topicExamples').value = ''; this.refreshUI(); this.refreshManageList(); showToast(`Added "${name}"`); }); } }
-        resetBuilder() { document.getElementById('topicName').value = ''; document.getElementById('topicDesc').value = ''; document.getElementById('topicExamples').value = ''; this.editKey = null; document.getElementById('saveTopicBtn').innerHTML = '+ Add Topic'; document.getElementById('cancelEditBtn').style.display = 'none'; }
-        openPanel(panel) { document.getElementById(`${panel}Panel`).classList.add('active'); document.getElementById('overlay').classList.add('active'); if(panel === 'history') this.renderHistoryPanel(); if(panel === 'topics') this.renderTopicsPanel(); if(panel === 'dataset') this.renderDatasetsPanel(); }
-        closePanels() { document.querySelectorAll('.panel').forEach(p => p.classList.remove('active')); document.getElementById('overlay').classList.remove('active'); }
-        async handleImport(e) { let file = e.target.files[0]; if(!file) return; try { let data = JSON.parse(await file.text()); let merge = confirm('Merge with current topics? (Cancel = replace)'); await DM.importTopics(data, merge); this.refreshUI(); this.refreshManageList(); showToast('Imported topics'); } catch(err) { showToast('Invalid JSON', true); } e.target.value = ''; }
-        async handleBulkImport(e) { let file = e.target.files[0]; if(!file) return; try { let data = JSON.parse(await file.text()); if(!Array.isArray(data)) throw new Error(); let replace = confirm('Replace all datasets? (Cancel = merge)'); await DM.importDatasets(data, replace); this.refreshUI(); showToast(`Imported ${data.length} datasets`); } catch(err) { showToast('Invalid datasets array', true); } e.target.value = ''; }
-        startSlideshow() { if(!this.currentTopic) { showToast('Search a topic first', true); return; } let ds = DM.getCurrent(); let topic = ds?.topics[this.currentTopic]; if(!topic?.ex?.length) { showToast('No examples', true); return; } window._slide = { list: topic.ex, idx: 0, selected: {} }; document.getElementById('slideInstruction').classList.add('active'); document.getElementById('overlay').classList.add('active'); }
-        beginSlideshow() { document.querySelector('header').style.display = 'none'; document.getElementById('slideshow').classList.add('active'); this.updateSlide(); }
-        updateSlide() { let s = window._slide; if(!s) return; let words = s.list[s.idx].split(/\s+/).filter(w=>w); let container = document.getElementById('slideshowContent'); container.innerHTML = ''; words.forEach((w,i)=>{ let span = document.createElement('span'); span.className = 'slide-word' + (s.selected[s.idx]?.[i] ? ' selected' : ''); span.textContent = w; span.onclick = (e) => { e.stopPropagation(); if(!s.selected[s.idx]) s.selected[s.idx] = {}; s.selected[s.idx][i] = !s.selected[s.idx][i]; span.classList.toggle('selected'); }; container.appendChild(span); container.appendChild(document.createTextNode(' ')); }); document.getElementById('slideshowIndicator').innerText = `${s.idx+1}/${s.list.length}`; }
-        nextSlide() { if(window._slide) { window._slide.idx = (window._slide.idx+1) % window._slide.list.length; this.updateSlide(); } }
-        prevSlide() { if(window._slide) { window._slide.idx = (window._slide.idx-1+window._slide.list.length) % window._slide.list.length; this.updateSlide(); } }
-        closeSlideshow() { document.getElementById('slideshow').classList.remove('active'); document.querySelector('header').style.display = 'flex'; window._slide = null; }
+        applyCase(str){ if(this.caseState===1) return str.toUpperCase(); if(this.caseState===2) return str.toLowerCase(); return str; }
+        formatMarkdown(text){ let lines=text.split('\n'); let out=''; for(let l of lines){ l=l.trim(); if(!l) continue; if(l.startsWith('### ')) out+=`<h2 style="color:var(--primary); margin:0.8rem 0 0.3rem;">${this.inline(l.slice(4))}</h2>`; else if(l.startsWith('## ')) out+=`<h3 style="color:var(--secondary);">${this.inline(l.slice(3))}</h3>`; else if(l.startsWith('- ')) out+=`<li>${this.inline(l.slice(2))}</li>`; else if(l.startsWith('+ ')) out+=`<li style="list-style-type:circle;">${this.inline(l.slice(2))}</li>`; else out+=`<p>${this.inline(l)}</p>`; } return out; }
+        inline(t){ return t.replace(/\[([^\]]+)\]/g,'<span class="theme-color">$1</span>').replace(/_([^_]+)_/g,'<u style="text-decoration:underline red;">$1</u>').replace(/\*([^*]+)\*/g,'<em style="font-style:italic; color:#2ecc71;">$1</em>'); }
+        search(){ let term=document.getElementById('searchInput').value.trim(); if(!term) return; let ds=DM.getCurrent(); if(ds?.topics[term]){ this.showTopic(term); let arr=[{term,time:new Date().toLocaleTimeString()},...this.searchHistory.filter(h=>h.term!==term)].slice(0,20); this.searchHistory=arr; localStorage.setItem('searchHistory',JSON.stringify(arr)); } else showToast('Topic not found',true); }
+        showTopic(key){ this.currentTopic=key; let topic=DM.getCurrent()?.topics[key]; if(!topic) return; let desc=this.applyCase(topic.desc); let exs=topic.ex.map(e=>this.applyCase(e)); let html=`<div class="card"><h1>${this.applyCase(key)}</h1><div class="desc">${this.formatMarkdown(desc)}</div><h3>Examples</h3><div class="examples-grid">${exs.map((ex,i)=>`<div class="example-chip" data-i="${i}">${ex}</div>`).join('')}</div><button id="clearSelection" class="btn btn-accent" style="margin-top:1rem;">✕ Clear Selection</button></div>`; document.getElementById('mainContent').innerHTML=html; document.querySelectorAll('.example-chip').forEach(el=>el.onclick=()=>el.classList.toggle('selected')); document.getElementById('clearSelection')?.addEventListener('click',()=>document.querySelectorAll('.example-chip').forEach(c=>c.classList.remove('selected'))); }
+        showHome(){ this.currentTopic=null; let ds=DM.getCurrent(); let topics=ds?Object.keys(ds.topics):[]; let html=`<div class="card" style="text-align:center;"><span>📖</span><h2>${ds?.name||'My Notes'}</h2><p>${topics.length} topics</p><div style="display:flex; flex-wrap:wrap; gap:0.5rem; justify-content:center;">${topics.slice(0,12).map(t=>`<div class="example-chip" style="cursor:pointer;">🔍 ${t}</div>`).join('')||'<p>Create topics via 📝 menu</p>'}</div><div class="font-controls"><span>Font:</span><button class="font-btn" data-size="0.9">S</button><button class="font-btn active" data-size="1">M</button><button class="font-btn" data-size="1.1">L</button><button class="font-btn" data-size="1.2">XL</button></div></div>`; document.getElementById('mainContent').innerHTML=html; document.querySelectorAll('.example-chip').forEach(el=>el.onclick=()=>{ document.getElementById('searchInput').value=el.innerText.replace('🔍','').trim(); this.search(); }); this.attachFontButtons(); }
+        attachFontButtons(){ document.querySelectorAll('.font-btn').forEach(btn=>btn.onclick=()=>{ let sz=parseFloat(btn.dataset.size); document.documentElement.style.setProperty('--font-base',sz); localStorage.setItem('fontSize',sz); document.querySelectorAll('.font-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); if(this.currentTopic) this.showTopic(this.currentTopic); }); }
+        refreshUI(){ this.renderTopicsPanel(); this.renderDatasetsPanel(); this.renderHistoryPanel(); if(this.currentTopic && !DM.getCurrent()?.topics[this.currentTopic]) this.showHome(); else if(this.currentTopic) this.showTopic(this.currentTopic); else this.showHome(); this.refreshManageList(); }
+        renderTopicsPanel(){ let ds=DM.getCurrent(); let topics=ds?.topics||{}; let html=Object.keys(topics).sort().map(k=>`<div class="topic-item" data-key="${k}">📄 ${k}</div>`).join('')||'<p>No topics</p>'; document.getElementById('topicsList').innerHTML=html; document.querySelectorAll('.topic-item').forEach(el=>el.onclick=()=>{ this.showTopic(el.dataset.key); this.closePanels(); }); }
+        renderDatasetsPanel(){ let html=DM.datasets.map(ds=>`<div class="dataset-item ${ds.id===DM.currentId?'active':''}" data-id="${ds.id}"><strong>${ds.name}</strong> (${Object.keys(ds.topics).length} topics)<div style="display:flex; gap:0.5rem; margin-top:0.5rem; flex-wrap:wrap;"><button class="switchDs btn" data-id="${ds.id}" style="background:var(--primary); color:white;">Switch</button><button class="renameDs btn" data-id="${ds.id}">Rename</button><button class="deleteDs btn" data-id="${ds.id}">Delete</button></div></div>`).join(''); document.getElementById('datasetsList').innerHTML=html; document.querySelectorAll('.switchDs').forEach(btn=>btn.onclick=async(e)=>{ e.stopPropagation(); DM.currentId=btn.dataset.id; DM.saveLocal(); if(DM.userId) await DM.pushToFirestore(); this.refreshUI(); this.closePanels(); showToast(`Switched to ${DM.getCurrent()?.name}`); }); document.querySelectorAll('.renameDs').forEach(btn=>btn.onclick=async(e)=>{ e.stopPropagation(); let newName=prompt('New name'); if(newName){ await DM.renameDataset(btn.dataset.id,newName); this.renderDatasetsPanel(); } }); document.querySelectorAll('.deleteDs').forEach(btn=>btn.onclick=async(e)=>{ e.stopPropagation(); if(DM.datasets.length===1) return showToast('Cannot delete last dataset',true); if(confirm('Delete dataset?')){ await DM.deleteDataset(btn.dataset.id); this.refreshUI(); this.closePanels(); } }); }
+        renderHistoryPanel(){ let html=this.searchHistory.map(h=>`<div class="history-item" data-term="${h.term}">🔍 ${h.term} <span style="font-size:0.75rem;">${h.time}</span></div>`).join('')||'<p>No search history</p>'; document.getElementById('historyList').innerHTML=html; document.querySelectorAll('.history-item').forEach(el=>el.onclick=()=>{ document.getElementById('searchInput').value=el.dataset.term; this.search(); this.closePanels(); }); }
+        refreshManageList(){ let ds=DM.getCurrent(); let topics=ds?.topics||{}; let html=Object.keys(topics).sort().map(k=>`<div style="display:flex; justify-content:space-between; background:var(--bg); padding:0.7rem; border-radius:1rem; margin-bottom:0.5rem;"><span><strong>${k}</strong><br><small>${topics[k].desc.substring(0,40)}...</small></span><div><button class="editTopicBtn" data-key="${k}" style="margin-right:0.5rem;">✏️</button><button class="deleteTopicBtn" data-key="${k}">🗑️</button></div></div>`).join('')||'<p>No topics</p>'; document.getElementById('manageTopicsList').innerHTML=html; document.querySelectorAll('.editTopicBtn').forEach(btn=>btn.onclick=()=>this.editTopic(btn.dataset.key)); document.querySelectorAll('.deleteTopicBtn').forEach(btn=>btn.onclick=async()=>{ if(confirm(`Delete "${btn.dataset.key}"?`)){ await DM.deleteTopic(btn.dataset.key); this.refreshUI(); this.refreshManageList(); } }); }
+        editTopic(key){ let ds=DM.getCurrent(); let t=ds?.topics[key]; if(t){ document.getElementById('topicName').value=key; document.getElementById('topicDesc').value=t.desc; document.getElementById('topicExamples').value=t.ex.join(', '); this.editKey=key; document.getElementById('saveTopicBtn').innerHTML='✏️ Update Topic'; document.getElementById('cancelEditBtn').style.display='inline-block'; document.getElementById('builder').classList.add('active'); } }
+        saveTopic(){ let name=document.getElementById('topicName').value.trim(); let desc=document.getElementById('topicDesc').value.trim(); let exStr=document.getElementById('topicExamples').value.trim(); if(!name||!desc||!exStr) return showToast('All fields required',true); let ex=exStr.split(',').map(s=>s.trim()); if(this.editKey){ if(this.editKey!==name) DM.deleteTopic(this.editKey).then(()=>DM.addTopic(name,desc,ex)); else DM.updateTopic(name,desc,ex); this.resetBuilder(); this.refreshUI(); } else { DM.addTopic(name,desc,ex).then(()=>{ document.getElementById('topicName').value=''; document.getElementById('topicDesc').value=''; document.getElementById('topicExamples').value=''; this.refreshUI(); this.refreshManageList(); showToast(`Added "${name}"`); }); } }
+        resetBuilder(){ document.getElementById('topicName').value=''; document.getElementById('topicDesc').value=''; document.getElementById('topicExamples').value=''; this.editKey=null; document.getElementById('saveTopicBtn').innerHTML='+ Add Topic'; document.getElementById('cancelEditBtn').style.display='none'; }
+        openPanel(panel){ document.getElementById(`${panel}Panel`).classList.add('active'); document.getElementById('overlay').classList.add('active'); if(panel==='history') this.renderHistoryPanel(); if(panel==='topics') this.renderTopicsPanel(); if(panel==='dataset') this.renderDatasetsPanel(); }
+        closePanels(){ document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active')); document.getElementById('overlay').classList.remove('active'); }
+        async handleImport(e){ let file=e.target.files[0]; if(!file) return; try{ let data=JSON.parse(await file.text()); let merge=confirm('Merge with current topics? (Cancel = replace)'); await DM.importTopics(data,merge); this.refreshUI(); this.refreshManageList(); showToast('Imported topics'); }catch(err){ showToast('Invalid JSON',true); } e.target.value=''; }
+        async handleBulkImport(e){ let file=e.target.files[0]; if(!file) return; try{ let data=JSON.parse(await file.text()); if(!Array.isArray(data)) throw new Error(); let replace=confirm('Replace all datasets? (Cancel = merge)'); await DM.importDatasets(data,replace); this.refreshUI(); showToast(`Imported ${data.length} datasets`); }catch(err){ showToast('Invalid datasets array',true); } e.target.value=''; }
+        startSlideshow(){ if(!this.currentTopic){ showToast('Search a topic first',true); return; } let ds=DM.getCurrent(); let topic=ds?.topics[this.currentTopic]; if(!topic?.ex?.length){ showToast('No examples',true); return; } window._slide={ list:topic.ex, idx:0, selected:{} }; document.getElementById('slideInstruction').classList.add('active'); document.getElementById('overlay').classList.add('active'); }
+        beginSlideshow(){ document.querySelector('header').style.display='none'; document.getElementById('slideshow').classList.add('active'); this.updateSlide(); }
+        updateSlide(){ let s=window._slide; if(!s) return; let words=s.list[s.idx].split(/\s+/).filter(w=>w); let cont=document.getElementById('slideshowContent'); cont.innerHTML=''; words.forEach((w,i)=>{ let span=document.createElement('span'); span.className='slide-word'+(s.selected[s.idx]?.[i]?' selected':''); span.textContent=w; span.onclick=(e)=>{ e.stopPropagation(); if(!s.selected[s.idx]) s.selected[s.idx]={}; s.selected[s.idx][i]=!s.selected[s.idx][i]; span.classList.toggle('selected'); }; cont.appendChild(span); cont.appendChild(document.createTextNode(' ')); }); document.getElementById('slideshowIndicator').innerText=`${s.idx+1}/${s.list.length}`; }
+        nextSlide(){ if(window._slide){ window._slide.idx=(window._slide.idx+1)%window._slide.list.length; this.updateSlide(); } }
+        prevSlide(){ if(window._slide){ window._slide.idx=(window._slide.idx-1+window._slide.list.length)%window._slide.list.length; this.updateSlide(); } }
+        closeSlideshow(){ document.getElementById('slideshow').classList.remove('active'); document.querySelector('header').style.display='flex'; window._slide=null; }
     }
-    window.ui = new UI();
-    // Auth
-    auth.onAuthStateChanged(async user => {
-        if(user) {
-            document.getElementById('authContainer').style.display = 'none';
-            document.getElementById('app').style.display = 'block';
+    window.ui=new UI();
+    auth.onAuthStateChanged(async user=>{
+        if(user){
+            document.getElementById('authContainer').style.display='none';
+            document.getElementById('app').style.display='block';
             DM.setUser(user.uid);
-            document.getElementById('userBtn').innerText = user.email?.[0].toUpperCase() || '👤';
+            document.getElementById('userBtn').innerText=user.email?.[0].toUpperCase()||'👤';
             await DM.syncFromFirestore();
             window.ui.refreshUI();
         } else {
-            document.getElementById('app').style.display = 'none';
-            document.getElementById('authContainer').style.display = 'flex';
+            document.getElementById('app').style.display='none';
+            document.getElementById('authContainer').style.display='flex';
             DM.setUser(null);
         }
     });
-    document.getElementById('doLogin').onclick = () => auth.signInWithEmailAndPassword(document.getElementById('loginEmail').value, document.getElementById('loginPassword').value).catch(e=>showToast(e.message,true));
-    document.getElementById('doRegister').onclick = () => { if(document.getElementById('regPass').value !== document.getElementById('regConfirm').value) return showToast('Passwords mismatch',true); auth.createUserWithEmailAndPassword(document.getElementById('regEmail').value, document.getElementById('regPass').value).catch(e=>showToast(e.message,true)); };
-    document.getElementById('doReset').onclick = () => auth.sendPasswordResetEmail(document.getElementById('resetEmail').value).then(()=>showToast('Reset email sent')).catch(e=>showToast(e.message,true));
-    document.querySelectorAll('.tab').forEach(tab => tab.onclick = () => { document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); document.querySelectorAll('.auth-form').forEach(f=>f.classList.remove('active')); tab.classList.add('active'); document.getElementById(`${tab.dataset.tab}Form`).classList.add('active'); });
-    document.getElementById('splashProgress').style.width = '100%';
-    setTimeout(()=>{ document.getElementById('splash').style.opacity = '0'; setTimeout(()=>document.getElementById('splash').style.display='none', 500); }, 5000);
-    document.addEventListener('keydown', e => { if(document.getElementById('slideshow').classList.contains('active')) { if(e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); window.ui.nextSlide(); } else if(e.key === 'ArrowLeft') { e.preventDefault(); window.ui.prevSlide(); } else if(e.key === 'Escape') window.ui.closeSlideshow(); } });
+    document.getElementById('doLogin').onclick=()=>auth.signInWithEmailAndPassword(document.getElementById('loginEmail').value, document.getElementById('loginPassword').value).catch(e=>showToast(e.message,true));
+    document.getElementById('doRegister').onclick=()=>{ if(document.getElementById('regPass').value!==document.getElementById('regConfirm').value) return showToast('Passwords mismatch',true); auth.createUserWithEmailAndPassword(document.getElementById('regEmail').value, document.getElementById('regPass').value).catch(e=>showToast(e.message,true)); };
+    document.getElementById('doReset').onclick=()=>auth.sendPasswordResetEmail(document.getElementById('resetEmail').value).then(()=>showToast('Reset email sent')).catch(e=>showToast(e.message,true));
+    document.querySelectorAll('.tab').forEach(tab=>tab.onclick=()=>{ document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); document.querySelectorAll('.auth-form').forEach(f=>f.classList.remove('active')); tab.classList.add('active'); document.getElementById(`${tab.dataset.tab}Form`).classList.add('active'); });
+    document.getElementById('splashProgress').style.width='100%';
+    setTimeout(()=>{ document.getElementById('splash').style.opacity='0'; setTimeout(()=>document.getElementById('splash').style.display='none',500); },5000);
+    document.addEventListener('keydown',e=>{ if(document.getElementById('slideshow').classList.contains('active')){ if(e.key==='ArrowRight'||e.key===' '){ e.preventDefault(); window.ui.nextSlide(); } else if(e.key==='ArrowLeft'){ e.preventDefault(); window.ui.prevSlide(); } else if(e.key==='Escape') window.ui.closeSlideshow(); } });
 })();
 </script>
 </body>
