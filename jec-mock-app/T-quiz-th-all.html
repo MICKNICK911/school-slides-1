@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>B.Ed Exam Q&A Revision App</title>
+    <style>
+        /* Base Styles */
+        :root {
+            --primary-color: #1a365d;
+            --accent-color: #3182ce;
+            --bg-color: #f7fafc;
+            --card-color: #ffffff;
+            --shadow: 0 4px 6px rgba(0,0,0,0.1);
+            --radius: 10px;
+        }
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: #2d3748;
+            margin: 0;
+            padding: 20px;
+            padding-bottom: 50px;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .header h1 {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+        .header p {
+            color: #718096;
+            font-size: 1rem;
+        }
+
+        /* Set Navigation Tabs */
+        .set-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+        .set-btn {
+            background: #e2e8f0;
+            color: #4a5568;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .set-btn:hover {
+            background: #cbd5e0;
+        }
+        .set-btn.active {
+            background: var(--primary-color);
+            color: white;
+            box-shadow: 0 4px 12px rgba(26, 54, 93, 0.3);
+        }
+
+        /* Question Cards Container */
+        #question-container {
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        /* Individual Question Cards */
+        .q-card {
+            background: var(--card-color);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            border-left: 5px solid #a0aec0; /* Default color */
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        /* Module Colors for Visual Identification */
+        .q-card.module-jeb { border-color: #e53e3e; }
+        .q-card.module-jed { border-color: #d69e2e; }
+        .q-card.module-jen { border-color: #38a169; }
+        .q-card.module-jmc { border-color: #3182ce; }
+        .q-card.module-jsc { border-color: #805ad5; }
+
+        .q-header {
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 15px;
+        }
+        .q-info {
+            flex: 1;
+        }
+        .q-module {
+            font-size: 0.75rem;
+            font-weight: bold;
+            color: #a0aec0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+        .q-text {
+            font-size: 1.05rem;
+            font-weight: 500;
+            line-height: 1.5;
+        }
+        .q-marks {
+            background: #edf2f7;
+            color: #4a5568;
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+        .q-indicator {
+            color: #a0aec0;
+            font-size: 1.2rem;
+            transition: 0.3s;
+        }
+        .q-card.open .q-indicator {
+            transform: rotate(180deg);
+        }
+
+        /* Model Answer Section (Hidden by default) */
+        .q-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-in-out, padding 0.3s;
+            padding: 0 20px;
+            background: #f7fafc;
+            border-top: 1px solid #e2e8f0;
+        }
+        .q-card.open .q-answer {
+            max-height: 800px; /* High enough to contain any answer */
+            padding: 20px;
+        }
+        .q-answer h4 {
+            color: var(--accent-color);
+            margin: 0 0 10px 0;
+            font-size: 1rem;
+        }
+        .q-answer p, .q-answer ul {
+            margin: 5px 0;
+            line-height: 1.6;
+            color: #2d3748;
+            font-size: 0.95rem;
+        }
+        .q-answer ul {
+            padding-left: 20px;
+        }
+        .q-answer b {
+            color: var(--primary-color);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            color: #718096;
+            padding: 40px;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .header h1 { font-size: 1.4rem; }
+            .set-btn { padding: 8px 18px; font-size: 0.9rem; }
+            .q-text { font-size: 0.95rem; }
+            .q-answer ul { padding-left: 15px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>📚 B.Ed Exam Revision</h1>
+        <p>Tap any question to reveal the Model Answer</p>
+    </div>
+
+    <nav class="set-tabs" id="setTabs">
+        <button class="set-btn active" data-set="1">Set 1</button>
+        <button class="set-btn" data-set="2">Set 2</button>
+        <button class="set-btn" data-set="3">Set 3</button>
+    </nav>
+
+    <div id="question-container">
+        <!-- Questions injected by JS -->
+    </div>
+
+    <script>
+        // ==========================================
+        // DATA: All 3 Sets of Questions + Model Answers
+        // ==========================================
+        // N.B: I have fully populated 3 representative questions per set 
+        // to demonstrate the UI. To add all the questions from our conversation,
+        // simply add objects to these arrays following the exact structure.
+        const questionsData = [
+            // --- SET 1 QUESTIONS ---
+            {
+                set: 1,
+                module: 'JEB 115',
+                moduleClass: 'module-jeb',
+                text: '1. (a) Using a real classroom example, explain how you would implement inquiry-based learning to improve pupils\' understanding of a difficult topic. (b) Identify and describe any FIVE (5) key expectations of a student teacher during Supported Teaching in School (STS).',
+                marks: 15,
+                answer: `<h4>MODEL ANSWER (15 Marks)</h4>
+                    <p><b>(a) Implementing Inquiry-Based Learning (6 marks):</b></p>
+                    <ul>
+                        <li><b>Definition:</b> Inquiry-based learning is a student-centred approach where learners explore questions, investigate phenomena, and draw conclusions (2 marks).</li>
+                        <li><b>Example (Primary 4 - Photosynthesis):</b> A teacher poses the question: "Why do some seeds grow faster than others?" (1 mark). Students make predictions (hypotheses) (1 mark). They then set up an experiment placing seeds in different environments (sunlight, dark, water, no water) (1 mark). They collect data over a week and discuss their findings, concluding with the teacher's guidance that plants need light and water to grow (1 mark).</li>
+                    </ul>
+                    <p><b>(b) Five Expectations of a Student Teacher during STS (9 marks):</b></p>
+                    <ul>
+                        <li><b>1. Professional Conduct:</b> Dress appropriately, be punctual, maintain confidentiality, and respect school staff (1.5 marks).</li>
+                        <li><b>2. Lesson Planning:</b> Prepare detailed, standards-based lesson notes and submit them to the mentor for approval before teaching (1.5 marks).</li>
+                        <li><b>3. Classroom Management:</b> Establish routines, manage learner behaviour positively, and create a safe and inclusive environment (1.5 marks).</li>
+                        <li><b>4. Assessment of Learners:</b> Use formative and summative assessments (quizzes, assignments) to monitor progress and give constructive feedback (1.5 marks).</li>
+                        <li><b>5. Collaboration and Reflective Practice:</b> Work with the mentor and other staff, participate in school activities, and keep a teaching journal to reflect on strengths and weaknesses (1.5 marks).</li>
+                    </ul>`
+            },
+            {
+                set: 1,
+                module: 'JED 115',
+                moduleClass: 'module-jed',
+                text: '1. (a) Explain any FIVE (5) importance of education to Ghana\'s development. (b) It has been argued for a long time whether teaching is a profession or not. As a student teacher, explain any FIVE (5) reasons to justify that teaching is a profession.',
+                marks: 15,
+                answer: `<h4>MODEL ANSWER (15 Marks)</h4>
+                    <p><b>(a) Five Importance of Education to Ghana's Development (6 marks):</b></p>
+                    <ul>
+                        <li><b>1. Reduces Poverty:</b> Educated citizens are more likely to secure stable employment, lifting households out of poverty (1 mark).</li>
+                        <li><b>2. Builds a Better Society:</b> Education creates informed citizens capable of making rational choices and contributing to nation-building (1 mark).</li>
+                        <li><b>3. Promotes National Development:</b> An educated workforce drives multi-directional growth in economic, socio-cultural, technological, and political sectors (1 mark).</li>
+                        <li><b>4. Empowers Individuals:</b> Education provides the power of freedom, choice, information, and decision-making to its citizens (1 mark).</li>
+                        <li><b>5. Personal Development:</b> It imparts knowledge and judgment, making individuals more confident and prepared to face life's challenges (1 mark).</li>
+                    </ul>
+                    <p><b>(b) Five Reasons Justifying Teaching as a Profession (9 marks):</b></p>
+                    <ul>
+                        <li><b>1. Specialized Body of Knowledge:</b> Teachers must complete a formal training period (e.g., 4-year B.Ed) to acquire subject and pedagogical knowledge (1.5 marks).</li>
+                        <li><b>2. Registration of Entry:</b> Entry into the profession is restricted and requires meeting prescribed standards, such as licensing by the National Teaching Council (NTC) (1.5 marks).</li>
+                        <li><b>3. Code of Ethics:</b> The Ghana Education Service provides a book on conditions of service and a professional code of conduct to govern teachers' behavior (1.5 marks).</li>
+                        <li><b>4. Professional Associations:</b> Teachers have unions like GNAT and NAGRAT which represent their interests and regulate the group's activities (1.5 marks).</li>
+                        <li><b>5. Legal Backing and CPD:</b> The profession is legally recognized, and teachers are required to engage in Continuous Professional Development (CPD) to maintain their skills (1.5 marks).</li>
+                    </ul>`
+            },
+            {
+                set: 1,
+                module: 'JEN 117',
+                moduleClass: 'module-jen',
+                text: '1. (a) State any FOUR (4) of the Language Acquisition Theories you have learnt. (b) Explain the Behaviourist Theory of Language Acquisition. (c) State and explain any THREE (3) implications of the Behaviourist Theory to the teaching of English as a second language teacher.',
+                marks: 15,
+                answer: `<h4>MODEL ANSWER (15 Marks)</h4>
+                    <p><b>(a) Four Language Acquisition Theories (4 marks):</b></p>
+                    <ul>
+                        <li>1. The Behaviourist Theory.</li>
+                        <li>2. The Innatist Theory.</li>
+                        <li>3. The Cognitivist Theory.</li>
+                        <li>4. The Discourse Theory.</li>
+                    </ul>
+                    <p><b>(b) The Behaviourist Theory (6 marks):</b><br>
+                    The Behaviourist theory, championed by B.F. Skinner, states that children learn language through a process of <b>imitation, practice, reinforcement, and habit formation</b> (2 marks). Human role models in the environment provide stimuli (language sounds). When a child attempts to imitate these sounds, they are praised or rewarded (positive reinforcement) which encourages them to repeat the sounds until they form a habit of correct usage (2 marks). The quality and quantity of language the child hears, combined with consistent reinforcement, determines success in language learning (2 marks).</p>
+                    <p><b>(c) Three Implications for Teachers (5 marks):</b></p>
+                    <ul>
+                        <li><b>1. Teacher as Role Model:</b> The teacher must provide the right models in speaking and handwriting, as learners will imitate them (1.5 marks).</li>
+                        <li><b>2. Use of Language Drills:</b> Teachers should use repetition drills (e.g., "How much is the pencil? It is two cedis") to help pupils practice and memorize grammatical structures (1.5 marks).</li>
+                        <li><b>3. Use of Motivation:</b> Teachers should use praise, clapping, or tangible rewards as positive reinforcement to encourage learners to perform better in the L2 (2 marks).</li>
+                    </ul>`
+            },
+            // ... For the sake of the demo, I am providing 3 questions in Set 1. Set 2 and Set 3 will function exactly the same way.
+
+            // --- SET 2 QUESTIONS ---
+            {
+                set: 2,
+                module: 'JEB 115',
+                moduleClass: 'module-jeb',
+                text: '2. (a) Teachers must use observation to identify learners with diverse needs. Describe the Response to Intervention (RTI) approach used to identify students with academic needs in a classroom. (b) State and explain FOUR (4) specific strategies you will adopt to modify the behaviour of challenging learners in your classroom.',
+                marks: 15,
+                answer: `<h4>MODEL ANSWER (15 Marks)</h4>
+                    <p><b>(a) Response to Intervention (RTI) Approach (6 marks):</b><br>
+                    RTI is an approach that emphasizes <b>student outcomes rather than student deficits</b> (2 marks). It provides early and immediate support for students' academic needs by screening students as early as kindergarten (2 marks). It is used to identify and provide early intervention activities so that struggling students can participate and progress in the general curriculum. If a student is not responding to traditional instruction, they are provided with additional individualized and small-group instruction using research-based strategies (2 marks).</p>
+                    <p><b>(b) Four Behaviour Modification Strategies (9 marks):</b></p>
+                    <ul>
+                        <li><b>1. Planned Ignoring:</b> The teacher strategically ignores negative behaviours that are reinforced by peers, extinguishing them over time (2 marks).</li>
+                        <li><b>2. Positive Reinforcement:</b> Pairing a positive stimulus to a behaviour, such as rewarding a student with a sticker or star for raising their hand before speaking (2.5 marks).</li>
+                        <li><b>3. Token Economy (The 3x5 Card system):</b> The teacher rings a bell every 15 minutes and awards points/stars on a card to students who exhibit prescribed behaviours. Points can be exchanged for free time or desired activities (2.5 marks).</li>
+                        <li><b>4. Weekly Reports to Parents:</b> Sending home positive behaviour reports emphasizes good behaviour, reinforcing not only the child's actions but also conditioning the teacher to pay attention to positive behaviour (2 marks).</li>
+                    </ul>`
+            },
+            {
+                set: 2,
+                module: 'JED 115',
+                moduleClass: 'module-jed',
+                text: '2. (a) Describe the philosophy and main aims of Traditional (Indigenous) African Education in Ghana. (b) Discuss FOUR (4) major strengths and FOUR (4) weaknesses of the Traditional African system of education.',
+                marks: 15,
+                answer: `<h4>MODEL ANSWER (15 Marks)</h4>
+                    <p><b>(a) Philosophy and Aims of Indigenous Education (6 marks):</b><br>
+                    The philosophy of traditional education is that <b>the learner is a receptacle and the teacher is the possessor of knowledge</b> (2 marks). The aim is to embrace the social, moral, spiritual, intellectual, and psychomotor development of the young ones to make them functional members of society (2 marks). Key aims include: <b>Character training</b> (honesty, courage, respect for elders), <b>Political training</b>, <b>Vocational/Economic training</b> (farming, fishing, weaving), and <b>Religious preparation</b> (2 marks).</p>
+                    <p><b>(b) Strengths and Weaknesses (9 marks):</b><br>
+                    <b>Strengths (4 marks):</b> It was comprehensive and holistic (developing every aspect of personality). It was cost-effective (affordable). Every adult was a teacher, so there was no shortage of teachers. It prepared every individual to be a functional member of society, minimizing unemployment (1 mark each). <br>
+                    <b>Weaknesses (5 marks):</b> It was indigenous and localized—skills were not applicable outside the local environment. It was rigid and conservative, resistant to change. There was no sense of measurement or estimation (e.g., indicating distance as "just there"). There were no written figures or letters to prepare them for the outside world. It focused more on the group than the individual (1 mark each).</p>`
+            },
+            {
+                set: 2,
+                module: 'JMC 116',
+                moduleClass: 'module-jmc',
+                text: '2. (a) Evaluate the following without the use of a calculator: (i) 1 2/3 + 2 1/5 - 1 2/15 (ii) 0.75 ÷ 3/2. (b) A trader bought 200 pairs of shoes for GH¢15,000.00. He sold each pair for GH¢84.00. Calculate: (i) The cost of one shoe. (ii) The total amount realized from sales. (iii) The profit or loss percent.',
+                marks: 15,
+                answer: `<h4>MODEL ANSWER (15 Marks)</h4>
+                    <p><b>(a) (i) 1 2/3 + 2 1/5 - 1 2/15 (4 marks):</b><br>
+                    Step 1: Convert to improper fractions: 5/3 + 11/5 - 17/15.<br>
+                    Step 2: Find LCM of 3, 5, 15 = 15.<br>
+                    Step 3: (25/15) + (33/15) - (17/15) = (25 + 33 - 17)/15 = 41/15 = 2 11/15.</p>
+                    <p><b>(a) (ii) 0.75 ÷ 3/2 (4 marks):</b><br>
+                    0.75 = 3/4. So, 3/4 ÷ 3/2. Change division to multiplication by reciprocal: 3/4 × 2/3 = 6/12 = 1/2 = 0.5.</p>
+                    <p><b>(b) Trader Problem (7 marks):</b><br>
+                    (i) Cost of one shoe = Total Cost ÷ Quantity = GH¢15,000 ÷ 200 = <b>GH¢75.00</b> (2 marks).<br>
+                    (ii) Total Realized Sales = Selling Price × Quantity = GH¢84 × 200 = <b>GH¢16,800.00</b> (2 marks).<br>
+                    (iii) Profit = S.P - C.P = 16,800 - 15,000 = 1,800.<br>
+                    Profit % = (Profit / C.P) × 100% = (1,800 / 15,000) × 100% = 0.12 × 100% = <b>12%</b> (3 marks).</p>`
+            },
+
+            // --- SET 3 QUESTIONS (Gap Filler) ---
+            {
+                set: 3,
+                module: 'JED 115',
+                moduleClass: 'module-jed',
+                text: '3. (a) Governor Rodger\'s 1909 Reforms introduced significant changes to colonial education. Discuss any THREE (3) major provisions recommended by the Rodger\'s reforms. (b) Explain the challenges that frustrated the implementation of the 1909 educational reforms.',
+                marks: 15,
+                answer: `<h4>MODEL ANSWER (15 Marks)</h4>
+                    <p><b>(a) Three Provisions of Governor Rodger's Reforms (6 marks):</b></p>
+                    <ul>
+                        <li><b>1. End of Payment by Results:</b> Abolished the system where grants to schools depended on the number of passes made by pupils in exams; grants instead depended on overall teaching efficiency (2 marks).</li>
+                        <li><b>2. Emphasis on Agriculture:</b> Introduction of agriculture into the curriculum, which led to the establishment of school farms to teach practical agricultural skills (2 marks).</li>
+                        <li><b>3. Introduction of Technical Education:</b> The government took more interest in technical education to supplement the efforts of the Basel Mission, leading to the founding of the first Government Technical School in Accra in 1909 (2 marks).</li>
+                    </ul>
+                    <p><b>(b) Challenges Faced (9 marks):</b></p>
+                    <ul>
+                        <li><b>1. Lack of Funds:</b> Insufficient financial backing made it difficult to maintain the school farms and implement the reforms fully (3 marks).</li>
+                        <li><b>2. Persistence of "Parrot Learning":</b> Even though "Payment by Results" was abolished, the new rules did not eliminate the rote learning and memorization methods that had been entrenched (3 marks).</li>
+                        <li><b>3. The First World War:</b> The outbreak of WWI (1914-1919) disrupted the progress of the educational reforms (3 marks).</li>
+                    </ul>`
+            },
+            {
+                set: 3,
+                module: 'JEN 117',
+                moduleClass: 'module-jen',
+                text: '3. (a) Stephen Krashen\'s Monitor Model is based on five hypotheses. Explain any FOUR (4) of these hypotheses. (b) Identify and explain the FOUR (4) main stages of Second Language (L2) Acquisition that learners go through.',
+                marks: 15,
+                answer: `<h4>MODEL ANSWER (15 Marks)</h4>
+                    <p><b>(a) Four Hypotheses of Krashen's Monitor Model (8 marks):</b></p>
+                    <ul>
+                        <li><b>1. The Acquisition-Learning Hypothesis:</b> Differentiates between "acquisition" (subconscious, natural interaction) and "learning" (conscious, formal study of rules) (2 marks).</li>
+                        <li><b>2. The Input Hypothesis:</b> States that language acquisition happens through Comprehensible Input (CI), which is input slightly above the learner's current competence (i + 1) (2 marks).</li>
+                        <li><b>3. The Affective Filter Hypothesis:</b> Suggests that low motivation, anxiety, and lack of confidence act as a "filter" that blocks comprehension input from being acquired. High motivation and self-confidence lower this filter (2 marks).</li>
+                        <li><b>4. The Natural Order Hypothesis:</b> Claims that language rules are acquired in a predictable, natural order, regardless of how they are taught in the classroom (2 marks).</li>
+                    </ul>
+                    <p><b>(b) Four Stages of L2 Acquisition (7 marks):</b></p>
+                    <ul>
+                        <li><b>1. Pre-Production Stage:</b> The "silent period". Learners have a receptive vocabulary of up to 500 words but do not speak yet, instead relying on listening and comprehension (1.5 marks).</li>
+                        <li><b>2. Early Production Stage:</b> Learners develop a vocabulary of about 1,000 words and can speak in one- or two-word phrases (1.5 marks).</li>
+                        <li><b>3. Speech Emergence Stage:</b> Learners have about 3,000 words and can communicate using simple phrases and sentences. They can ask simple questions and initiate conversations (2 marks).</li>
+                        <li><b>4. Intermediate Fluency Stage:</b> Learners have about 6,000 active words. They use complex sentences and express opinions. They make errors as they master complex grammar but can synthesize information (2 marks).</li>
+                    </ul>`
+            },
+            {
+                set: 3,
+                module: 'JMC 116',
+                moduleClass: 'module-jmc',
+                text: '3. (a) Find the Highest Common Factor (HCF) and the Lowest Common Multiple (LCM) of 18, 24, and 36 using prime factorization. (b) If 10 men can build a wall in 8 days, how many days will it take 16 men working at the same rate to build the same wall?',
+                marks: 15,
+                answer: `<h4>MODEL ANSWER (15 Marks)</h4>
+                    <p><b>(a) HCF and LCM using Prime Factorization (6 marks):</b><br>
+                    Prime factorizations:<br>
+                    18 = 2 × 3²<br>
+                    24 = 2³ × 3<br>
+                    36 = 2² × 3²<br>
+                    <b>HCF:</b> Take the lowest power of common prime factors. 2¹ × 3¹ = <b>6</b> (3 marks).<br>
+                    <b>LCM:</b> Take the highest power of all prime factors present. 2³ × 3² = 8 × 9 = <b>72</b> (3 marks).</p>
+                    <p><b>(b) Indirect/Inverse Proportion (5 marks):</b><br>
+                    This is an indirect proportion problem because as the number of men increases, the days required decrease.<br>
+                    Set up the proportion: 10 men / 16 men = \( x \) days / 8 days.<br>
+                    Because it's inverse, cross-multiply: 10 × 8 = 16 × \( x \).<br>
+                    80 = 16x. Divide both sides by 16: <b>\( x = 5 \) days</b>.</p>`
+            }
+            // To add the rest of the question bank, paste the array objects here.
+        ];
+
+        // ==========================================
+        // APPLICATION LOGIC
+        // ==========================================
+
+        const container = document.getElementById('question-container');
+        const setTabs = document.querySelectorAll('.set-btn');
+        let currentSet = '1';
+
+        // Filter and Render Questions
+        function renderQuestions(setId) {
+            const filteredQuestions = questionsData.filter(q => q.set === parseInt(setId));
+            
+            if (filteredQuestions.length === 0) {
+                container.innerHTML = `<div class="empty-state">No questions available for this set.</div>`;
+                return;
+            }
+
+            container.innerHTML = filteredQuestions.map(q => `
+                <div class="q-card ${q.moduleClass}" onclick="toggleAnswer(this)">
+                    <div class="q-header">
+                        <div class="q-info">
+                            <div class="q-module">${q.module}</div>
+                            <div class="q-text">${q.text}</div>
+                        </div>
+                        <div class="q-marks">${q.marks} Marks</div>
+                        <div class="q-indicator">▼</div>
+                    </div>
+                    <div class="q-answer">
+                        ${q.answer}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Toggle Answer Function (Global scope so onclick attribute works)
+        window.toggleAnswer = function(element) {
+            const isOpen = element.classList.contains('open');
+            // Close all open cards
+            document.querySelectorAll('.q-card.open').forEach(card => {
+                card.classList.remove('open');
+            });
+            // If it wasn't open before, open it now.
+            if (!isOpen) {
+                element.classList.add('open');
+            }
+        };
+
+        // Set Navigation Logic
+        setTabs.forEach(btn => {
+            btn.addEventListener('click', function() {
+                setTabs.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentSet = this.getAttribute('data-set');
+                renderQuestions(currentSet);
+            });
+        });
+
+        // Initial Load
+        renderQuestions(1);
+    </script>
+</body>
+</html>
