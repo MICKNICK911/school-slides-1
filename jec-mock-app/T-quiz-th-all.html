@@ -928,30 +928,35 @@
         let currentSet = '1';
 
         // Filter and Render Questions
-        function renderQuestions(setId) {
-            const filteredQuestions = questionsData.filter(q => q.set === parseInt(setId));
-            
-            if (filteredQuestions.length === 0) {
-                container.innerHTML = `<div class="empty-state">No questions available for this set.</div>`;
-                return;
-            }
+        // Filter and Render Questions
+function renderQuestions(setId) {
+    // 1. Filter questions by the selected Set
+    let filteredQuestions = questionsData.filter(q => q.set === parseInt(setId));
+    
+    // 2. NEW LINE: Sort the questions alphabetically by Module so they group together
+    filteredQuestions.sort((a, b) => a.module.localeCompare(b.module));
 
-            container.innerHTML = filteredQuestions.map(q => `
-                <div class="q-card ${q.moduleClass}" onclick="toggleAnswer(this)">
-                    <div class="q-header">
-                        <div class="q-info">
-                            <div class="q-module">${q.module}</div>
-                            <div class="q-text">${q.text}</div>
-                        </div>
-                        <div class="q-marks">${q.marks} Marks</div>
-                        <div class="q-indicator">▼</div>
-                    </div>
-                    <div class="q-answer">
-                        ${q.answer}
-                    </div>
+    if (filteredQuestions.length === 0) {
+        container.innerHTML = `<div class="empty-state">No questions available for this set.</div>`;
+        return;
+    }
+
+    container.innerHTML = filteredQuestions.map(q => `
+        <div class="q-card ${q.moduleClass}" onclick="toggleAnswer(this)">
+            <div class="q-header">
+                <div class="q-info">
+                    <div class="q-module">${q.module}</div>
+                    <div class="q-text">${q.text}</div>
                 </div>
-            `).join('');
-        }
+                <div class="q-marks">${q.marks} Marks</div>
+                <div class="q-indicator">▼</div>
+            </div>
+            <div class="q-answer">
+                ${q.answer}
+            </div>
+        </div>
+    `).join('');
+}
 
         // Toggle Answer Function (Global scope so onclick attribute works)
         window.toggleAnswer = function(element) {
