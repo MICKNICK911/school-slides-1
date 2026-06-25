@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>B.Ed Exam Q&A Revision App</title>
+    
+    <!-- Load KaTeX for Math and Science Rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body);"></script>
+
     <style>
         /* Base Styles */
         :root {
@@ -114,6 +120,7 @@
             font-size: 1.05rem;
             font-weight: 500;
             line-height: 1.5;
+            word-break: break-word;
         }
         .q-marks {
             background: #edf2f7;
@@ -199,11 +206,65 @@
 
     <script>
         // ==========================================
-        // DATA: All 3 Sets of Questions + Model Answers
+        // AUTOMATIC MATH & SCIENCE FORMATTER
         // ==========================================
-        // N.B: I have fully populated 3 representative questions per set 
-        // to demonstrate the UI. To add all the questions from our conversation,
-        // simply add objects to these arrays following the exact structure.
+        function migrateMath(text) {
+            // Helper to replace with consistent \( \) delimiters for KaTeX
+            const wrap = (str) => `\\( ${str} \\)`;
+
+            // ================= MATH FORMATS =================
+            // 1. Mixed numbers (e.g., "1 2/3") -> 1\frac{2}{3}
+            text = text.replace(/(\d+)\s+(\d+)\/(\d+)/g, (match, whole, num, den) => wrap(`${whole}\\frac{${num}}{${den}}`));
+
+            // 2. Fractions (e.g., "5/3") -> \frac{5}{3}
+            text = text.replace(/(\d+)\/(\d+)/g, (match, num, den) => wrap(`\\frac{${num}}{${den}}`));
+
+            // 3. Square roots (e.g., "sqrt(16)") -> \sqrt{16}
+            text = text.replace(/sqrt\(([^)]+)\)/g, (match, contents) => wrap(`\\sqrt{${contents}}`));
+
+            // 4. Powers (e.g., "x^2" or "x^{10}") -> x^{2}
+            text = text.replace(/([a-zA-Z])\^(\{?\d+\}?)/g, (match, base, power) => wrap(`${base}^{${power}}`));
+
+            // 5. Subscripts (e.g., "x_1") -> x_{1}
+            text = text.replace(/([a-zA-Z])_(\d+)/g, (match, base, subscript) => wrap(`${base}_{${subscript}}`));
+
+            // 6. Composite functions (e.g., "fog" or "gof") -> f \circ g
+            text = text.replace(/fog/g, wrap(`f \\circ g`));
+            text = text.replace(/gof/g, wrap(`g \\circ f`));
+
+            // 7. Division symbol (e.g., "÷") -> \div
+            text = text.replace(/÷/g, wrap(`\\div`));
+
+            // ================= SCIENCE FORMATS =================
+            // 8. Chemical Formulas (e.g., "H2O", "CO2", "NaCl", "H2SO4")
+            // Matches a capital letter (optional lowercase) followed by one or more numbers
+            text = text.replace(/([A-Z][a-z]?)(\d+)/g, (match, element, num) => {
+                return wrap(`${element}_{${num}}`);
+            });
+
+            // 9. Scientific Units with exponents (e.g., "m/s^2", "m/s2", "km/h")
+            // Matches units followed by / followed by another unit and possible exponents
+            text = text.replace(/([a-zA-Z]\/[a-zA-Z])(\^?\d+)?/g, (match, unit, exp) => {
+                if (exp) return wrap(`${unit}^{${exp.replace('^', '')}}`);
+                return wrap(unit);
+            });
+
+            // 10. Degree Celsius/Fahrenheit (e.g., "100°C", "25°C")
+            text = text.replace(/(\d+)°([C|F])/g, (match, num, unit) => wrap(`${num}^{\\circ}${unit}`));
+
+            // 11. Square/Cubic Units (e.g., "m2", "cm3" -> m^2, cm^3)
+            // Only safe to do if preceded by a letter and followed by a boundary (not a word)
+            text = text.replace(/([a-zA-Z])2\b/g, (match, unit) => wrap(`${unit}^2`));
+            text = text.replace(/([a-zA-Z])3\b/g, (match, unit) => wrap(`${unit}^3`));
+
+            return text;
+        }
+
+        // ==========================================
+        // DATA PLACEHOLDERS
+        // ==========================================
+        // IMPORTANT: PASTE YOUR 6 CHUNKS HERE. 
+        // Replace the [] arrays below with your full const questionsDataChunk1 = [...] arrays.
         const questionsDataChunk1 = [
     // --- SET 1 ---
     {
@@ -908,8 +969,9 @@
             <p><b>(b) Why Metal Feels Colder (6 marks):</b><br>
             The phenomenon is explained by <b>Conduction</b> (2 marks). Metal is a much better conductor of heat than wood (2 marks). When you touch the metal rod, it rapidly conducts heat away from your hand into the rod, so your hand feels the drop in temperature immediately. Wood is a poor conductor, so it transfers heat away from your hand very slowly, making it feel warmer relative to the metal (2 marks).</p>`
     }
-];
-        // Paste this after importing your 6 chunks
+]; // Paste Chunk 6 here
+
+        // MERGE THE CHUNKS INTO THE MAIN DATA ARRAY
         const questionsData = [
             ...questionsDataChunk1, 
             ...questionsDataChunk2, 
@@ -928,37 +990,54 @@
         let currentSet = '1';
 
         // Filter and Render Questions
-        // Filter and Render Questions
-function renderQuestions(setId) {
-    // 1. Filter questions by the selected Set
-    let filteredQuestions = questionsData.filter(q => q.set === parseInt(setId));
-    
-    // 2. NEW LINE: Sort the questions alphabetically by Module so they group together
-    filteredQuestions.sort((a, b) => a.module.localeCompare(b.module));
+        function renderQuestions(setId) {
+            let filteredQuestions = questionsData.filter(q => q.set === parseInt(setId));
+            
+            // Group by Module
+            filteredQuestions.sort((a, b) => a.module.localeCompare(b.module));
 
-    if (filteredQuestions.length === 0) {
-        container.innerHTML = `<div class="empty-state">No questions available for this set.</div>`;
-        return;
-    }
+            if (filteredQuestions.length === 0) {
+                container.innerHTML = `<div class="empty-state">No questions available for this set. <br> Please add your question data to the 6 chunks in the &lt;script&gt; tag.</div>`;
+                return;
+            }
 
-    container.innerHTML = filteredQuestions.map(q => `
-        <div class="q-card ${q.moduleClass}" onclick="toggleAnswer(this)">
-            <div class="q-header">
-                <div class="q-info">
-                    <div class="q-module">${q.module}</div>
-                    <div class="q-text">${q.text}</div>
+            // Run the Math & Science Migration on Question Text and Answers
+            filteredQuestions = filteredQuestions.map(q => {
+                q.text = migrateMath(q.text);
+                q.answer = migrateMath(q.answer);
+                return q;
+            });
+
+            container.innerHTML = filteredQuestions.map(q => `
+                <div class="q-card ${q.moduleClass}" onclick="toggleAnswer(this)">
+                    <div class="q-header">
+                        <div class="q-info">
+                            <div class="q-module">${q.module}</div>
+                            <div class="q-text">${q.text}</div>
+                        </div>
+                        <div class="q-marks">${q.marks} Marks</div>
+                        <div class="q-indicator">▼</div>
+                    </div>
+                    <div class="q-answer">
+                        ${q.answer}
+                    </div>
                 </div>
-                <div class="q-marks">${q.marks} Marks</div>
-                <div class="q-indicator">▼</div>
-            </div>
-            <div class="q-answer">
-                ${q.answer}
-            </div>
-        </div>
-    `).join('');
-}
+            `).join('');
 
-        // Toggle Answer Function (Global scope so onclick attribute works)
+            // Render math and science formulas using KaTeX
+            if (window.renderMathInElement) {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '\\(', right: '\\)', display: false},
+                        {left: '\\[', right: '\\]', display: true}
+                    ],
+                    throwOnError : false
+                });
+            }
+        }
+
+        // Toggle Answer Function
         window.toggleAnswer = function(element) {
             const isOpen = element.classList.contains('open');
             // Close all open cards
