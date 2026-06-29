@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
-    <title>B.Ed Module Viewer</title>
+    <title>Year One Semester 2 Modules</title>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" />
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
@@ -11,8 +11,8 @@
 
     <style>
         /* ============================
-                   CSS VARIABLES (Light/Dark)
-                   ============================ */
+           CSS VARIABLES (Light/Dark)
+           ============================ */
         :root {
             --bg: #f8fafc;
             --surface: #ffffff;
@@ -27,6 +27,7 @@
             --hover-bg: #e2e8f0;
             --header-height: 60px;
             --sidebar-width: 320px;
+            --splash-bg: #0f172a;
         }
 
         body.dark-mode {
@@ -40,11 +41,12 @@
             --hover-bg: #334155;
             --accent: #3b82f6;
             --accent-hover: #60a5fa;
+            --splash-bg: #0f172a;
         }
 
         /* ============================
-                   RESET & BASE
-                   ============================ */
+           RESET & BASE
+           ============================ */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -72,16 +74,77 @@
         }
 
         /* ============================
-                   APP LAYOUT
-                   ============================ */
+           SPLASH SCREEN
+           ============================ */
+        #splash-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: var(--splash-bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            transition: opacity 0.6s ease, visibility 0.6s ease;
+            opacity: 1;
+            visibility: visible;
+            padding: 20px;
+            text-align: center;
+        }
+        #splash-screen.hide {
+            opacity: 0;
+            visibility: hidden;
+        }
+        #splash-screen .logo {
+            font-size: 4rem;
+            margin-bottom: 12px;
+        }
+        #splash-screen h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 6px;
+        }
+        #splash-screen .subtitle {
+            font-size: 1rem;
+            opacity: 0.7;
+            font-weight: 300;
+            margin-bottom: 30px;
+        }
+        #splash-screen .loader {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255,255,255,0.1);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        #splash-screen .version-tag {
+            position: absolute;
+            bottom: 30px;
+            font-size: 0.75rem;
+            opacity: 0.4;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ============================
+           LAYOUT
+           ============================ */
         #app {
             display: flex;
             flex-direction: column;
             height: 100vh;
             overflow: hidden;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        #app.visible {
+            opacity: 1;
         }
 
-        /* ---- Top Bar (Always on top, hamburger visible) ---- */
         #topbar {
             display: flex;
             align-items: center;
@@ -115,17 +178,17 @@
         .topbar-actions {
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 2px;
             flex-shrink: 0;
         }
         .topbar-actions button {
-            width: 40px;
-            height: 40px;
+            width: 38px;
+            height: 38px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             background: transparent;
             transition: background 0.2s;
         }
@@ -134,7 +197,6 @@
             background: var(--hover-bg);
         }
 
-        /* HAMBURGER - ALWAYS VISIBLE */
         #hamburger {
             display: flex;
             align-items: center;
@@ -151,7 +213,57 @@
             background: var(--hover-bg);
         }
 
-        /* Module Selector */
+        /* Refresh button (new) */
+        #refreshBtn {
+            font-size: 1.2rem;
+            transition: transform 0.3s;
+        }
+        #refreshBtn:active {
+            transform: rotate(180deg);
+        }
+        #refreshBtn.spinning {
+            animation: spin 0.6s linear;
+        }
+
+        /* Quiz buttons (new) */
+        .quiz-btn {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: var(--accent);
+            color: #fff;
+            transition: background 0.2s, transform 0.15s;
+            text-decoration: none;
+            display: inline-block;
+            border: none;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .quiz-btn:hover,
+        .quiz-btn:active {
+            background: var(--accent-hover);
+            transform: scale(0.97);
+        }
+        .quiz-btn.quiz-obj {
+            background: #059669;
+        }
+        .quiz-btn.quiz-obj:hover {
+            background: #047857;
+        }
+        .quiz-btn.quiz-th {
+            background: #d97706;
+        }
+        .quiz-btn.quiz-th:hover {
+            background: #b45309;
+        }
+        .quiz-buttons {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
         #module-selector {
             background: var(--surface-2);
             border: 1px solid var(--border);
@@ -159,7 +271,7 @@
             padding: 6px 10px;
             border-radius: 6px;
             font-size: 0.85rem;
-            max-width: 160px;
+            max-width: 140px;
             cursor: pointer;
             outline: none;
             transition: background 0.3s, border-color 0.3s;
@@ -168,7 +280,6 @@
             border-color: var(--accent);
         }
 
-        /* ---- Overlay (click to close sidebar) ---- */
         #overlay {
             position: fixed;
             inset: 0;
@@ -184,7 +295,9 @@
             opacity: 1;
         }
 
-        /* ---- Sidebar (Off-canvas on ALL screen sizes) ---- */
+        /* ============================
+           SIDEBAR
+           ============================ */
         #sidebar {
             position: fixed;
             top: 0;
@@ -227,9 +340,8 @@
             background: var(--hover-bg);
         }
 
-        /* Search */
         #search-box {
-            margin: 12px 16px;
+            margin: 12px 16px 8px 16px;
             padding: 10px 14px;
             border-radius: 8px;
             border: 1px solid var(--border);
@@ -248,7 +360,48 @@
             color: var(--text-secondary);
         }
 
-        /* Sidebar Navigation Tree */
+        /* Sidebar Buttons (new: Quiz + Data Bundle) */
+        #sidebar-buttons {
+            padding: 8px 16px 12px 16px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+        #sidebar-buttons .quiz-btn {
+            flex: 1;
+            text-align: center;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            min-width: 60px;
+        }
+        #sidebar-buttons .data-bundle-btn {
+            display: block;
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.85rem;
+            background: #7c3aed;
+            color: #fff;
+            text-decoration: none;
+            transition: background 0.2s, transform 0.15s;
+            border: none;
+            cursor: pointer;
+        }
+        #sidebar-buttons .data-bundle-btn:hover,
+        #sidebar-buttons .data-bundle-btn:active {
+            background: #6d28d9;
+            transform: scale(0.98);
+        }
+        #sidebar-buttons .data-bundle-btn::before {
+            content: '📱 ';
+        }
+
+        /* Navigation tree */
         #nav-tree {
             flex: 1;
             overflow-y: auto;
@@ -331,7 +484,9 @@
             opacity: 0.9;
         }
 
-        /* ---- Main Content (TAKES 100% WIDTH ALWAYS) ---- */
+        /* ============================
+           MAIN CONTENT
+           ============================ */
         #content {
             flex: 1 1 0%;
             min-width: 0;
@@ -414,8 +569,9 @@
             margin-bottom: 6px;
         }
         #content .session-content img {
-            max-width: 100%;
+            width: 100%;
             height: auto;
+            max-width: 100%;
             border-radius: var(--radius);
             margin: 16px 0;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
@@ -456,8 +612,63 @@
         }
 
         /* ============================
-                   RESPONSIVE: Only padding changes, layout stays the same
-                   ============================ */
+           UPDATE BANNER
+           ============================ */
+        #update-banner {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            z-index: 999;
+            display: none;
+            align-items: center;
+            gap: 14px;
+            max-width: 92%;
+            font-size: 0.9rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        #update-banner.show {
+            display: flex;
+        }
+        #update-banner .banner-msg {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        #update-banner .banner-btn {
+            background: var(--accent);
+            color: #fff;
+            padding: 6px 18px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: background 0.2s;
+        }
+        #update-banner .banner-btn:hover {
+            background: var(--accent-hover);
+        }
+        #update-banner .banner-close {
+            cursor: pointer;
+            font-size: 1.2rem;
+            opacity: 0.5;
+            background: none;
+            border: none;
+            padding: 0 4px;
+        }
+        #update-banner .banner-close:hover {
+            opacity: 1;
+        }
+
+        /* ============================
+           RESPONSIVE
+           ============================ */
         @media (min-width: 768px) {
             #content {
                 padding: 28px 48px 40px 48px;
@@ -469,17 +680,70 @@
                 width: 44px;
                 height: 44px;
             }
+            #module-selector {
+                max-width: 180px;
+            }
+            .quiz-btn {
+                font-size: 0.85rem;
+                padding: 8px 18px;
+            }
+            #sidebar-buttons .quiz-btn {
+                font-size: 0.85rem;
+            }
         }
 
         @media (min-width: 1024px) {
             #content {
                 padding: 36px 64px 48px 64px;
             }
+            #module-selector {
+                max-width: 220px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #topbar .brand {
+                font-size: 0.9rem;
+            }
+            #module-selector {
+                max-width: 100px;
+                font-size: 0.75rem;
+                padding: 4px 6px;
+            }
+            .quiz-btn {
+                font-size: 0.65rem;
+                padding: 4px 10px;
+            }
+            .topbar-actions button {
+                width: 34px;
+                height: 34px;
+                font-size: 1rem;
+            }
+            #splash-screen h1 {
+                font-size: 1.4rem;
+            }
+            #splash-screen .logo {
+                font-size: 3rem;
+            }
+            #sidebar-buttons .quiz-btn {
+                font-size: 0.7rem;
+                padding: 6px 10px;
+            }
+            #sidebar-buttons .data-bundle-btn {
+                font-size: 0.75rem;
+                padding: 8px 12px;
+            }
+            #update-banner {
+                font-size: 0.8rem;
+                padding: 10px 14px;
+                gap: 10px;
+                bottom: 10px;
+            }
         }
 
         /* ============================
-                   UTILITY & ANIMATIONS
-                   ============================ */
+           UTILITIES
+           ============================ */
         .hidden {
             display: none !important;
         }
@@ -496,8 +760,10 @@
                 transform: translateY(0);
             }
         }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
 
-        /* Scrollbar styling */
         #sidebar::-webkit-scrollbar,
         #content::-webkit-scrollbar {
             width: 5px;
@@ -511,35 +777,81 @@
             background: var(--border);
             border-radius: 10px;
         }
+
+        /* ============================
+           SPLASH SCREEN LOADER (enhanced)
+           ============================ */
+        #splash-screen .loader-bar {
+            width: 200px;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+        #splash-screen .loader-bar .fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            border-radius: 2px;
+            animation: loadProgress 1.2s ease forwards;
+        }
+        @keyframes loadProgress {
+            0% { width: 0%; }
+            100% { width: 100%; }
+        }
     </style>
 </head>
 <body>
+
+    <!-- ==================== SPLASH SCREEN ==================== -->
+    <div id="splash-screen" role="status" aria-label="Loading application">
+        <div class="logo">📚</div>
+        <h1>Year One Semester 2 Modules</h1>
+        <div class="subtitle">(Simplified)</div>
+        <div class="loader"></div>
+        <div class="loader-bar"><div class="fill"></div></div>
+        <div class="version-tag">v<span id="splash-version">1.0.0</span></div>
+    </div>
+
+    <!-- ==================== APP ==================== -->
     <div id="app">
-        <!-- ==================== TOP BAR ==================== -->
         <header id="topbar">
             <button id="hamburger" aria-label="Toggle navigation">☰</button>
             <div class="brand">
-                📚 <span id="module-title">Select a Module</span>
+                📚 <span id="module-title">Loading…</span>
                 <small id="module-code"></small>
             </div>
             <div class="topbar-actions">
+                <div class="quiz-buttons">
+                    <a href="#" class="quiz-btn quiz-obj" id="quizObjBtn">Quiz-Obj</a>
+                    <a href="#" class="quiz-btn quiz-th" id="quizThBtn">Quiz-Th</a>
+                </div>
+                <button id="refreshBtn" aria-label="Refresh content" title="Refresh content">🔄</button>
                 <select id="module-selector" aria-label="Switch module">
-                    <option value="">— Switch —</option>
+                    <option value="">— Select —</option>
                 </select>
                 <button id="themeToggle" aria-label="Toggle dark mode">🌙</button>
             </div>
         </header>
 
-        <!-- ==================== OVERLAY ==================== -->
         <div id="overlay" aria-hidden="true"></div>
 
-        <!-- ==================== SIDEBAR (Off-canvas on ALL sizes) ==================== -->
+        <!-- ==================== SIDEBAR ==================== -->
         <aside id="sidebar" role="navigation" aria-label="Module navigation">
             <div id="sidebar-header">
                 <h2>📑 Contents</h2>
                 <button id="sidebar-close" aria-label="Close navigation">✕</button>
             </div>
             <input type="text" id="search-box" placeholder="🔍 Search sessions..." autocomplete="off" />
+
+            <!-- Sidebar Buttons: Quiz + Data Bundle -->
+            <div id="sidebar-buttons">
+                <a href="#" class="quiz-btn quiz-obj">📝 Quiz-Obj</a>
+                <a href="#" class="quiz-btn quiz-th">📝 Quiz-Th</a>
+                <a href="#" class="data-bundle-btn">📱 Buy DATA Bundle here</a>
+            </div>
+
             <nav id="nav-tree">
                 <div class="empty-state" style="padding: 30px 10px;">
                     <p>Load a module to see contents.</p>
@@ -547,137 +859,36 @@
             </nav>
         </aside>
 
-        <!-- ==================== MAIN CONTENT (100% width) ==================== -->
+        <!-- ==================== MAIN CONTENT ==================== -->
         <main id="content" role="main">
             <div class="empty-state" id="welcome-message">
                 <h2>👋 Welcome!</h2>
                 <p>Select a module from the dropdown above to start learning.</p>
                 <p style="margin-top: 12px; font-size: 0.9rem; color: var(--text-secondary);">
-                    JEN 117 &amp; JED 115 are pre‑loaded for this prototype.
+                    External JSON modules loaded from <code>/data/modules/</code>
                 </p>
             </div>
             <div id="session-display" class="hidden"></div>
         </main>
     </div>
 
+    <!-- ==================== UPDATE BANNER ==================== -->
+    <div id="update-banner">
+        <span class="banner-msg">🔄 <b>New content available!</b> Version <span id="new-version">1.0.1</span></span>
+        <button class="banner-btn" onclick="refreshApp()">Refresh Now</button>
+        <button class="banner-close" onclick="this.parentElement.classList.remove('show')">✕</button>
+    </div>
+
     <script>
         // ============================================================
-        // 1. MOCK MODULE DATA (2 modules with placeholder images)
+        // 1. CONFIGURATION
         // ============================================================
-        const MOCK_MODULES = {
-            'jen117': {
-                code: 'JEN 117',
-                title: 'Introduction to Language and Literacy',
-                units: [{
-                    id: 1,
-                    title: 'Unit 1: Nature of Language',
-                    sessions: [{
-                        id: 1,
-                        title: 'Session 1: What is Language?',
-                        indicators: ['Define language', 'Explain why language is unique to humans'],
-                        content: `
-                            <p>Language is a medium through which we express our thoughts and feelings. It is a system of arbitrary vocal symbols used for human communication.</p>
-                            <img src="https://picsum.photos/seed/language1/800/400" alt="Abstract representation of language" />
-                            <p>Unlike animal communication, human language is <b>productive</b> – we can create infinite new sentences. It is also <b>culturally transmitted</b>, passed from one generation to the next.</p>
-                            <p>Example: \\(E = mc^2\\) is a formula, but language lets us discuss it!</p>
-                        `
-                    }, {
-                        id: 2,
-                        title: 'Session 2: Properties of Language',
-                        indicators: ['Explain arbitrariness', 'Explain displacement', 'List the design features'],
-                        content: `
-                            <p>Key properties of human language:</p>
-                            <ul>
-                                <li><b>Arbitrariness:</b> No natural link between a word and its meaning. E.g., 'pepper' vs 'atadi'.</li>
-                                <li><b>Displacement:</b> We can talk about the past, future, and imaginary things.</li>
-                                <li><b>Discreteness:</b> Distinct sounds like /p/ and /b/ change meaning.</li>
-                            </ul>
-                            <img src="https://picsum.photos/seed/language2/800/400" alt="Visual of language properties" />
-                            <p>These features make human language infinitely flexible.</p>
-                        `
-                    }]
-                }, {
-                    id: 2,
-                    title: 'Unit 2: Literacy Development',
-                    sessions: [{
-                        id: 1,
-                        title: 'Session 1: Stages of Literacy',
-                        indicators: ['Identify the five foundations of reading', 'Describe the consolidation stage'],
-                        content: `
-                            <p>Literacy develops in stages:</p>
-                            <ul>
-                                <li><b>Foundation:</b> Phonemic awareness, phonics, vocabulary.</li>
-                                <li><b>Beginning:</b> Decoding and encoding words.</li>
-                                <li><b>Consolidation / Fluency:</b> Reading becomes automatic.</li>
-                                <li><b>Growth:</b> Reading to learn new concepts.</li>
-                            </ul>
-                            <div class="table-wrap">
-                                <table>
-                                    <tr><th>Stage</th><th>Key Skill</th></tr>
-                                    <tr><td>Foundation</td><td>Phonemic awareness</td></tr>
-                                    <tr><td>Beginning</td><td>Blending sounds</td></tr>
-                                    <tr><td>Consolidation</td><td>Fluent reading</td></tr>
-                                </table>
-                            </div>
-                            <p><i>Image below: A classroom literacy activity.</i></p>
-                            <img src="https://picsum.photos/seed/literacy1/800/400" alt="Children learning to read" />
-                        `
-                    }]
-                }]
-            },
-            'jed115': {
-                code: 'JED 115',
-                title: 'Educational Foundations',
-                units: [{
-                    id: 1,
-                    title: 'Unit 1: History of Education',
-                    sessions: [{
-                        id: 1,
-                        title: 'Session 1: Traditional African Education',
-                        indicators: ['Describe the aims of indigenous education', 'List its key strengths'],
-                        content: `
-                            <p>Traditional African education was holistic, aiming to develop the whole person – physically, morally, and vocationally.</p>
-                            <img src="https://picsum.photos/seed/africa1/800/400" alt="Traditional African setting" />
-                            <p><b>Strengths:</b> Cost-effective, community-based, and practical. Every adult was a teacher.</p>
-                            <p>However, it lacked formal measurement and was resistant to change.</p>
-                        `
-                    }, {
-                        id: 2,
-                        title: 'Session 2: Colonial Education in Ghana',
-                        indicators: ['Explain the Castle Schools', 'Discuss the curriculum'],
-                        content: `
-                            <p>Castle Schools were established by European merchants along the coast. Their rationale:</p>
-                            <ul>
-                                <li>Educate mulatto children.</li>
-                                <li>Train interpreters for trade.</li>
-                                <li>Spread Christianity.</li>
-                            </ul>
-                            <img src="https://picsum.photos/seed/castle1/800/400" alt="Historical castle school" />
-                            <p>The curriculum focused on the <b>3Rs</b> (Reading, wRiting, aRithmetic) and religious instruction. Challenges included low enrolment, wars, and funding issues.</p>
-                            <p>Use \\(\\frac{a}{b}\\) to show proportions of students who attended.</p>
-                        `
-                    }]
-                }, {
-                    id: 2,
-                    title: 'Unit 2: Modern Education Policy',
-                    sessions: [{
-                        id: 1,
-                        title: 'Session 1: The 1961 Education Act',
-                        indicators: ['List the key provisions of the Act', 'Discuss the challenges'],
-                        content: `
-                            <p>The 1961 Education Act was Ghana's first major post-independence education law. Key provisions:</p>
-                            <ul>
-                                <li>Compulsory, free basic education.</li>
-                                <li>6 years primary + 4 years middle school.</li>
-                                <li>Defined powers of the Minister of Education.</li>
-                            </ul>
-                            <p>Challenges: shortage of teachers, inadequate funding, and rural-urban disparities.</p>
-                            <img src="https://picsum.photos/seed/ghana1/800/400" alt="Modern Ghanaian classroom" />
-                            <p>This Act laid the foundation for today's education system.</p>
-                        `
-                    }]
-                }]
-            }
+        const CONFIG = {
+            manifestUrl: './data/manifest.json',
+            modulesBase: './data/modules/',
+            cacheKey: 'module_',
+            appVersionKey: 'app_version',
+            manifestCacheKey: 'cached_manifest'
         };
 
         // ============================================================
@@ -689,16 +900,22 @@
             currentSessionId: null,
             sidebarOpen: false,
             theme: localStorage.getItem('theme') || 'light',
-            searchQuery: ''
+            searchQuery: '',
+            manifest: null,
+            moduleData: null,
+            appVersion: localStorage.getItem(CONFIG.appVersionKey) || '1.0.0'
         };
 
         // ============================================================
         // 3. DOM REFS
         // ============================================================
-        const $ = (sel) => document.querySelector(sel);
-        const $$ = (sel) => document.querySelectorAll(sel);
+        const $ = (s) => document.querySelector(s);
+        const $$ = (s) => document.querySelectorAll(s);
 
         const dom = {
+            splash: $('#splash-screen'),
+            splashVersion: $('#splash-version'),
+            app: $('#app'),
             sidebar: $('#sidebar'),
             overlay: $('#overlay'),
             hamburger: $('#hamburger'),
@@ -707,15 +924,20 @@
             moduleCode: $('#module-code'),
             moduleSelector: $('#module-selector'),
             themeToggle: $('#themeToggle'),
+            refreshBtn: $('#refreshBtn'),
             searchBox: $('#search-box'),
             navTree: $('#nav-tree'),
             content: $('#content'),
             sessionDisplay: $('#session-display'),
-            welcomeMsg: $('#welcome-message')
+            welcomeMsg: $('#welcome-message'),
+            updateBanner: $('#update-banner'),
+            newVersion: $('#new-version'),
+            quizObjBtn: $('#quizObjBtn'),
+            quizThBtn: $('#quizThBtn')
         };
 
         // ============================================================
-        // 4. HELPERS (Sidebar toggles WITHOUT screen-width checks)
+        // 4. SIDEBAR TOGGLES
         // ============================================================
         function closeSidebar() {
             state.sidebarOpen = false;
@@ -727,32 +949,6 @@
             state.sidebarOpen = true;
             dom.sidebar.classList.add('open');
             dom.overlay.classList.add('active');
-        }
-
-        function getModuleData(code) {
-            return MOCK_MODULES[code] || null;
-        }
-
-        function getAllModuleCodes() {
-            return Object.keys(MOCK_MODULES);
-        }
-
-        function parseHash() {
-            const hash = window.location.hash.slice(1);
-            const params = new URLSearchParams(hash);
-            return {
-                module: params.get('module') || null,
-                unit: parseInt(params.get('unit')) || null,
-                session: parseInt(params.get('session')) || null
-            };
-        }
-
-        function buildHash(module, unit, session) {
-            let parts = [];
-            if (module) parts.push(`module=${module}`);
-            if (unit) parts.push(`unit=${unit}`);
-            if (session) parts.push(`session=${session}`);
-            return '#' + parts.join('&');
         }
 
         // ============================================================
@@ -770,11 +966,164 @@
         }
 
         // ============================================================
-        // 6. RENDER: SIDEBAR
+        // 6. REFRESH / UPDATE HANDLING
         // ============================================================
+        function refreshApp() {
+            // Clear all module caches
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && (key.startsWith(CONFIG.cacheKey) || key === CONFIG.appVersionKey || key === CONFIG
+                        .manifestCacheKey)) {
+                    localStorage.removeItem(key);
+                }
+            }
+            dom.updateBanner.classList.remove('show');
+            // Reload current module
+            if (state.currentModule) {
+                loadModule(state.currentModule);
+            } else {
+                window.location.reload();
+            }
+        }
+
+        function showUpdateBanner(newVersion) {
+            dom.newVersion.textContent = newVersion;
+            dom.updateBanner.classList.add('show');
+        }
+
+        // ============================================================
+        // 7. DATA LOADING
+        // ============================================================
+
+        // Load manifest from external JSON
+        async function loadManifest() {
+            try {
+                const response = await fetch(CONFIG.manifestUrl + '?t=' + Date.now());
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const data = await response.json();
+
+                // Check if version changed
+                const storedVersion = localStorage.getItem(CONFIG.appVersionKey);
+                if (storedVersion && storedVersion !== data.version) {
+                    console.log('🔄 New version detected! Clearing cache...');
+                    // Clear all module caches
+                    const keysToRemove = [];
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const key = localStorage.key(i);
+                        if (key && key.startsWith(CONFIG.cacheKey)) {
+                            keysToRemove.push(key);
+                        }
+                    }
+                    keysToRemove.forEach(key => localStorage.removeItem(key));
+                    localStorage.removeItem(CONFIG.manifestCacheKey);
+
+                    // Show update banner to user
+                    showUpdateBanner(data.version);
+                }
+
+                // Store new version
+                localStorage.setItem(CONFIG.appVersionKey, data.version);
+                localStorage.setItem(CONFIG.manifestCacheKey, JSON.stringify(data));
+
+                state.manifest = data;
+                // Update splash version
+                dom.splashVersion.textContent = data.version;
+                return data;
+            } catch (error) {
+                console.error('Failed to load manifest:', error);
+                // Try to load cached manifest as fallback
+                const cachedManifest = localStorage.getItem(CONFIG.manifestCacheKey);
+                if (cachedManifest) {
+                    try {
+                        state.manifest = JSON.parse(cachedManifest);
+                        dom.splashVersion.textContent = state.manifest.version || '1.0.0';
+                        return state.manifest;
+                    } catch (e) { /* ignore */ }
+                }
+                dom.moduleSelector.innerHTML = `<option value="">⚠️ Manifest missing</option>`;
+                dom.moduleTitle.textContent = 'Error';
+                return null;
+            }
+        }
+
+        // Load a specific module JSON (with cache)
+        async function loadModuleData(moduleCode) {
+            const moduleEntry = state.manifest.modules.find(m => m.code === moduleCode);
+            if (!moduleEntry) {
+                console.error('Module not found in manifest:', moduleCode);
+                return null;
+            }
+
+            const fileName = moduleEntry.file || (moduleCode.toLowerCase() + '.json');
+            const url = CONFIG.modulesBase + fileName;
+
+            console.log('Fetching:', url);
+
+            // Check localStorage cache (with version awareness)
+            const cacheKey = CONFIG.cacheKey + moduleCode;
+            const cached = localStorage.getItem(cacheKey);
+            if (cached) {
+                try {
+                    const parsed = JSON.parse(cached);
+                    // Check if cache is less than 1 hour old
+                    if (parsed.timestamp && (Date.now() - parsed.timestamp < 3600000)) {
+                        console.log('Using cached data for:', moduleCode);
+                        return parsed.data;
+                    }
+                } catch (e) { /* ignore */ }
+            }
+
+            // Fetch from server
+            try {
+                const response = await fetch(url + '?t=' + Date.now());
+                if (!response.ok) throw new Error(`HTTP ${response.status} - ${url}`);
+                const data = await response.json();
+
+                // Store in localStorage
+                const toStore = {
+                    data: data,
+                    timestamp: Date.now()
+                };
+                localStorage.setItem(cacheKey, JSON.stringify(toStore));
+
+                return data;
+            } catch (error) {
+                console.error('Failed to load module:', error);
+                dom.moduleTitle.textContent = 'Load Error';
+                dom.moduleCode.textContent = '';
+                dom.navTree.innerHTML = `
+                            <div class="empty-state">
+                                <p>Could not load module "${moduleCode}".</p>
+                                <p style="font-size:0.8rem;color:var(--text-secondary);">
+                                    Tried: ${url}<br>
+                                    Check that the file exists and is valid JSON.
+                                </p>
+                            </div>
+                        `;
+                return null;
+            }
+        }
+
+        // ============================================================
+        // 8. RENDER FUNCTIONS
+        // ============================================================
+
+        function populateModuleSelector(manifest) {
+            if (!manifest || !manifest.modules) {
+                dom.moduleSelector.innerHTML = `<option value="">— No modules —</option>`;
+                return;
+            }
+            let html = `<option value=""> Select </option>`;
+            manifest.modules.forEach(mod => {
+                const label = mod.code;
+                html += `<option value="${mod.code}">${label}</option>`;
+            });
+            dom.moduleSelector.innerHTML = html;
+        }
+
         function renderSidebar(moduleData) {
-            if (!moduleData) {
-                dom.navTree.innerHTML = `<div class="empty-state"><p>No module loaded.</p></div>`;
+            if (!moduleData || !moduleData.units) {
+                dom.navTree.innerHTML = `<div class="empty-state"><p>No content.</p></div>`;
                 return;
             }
 
@@ -804,7 +1153,7 @@
                     const unitId = parseInt(this.dataset.unit);
                     const sessionId = parseInt(this.dataset.session);
                     loadSession(unitId, sessionId);
-                    closeSidebar(); // Auto-close after click on ALL devices
+                    closeSidebar();
                 });
             });
 
@@ -816,11 +1165,8 @@
             }
         }
 
-        // ============================================================
-        // 7. RENDER: CONTENT
-        // ============================================================
         function loadSession(unitId, sessionId) {
-            const moduleData = getModuleData(state.currentModule);
+            const moduleData = state.moduleData;
             if (!moduleData) return;
 
             const unit = moduleData.units.find(u => u.id === unitId);
@@ -853,8 +1199,8 @@
             dom.sessionDisplay.innerHTML = contentHtml;
             dom.sessionDisplay.classList.remove('hidden');
             dom.welcomeMsg.classList.add('hidden');
-            dom.moduleTitle.textContent = moduleData.title;
-            dom.moduleCode.textContent = moduleData.code;
+            dom.moduleTitle.textContent = moduleData.title || moduleData.code;
+            dom.moduleCode.textContent = moduleData.code || '';
 
             dom.navTree.querySelectorAll('.session-list li').forEach(el => {
                 el.classList.toggle('active',
@@ -873,40 +1219,45 @@
                         ],
                         throwOnError: false
                     });
-                } catch (e) { console.warn('KaTeX render error:', e); }
+                } catch (e) { console.warn('KaTeX error:', e); }
             }
 
             dom.content.scrollTop = 0;
         }
 
         // ============================================================
-        // 8. LOAD MODULE
+        // 9. MODULE LOADER
         // ============================================================
-        function loadModule(moduleCode) {
+        async function loadModule(moduleCode) {
             if (!moduleCode) {
                 dom.welcomeMsg.classList.remove('hidden');
                 dom.sessionDisplay.classList.add('hidden');
                 dom.moduleTitle.textContent = 'Select a Module';
                 dom.moduleCode.textContent = '';
-                dom.navTree.innerHTML =
-                    `<div class="empty-state" style="padding:30px 10px;"><p>Load a module to see contents.</p></div>`;
+                dom.navTree.innerHTML = `<div class="empty-state"><p>Select a module from the dropdown.</p></div>`;
                 state.currentModule = null;
+                state.moduleData = null;
                 state.currentUnitId = null;
                 state.currentSessionId = null;
                 dom.moduleSelector.value = '';
                 return;
             }
 
-            const data = getModuleData(moduleCode);
+            dom.moduleTitle.textContent = 'Loading…';
+            dom.moduleCode.textContent = moduleCode;
+
+            const data = await loadModuleData(moduleCode);
             if (!data) {
-                alert(`Module "${moduleCode}" not found.`);
+                dom.moduleTitle.textContent = 'Error';
                 return;
             }
 
             state.currentModule = moduleCode;
+            state.moduleData = data;
             dom.moduleSelector.value = moduleCode;
-            dom.moduleTitle.textContent = data.title;
-            dom.moduleCode.textContent = data.code;
+            dom.moduleTitle.textContent = data.title || moduleCode;
+            dom.moduleCode.textContent = data.code || '';
+
             renderSidebar(data);
 
             const hash = parseHash();
@@ -930,11 +1281,11 @@
         }
 
         // ============================================================
-        // 9. SEARCH
+        // 10. SEARCH
         // ============================================================
         function handleSearch(query) {
             state.searchQuery = query.trim().toLowerCase();
-            const moduleData = getModuleData(state.currentModule);
+            const moduleData = state.moduleData;
             if (!moduleData) return;
 
             const allSessions = [];
@@ -976,72 +1327,128 @@
         }
 
         // ============================================================
-        // 10. INIT
+        // 11. ROUTER / HASH HELPERS
         // ============================================================
-        function populateModuleSelector() {
-            const codes = getAllModuleCodes();
-            dom.moduleSelector.innerHTML = `<option value="">— Select —</option>`;
-            codes.forEach(code => {
-                const data = getModuleData(code);
-                dom.moduleSelector.innerHTML +=
-                    `<option value="${code}">${data ? data.code + ' – ' + data.title : code}</option>`;
-            });
+        function parseHash() {
+            const hash = window.location.hash.slice(1);
+            const params = new URLSearchParams(hash);
+            return {
+                module: params.get('module') || null,
+                unit: parseInt(params.get('unit')) || null,
+                session: parseInt(params.get('session')) || null
+            };
         }
 
-        function handleHashChange() {
-            const hash = parseHash();
-            if (hash.module) loadModule(hash.module);
-            else {
-                const codes = getAllModuleCodes();
-                if (codes.length) loadModule(codes[0]);
-            }
+        function buildHash(module, unit, session) {
+            let parts = [];
+            if (module) parts.push(`module=${module}`);
+            if (unit) parts.push(`unit=${unit}`);
+            if (session) parts.push(`session=${session}`);
+            return '#' + parts.join('&');
         }
 
-        function init() {
+        // ============================================================
+        // 12. INITIALIZATION
+        // ============================================================
+        async function init() {
+            // Theme
             applyTheme(state.theme);
             dom.themeToggle.addEventListener('click', toggleTheme);
 
-            // Hamburger: open on click (works on ALL sizes)
+            // Sidebar controls
             dom.hamburger.addEventListener('click', openSidebar);
-
-            // Close buttons
             dom.sidebarClose.addEventListener('click', closeSidebar);
             dom.overlay.addEventListener('click', closeSidebar);
 
-            dom.moduleSelector.addEventListener('change', function() {
-                if (this.value) window.location.hash = buildHash(this.value);
-                else { window.location.hash = '';
-                    loadModule(null); }
+            // Refresh button
+            dom.refreshBtn.addEventListener('click', function() {
+                this.classList.add('spinning');
+                refreshApp();
+                setTimeout(() => this.classList.remove('spinning'), 600);
             });
 
-            dom.searchBox.addEventListener('input', function() { handleSearch(this.value); });
+            // Quiz buttons (dummy links)
+            dom.quizObjBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                // You can replace this with actual navigation later
+                console.log('Quiz-Obj clicked');
+                alert('Quiz-Obj feature coming soon!');
+            });
+            dom.quizThBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('Quiz-Th clicked');
+                alert('Quiz-Th feature coming soon!');
+            });
 
-            populateModuleSelector();
-            window.addEventListener('hashchange', handleHashChange);
-
-            const hash = parseHash();
-            if (hash.module) loadModule(hash.module);
-            else {
-                const codes = getAllModuleCodes();
-                if (codes.length) {
-                    const first = codes[0];
-                    window.location.hash = buildHash(first);
-                    loadModule(first);
+            // Module selector
+            dom.moduleSelector.addEventListener('change', function() {
+                if (this.value) {
+                    window.location.hash = buildHash(this.value);
+                } else {
+                    window.location.hash = '';
+                    loadModule(null);
                 }
+            });
+
+            // Search
+            dom.searchBox.addEventListener('input', function() {
+                handleSearch(this.value);
+            });
+
+            // Load manifest
+            const manifest = await loadManifest();
+            if (manifest) {
+                populateModuleSelector(manifest);
+                state.manifest = manifest;
+            } else {
+                dom.moduleTitle.textContent = 'No manifest';
+                return;
             }
 
-            // Ensure sidebar is closed on any resize (optional, good UX)
-            window.addEventListener('resize', () => {
-                // Keep it closed unless user opens it manually.
-                // If you want to keep it open on a specific breakpoint, you can add logic here,
-                // but the user wants "exactly like mobile", so we leave it off-canvas always.
+            // Hash change listener
+            window.addEventListener('hashchange', async () => {
+                const hash = parseHash();
+                if (hash.module) {
+                    await loadModule(hash.module);
+                } else {
+                    if (state.manifest && state.manifest.modules.length) {
+                        const first = state.manifest.modules[0].code;
+                        window.location.hash = buildHash(first);
+                        await loadModule(first);
+                    }
+                }
             });
 
-            console.log('✅ B.Ed Module Viewer ready! Hamburger works on ALL screen sizes.');
+            // Initial load
+            const hash = parseHash();
+            if (hash.module) {
+                await loadModule(hash.module);
+            } else if (state.manifest && state.manifest.modules.length) {
+                const first = state.manifest.modules[0].code;
+                window.location.hash = buildHash(first);
+                await loadModule(first);
+            } else {
+                dom.welcomeMsg.classList.remove('hidden');
+                dom.sessionDisplay.classList.add('hidden');
+                dom.moduleTitle.textContent = 'No modules found';
+            }
+
+            // Show app with splash screen transition
+            setTimeout(() => {
+                dom.splash.classList.add('hide');
+                dom.app.classList.add('visible');
+            }, 800);
+
+            console.log('✅ B.Ed Module Viewer ready (external JSON)');
+            console.log(`📚 App version: ${localStorage.getItem(CONFIG.appVersionKey) || '1.0.0'}`);
         }
 
-        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
-        else init();
+        // Run
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
     </script>
 </body>
 </html>

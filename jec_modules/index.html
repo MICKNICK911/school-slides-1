@@ -11,39 +11,124 @@
 
     <style>
         /* ============================
-           CSS VARIABLES (Light/Dark) – SAME AS BEFORE
+           CSS VARIABLES (Gold, White, Wine Theme)
            ============================ */
         :root {
-            --bg: #f8fafc;
+            --bg: #f8f9fa;
             --surface: #ffffff;
-            --surface-2: #f1f5f9;
-            --text: #0f172a;
-            --text-secondary: #475569;
-            --border: #e2e8f0;
-            --shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+            --surface-2: #fdfbf7;
+            --text: #2d1b1e;
+            --text-secondary: #6b4c51;
+            --border: #e5d5b7;
+            --shadow: 0 8px 24px rgba(114, 47, 55, 0.10);
             --radius: 10px;
-            --accent: #2563eb;
-            --accent-hover: #1d4ed8;
-            --hover-bg: #e2e8f0;
+            --accent: #d4af37;
+            --accent-hover: #c9a84c;
+            --accent-light: #f9e49b;
+            --wine: #722f37;
+            --wine-dark: #4a0e17;
+            --wine-light: #a52a2a;
+            --wine-glow: rgba(114, 47, 55, 0.4);
             --header-height: 60px;
             --sidebar-width: 320px;
         }
 
+        /* ============================
+           DARK MODE – Wine Highlight & Buy Data Button in Wine
+           ============================ */
         body.dark-mode {
-            --bg: #0f172a;
-            --surface: #1e293b;
-            --surface-2: #334155;
-            --text: #f1f5f9;
-            --text-secondary: #94a3b8;
-            --border: #334155;
-            --shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
-            --hover-bg: #334155;
-            --accent: #3b82f6;
-            --accent-hover: #60a5fa;
+            --bg: #1a0d0f;
+            --surface: #2d151a;
+            --surface-2: #3e2026;
+            --text: #f1e6e8;
+            --text-secondary: #c5a882;
+            --border: #5a3a3f;
+            --shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+            --accent: #e8c84a;
+            --accent-hover: #f0d86a;
+            --accent-light: #f9e49b;
+            --wine: #c0393b;           /* Brighter wine for dark mode readability */
+            --wine-dark: #2d151a;
+            --wine-light: #e8747c;
+            --wine-glow: rgba(192, 57, 59, 0.5);
         }
 
         /* ============================
-           RESET & BASE – SAME AS BEFORE
+           BUY DATA BUNDLE – PULSING EFFECT
+           ============================ */
+        @keyframes pulse-wine {
+            0% {
+                box-shadow: 0 0 0 0 var(--wine-glow);
+                transform: scale(1);
+            }
+            50% {
+                box-shadow: 0 0 20px 8px var(--wine-glow);
+                transform: scale(1.02);
+            }
+            100% {
+                box-shadow: 0 0 0 0 var(--wine-glow);
+                transform: scale(1);
+            }
+        }
+        .data-bundle-btn.pulse {
+            animation: pulse-wine 2s ease-in-out infinite;
+        }
+        .data-bundle-btn.pulse:hover {
+            animation: none;
+            transform: scale(1.05);
+        }
+
+        /* ============================
+           SPLASH SCREEN
+           ============================ */
+        #splash-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: var(--wine-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            transition: opacity 0.8s ease;
+            color: #fff;
+            text-align: center;
+            padding: 20px;
+        }
+        #splash-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        #splash-screen h1 {
+            font-size: 2.8rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+            line-height: 1.2;
+        }
+        #splash-screen .sub {
+            font-size: 1.2rem;
+            color: var(--accent-light);
+            opacity: 0.8;
+            font-weight: 300;
+            letter-spacing: 4px;
+        }
+        #splash-screen .loader {
+            margin-top: 40px;
+            width: 48px;
+            height: 48px;
+            border: 4px solid rgba(212, 175, 55, 0.2);
+            border-top: 4px solid var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ============================
+           RESET & BASE
            ============================ */
         * {
             box-sizing: border-box;
@@ -62,17 +147,18 @@
             height: 100vh;
             overflow: hidden;
         }
-        button {
+        button, a {
             font: inherit;
             cursor: pointer;
             background: none;
             border: none;
             color: inherit;
             touch-action: manipulation;
+            text-decoration: none;
         }
 
         /* ============================
-           LAYOUT – IDENTICAL TO PREVIOUS VERSION
+           APP LAYOUT
            ============================ */
         #app {
             display: flex;
@@ -81,17 +167,19 @@
             overflow: hidden;
         }
 
+        /* ---- Top Bar ---- */
         #topbar {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 8px;
             padding: 0 16px;
             height: var(--header-height);
             background: var(--surface);
-            border-bottom: 1px solid var(--border);
+            border-bottom: 2px solid var(--accent);
             flex-shrink: 0;
             z-index: 100;
             transition: background 0.3s, border-color 0.3s;
+            flex-wrap: nowrap;
         }
         #topbar .brand {
             display: flex;
@@ -103,7 +191,8 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            flex: 1;
+            flex: 1 1 auto;
+            min-width: 0;
         }
         #topbar .brand small {
             font-weight: 400;
@@ -111,28 +200,53 @@
             color: var(--text-secondary);
             margin-left: 4px;
         }
+
         .topbar-actions {
             display: flex;
             align-items: center;
             gap: 4px;
             flex-shrink: 0;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+        .topbar-actions .quiz-btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: 2px solid var(--accent);
+            color: var(--accent);
+            transition: 0.2s;
+            height: 32px;
+            background: transparent;
+            white-space: nowrap;
+        }
+        .topbar-actions .quiz-btn:hover {
+            background: var(--accent);
+            color: var(--wine-dark);
         }
         .topbar-actions button {
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             background: transparent;
-            transition: background 0.2s;
+            transition: background 0.2s, color 0.2s;
+            color: var(--text-secondary);
+            flex-shrink: 0;
         }
         .topbar-actions button:hover,
         .topbar-actions button:active {
-            background: var(--hover-bg);
+            background: var(--surface-2);
+            color: var(--accent);
         }
-
         #hamburger {
             display: flex;
             align-items: center;
@@ -143,28 +257,30 @@
             font-size: 1.5rem;
             background: transparent;
             flex-shrink: 0;
-            transition: background 0.2s;
+            color: var(--text);
         }
         #hamburger:active {
-            background: var(--hover-bg);
+            background: var(--surface-2);
         }
 
         #module-selector {
             background: var(--surface-2);
             border: 1px solid var(--border);
             color: var(--text);
-            padding: 6px 10px;
+            padding: 4px 8px;
             border-radius: 6px;
-            font-size: 0.85rem;
-            max-width: 160px;
+            font-size: 0.8rem;
+            max-width: 120px;
             cursor: pointer;
             outline: none;
             transition: background 0.3s, border-color 0.3s;
+            height: 32px;
         }
         #module-selector:focus {
             border-color: var(--accent);
         }
 
+        /* ---- Overlay ---- */
         #overlay {
             position: fixed;
             inset: 0;
@@ -180,6 +296,7 @@
             opacity: 1;
         }
 
+        /* ---- Sidebar ---- */
         #sidebar {
             position: fixed;
             top: 0;
@@ -188,7 +305,7 @@
             max-width: var(--sidebar-width);
             height: 100%;
             background: var(--surface);
-            border-right: 1px solid var(--border);
+            border-right: 2px solid var(--accent);
             z-index: 200;
             transform: translateX(-100%);
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -206,24 +323,28 @@
             align-items: center;
             justify-content: space-between;
             padding: 16px 16px 12px 16px;
-            border-bottom: 1px solid var(--border);
+            border-bottom: 2px solid var(--accent);
             flex-shrink: 0;
         }
         #sidebar-header h2 {
             font-size: 1rem;
-            font-weight: 600;
+            font-weight: 700;
+            color: var(--wine);
+            letter-spacing: 0.5px;
         }
         #sidebar-close {
             font-size: 1.5rem;
             padding: 4px 8px;
             border-radius: 6px;
+            color: var(--text-secondary);
         }
         #sidebar-close:active {
-            background: var(--hover-bg);
+            background: var(--surface-2);
         }
 
+        /* Search */
         #search-box {
-            margin: 12px 16px;
+            margin: 12px 16px 8px 16px;
             padding: 10px 14px;
             border-radius: 8px;
             border: 1px solid var(--border);
@@ -242,6 +363,7 @@
             color: var(--text-secondary);
         }
 
+        /* Sidebar Navigation */
         #nav-tree {
             flex: 1;
             overflow-y: auto;
@@ -265,7 +387,8 @@
             min-height: 44px;
             touch-action: manipulation;
             background: var(--surface-2);
-            transition: background 0.2s;
+            transition: background 0.2s, color 0.2s;
+            color: var(--wine);
         }
         #nav-tree .unit summary::-webkit-details-marker {
             display: none;
@@ -275,13 +398,13 @@
             font-size: 0.7rem;
             margin-right: 10px;
             transition: transform 0.2s;
-            color: var(--text-secondary);
+            color: var(--accent);
         }
         #nav-tree .unit[open] summary::before {
             transform: rotate(90deg);
         }
         #nav-tree .unit summary:active {
-            background: var(--hover-bg);
+            background: var(--border);
         }
 
         #nav-tree .session-list {
@@ -297,33 +420,69 @@
             min-height: 44px;
             display: flex;
             align-items: center;
-            transition: background 0.15s;
+            transition: background 0.15s, color 0.15s;
             color: var(--text-secondary);
             border-left: 3px solid transparent;
             touch-action: manipulation;
         }
         #nav-tree .session-list li:active {
-            background: var(--hover-bg);
+            background: var(--surface-2);
         }
         #nav-tree .session-list li.active {
-            background: var(--accent);
+            background: var(--wine);
             color: #fff;
-            border-left-color: #fff;
+            border-left-color: var(--accent);
             font-weight: 500;
         }
-        #nav-tree .session-list li.active:active {
-            background: var(--accent-hover);
+        #nav-tree .session-list li.active .sess-id {
+            opacity: 0.9;
+            color: var(--accent);
         }
         #nav-tree .session-list li .sess-id {
             font-weight: 600;
             margin-right: 8px;
             opacity: 0.6;
             font-size: 0.75rem;
-        }
-        #nav-tree .session-list li.active .sess-id {
-            opacity: 0.9;
+            color: var(--text-secondary);
         }
 
+        /* Sidebar Footer (Data Bundle) */
+        #sidebar-footer {
+            padding: 12px 16px 20px 16px;
+            border-top: 2px solid var(--accent);
+            flex-shrink: 0;
+            background: var(--surface);
+        }
+        .data-bundle-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--wine);
+            color: #fff;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            text-align: center;
+            transition: background 0.2s, transform 0.1s;
+            border: 2px solid var(--accent);
+            box-shadow: 0 4px 12px var(--wine-glow);
+        }
+        .data-bundle-btn:hover {
+            background: var(--wine-dark);
+            transform: scale(1.02);
+            animation: none;
+        }
+        .data-bundle-btn:active {
+            transform: scale(0.98);
+        }
+        .data-bundle-btn span {
+            font-size: 1.2rem;
+        }
+
+        /* ---- Main Content ---- */
         #content {
             flex: 1 1 0%;
             min-width: 0;
@@ -387,7 +546,7 @@
         #content .session-content h4 {
             font-size: 1.2rem;
             margin: 20px 0 12px 0;
-            color: var(--text);
+            color: var(--wine);
         }
         #content .session-content h5 {
             font-size: 1.05rem;
@@ -430,6 +589,7 @@
         #content .session-content table th {
             background: var(--surface-2);
             font-weight: 600;
+            color: var(--wine);
         }
         .table-wrap {
             overflow-x: auto;
@@ -448,6 +608,60 @@
             color: var(--text);
         }
 
+        /* ---- Update Banner ---- */
+        #update-banner {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--surface);
+            border: 2px solid var(--accent);
+            border-radius: 12px;
+            padding: 14px 24px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            max-width: 90%;
+            font-size: 0.95rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            color: var(--text);
+            box-shadow: 0 4px 20px rgba(212, 175, 55, 0.2);
+        }
+        #update-banner .banner-text {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        #update-banner .banner-btn {
+            background: var(--accent);
+            color: var(--wine-dark);
+            padding: 6px 20px;
+            border-radius: 6px;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+            transition: background 0.2s;
+            font-size: 0.9rem;
+        }
+        #update-banner .banner-btn:hover {
+            background: var(--accent-hover);
+        }
+        #update-banner .banner-close {
+            cursor: pointer;
+            font-size: 1.2rem;
+            opacity: 0.6;
+            background: none;
+            border: none;
+            padding: 4px 8px;
+            color: var(--text-secondary);
+        }
+
+        /* ============================
+           RESPONSIVE
+           ============================ */
         @media (min-width: 768px) {
             #content {
                 padding: 28px 48px 40px 48px;
@@ -455,9 +669,12 @@
             #sidebar {
                 max-width: 340px;
             }
-            .topbar-actions button {
-                width: 44px;
-                height: 44px;
+            #module-selector {
+                max-width: 160px;
+            }
+            .topbar-actions .quiz-btn {
+                font-size: 0.8rem;
+                padding: 4px 16px;
             }
         }
 
@@ -465,8 +682,38 @@
             #content {
                 padding: 36px 64px 48px 64px;
             }
+            #module-selector {
+                max-width: 200px;
+            }
         }
 
+        @media (max-width: 600px) {
+            #topbar .brand {
+                font-size: 0.9rem;
+            }
+            .topbar-actions .quiz-btn {
+                font-size: 0.6rem;
+                padding: 2px 8px;
+                height: 26px;
+            }
+            #module-selector {
+                max-width: 80px;
+                font-size: 0.7rem;
+                padding: 2px 4px;
+            }
+            .topbar-actions button {
+                width: 32px;
+                height: 32px;
+                font-size: 1rem;
+            }
+            #splash-screen h1 {
+                font-size: 2rem;
+            }
+        }
+
+        /* ============================
+           UTILITIES
+           ============================ */
         .hidden {
             display: none !important;
         }
@@ -484,6 +731,7 @@
             }
         }
 
+        /* Scrollbar */
         #sidebar::-webkit-scrollbar,
         #content::-webkit-scrollbar {
             width: 5px;
@@ -500,23 +748,40 @@
     </style>
 </head>
 <body>
+
+    <!-- ==================== SPLASH SCREEN ==================== -->
+    <div id="splash-screen">
+        <div class="splash-content">
+            <h1>📚 Year One<br>Semester 2 Modules</h1>
+            <p class="sub">(Simplified)</p>
+            <div class="loader"></div>
+        </div>
+    </div>
+
+    <!-- ==================== APP ==================== -->
     <div id="app">
+        <!-- Top Bar -->
         <header id="topbar">
             <button id="hamburger" aria-label="Toggle navigation">☰</button>
             <div class="brand">
-                📚 <span id="module-title">Loading…</span>
+                <span id="module-title">Loading…</span>
                 <small id="module-code"></small>
             </div>
             <div class="topbar-actions">
+                <a href="#" class="quiz-btn obj">Quiz-Obj</a>
+                <a href="#" class="quiz-btn th">Quiz-Th</a>
                 <select id="module-selector" aria-label="Switch module">
                     <option value="">— Select —</option>
                 </select>
+                <button id="refreshBtn" aria-label="Refresh content" title="Refresh content">🔄</button>
                 <button id="themeToggle" aria-label="Toggle dark mode">🌙</button>
             </div>
         </header>
 
+        <!-- Overlay -->
         <div id="overlay" aria-hidden="true"></div>
 
+        <!-- Sidebar -->
         <aside id="sidebar" role="navigation" aria-label="Module navigation">
             <div id="sidebar-header">
                 <h2>📑 Contents</h2>
@@ -528,8 +793,14 @@
                     <p>Load a module to see contents.</p>
                 </div>
             </nav>
+            <div id="sidebar-footer">
+                <a href="#" class="data-bundle-btn pulse">
+                    <span>📱</span> Buy DATA Bundle here
+                </a>
+            </div>
         </aside>
 
+        <!-- Main Content -->
         <main id="content" role="main">
             <div class="empty-state" id="welcome-message">
                 <h2>👋 Welcome!</h2>
@@ -562,8 +833,8 @@
             sidebarOpen: false,
             theme: localStorage.getItem('theme') || 'light',
             searchQuery: '',
-            manifest: null, // { modules: [ { code, title, file, icon } ] }
-            moduleData: null // cached module object
+            manifest: null,
+            moduleData: null
         };
 
         // ============================================================
@@ -573,6 +844,7 @@
         const $$ = (s) => document.querySelectorAll(s);
 
         const dom = {
+            splash: $('#splash-screen'),
             sidebar: $('#sidebar'),
             overlay: $('#overlay'),
             hamburger: $('#hamburger'),
@@ -581,6 +853,7 @@
             moduleCode: $('#module-code'),
             moduleSelector: $('#module-selector'),
             themeToggle: $('#themeToggle'),
+            refreshBtn: $('#refreshBtn'),
             searchBox: $('#search-box'),
             navTree: $('#nav-tree'),
             content: $('#content'),
@@ -589,7 +862,7 @@
         };
 
         // ============================================================
-        // 4. SIDEBAR TOGGLES (same as before)
+        // 4. SIDEBAR TOGGLES
         // ============================================================
         function closeSidebar() {
             state.sidebarOpen = false;
@@ -604,7 +877,7 @@
         }
 
         // ============================================================
-        // 5. THEME (unchanged)
+        // 5. THEME
         // ============================================================
         function applyTheme(theme) {
             state.theme = theme;
@@ -618,91 +891,99 @@
         }
 
         // ============================================================
-        // 6. DATA LOADING (NEW!)
+        // 6. DATA LOADING
         // ============================================================
 
-        // Load manifest from external JSON
         async function loadManifest() {
             try {
-                const response = await fetch(CONFIG.manifestUrl);
+                const response = await fetch(CONFIG.manifestUrl + '?t=' + Date.now());
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 const data = await response.json();
+
+                // Check version
+                const storedVersion = localStorage.getItem('app_version');
+                if (storedVersion && storedVersion !== data.version) {
+                    console.log('🔄 New version detected! Clearing cache...');
+                    const keysToRemove = [];
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const key = localStorage.key(i);
+                        if (key && (key.startsWith(CONFIG.cacheKey) || key === 'app_version')) {
+                            keysToRemove.push(key);
+                        }
+                    }
+                    keysToRemove.forEach(key => localStorage.removeItem(key));
+                    showUpdateBanner(data.version);
+                }
+                localStorage.setItem('app_version', data.version);
+
                 state.manifest = data;
+                localStorage.setItem('cached_manifest', JSON.stringify(data));
                 return data;
             } catch (error) {
                 console.error('Failed to load manifest:', error);
-                // Fallback: show error in dropdown
+                const cachedManifest = localStorage.getItem('cached_manifest');
+                if (cachedManifest) {
+                    state.manifest = JSON.parse(cachedManifest);
+                    return state.manifest;
+                }
                 dom.moduleSelector.innerHTML = `<option value="">⚠️ Manifest missing</option>`;
                 dom.moduleTitle.textContent = 'Error';
                 return null;
             }
         }
 
-        // Load a specific module JSON (with cache)
         async function loadModuleData(moduleCode) {
-    // Find the module entry in the manifest
-    const moduleEntry = state.manifest.modules.find(m => m.code === moduleCode);
-    if (!moduleEntry) {
-        console.error('Module not found in manifest:', moduleCode);
-        return null;
-    }
-
-    // Use the file key if it exists, otherwise construct from code
-    const fileName = moduleEntry.file || (moduleCode.toLowerCase() + '.json');
-    const url = CONFIG.modulesBase + fileName;
-
-    console.log('Fetching:', url); // Debug: check the URL
-
-    // Check localStorage cache
-    const cacheKey = CONFIG.cacheKey + moduleCode;
-    const cached = localStorage.getItem(cacheKey);
-    if (cached) {
-        try {
-            const parsed = JSON.parse(cached);
-            // Check if cache is less than 1 hour old (optional)
-            if (parsed.timestamp && (Date.now() - parsed.timestamp < 3600000)) {
-                console.log('Using cached data for:', moduleCode);
-                return parsed.data;
+            const moduleEntry = state.manifest.modules.find(m => m.code === moduleCode);
+            if (!moduleEntry) {
+                console.error('Module not found in manifest:', moduleCode);
+                return null;
             }
-        } catch (e) { /* ignore */ }
-    }
 
-    // Fetch from server
-    try {
-        const response = await fetch(url);
-        if (!response.ok) throw new Error(`HTTP ${response.status} - ${url}`);
-        const data = await response.json();
+            const fileName = moduleEntry.file || (moduleCode.toLowerCase() + '.json');
+            const url = CONFIG.modulesBase + fileName;
 
-        // Store in localStorage
-        const toStore = {
-            data: data,
-            timestamp: Date.now()
-        };
-        localStorage.setItem(cacheKey, JSON.stringify(toStore));
+            const cacheKey = CONFIG.cacheKey + moduleCode;
+            const cached = localStorage.getItem(cacheKey);
+            if (cached) {
+                try {
+                    const parsed = JSON.parse(cached);
+                    if (parsed.timestamp && (Date.now() - parsed.timestamp < 3600000)) {
+                        console.log('Using cached data for:', moduleCode);
+                        return parsed.data;
+                    }
+                } catch (e) { /* ignore */ }
+            }
 
-        return data;
-    } catch (error) {
-        console.error('Failed to load module:', error);
-        dom.moduleTitle.textContent = 'Load Error';
-        dom.moduleCode.textContent = '';
-        dom.navTree.innerHTML = `
-            <div class="empty-state">
-                <p>Could not load module "${moduleCode}".</p>
-                <p style="font-size:0.8rem;color:var(--text-secondary);">
-                    Tried: ${url}<br>
-                    Check that the file exists and is valid JSON.
-                </p>
-            </div>
-        `;
-        return null;
-    }
-}
+            try {
+                const response = await fetch(url + '?t=' + Date.now());
+                if (!response.ok) throw new Error(`HTTP ${response.status} - ${url}`);
+                const data = await response.json();
+
+                const toStore = { data: data, timestamp: Date.now() };
+                localStorage.setItem(cacheKey, JSON.stringify(toStore));
+
+                return data;
+            } catch (error) {
+                console.error('Failed to load module:', error);
+                dom.moduleTitle.textContent = 'Load Error';
+                dom.moduleCode.textContent = '';
+                dom.navTree.innerHTML = `
+                            <div class="empty-state">
+                                <p>Could not load module "${moduleCode}".</p>
+                                <p style="font-size:0.8rem;color:var(--text-secondary);">
+                                    Tried: ${url}<br>
+                                    Check that the file exists and is valid JSON.
+                                </p>
+                            </div>
+                        `;
+                return null;
+            }
+        }
 
         // ============================================================
-        // 7. RENDER FUNCTIONS (adapt to external data)
+        // 7. RENDER FUNCTIONS
         // ============================================================
 
-        // Populate dropdown from manifest
         function populateModuleSelector(manifest) {
             if (!manifest || !manifest.modules) {
                 dom.moduleSelector.innerHTML = `<option value="">— No modules —</option>`;
@@ -710,13 +991,11 @@
             }
             let html = `<option value=""> Select </option>`;
             manifest.modules.forEach(mod => {
-                const label = mod.code;
-                html += `<option value="${mod.code}">${label}</option>`;
+                html += `<option value="${mod.code}">${mod.code}</option>`;
             });
             dom.moduleSelector.innerHTML = html;
         }
 
-        // Render sidebar from module data
         function renderSidebar(moduleData) {
             if (!moduleData || !moduleData.units) {
                 dom.navTree.innerHTML = `<div class="empty-state"><p>No content.</p></div>`;
@@ -761,7 +1040,6 @@
             }
         }
 
-        // Load a specific session (same as before, but uses state.moduleData)
         function loadSession(unitId, sessionId) {
             const moduleData = state.moduleData;
             if (!moduleData) return;
@@ -799,7 +1077,6 @@
             dom.moduleTitle.textContent = moduleData.title || moduleData.code;
             dom.moduleCode.textContent = moduleData.code || '';
 
-            // Update sidebar highlights
             dom.navTree.querySelectorAll('.session-list li').forEach(el => {
                 el.classList.toggle('active',
                     parseInt(el.dataset.unit) === unitId &&
@@ -807,7 +1084,6 @@
                 );
             });
 
-            // Render KaTeX
             if (window.renderMathInElement) {
                 try {
                     window.renderMathInElement(dom.sessionDisplay, {
@@ -825,7 +1101,7 @@
         }
 
         // ============================================================
-        // 8. MODULE LOADER (async)
+        // 8. MODULE LOADER
         // ============================================================
         async function loadModule(moduleCode) {
             if (!moduleCode) {
@@ -842,18 +1118,15 @@
                 return;
             }
 
-            // Show loading indicator
             dom.moduleTitle.textContent = 'Loading…';
             dom.moduleCode.textContent = moduleCode;
 
             const data = await loadModuleData(moduleCode);
             if (!data) {
-                // Error already handled in loadModuleData
                 dom.moduleTitle.textContent = 'Error';
                 return;
             }
 
-            // Success
             state.currentModule = moduleCode;
             state.moduleData = data;
             dom.moduleSelector.value = moduleCode;
@@ -862,7 +1135,6 @@
 
             renderSidebar(data);
 
-            // Check hash for deep link
             const hash = parseHash();
             if (hash.unit && hash.session) {
                 const unitExists = data.units.some(u => u.id === hash.unit);
@@ -875,7 +1147,6 @@
                 }
             }
 
-            // Load first session by default
             if (data.units.length && data.units[0].sessions.length) {
                 loadSession(data.units[0].id, data.units[0].sessions[0].id);
             } else {
@@ -885,7 +1156,7 @@
         }
 
         // ============================================================
-        // 9. SEARCH (adapted to use state.moduleData)
+        // 9. SEARCH
         // ============================================================
         function handleSearch(query) {
             state.searchQuery = query.trim().toLowerCase();
@@ -931,7 +1202,51 @@
         }
 
         // ============================================================
-        // 10. ROUTER / HASH HELPERS
+        // 10. UPDATE BANNER & REFRESH
+        // ============================================================
+        function showUpdateBanner(version) {
+            const existing = document.getElementById('update-banner');
+            if (existing) existing.remove();
+
+            const banner = document.createElement('div');
+            banner.id = 'update-banner';
+            banner.innerHTML = `
+                        <span class="banner-text">🔄 <b>New version ${version}</b> available!</span>
+                        <button class="banner-btn" onclick="refreshApp()">Refresh Now</button>
+                        <button class="banner-close" onclick="this.parentElement.remove()">✕</button>
+                    `;
+            document.body.appendChild(banner);
+        }
+
+        function refreshApp() {
+            // Clear all module caches
+            const keysToRemove = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && (key.startsWith(CONFIG.cacheKey) || key === 'app_version')) {
+                    keysToRemove.push(key);
+                }
+            }
+            keysToRemove.forEach(key => localStorage.removeItem(key));
+
+            // Remove banner
+            const banner = document.getElementById('update-banner');
+            if (banner) banner.remove();
+
+            // Reload current module
+            if (state.currentModule) {
+                loadModule(state.currentModule);
+            } else {
+                window.location.reload();
+            }
+
+            // Feedback
+            dom.refreshBtn.textContent = '✅';
+            setTimeout(() => { dom.refreshBtn.textContent = '🔄'; }, 2000);
+        }
+
+        // ============================================================
+        // 11. ROUTER / HASH HELPERS
         // ============================================================
         function parseHash() {
             const hash = window.location.hash.slice(1);
@@ -952,12 +1267,18 @@
         }
 
         // ============================================================
-        // 11. INITIALIZATION (async)
+        // 12. INITIALIZATION
         // ============================================================
         async function init() {
+            // Show splash screen first
+            dom.splash.classList.remove('hidden');
+
             // Theme
             applyTheme(state.theme);
             dom.themeToggle.addEventListener('click', toggleTheme);
+
+            // Refresh button
+            dom.refreshBtn.addEventListener('click', refreshApp);
 
             // Sidebar controls
             dom.hamburger.addEventListener('click', openSidebar);
@@ -985,9 +1306,8 @@
                 populateModuleSelector(manifest);
                 state.manifest = manifest;
             } else {
-                // Fallback: try to load a default module without manifest?
-                // We'll just show error.
                 dom.moduleTitle.textContent = 'No manifest';
+                dom.splash.classList.add('hidden');
                 return;
             }
 
@@ -997,7 +1317,6 @@
                 if (hash.module) {
                     await loadModule(hash.module);
                 } else {
-                    // If hash cleared, load first module from manifest
                     if (state.manifest && state.manifest.modules.length) {
                         const first = state.manifest.modules[0].code;
                         window.location.hash = buildHash(first);
@@ -1006,7 +1325,7 @@
                 }
             });
 
-            // Initial load from hash or first module
+            // Initial load
             const hash = parseHash();
             if (hash.module) {
                 await loadModule(hash.module);
@@ -1020,7 +1339,12 @@
                 dom.moduleTitle.textContent = 'No modules found';
             }
 
-            console.log('✅ B.Ed Module Viewer ready (external JSON)');
+            // Hide splash screen after everything is loaded
+            setTimeout(() => {
+                dom.splash.classList.add('hidden');
+            }, 500);
+
+            console.log('✅ B.Ed Module Viewer ready (Gold, White, Wine Theme)');
         }
 
         // Run
