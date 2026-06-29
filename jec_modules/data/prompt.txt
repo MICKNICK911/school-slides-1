@@ -1,0 +1,60 @@
+CONTEXT:
+I am building a B.Ed Module Viewer web app. The app loads course content from external JSON files stored in data/modules/. The app structure uses:
+- Units (with id, title)
+- Sessions (with id, title, indicators array, content HTML string)
+- The app renders content with KaTeX for math and supports dark mode, search, and mobile-responsive layout
+
+TASK:
+Convert the following module PDF content into a structured JSON file. I will paste the PDF text below.
+
+REQUIREMENTS FOR EACH SESSION:
+1. For each session, create comprehensive summaries that:
+   - Cover ALL key concepts, definitions, and important points
+   - Include ALL relevant keywords (bold them using <b> tags)
+   - Use simple, clear English but maintain academic depth
+   - Keep the same context and meaning as the original text
+   - Use bullet points (<ul><li>) for lists and key facts
+   - Use short paragraphs (<p>) for explanations
+
+2. The content field must use HTML formatting:
+   - <b> for bold keywords and definitions
+   - <p> for paragraphs
+   - <ul><li> for bullet points
+   - <h4> for subheadings within sessions
+   - <table> for data that benefits from tabular presentation
+   - <img> for images (use placeholder URLs if needed)
+
+3. Output must follow this JSON schema:
+{
+  "code": "MODULE CODE",
+  "title": "Module Title",
+  "units": [
+    {
+      "id": 1,
+      "title": "Unit Title",
+      "sessions": [
+        {
+          "id": 1,
+          "title": "Session Title",
+          "indicators": ["Indicator 1", "Indicator 2"],
+          "content": "<p>Full HTML content here...</p>"
+        }
+      ]
+    }
+  ]
+}
+
+4. IMPORTANT - Each session MUST include:
+   - All indicators (learning objectives) as an array
+   - All key definitions with the term in bold
+   - All important lists and classifications as bullet points
+   - All examples mentioned in the original text
+
+5. The summary should be approximately 1/3 to 1/2 the length of the original but MUST NOT lose any important information. Think of this as creating excellent study notes that cover everything a student needs to know.
+
+6. For large units with many sessions, produce the output progressively - show me one unit at a time so I can review before continuing.
+
+READY TO START:
+I will now paste the PDF text for [MODULE CODE]. Please convert it to JSON following all the requirements above.
+
+--- PASTE PDF CONTENT HERE ---
