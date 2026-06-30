@@ -578,7 +578,7 @@
             border-left: 4px solid var(--error-color);
         }
 
-        /* Explanation (for the "Show Explanation" button in Timed Mode) */
+        /* Explanation (for the "Show Explanation" button in Practice Mode) */
         .explanation {
             margin-top: 20px;
             padding: 15px;
@@ -1069,6 +1069,7 @@
         return div.innerHTML;
     }
 
+    // FIXED: Always require an index to be passed
     function isQuestionAnswered(index) {
         const answer = state.userAnswers[index];
         if (answer === null || answer === undefined) return false;
@@ -1137,7 +1138,8 @@
             updateTimerDisplay();
             return;
         }
-        if (isQuestionAnswered()) {
+        // FIXED: check current question answered
+        if (isQuestionAnswered(state.currentQuestionIndex)) {
             timeLeft = 0;
             updateTimerDisplay();
             return;
@@ -1163,11 +1165,11 @@
         if (state.practiceMode) return;
 
         savePendingTextInput();
-        if (isQuestionAnswered()) {
+        // FIXED: check current question answered
+        if (isQuestionAnswered(state.currentQuestionIndex)) {
             if (state.currentQuestionIndex === state.currentUnitQuestions.length - 1) {
                 updateNavigation();
             } else {
-                // auto-advance after a moment (no feedback)
                 feedbackTimeout = setTimeout(() => {
                     clearFeedback();
                     goToNextQuestion();
@@ -1179,7 +1181,6 @@
         state.timeSpentPerQuestion[state.currentQuestionIndex] = TIME_PER_QUESTION;
         const isLast = state.currentQuestionIndex === state.currentUnitQuestions.length - 1;
         clearFeedback();
-        // Show time-up notification (this is not answer feedback, it's allowed)
         dom.instantFeedback.innerHTML = isLast ? "⏰ Time's up! You can still submit an answer." : "⏰ Time's up! Moving to next question...";
         dom.instantFeedback.className = "instant-feedback feedback-incorrect";
         dom.instantFeedback.style.display = 'block';
@@ -1369,7 +1370,7 @@
     // 13. RENDER: QUIZ (WITH EXPLANATION CONTROL)
     // ============================================================
     function renderQuestion() {
-        dom.showExplanationBtn.style.display = 'none'; // will be conditionally shown only in practice mode, but we'll handle later
+        dom.showExplanationBtn.style.display = 'none';
         const question = state.currentUnitQuestions[state.currentQuestionIndex];
         dom.currentQuestion.textContent = state.currentQuestionIndex + 1;
         dom.totalQuestions.textContent = state.currentUnitQuestions.length;
@@ -1378,12 +1379,12 @@
         let html = '<div class="question active">';
         html += `<div class="question-text">${escapeHtml(question.question)} ${getQuestionTypeBadge(question)}</div>`;
 
-        // Determine if we should show correctness styling: only in practice mode or after submission
         const showCorrectness = state.practiceMode || state.quizSubmitted;
 
         if (question.type === 'text-input') {
             const userAnswer = state.userAnswers[state.currentQuestionIndex] || '';
-            const hasSubmitted = isQuestionAnswered();
+            // FIXED: check current question answered
+            const hasSubmitted = isQuestionAnswered(state.currentQuestionIndex);
             let inputClass = '';
             if (hasSubmitted && showCorrectness) {
                 const isCorrect = checkTextAnswer(String(userAnswer), question);
@@ -1394,7 +1395,6 @@
                 <input type="text" class="text-input-field ${inputClass}" id="text-answer" placeholder="Type your answer here..." value="${escapeHtml(typeof userAnswer === 'string' ? userAnswer : '')}"${disabledAttr}>
                 ${(!state.quizSubmitted && !hasSubmitted) ? '<div class="text-input-hint">Press Enter to submit your answer</div>' : ''}
             </div>`;
-            // Show correct answer only if practice mode or submitted, and incorrect
             if (hasSubmitted && showCorrectness) {
                 const isCorrect = checkTextAnswer(String(userAnswer), question);
                 if (!isCorrect) {
@@ -1403,7 +1403,8 @@
             }
         } else {
             const groupName = 'question-' + state.currentQuestionIndex;
-            const answered = isQuestionAnswered();
+            // FIXED: check current question answered
+            const answered = isQuestionAnswered(state.currentQuestionIndex);
             html += '<div class="options">';
             question.options.forEach((option, index) => {
                 const isSelected = state.userAnswers[state.currentQuestionIndex] === index;
@@ -1413,7 +1414,6 @@
                     else if (isSelected) optionClass = 'incorrect';
                     optionClass += ' locked';
                 } else if (answered) {
-                    // Timed mode, before submission: only show selected, locked, no correct/incorrect
                     if (isSelected) optionClass = 'selected';
                     optionClass += ' locked';
                 } else if (isSelected) {
@@ -1428,20 +1428,19 @@
             html += '</div>';
         }
 
-        // Explanation block (always hidden until submission)
         const showExplanation = state.quizSubmitted;
         html += `<div class="explanation" id="explanation-block" style="display:${showExplanation ? 'block' : 'none'};"><div class="explanation-title">💡 Explanation:</div>${question.explanation || 'No explanation provided.'}</div>`;
         html += '</div>';
         dom.questionContainer.innerHTML = html;
 
-        // Show explanation button ONLY in practice mode when answered and not submitted
-        if (state.practiceMode && !state.quizSubmitted && isQuestionAnswered()) {
+        // FIXED: check current question answered for show explanation button
+        if (state.practiceMode && !state.quizSubmitted && isQuestionAnswered(state.currentQuestionIndex)) {
             dom.showExplanationBtn.style.display = 'inline-block';
         } else {
             dom.showExplanationBtn.style.display = 'none';
         }
 
-        if (!state.quizSubmitted && !isQuestionAnswered()) {
+        if (!state.quizSubmitted && !isQuestionAnswered(state.currentQuestionIndex)) {
             if (question.type === 'text-input') {
                 const textInput = document.getElementById('text-answer');
                 if (textInput) {
@@ -1471,13 +1470,15 @@
     function updateNavigation() {
         dom.prevBtn.disabled = state.currentQuestionIndex === 0;
         const isLast = state.currentQuestionIndex === state.currentUnitQuestions.length - 1;
+        // FIXED: check current question answered
+        const currentAnswered = isQuestionAnswered(state.currentQuestionIndex);
         if (isLast) {
             dom.nextBtn.style.display = 'none';
             dom.submitBtn.style.display = 'block';
             if (state.practiceMode) {
                 dom.submitBtn.disabled = false;
             } else {
-                dom.submitBtn.disabled = (!isQuestionAnswered()) && !state.quizSubmitted;
+                dom.submitBtn.disabled = !currentAnswered && !state.quizSubmitted;
             }
         } else {
             dom.nextBtn.style.display = 'block';
@@ -1485,7 +1486,7 @@
             if (state.practiceMode) {
                 dom.nextBtn.disabled = false;
             } else {
-                dom.nextBtn.disabled = (!isQuestionAnswered()) && !state.quizSubmitted;
+                dom.nextBtn.disabled = !currentAnswered && !state.quizSubmitted;
             }
         }
     }
@@ -1513,7 +1514,6 @@
     }
 
     function showFeedbackWithSource(isCorrect, question, userAnswer) {
-        // Only used in practice mode now
         clearFeedback();
 
         let correctAnswerText = '';
@@ -1570,15 +1570,12 @@
 
         const isCorrect = checkTextAnswer(rawValue, question);
 
-        // Practice mode: show feedback and explanation
         if (state.practiceMode) {
             showFeedbackWithSource(isCorrect, question, rawValue);
         } else {
-            // Timed mode: no feedback, but we still might auto-advance
             clearFeedback();
         }
 
-        // Timed mode: auto-advance after a short delay (no feedback)
         if (!state.practiceMode) {
             feedbackTimeout = setTimeout(() => {
                 clearFeedback();
@@ -1587,16 +1584,16 @@
                 } else {
                     updateNavigation();
                 }
-            }, 1500); // shorter delay since no feedback to read
+            }, 1500);
         }
 
-        // Update UI in-place
+        // FIXED: define showCorrectness
         const showCorrectness = state.practiceMode || state.quizSubmitted;
         textInput.disabled = true;
         if (showCorrectness) {
             textInput.className = 'text-input-field ' + (isCorrect ? 'correct-input' : 'incorrect-input');
         } else {
-            textInput.className = 'text-input-field'; // no color
+            textInput.className = 'text-input-field';
         }
 
         if (!isCorrect && showCorrectness) {
@@ -1627,15 +1624,12 @@
         const question = state.currentUnitQuestions[state.currentQuestionIndex];
         const isCorrect = selectedIndex === question.correctAnswer;
 
-        // Practice mode: show feedback with explanation
         if (state.practiceMode) {
             showFeedbackWithSource(isCorrect, question);
         } else {
-            // Timed mode: no feedback, clear any existing
             clearFeedback();
         }
 
-        // Timed mode: auto-advance after delay
         if (!state.practiceMode) {
             feedbackTimeout = setTimeout(() => {
                 clearFeedback();
@@ -1647,7 +1641,6 @@
             }, 1500);
         }
 
-        // Update UI in-place without full re-render
         const options = dom.questionContainer.querySelectorAll('.option');
         const showCorrectness = state.practiceMode || state.quizSubmitted;
         options.forEach((opt, idx) => {
@@ -1660,11 +1653,10 @@
                     opt.classList.add('incorrect');
                 }
                 if (idx === selectedIndex) {
-                    opt.classList.add('selected'); // still indicate selection
+                    opt.classList.add('selected');
                 }
                 opt.classList.add('locked');
             } else {
-                // Timed mode before submission: only mark selected and locked
                 if (idx === selectedIndex) {
                     opt.classList.add('selected');
                 }
@@ -1692,14 +1684,16 @@
         if (state.quizSubmitted) return;
         const question = state.currentUnitQuestions[state.currentQuestionIndex];
         if (question.type === 'text-input') {
-            if (!isQuestionAnswered()) {
+            // FIXED: check current question answered
+            if (!isQuestionAnswered(state.currentQuestionIndex)) {
                 const textInput = document.getElementById('text-answer');
                 if (textInput && textInput.value.trim().length > 0) {
                     finalizeTextInput();
                 }
             }
         }
-        if (!isQuestionAnswered() && !state.practiceMode && timer) {
+        // FIXED: check current question answered
+        if (!isQuestionAnswered(state.currentQuestionIndex) && !state.practiceMode && timer) {
             state.timeLeftPerQuestion[state.currentQuestionIndex] = timeLeft;
             state.timeSpentPerQuestion[state.currentQuestionIndex] = 0;
         }
@@ -1712,7 +1706,7 @@
         if (state.currentQuestionIndex > 0) {
             finaliseCurrentQuestionBeforeLeaving();
             stopTimer();
-            clearFeedback(); // clear any time-up messages
+            clearFeedback();
             state.currentQuestionIndex--;
             renderQuestion();
             startTimer();
@@ -1746,7 +1740,8 @@
                 dom.timer.textContent = 'Practice';
                 dom.timer.classList.remove('timer-warning', 'timer-danger');
             } else {
-                if (!isQuestionAnswered()) {
+                // FIXED: check current question answered before starting timer
+                if (!isQuestionAnswered(state.currentQuestionIndex)) {
                     startTimer();
                 } else {
                     dom.timer.textContent = '0s';
@@ -2113,7 +2108,7 @@
             clearSavedState();
         }
 
-        console.log('✅ Quiz App ready! Timed mode hides feedback until submission.');
+        console.log('✅ Quiz App ready! Bugs fixed – timed mode hides feedback, navigation works correctly.');
     }
 
     init();
