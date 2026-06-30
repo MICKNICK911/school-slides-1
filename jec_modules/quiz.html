@@ -1167,11 +1167,11 @@
             if (state.currentQuestionIndex === state.currentUnitQuestions.length - 1) {
                 updateNavigation();
             } else {
+                // auto-advance after a moment (no feedback)
                 feedbackTimeout = setTimeout(() => {
-                    dom.instantFeedback.style.display = 'none';
-                    feedbackTimeout = null;
+                    clearFeedback();
                     goToNextQuestion();
-                }, 2000);
+                }, 1500);
             }
             return;
         }
@@ -1179,8 +1179,8 @@
         state.timeSpentPerQuestion[state.currentQuestionIndex] = TIME_PER_QUESTION;
         const isLast = state.currentQuestionIndex === state.currentUnitQuestions.length - 1;
         clearFeedback();
-        dom.instantFeedback.textContent = isLast ? "⏰ Time's up! You can still submit an answer." :
-            "⏰ Time's up! Moving to next question...";
+        // Show time-up notification (this is not answer feedback, it's allowed)
+        dom.instantFeedback.innerHTML = isLast ? "⏰ Time's up! You can still submit an answer." : "⏰ Time's up! Moving to next question...";
         dom.instantFeedback.className = "instant-feedback feedback-incorrect";
         dom.instantFeedback.style.display = 'block';
         if (!isLast) {
@@ -1366,10 +1366,10 @@
     }
 
     // ============================================================
-    // 13. RENDER: QUIZ (WITH EXPLANATION IN PRACTICE MODE)
+    // 13. RENDER: QUIZ (WITH EXPLANATION CONTROL)
     // ============================================================
     function renderQuestion() {
-        dom.showExplanationBtn.style.display = 'none';
+        dom.showExplanationBtn.style.display = 'none'; // will be conditionally shown only in practice mode, but we'll handle later
         const question = state.currentUnitQuestions[state.currentQuestionIndex];
         dom.currentQuestion.textContent = state.currentQuestionIndex + 1;
         dom.totalQuestions.textContent = state.currentUnitQuestions.length;
@@ -1378,11 +1378,14 @@
         let html = '<div class="question active">';
         html += `<div class="question-text">${escapeHtml(question.question)} ${getQuestionTypeBadge(question)}</div>`;
 
+        // Determine if we should show correctness styling: only in practice mode or after submission
+        const showCorrectness = state.practiceMode || state.quizSubmitted;
+
         if (question.type === 'text-input') {
             const userAnswer = state.userAnswers[state.currentQuestionIndex] || '';
             const hasSubmitted = isQuestionAnswered();
             let inputClass = '';
-            if (state.quizSubmitted || hasSubmitted) {
+            if (hasSubmitted && showCorrectness) {
                 const isCorrect = checkTextAnswer(String(userAnswer), question);
                 inputClass = isCorrect ? 'correct-input' : 'incorrect-input';
             }
@@ -1391,7 +1394,8 @@
                 <input type="text" class="text-input-field ${inputClass}" id="text-answer" placeholder="Type your answer here..." value="${escapeHtml(typeof userAnswer === 'string' ? userAnswer : '')}"${disabledAttr}>
                 ${(!state.quizSubmitted && !hasSubmitted) ? '<div class="text-input-hint">Press Enter to submit your answer</div>' : ''}
             </div>`;
-            if (hasSubmitted && !state.quizSubmitted) {
+            // Show correct answer only if practice mode or submitted, and incorrect
+            if (hasSubmitted && showCorrectness) {
                 const isCorrect = checkTextAnswer(String(userAnswer), question);
                 if (!isCorrect) {
                     html += `<div class="user-text-answer"><span class="answer-label">✅ Correct answer:</span> ${escapeHtml(question.correctAnswer)}</div>`;
@@ -1404,12 +1408,13 @@
             question.options.forEach((option, index) => {
                 const isSelected = state.userAnswers[state.currentQuestionIndex] === index;
                 let optionClass = '';
-                if (state.quizSubmitted) {
+                if (showCorrectness) {
                     if (index === question.correctAnswer) optionClass = 'correct';
                     else if (isSelected) optionClass = 'incorrect';
+                    optionClass += ' locked';
                 } else if (answered) {
-                    if (index === question.correctAnswer) optionClass = 'correct';
-                    else if (isSelected) optionClass = 'incorrect';
+                    // Timed mode, before submission: only show selected, locked, no correct/incorrect
+                    if (isSelected) optionClass = 'selected';
                     optionClass += ' locked';
                 } else if (isSelected) {
                     optionClass = 'selected';
@@ -1423,17 +1428,14 @@
             html += '</div>';
         }
 
-        // Only show the "extra" explanation block in Timed Mode when submitted
-        // In Practice Mode, the explanation is already in the instant feedback
+        // Explanation block (always hidden until submission)
         const showExplanation = state.quizSubmitted;
         html += `<div class="explanation" id="explanation-block" style="display:${showExplanation ? 'block' : 'none'};"><div class="explanation-title">💡 Explanation:</div>${question.explanation || 'No explanation provided.'}</div>`;
         html += '</div>';
         dom.questionContainer.innerHTML = html;
 
-        // In Practice Mode, the explanation is already shown in the feedback
-        // So we DON'T show the "Show Explanation" button in Practice Mode
-        // Only show it in Timed Mode when a question is answered and not submitted
-        if (!state.practiceMode && !state.quizSubmitted && isQuestionAnswered()) {
+        // Show explanation button ONLY in practice mode when answered and not submitted
+        if (state.practiceMode && !state.quizSubmitted && isQuestionAnswered()) {
             dom.showExplanationBtn.style.display = 'inline-block';
         } else {
             dom.showExplanationBtn.style.display = 'none';
@@ -1489,7 +1491,7 @@
     }
 
     // ============================================================
-    // 15. SHOW FEEDBACK WITH SOURCE & EXPLANATION (BOTH MODES)
+    // 15. SHOW FEEDBACK WITH SOURCE & EXPLANATION (PRACTICE MODE ONLY)
     // ============================================================
     function extractSourceFromExplanation(explanation) {
         if (!explanation) return null;
@@ -1511,6 +1513,7 @@
     }
 
     function showFeedbackWithSource(isCorrect, question, userAnswer) {
+        // Only used in practice mode now
         clearFeedback();
 
         let correctAnswerText = '';
@@ -1567,27 +1570,36 @@
 
         const isCorrect = checkTextAnswer(rawValue, question);
 
-        // Show feedback with explanation (in BOTH modes)
-        showFeedbackWithSource(isCorrect, question, rawValue);
+        // Practice mode: show feedback and explanation
+        if (state.practiceMode) {
+            showFeedbackWithSource(isCorrect, question, rawValue);
+        } else {
+            // Timed mode: no feedback, but we still might auto-advance
+            clearFeedback();
+        }
 
-        // In Timed mode, auto-advance after 3s
+        // Timed mode: auto-advance after a short delay (no feedback)
         if (!state.practiceMode) {
             feedbackTimeout = setTimeout(() => {
-                dom.instantFeedback.style.display = 'none';
-                feedbackTimeout = null;
+                clearFeedback();
                 if (state.currentQuestionIndex < state.currentUnitQuestions.length - 1) {
                     goToNextQuestion();
                 } else {
                     updateNavigation();
                 }
-            }, 3000);
+            }, 1500); // shorter delay since no feedback to read
         }
 
-        // Update UI without re-rendering
+        // Update UI in-place
+        const showCorrectness = state.practiceMode || state.quizSubmitted;
         textInput.disabled = true;
-        textInput.className = 'text-input-field ' + (isCorrect ? 'correct-input' : 'incorrect-input');
+        if (showCorrectness) {
+            textInput.className = 'text-input-field ' + (isCorrect ? 'correct-input' : 'incorrect-input');
+        } else {
+            textInput.className = 'text-input-field'; // no color
+        }
 
-        if (!isCorrect) {
+        if (!isCorrect && showCorrectness) {
             const existingHint = textInput.parentNode.querySelector('.user-text-answer');
             if (!existingHint) {
                 const hint = document.createElement('div');
@@ -1615,40 +1627,51 @@
         const question = state.currentUnitQuestions[state.currentQuestionIndex];
         const isCorrect = selectedIndex === question.correctAnswer;
 
-        // Show feedback with explanation (in BOTH modes)
-        showFeedbackWithSource(isCorrect, question);
+        // Practice mode: show feedback with explanation
+        if (state.practiceMode) {
+            showFeedbackWithSource(isCorrect, question);
+        } else {
+            // Timed mode: no feedback, clear any existing
+            clearFeedback();
+        }
 
-        // In Timed mode, auto-advance after 3s
+        // Timed mode: auto-advance after delay
         if (!state.practiceMode) {
             feedbackTimeout = setTimeout(() => {
-                dom.instantFeedback.style.display = 'none';
-                feedbackTimeout = null;
+                clearFeedback();
                 if (state.currentQuestionIndex < state.currentUnitQuestions.length - 1) {
                     goToNextQuestion();
                 } else {
                     updateNavigation();
                 }
-            }, 3000);
+            }, 1500);
         }
 
-        // Update UI in-place without re-rendering
+        // Update UI in-place without full re-render
         const options = dom.questionContainer.querySelectorAll('.option');
+        const showCorrectness = state.practiceMode || state.quizSubmitted;
         options.forEach((opt, idx) => {
             opt.classList.remove('selected', 'correct', 'incorrect', 'locked');
-            if (idx === question.correctAnswer) {
-                opt.classList.add('correct');
-            }
-            if (idx === selectedIndex && !isCorrect) {
-                opt.classList.add('incorrect');
-            }
-            if (idx === selectedIndex) {
-                opt.classList.add('selected');
-            }
-            if (state.practiceMode) {
+            if (showCorrectness) {
+                if (idx === question.correctAnswer) {
+                    opt.classList.add('correct');
+                }
+                if (idx === selectedIndex && !isCorrect) {
+                    opt.classList.add('incorrect');
+                }
+                if (idx === selectedIndex) {
+                    opt.classList.add('selected'); // still indicate selection
+                }
                 opt.classList.add('locked');
-                const radio = opt.querySelector('input[type="radio"]');
-                if (radio) radio.disabled = true;
+            } else {
+                // Timed mode before submission: only mark selected and locked
+                if (idx === selectedIndex) {
+                    opt.classList.add('selected');
+                }
+                opt.classList.add('locked');
             }
+            const radio = opt.querySelector('input[type="radio"]');
+            if (radio) radio.disabled = true;
         });
 
         updateNavigation();
@@ -1689,6 +1712,7 @@
         if (state.currentQuestionIndex > 0) {
             finaliseCurrentQuestionBeforeLeaving();
             stopTimer();
+            clearFeedback(); // clear any time-up messages
             state.currentQuestionIndex--;
             renderQuestion();
             startTimer();
@@ -1700,6 +1724,7 @@
         if (state.currentQuestionIndex < state.currentUnitQuestions.length - 1) {
             finaliseCurrentQuestionBeforeLeaving();
             stopTimer();
+            clearFeedback();
             state.currentQuestionIndex++;
             renderQuestion();
             startTimer();
@@ -2088,7 +2113,7 @@
             clearSavedState();
         }
 
-        console.log('✅ Quiz App ready! Explanation displays in Practice Mode too.');
+        console.log('✅ Quiz App ready! Timed mode hides feedback until submission.');
     }
 
     init();
