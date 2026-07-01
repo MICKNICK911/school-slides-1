@@ -1,0 +1,105 @@
+CONTINUATION PROMPT – GENERATE 5 MODULE QUIZ JSON FILES
+
+You are to create 5 distinct JSON files (one per module) from the provided course manuals. Each file must be a quiz structured unit‑by‑unit following the strict JSON schema below.
+
+Modules (in order):
+1. JCT 129 – Introduction to ICT (✅ COMPLETED – already generated in 3 chunks)
+2. JEN 127 – Communication Skills (⏳ PENDING – start here)
+3. JMC 126 – Geometry & Handling Data (⏳ PENDING)
+4. JSC 128 – Integrated Science II (⏳ PENDING)
+5. JES 112 – Foundations of Social Studies & TVET (⏳ PENDING)
+
+---
+
+JSON SCHEMA (EXACT FORMAT)
+
+{
+  "name": "Module Code - Title",
+  "units": [
+    {
+      "id": 1,
+      "title": "Unit X: ...",
+      "questions": [
+        {
+          "question": "Question text",
+          "options": ["A", "B", "C", "D"],          // 70% of questions
+          "correctAnswer": 0,                      // 0‑based index
+          "explanation": "2‑3 lines with (Unit X, Session Y) citation."
+        },
+        {
+          "type": "text-input",                    // 30% of questions
+          "question": "Question text",
+          "correctAnswer": "exact answer",
+          "acceptableAnswers": ["var1", "var2"],   // optional
+          "caseSensitive": false,                  // true/false
+          "explanation": "2‑3 lines with (Unit X, Session Y) citation."
+        }
+      ]
+    }
+  ]
+}
+
+- Do not add any extra type field to multiple‑choice questions – your app infers from the presence of options.
+- For text‑input, the type field must be included.
+- All answers must be verbatim from the module text – no paraphrasing.
+- Every explanation must end with (Unit X, Session Y) – use the exact unit and session numbers from the module’s Table of Contents.
+
+---
+
+QUESTION COUNT & COMPOSITION
+
+- Per unit:
+  - ≤ 10 sessions → 60 questions
+  - > 10 sessions → 80 questions
+- Composition per unit:
+  - 70% multiple‑choice (4 options)
+  - 30% text‑input (fill‑in‑the‑blank / short‑answer)
+
+---
+
+DELIVERY – 3 CHUNKS PER MODULE
+
+Each module’s JSON is too large for one message. Split into 3 sequential JSON fragments:
+
+- Chunk 1: first ~⅓ of units (ends with a comma after units array)
+- Chunk 2: next ~⅓ (starts with a comma, ends with a comma)
+- Chunk 3: remaining units (starts with a comma, ends with ]} – no trailing comma)
+
+Concatenate: Chunk1 + Chunk2 + Chunk3 → complete valid JSON.
+
+---
+
+PROGRESS SO FAR – JCT 129 COMPLETED
+
+- Units 1‑2 (120 q) → Chunk 1
+- Units 3‑4 (120 q) → Chunk 2
+- Units 5‑6 (120 q) → Chunk 3
+Total: 360 questions – all generated.
+
+---
+
+NEXT STEPS – RESUME WITH JEN 127
+
+1. JEN 127 – Communication Skills (5 units).
+   - Count sessions per unit from its Table of Contents.
+   - Generate 60 or 80 questions per unit.
+   - Split into 3 chunks (e.g., Units 1‑2, 3‑4, 5).
+
+2. After JEN 127, proceed to JMC 126, then JSC 128, then JES 112 – each in 3 chunks.
+
+3. For each chunk, output only the JSON fragment with a clear header (e.g., ### JEN 127 – Chunk 1). No extra commentary.
+
+---
+
+CRITICAL REMINDERS
+
+- Verbatim answers – copy exactly from the module.
+- Citations – every explanation must end with (Unit X, Session Y).
+- No extra fields in multiple‑choice – only question, options, correctAnswer, explanation.
+- For text‑input, include type, correctAnswer, acceptableAnswers (optional), caseSensitive, explanation.
+
+---
+
+BEGIN GENERATION – JEN 127, CHUNK 1
+
+Proceed unit by unit, starting with Unit 1 of JEN 127. Generate 60 questions for Unit 1, then Unit 2, and assemble Chunk 1. After that, output Chunk 2 and Chunk 3. Keep the user informed as each chunk is produced.
