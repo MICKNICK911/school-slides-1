@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TLM</title>
+    <style>
+        :root {
+            --bg: #f5f5f5;
+            --drawer-bg: #2c3e50;
+            --drawer-text: white;
+            --drawer-hover: #34495e;
+            --drawer-active-bg: #3498db;
+            --drawer-active-border: #1abc9c;
+            --table-bg: white;
+            --table-border: #ddd;
+            --th-bg: #f2f2f2;
+            --th-color: #2c3e50;
+            --td-bg: white;
+            --phonogram-header-bg: #e8e8e8;
+            --text: #333;
+            --heading-color: #2c3e50;
+            --muted: #666;
+            --border-color: #ddd;
+            --overlay-bg: rgba(0,0,0,0.5);
+            --table-shadow: 0 0 10px rgba(0,0,0,0.1);
+            --topic-title-border: #eee;
+        }
+
+        [data-theme="dark"] {
+            --bg: #1a1a1a;
+            --drawer-bg: #1e1e1e;
+            --drawer-text: #ddd;
+            --drawer-hover: #2a2a2a;
+            --drawer-active-bg: #2563eb;
+            --drawer-active-border: #34d399;
+            --table-bg: #2c2c2c;
+            --table-border: #444;
+            --th-bg: #3a3a3a;
+            --th-color: #ddd;
+            --td-bg: #2c2c2c;
+            --phonogram-header-bg: #444;
+            --text: #ddd;
+            --heading-color: #ddd;
+            --muted: #aaa;
+            --border-color: #444;
+            --overlay-bg: rgba(0,0,0,0.7);
+            --table-shadow: 0 0 10px rgba(0,0,0,0.3);
+            --topic-title-border: #444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* Drawer */
+        .drawer {
+            width: 250px;
+            background-color: var(--drawer-bg);
+            color: var(--drawer-text);
+            padding: 20px 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+            z-index: 100;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .drawer h2 {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid var(--drawer-hover);
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+        }
+        
+        .topic-list {
+            list-style: none;
+        }
+        
+        .topic-item {
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            border-left: 4px solid transparent;
+        }
+        
+        .topic-item:hover {
+            background-color: var(--drawer-hover);
+        }
+        
+        .topic-item.active {
+            background-color: var(--drawer-active-bg);
+            border-left-color: var(--drawer-active-border);
+        }
+        
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 250px;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border-color);
+        }
+        
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text);
+        }
+        
+        h1 {
+            color: var(--heading-color);
+            font-size: 1.8rem;
+        }
+
+        /* Theme toggle */
+        .theme-toggle {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s;
+            color: var(--text);
+        }
+        .theme-toggle:hover {
+            background-color: var(--th-bg);
+        }
+        
+        /* Tables */
+        .topic-container {
+            margin-bottom: 40px;
+        }
+        
+        .table-container {
+            background-color: var(--table-bg);
+            padding: 30px;
+            border-radius: 5px;
+            box-shadow: var(--table-shadow);
+            margin: 0 auto 20px auto;   /* centred */
+            max-width: 900px;
+        }
+        
+        .topic-title {
+            text-align: center;
+            margin-bottom: 25px;
+            color: var(--heading-color);
+            font-size: 1.5rem;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--topic-title-border);
+        }
+        
+        /* Explanation key */
+        .explanation-key {
+            background-color: var(--th-bg);
+            border-radius: 5px;
+            padding: 15px 20px;
+            margin: 0 auto 25px auto;
+            max-width: 600px;
+            font-size: 0.95rem;
+            text-align: center;
+        }
+        .explanation-key strong {
+            color: var(--heading-color);
+        }
+        
+        table {
+            margin: 0 auto;            /* centre the table itself */
+            width: auto;
+            max-width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            border: 1px solid var(--table-border);
+            padding: 12px;
+            text-align: center;
+            font-size: 16px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+        
+        th {
+            background-color: var(--th-bg);
+            font-weight: bold;
+            color: var(--th-color);
+            min-width: 80px;
+        }
+        
+        td {
+            background-color: var(--td-bg);
+            min-height: 50px;
+        }
+        
+        .phonogram-header {
+            font-weight: bold;
+            background-color: var(--phonogram-header-bg);
+        }
+        
+        .empty-cell {
+            color: #999;
+            font-style: italic;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .drawer {
+                transform: translateX(-100%);
+                width: 280px;
+            }
+            .drawer.open {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+                padding: 15px;
+            }
+            .menu-toggle {
+                display: block;
+            }
+            .table-container {
+                padding: 15px;
+                max-width: 100%;
+            }
+            th, td {
+                padding: 8px;
+                font-size: 14px;
+            }
+            .overlay {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background-color: var(--overlay-bg);
+                z-index: 99;
+            }
+            .overlay.active {
+                display: block;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            h1 { font-size: 1.3rem; }
+            .topic-title { font-size: 1.2rem; }
+            th, td { padding: 6px; font-size: 13px; }
+            table { display: block; overflow-x: auto; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="drawer" id="drawer">
+        <h2>Word Patterns</h2>
+        <ul class="topic-list" id="topic-list"></ul>
+    </nav>
+    
+    <div class="overlay" id="overlay"></div>
+    
+    <main class="main-content">
+        <header class="header">
+            <button class="menu-toggle" id="menu-toggle">☰</button>
+            <h1>Vowel-Consonant Digraphs</h1>
+            <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode">🌙</button>
+        </header>
+        <div id="content-container"></div>
+    </main>
+
+    <script>
+        // Word bank with the new structure: topic name + data + exp
+        const wordTables = [
+            {
+                "Phonograms with Long Vowels 1": {
+                    "old": ["cold", "bold", "sold", "hold", "gold"],
+                    "oll": ["poll", "toll", "roll", "scroll", "stroll"],
+                    "olt": ["bolt", "volt", "holt", "jolt", "molt"],
+                    "oth": ["both", "loth", "quoth", "zeroth", "betroth"],
+                    "ost": ["most", "post", "host", "ghost", "almost"],
+                    "ind": ["bind", "find", "kind", "mind", "blind"],
+                    "ild": ["mild", "wild", "child"]
+                },
+                exp: "These are phonograms – letter groups that make a long vowel sound when followed by certain consonants."
+            }
+        ];
+
+        // ---- Helper: get topic name and data from the new shape ----
+        function getTopicInfo(tableObj) {
+            const topicName = Object.keys(tableObj).find(key => key !== 'exp');
+            const tableData = tableObj[topicName];
+            return { topicName, tableData };
+        }
+
+        // ---- Dark / Light Theme ----
+        function applyTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            document.getElementById('theme-toggle').textContent = theme === 'dark' ? '☀️' : '🌙';
+        }
+
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme') || 'light';
+            applyTheme(current === 'dark' ? 'light' : 'dark');
+        }
+
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        applyTheme(savedTheme);
+        document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+
+        // ---- Drawer & Content ----
+        const drawer = document.getElementById('drawer');
+        const overlay = document.getElementById('overlay');
+        const menuToggle = document.getElementById('menu-toggle');
+        const topicListEl = document.getElementById('topic-list');
+        const contentContainer = document.getElementById('content-container');
+        let activeTopicIndex = 0;
+
+        function populateTopicList() {
+            wordTables.forEach((tableObj, index) => {
+                const { topicName } = getTopicInfo(tableObj);
+                const li = document.createElement('li');
+                li.className = `topic-item ${index === activeTopicIndex ? 'active' : ''}`;
+                li.textContent = topicName;
+                li.dataset.index = index;
+                
+                li.addEventListener('click', () => {
+                    activeTopicIndex = index;
+                    document.querySelectorAll('.topic-item').forEach(item => item.classList.remove('active'));
+                    li.classList.add('active');
+                    generateTable(tableObj);
+                    if (window.innerWidth <= 768) {
+                        drawer.classList.remove('open');
+                        overlay.classList.remove('active');
+                    }
+                });
+                
+                topicListEl.appendChild(li);
+            });
+        }
+
+        function chunkArray(array) {
+            const maxColumns = window.innerWidth <= 768 ? 4 : 10;
+            const chunks = [];
+            for (let i = 0; i < array.length; i += maxColumns) {
+                chunks.push(array.slice(i, i + maxColumns));
+            }
+            return chunks;
+        }
+
+        function createSingleTable(columnData, columnKeys) {
+            const container = document.createElement('div');
+            container.className = 'table-container';
+            
+            const table = document.createElement('table');
+            
+            // Header
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+            columnKeys.forEach(key => {
+                const th = document.createElement('th');
+                th.className = 'phonogram-header';
+                th.textContent = key;
+                headerRow.appendChild(th);
+            });
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+            
+            // Body
+            const tbody = document.createElement('tbody');
+            const maxRows = Math.max(...columnKeys.map(key => columnData[key].length));
+            for (let r = 0; r < maxRows; r++) {
+                const row = document.createElement('tr');
+                columnKeys.forEach(key => {
+                    const td = document.createElement('td');
+                    const val = columnData[key][r];
+                    if (val !== undefined && val !== null && val !== '') {
+                        td.textContent = val;
+                    } else {
+                        td.textContent = '-';
+                        td.classList.add('empty-cell');
+                    }
+                    row.appendChild(td);
+                });
+                tbody.appendChild(row);
+            }
+            table.appendChild(tbody);
+            container.appendChild(table);
+            return container;
+        }
+
+        function buildExplanationKey(explanationText) {
+            const keyDiv = document.createElement('div');
+            keyDiv.className = 'explanation-key';
+            keyDiv.innerHTML = `<strong>🔤 Explanation:</strong> ${explanationText}`;
+            return keyDiv;
+        }
+
+        function generateTable(tableObj) {
+            const { topicName, tableData } = getTopicInfo(tableObj);
+            const allColumnKeys = Object.keys(tableData);
+            const explanation = tableObj.exp || '';
+            
+            contentContainer.innerHTML = '';
+            const topicContainer = document.createElement('div');
+            topicContainer.className = 'topic-container';
+            
+            // Title
+            const title = document.createElement('h2');
+            title.className = 'topic-title';
+            title.textContent = topicName;
+            topicContainer.appendChild(title);
+            
+            // Explanation key
+            if (explanation) {
+                topicContainer.appendChild(buildExplanationKey(explanation));
+            }
+            
+            // Group columns into tables
+            const columnGroups = chunkArray(allColumnKeys);
+            columnGroups.forEach(group => {
+                const groupData = {};
+                group.forEach(key => { groupData[key] = tableData[key]; });
+                topicContainer.appendChild(createSingleTable(groupData, group));
+            });
+            
+            contentContainer.appendChild(topicContainer);
+            
+            // Update header
+            document.querySelector('.header h1').textContent = `${topicName} (${allColumnKeys.length} columns)`;
+        }
+
+        function toggleDrawer() {
+            drawer.classList.toggle('open');
+            overlay.classList.toggle('active');
+        }
+
+        menuToggle.addEventListener('click', toggleDrawer);
+        overlay.addEventListener('click', toggleDrawer);
+
+        function initApp() {
+            populateTopicList();
+            if (wordTables.length > 0) {
+                generateTable(wordTables[0]);
+            }
+            if (window.innerWidth <= 768) {
+                drawer.classList.remove('open');
+                overlay.classList.remove('active');
+            }
+        }
+
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768) {
+                drawer.classList.remove('open');
+                overlay.classList.remove('active');
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
