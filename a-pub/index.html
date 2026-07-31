@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Phonics Lessons</title>
+<style>
+  @page { size: 850px 1100px; margin: 0; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Poppins', 'Segoe UI', Arial, sans-serif;
+    background: #fff;
+  }
+
+  .page {
+    width: 850px;
+    min-height: 1100px;
+    padding: 36px 40px;
+    position: relative;
+    page-break-after: always;
+  }
+  .page:last-child { page-break-after: auto; }
+
+  .card {
+    border: 3px solid #F5A623;
+    border-radius: 28px;
+    min-height: 1028px;
+    padding: 28px 34px;
+    position: relative;
+  }
+
+  .title {
+    font-size: 30px;
+    font-weight: 800;
+    color: #1a1a1a;
+    letter-spacing: 0.5px;
+    margin: 4px 0 18px 0;
+  }
+
+  .header-row {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    margin-bottom: 22px;
+  }
+
+  .lesson-badge {
+    background: #F5A623;
+    border-radius: 16px;
+    color: #fff;
+    width: 130px;
+    min-width: 130px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 6px;
+    position: relative;
+    margin-right: 18px;
+  }
+  .lesson-badge .arrow {
+    position: absolute;
+    top: -22px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 22px solid transparent;
+    border-right: 22px solid transparent;
+    border-bottom: 26px solid #F5A623;
+  }
+  .lesson-badge .label { font-size: 13px; font-weight: 600; opacity: 0.95; }
+  .lesson-badge .num { font-size: 34px; font-weight: 800; line-height: 1.1; }
+
+  .intro-box {
+    flex: 1;
+    border: 3px dashed #E2571C;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    padding: 14px 20px;
+  }
+  .intro-box p {
+    margin: 0;
+    color: #E2571C;
+    font-weight: 700;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .hero-row {
+    display: flex;
+    border-radius: 20px;
+    overflow: hidden;
+    border: 3px solid #F5A623;
+    height: 190px;
+    margin-bottom: 22px;
+  }
+  .hero-image {
+    flex: 1;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .hero-image img { max-height: 110px; max-width: 80%; object-fit: contain; }
+  .hero-image .placeholder {
+    width: 100px; height: 100px;
+    border: 2px dashed #ccc;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    color: #999; font-size: 12px;
+  }
+  .hero-image .caption { font-weight: 800; font-size: 18px; color: #1a1a1a; }
+  .hero-letter {
+    flex: 1;
+    background: #F5A623;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 90px;
+    font-weight: 800;
+    font-style: italic;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 14px;
+    margin-top: 20px;
+  }
+  .section-header .circle {
+    background: #F5A623;
+    color: #fff;
+    width: 42px; height: 42px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 18px;
+    margin-right: 14px;
+    flex-shrink: 0;
+  }
+  .section-header .label-box {
+    flex: 1;
+    border: 3px dashed #E2571C;
+    border-radius: 14px;
+    padding: 8px 18px;
+    font-weight: 800;
+    font-size: 19px;
+    color: #1a1a1a;
+  }
+
+  .word-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+  .word-grid .pill {
+    background: #E2571C;
+    color: #fff;
+    border-radius: 14px;
+    text-align: center;
+    padding: 12px 6px;
+    font-weight: 800;
+    font-size: 18px;
+  }
+  .word-grid.blanks .pill {
+    background: #fff;
+    color: #E2571C;
+    border: 2px solid #F5A623;
+  }
+  .word-grid.empty .pill {
+    background: #fff;
+    border: 2px solid #F5A623;
+    min-height: 44px;
+  }
+
+  .instructions {
+    font-weight: 700;
+    font-size: 13px;
+    margin: 8px 0 10px 0;
+    color: #1a1a1a;
+  }
+
+  .reading-box {
+    border: 2px solid #F5A623;
+    border-radius: 16px;
+    padding: 16px 22px;
+  }
+  .reading-box p {
+    margin: 0 0 8px 0;
+    color: #E2571C;
+    font-weight: 800;
+    font-size: 16px;
+  }
+  .reading-box p:last-child { margin-bottom: 0; }
+
+  .activity-label { font-weight: 700; font-size: 13px; margin: 14px 0 8px 0; }
+
+  .sentence-line {
+    border-bottom: 1px solid #999;
+    padding: 4px 0 6px 0;
+    font-size: 14px;
+    color: #E2571C;
+    font-weight: 600;
+  }
+
+  .page-number {
+    text-align: right;
+    margin-top: 16px;
+    font-weight: 800;
+    font-size: 13px;
+    color: #1a1a1a;
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="lessons_data.js"></script>
+<script>
+window.LESSONS = window.LESSONS || [];
+
+function el(tag, cls, html) {
+  var e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (typeof html !== 'undefined') e.innerHTML = html;
+  return e;
+}
+
+function wordGrid(words, extraClass) {
+  var grid = el('div', 'word-grid ' + (extraClass || ''));
+  for (var i = 0; i < words.length; i++) {
+    grid.appendChild(el('div', 'pill', words[i]));
+  }
+  return grid;
+}
+
+function buildPage(lesson) {
+  var page = el('div', 'page');
+  var card = el('div', 'card');
+  page.appendChild(card);
+
+  card.appendChild(el('div', 'title', 'SHORT VOWEL CVC WORDS'));
+
+  // header row: badge + intro
+  var headerRow = el('div', 'header-row');
+  var badge = el('div', 'lesson-badge');
+  badge.appendChild(el('div', 'arrow'));
+  badge.appendChild(el('div', 'label', 'Lesson'));
+  badge.appendChild(el('div', 'num', lesson.lessonNumber));
+  headerRow.appendChild(badge);
+
+  var introBox = el('div', 'intro-box');
+  introBox.appendChild(el('p', null,
+    'Vowels are letters of the alphabets that we usually say with our mouth open. ' +
+    'There are 5 short vowels &ndash; a, e, i, o, u and 5 long vowels &ndash; a, e, i, o, u. ' +
+    'The letter Y can sometimes make the vowel sounds.'));
+  headerRow.appendChild(introBox);
+  card.appendChild(headerRow);
+
+  // hero row: image + big letter
+  var heroRow = el('div', 'hero-row');
+  var heroImage = el('div', 'hero-image');
+  if (lesson.imagePath) {
+    var img = el('img');
+    img.src = lesson.imagePath;
+    heroImage.appendChild(img);
+  } else {
+    heroImage.appendChild(el('div', 'placeholder', 'image'));
+  }
+  heroImage.appendChild(el('div', 'caption', lesson.imageCaption));
+  heroRow.appendChild(heroImage);
+  heroRow.appendChild(el('div', 'hero-letter', lesson.letterTile));
+  card.appendChild(heroRow);
+
+  // section 1
+  var sec1 = el('div', 'section-header');
+  sec1.appendChild(el('div', 'circle', '1'));
+  sec1.appendChild(el('div', 'label-box', 'Look and say aloud'));
+  card.appendChild(sec1);
+  var allWords = [];
+  for (var r = 0; r < lesson.words.length; r++) {
+    allWords = allWords.concat(lesson.words[r]);
+  }
+  card.appendChild(wordGrid(allWords));
+
+  // section 2
+  var sec2 = el('div', 'section-header');
+  sec2.appendChild(el('div', 'circle', '2'));
+  sec2.appendChild(el('div', 'label-box', 'Decodable Reading'));
+  card.appendChild(sec2);
+  card.appendChild(el('div', 'instructions', 'Read ALOUD and circle all words with the short vowel sound'));
+  var readingBox = el('div', 'reading-box');
+  for (var s = 0; s < lesson.sentences.length; s++) {
+    readingBox.appendChild(el('p', null, (s + 1) + '. ' + lesson.sentences[s]));
+  }
+  card.appendChild(readingBox);
+
+  // section 3
+  var sec3 = el('div', 'section-header');
+  sec3.appendChild(el('div', 'circle', '3'));
+  sec3.appendChild(el('div', 'label-box', 'Activities'));
+  card.appendChild(sec3);
+
+  card.appendChild(el('div', 'activity-label', 'A. Fill in the missing letters and say word'));
+  card.appendChild(wordGrid(lesson.fillBlanks, 'blanks'));
+
+  var emptySlots = [];
+  for (var b = 0; b < lesson.fillBlanks.length; b++) emptySlots.push('&nbsp;');
+  card.appendChild(el('div', 'activity-label', 'B. Copy each word from above'));
+  card.appendChild(wordGrid(emptySlots, 'empty'));
+
+  card.appendChild(el('div', 'activity-label', 'C. Choose any word from above and form 2 sentences'));
+  card.appendChild(el('div', 'sentence-line', '1.'));
+  card.appendChild(el('div', 'sentence-line', '2.'));
+
+  card.appendChild(el('div', 'page-number', lesson.pageNumber));
+
+  return page;
+}
+
+function render(lessons) {
+  var root = document.getElementById('root');
+  root.innerHTML = '';
+  for (var i = 0; i < lessons.length; i++) {
+    root.appendChild(buildPage(lessons[i]));
+  }
+}
+
+render(window.LESSONS);
+</script>
+</body>
+</html>
