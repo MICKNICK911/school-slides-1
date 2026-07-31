@@ -5,16 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>📚 Phonics Lesson Publisher</title>
   <style>
-    /* ----- global reset & base ----- */
+    /* ----- Page & print base (same as standalone) ----- */
+    @page { size: 850px 1100px; margin: 0; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: 'Segoe UI', Arial, sans-serif;
+      font-family: 'Poppins', 'Segoe UI', Arial, sans-serif;
       background: #f5f7fa;
       color: #1a1a1a;
       padding: 20px;
     }
 
-    /* ----- app wrapper ----- */
+    /* ----- App layout ----- */
     .app {
       max-width: 1400px;
       margin: 0 auto;
@@ -23,8 +24,6 @@
       box-shadow: 0 20px 60px rgba(0,0,0,0.08);
       overflow: hidden;
     }
-
-    /* ----- header ----- */
     .app-header {
       background: #1a1a2e;
       color: #fff;
@@ -35,7 +34,7 @@
       flex-wrap: wrap;
       gap: 12px;
     }
-    .app-header h1 { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; }
+    .app-header h1 { font-size: 24px; font-weight: 800; }
     .app-header .badge {
       background: #F5A623;
       color: #1a1a1a;
@@ -45,7 +44,7 @@
       font-weight: 700;
     }
 
-    /* ----- tabs ----- */
+    /* Tabs */
     .tabs {
       display: flex;
       border-bottom: 2px solid #e9ecef;
@@ -70,10 +69,13 @@
       color: #1a1a2e;
       border-bottom-color: #F5A623;
     }
-    .tab-panel { display: none; padding: 24px 32px 32px; }
+    .tab-panel {
+      display: none;
+      padding: 24px 32px 32px;
+    }
     .tab-panel.active { display: block; }
 
-    /* ----- toast notifications ----- */
+    /* Toast */
     .toast-container {
       position: fixed;
       top: 20px;
@@ -116,15 +118,13 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* ----- edit tab ----- */
+    /* Edit Tab – Form & List */
     .edit-layout {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 28px;
     }
     @media (max-width: 1100px) { .edit-layout { grid-template-columns: 1fr; } }
-
-    /* --- form --- */
     .form-section {
       background: #f8f9fa;
       border-radius: 16px;
@@ -206,7 +206,7 @@
     .btn-warning { background: #e67e22; color: #fff; }
     .btn-warning:hover:not(:disabled) { background: #cf6d17; }
 
-    /* --- image upload preview --- */
+    /* Image upload */
     .image-upload-wrap {
       display: flex;
       align-items: center;
@@ -235,7 +235,7 @@
     }
     .image-upload-wrap input[type="file"] { flex: 1; }
 
-    /* --- lesson list --- */
+    /* Lesson list */
     .list-section { min-height: 400px; }
     .list-toolbar {
       display: flex;
@@ -265,7 +265,6 @@
       font-size: 14px;
       white-space: nowrap;
     }
-
     .lesson-list {
       display: flex;
       flex-direction: column;
@@ -278,7 +277,6 @@
     }
     .lesson-list .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
     .lesson-list .empty-state h3 { color: #1a1a1a; margin-bottom: 4px; }
-
     .lesson-item {
       display: flex;
       align-items: center;
@@ -310,7 +308,12 @@
       border: 1px solid #dee2e6;
       flex-shrink: 0;
     }
-    .lesson-item .thumb.placeholder { display: flex; align-items: center; justify-content: center; font-size: 20px; }
+    .lesson-item .thumb.placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
     .lesson-item .info {
       flex: 1;
       min-width: 0;
@@ -333,26 +336,31 @@
     }
     .lesson-item.drag-over { border-color: #F5A623; background: #fff8e7; }
 
-    /* ----- view tab ----- */
-    .view-toolbar {
+    /* Confirm dialog */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
       display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
       align-items: center;
-      margin-bottom: 20px;
-      padding-bottom: 16px;
-      border-bottom: 2px solid #e9ecef;
+      justify-content: center;
+      z-index: 9998;
+      animation: fadeIn 0.2s ease;
     }
-    .view-toolbar .info {
-      font-weight: 700;
-      color: #6c757d;
-      font-size: 14px;
-      margin-right: auto;
+    .modal-overlay .modal {
+      background: #fff;
+      border-radius: 20px;
+      padding: 32px;
+      max-width: 440px;
+      width: 90%;
+      box-shadow: 0 30px 60px rgba(0,0,0,0.2);
     }
+    .modal-overlay .modal h3 { margin-bottom: 8px; }
+    .modal-overlay .modal p { color: #6c757d; margin-bottom: 20px; font-size: 15px; }
+    .modal-overlay .modal .actions { display: flex; gap: 10px; justify-content: flex-end; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-    /* --- re-use the original page styles (with minor tweaks) --- */
-    @page { size: 850px 1100px; margin: 0; }
-
+    /* ----- VIEW TAB – EXACT SAME AS STANDALONE APP ----- */
     .view-container .page {
       width: 850px;
       min-height: 1080px;
@@ -365,7 +373,6 @@
       box-shadow: 0 4px 20px rgba(0,0,0,0.06);
     }
     .view-container .page:last-child { margin-bottom: 0; }
-
     .view-container .card {
       border: 3px solid #F5A623;
       border-radius: 28px;
@@ -373,7 +380,6 @@
       padding: 24px 32px;
       position: relative;
     }
-
     .view-container .title {
       font-size: 30px;
       font-weight: 800;
@@ -381,14 +387,12 @@
       letter-spacing: 0.5px;
       margin: 4px 0 18px 0;
     }
-
     .view-container .header-row {
       display: flex;
       align-items: stretch;
       gap: 0;
       margin-bottom: 22px;
     }
-
     .view-container .lesson-badge {
       background: #F5A623;
       border-radius: 16px;
@@ -416,7 +420,6 @@
     }
     .view-container .lesson-badge .label { font-size: 13px; font-weight: 600; opacity: 0.95; }
     .view-container .lesson-badge .num { font-size: 34px; font-weight: 800; line-height: 1.1; }
-
     .view-container .intro-box {
       flex: 1;
       border: 3px dashed #E2571C;
@@ -432,7 +435,6 @@
       font-size: 14px;
       line-height: 1.5;
     }
-
     .view-container .hero-row {
       display: flex;
       border-radius: 20px;
@@ -474,7 +476,6 @@
       font-weight: 800;
       font-style: italic;
     }
-
     .view-container .section-header {
       display: flex;
       align-items: center;
@@ -500,7 +501,6 @@
       font-size: 19px;
       color: #1a1a1a;
     }
-
     .view-container .word-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -527,14 +527,12 @@
       border: 2px solid #F5A623;
       min-height: 60px;
     }
-
     .view-container .instructions {
       font-weight: 700;
       font-size: 13px;
       margin: 8px 0 10px 0;
       color: #1a1a1a;
     }
-
     .view-container .reading-box {
       border: 2px solid #F5A623;
       border-radius: 16px;
@@ -547,9 +545,7 @@
       font-size: 25px;
     }
     .view-container .reading-box p:last-child { margin-bottom: 0; }
-
     .view-container .activity-label { font-weight: 700; font-size: 13px; margin: 10px 0 6px 0; }
-
     .view-container .sentence-line {
       border-bottom: 1px solid #999;
       padding: 15px 0 25px 0;
@@ -557,7 +553,6 @@
       color: #E2571C;
       font-weight: 800;
     }
-
     .view-container .card .page-number {
       position: absolute;
       bottom: 20px;
@@ -567,7 +562,6 @@
       font-size: 16px;
       color: #1a1a1a;
     }
-
     .view-container .page-actions {
       text-align: right;
       margin-bottom: 8px;
@@ -584,7 +578,7 @@
       cursor: pointer;
     }
     .view-container .export-btn:hover { background: #c8481a; }
-
+    /* Preserve colors for print */
     .view-container .card,
     .view-container .lesson-badge,
     .view-container .hero-letter,
@@ -596,54 +590,32 @@
       print-color-adjust: exact;
     }
 
-    /* print overrides for view tab */
-    @media print {
-      body { padding: 0; background: #fff; }
-      .app { border-radius: 0; box-shadow: none; }
-      .app-header, .tabs, .tab-panel, .view-toolbar, .no-print { display: none !important; }
-      .view-container .page {
-        box-shadow: none;
-        border-radius: 0;
-        margin: 0 auto;
-        padding: 0;
-        width: 850px;
-        min-height: 1080px;
-      }
-      .view-container .page .page-actions { display: none !important; }
-      .view-container .page { page-break-after: always; }
-      .view-container .page:last-child { page-break-after: auto; }
-    }
-
-    /* ----- modal / confirm dialog ----- */
-    .modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.4);
+    /* View toolbar */
+    .view-toolbar {
       display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
       align-items: center;
-      justify-content: center;
-      z-index: 9998;
-      animation: fadeIn 0.2s ease;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid #e9ecef;
     }
-    .modal-overlay .modal {
-      background: #fff;
-      border-radius: 20px;
-      padding: 32px;
-      max-width: 440px;
-      width: 90%;
-      box-shadow: 0 30px 60px rgba(0,0,0,0.2);
+    .view-toolbar .info {
+      font-weight: 700;
+      color: #6c757d;
+      font-size: 14px;
+      margin-right: auto;
     }
-    .modal-overlay .modal h3 { margin-bottom: 8px; }
-    .modal-overlay .modal p { color: #6c757d; margin-bottom: 20px; font-size: 15px; }
-    .modal-overlay .modal .actions { display: flex; gap: 10px; justify-content: flex-end; }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-    /* responsive tweaks */
+    /* Responsive: scale pages on screen */
     @media (max-width: 900px) {
       .view-container .page {
         width: 100%;
         padding: 16px;
         min-height: auto;
+        box-shadow: none;
+        border-radius: 0;
+        margin: 0 auto 20px;
       }
       .view-container .card { min-height: auto; padding: 16px; }
       .view-container .hero-row { height: 180px; flex-direction: column; }
@@ -656,81 +628,49 @@
       .view-container .lesson-badge .arrow { display: none; }
       .view-container .lesson-badge .num { font-size: 24px; }
     }
+
+    /* Print overrides: hide all UI chrome */
+    @media print {
+      body { padding: 0; background: #fff; }
+      .app, .app-header, .tabs, .tab-panel, .view-toolbar, .no-print { display: none !important; }
+      .view-container .page {
+        box-shadow: none;
+        border-radius: 0;
+        margin: 0 auto;
+        padding: 0;
+        width: 850px;
+        min-height: 1080px;
+        page-break-after: always;
+      }
+      .view-container .page .page-actions { display: none !important; }
+      .view-container .page:last-child { page-break-after: auto; }
+    }
   </style>
 </head>
 <body>
 
 <div id="app"></div>
-
-<!-- Toast container -->
 <div class="toast-container" id="toastContainer"></div>
 
 <script>
 // ============================================================
 //  DATA LAYER
 // ============================================================
-
 const STORAGE_KEY = 'phonics_lessons_data';
+
+// 🟢 REPLACE THIS with your full Grade 1 & 2 arrays
 const DEFAULT_LESSONS = [
   {
     id: 'l1',
     mainTitle: 'SHORT VOWEL CVC WORDS',
     lessonNumber: 1,
-    letterTile: 'Aa',
-    imageCaption: 'Apple',
+    letterTile: 'Short a',
+    imageCaption: 'bag',
     imagePath: '',
-    introText: 'Vowels are letters of the alphabets that we usually say with our mouth open. There are 5 short vowels – a, e, i, o, u and 5 long vowels – a, e, i, o, u. The letter Y can sometimes make the vowel sounds. Let\'s start with short vowel <strong>\'a\'</strong> as in <strong>apple</strong>.',
-    words: [['cat','bat','hat','mat'], ['dad','fat','sat','rat'], ['jam','fan','can','car']],
-    sentences: ['The cat sat on a mat.', 'A rat had a hat.', 'The cat is mad.', 'The rat ran to a van.', 'The cat had a nap.'],
-    fillBlanks: ['c__t','b__t','h__t','m__t','d__d','f__t','s__t','r__t']
-  },
-  {
-    id: 'l2',
-    mainTitle: 'SHORT VOWEL CVC WORDS',
-    lessonNumber: 2,
-    letterTile: 'Ee',
-    imageCaption: 'Net',
-    imagePath: '',
-    introText: 'This lesson focuses on the short vowel sound <strong>\'e\'</strong>. Remember, vowels are said with our mouth open. Practice saying \'e\' as in <strong>net</strong>. Keep your tongue flat and say \'eh\'.',
-    words: [['net','bed','hen','men'], ['let','fed','set','red'], ['jet','get','ten','vet']],
-    sentences: ['Jen has a pet hen.', 'The hen is wet.', 'Jen gets a red net.', 'The hen sits on a bed.', 'Ten men let the hen rest.'],
-    fillBlanks: ['n__t','b__d','h__n','m__n','l__t','g__t','t__n','r__d']
-  },
-  {
-    id: 'l3',
-    mainTitle: 'SHORT VOWEL CVC WORDS',
-    lessonNumber: 3,
-    letterTile: 'Ii',
-    imageCaption: 'Pin',
-    imagePath: '',
-    introText: 'This lesson focuses on the short vowel sound <strong>\'i\'</strong>. Keep your mouth slightly open and say \'i\' as in <strong>pin</strong>. Practice these words carefully and listen for the short \'i\' in the middle.',
-    words: [['sit','hit','fit','tin'], ['mix','lip','pin','fix'], ['pit','win','sip','zip']],
-    sentences: ['Tim has a big pig.', 'The pig can sit.', 'Tim hits the lid.', 'The pig digs in the bin.', 'Tim wins a pin.'],
-    fillBlanks: ['s__t','h__t','f__t','t__n','p__g','p__t','s__p','w__n']
-  },
-  {
-    id: 'l4',
-    mainTitle: 'SHORT VOWEL CVC WORDS',
-    lessonNumber: 4,
-    letterTile: 'Oo',
-    imageCaption: 'Mop',
-    imagePath: '',
-    introText: 'This lesson focuses on the short vowel sound <strong>\'o\'</strong>. Open your mouth round and say \'o\' as in <strong>mop</strong>. Let\'s practice reading and writing words with the short \'o\' sound.',
-    words: [['hot','lot','fox','top'], ['not','rot','got','pot'], ['bot','cot','dot','mob']],
-    sentences: ['Bob has a red fox.', 'The fox hops on a log.', 'Bob gets a mop and a pot.', 'The fox stops and drops the top.', 'Bob hops with the fox.'],
-    fillBlanks: ['p__t','B__b','f__x','t__p','l__t','g__t','m__p','h__p']
-  },
-  {
-    id: 'l5',
-    mainTitle: 'SHORT VOWEL CVC WORDS',
-    lessonNumber: 5,
-    letterTile: 'Uu',
-    imageCaption: 'Bug',
-    imagePath: '',
-    introText: 'This lesson focuses on the short vowel sound <strong>\'u\'</strong>. Purse your lips and say \'u\' as in <strong>bug</strong>. Follow along with the activities below to master the short \'u\' sound.',
-    words: [['sun','bug','run','hug'], ['gun','bus','gum','rug'], ['fun','cut','but','mud']],
-    sentences: ['Bud has a bug.', 'The bug sits on a mug.', 'Bud runs to the sun.', 'The bug is on the rug.', 'Bud hugs the bug.'],
-    fillBlanks: ['b__t','b__d','h__g','r__g','s__n','b__s','m__d','g__n']
+    introText: 'Say each picture word out loud. Listen for the sound of "Short a".',
+    words: ['bag','cat','mat','hat','rat','bat','sat','pat','fat','man'],
+    sentences: ['I can say the word bag and the word cat.','Look at the mat. Now look at the hat.'],
+    fillBlanks: ['b_g','c_t','m_t','h_t','r_t']
   }
 ];
 
@@ -739,7 +679,6 @@ let editingId = null;
 let searchQuery = '';
 let nextId = 1;
 
-// Load from localStorage or use defaults
 function loadData() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -747,11 +686,10 @@ function loadData() {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) {
         lessons = parsed;
-        // ensure each has an id and mainTitle
         let maxId = 0;
         lessons.forEach(l => {
-          if (!l.id) { l.id = 'l' + Date.now() + Math.random().toString(36).slice(2,6); }
-          if (!l.mainTitle) { l.mainTitle = 'SHORT VOWEL CVC WORDS'; }
+          if (!l.id) l.id = 'l' + Date.now() + Math.random().toString(36).slice(2,6);
+          if (!l.mainTitle) l.mainTitle = 'SHORT VOWEL CVC WORDS';
           const num = parseInt(l.id.replace('l','')) || 0;
           if (num > maxId) maxId = num;
         });
@@ -759,7 +697,7 @@ function loadData() {
         return;
       }
     }
-  } catch(e) { /* fall through */ }
+  } catch(e) {}
   lessons = JSON.parse(JSON.stringify(DEFAULT_LESSONS));
   lessons.forEach(l => { if (!l.id) l.id = 'l' + Date.now() + Math.random().toString(36).slice(2,6); });
   nextId = lessons.length + 1;
@@ -767,274 +705,186 @@ function loadData() {
 }
 
 function saveData() {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(lessons));
-  } catch(e) {
-    showToast('Failed to save to localStorage. Storage may be full.', 'error');
-  }
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(lessons)); }
+  catch(e) { showToast('Storage full.', 'error'); }
 }
 
 function generateId() { return 'l' + (nextId++); }
 
 // ============================================================
-//  TOAST SYSTEM
+//  TOAST & CONFIRM
 // ============================================================
-
-function showToast(message, type = 'info', duration = 3500) {
+function showToast(msg, type = 'info', dur = 3500) {
   const container = document.getElementById('toastContainer');
   const toast = document.createElement('div');
   toast.className = 'toast ' + type;
   const icons = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
-  toast.innerHTML = `<span>${icons[type] || 'ℹ️'}</span> ${message} <button class="close-toast">&times;</button>`;
+  toast.innerHTML = `<span>${icons[type] || 'ℹ️'}</span> ${msg} <button class="close-toast">&times;</button>`;
   container.appendChild(toast);
   toast.querySelector('.close-toast').addEventListener('click', () => toast.remove());
-  setTimeout(() => { if (toast.parentNode) toast.remove(); }, duration);
+  setTimeout(() => { if (toast.parentNode) toast.remove(); }, dur);
 }
 
-// ============================================================
-//  CONFIRM DIALOG
-// ============================================================
-
-function confirmDialog(message, onConfirm) {
+function confirmDialog(msg, onConfirm) {
   const overlay = document.createElement('div');
   overlay.className = 'modal-overlay';
   overlay.innerHTML = `
     <div class="modal">
       <h3>⚠️ Confirm</h3>
-      <p>${message}</p>
+      <p>${msg}</p>
       <div class="actions">
         <button class="btn btn-outline btn-cancel">Cancel</button>
-        <button class="btn btn-danger btn-confirm">Yes, do it</button>
+        <button class="btn btn-danger btn-confirm">Yes</button>
       </div>
     </div>
   `;
   document.body.appendChild(overlay);
   overlay.querySelector('.btn-cancel').addEventListener('click', () => overlay.remove());
-  overlay.querySelector('.btn-confirm').addEventListener('click', () => {
-    overlay.remove();
-    onConfirm();
-  });
+  overlay.querySelector('.btn-confirm').addEventListener('click', () => { overlay.remove(); onConfirm(); });
   overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
 }
 
 // ============================================================
-//  RENDER ENGINE (View tab)
+//  VIEW RENDER ENGINE (EXACT SAME AS STANDALONE)
 // ============================================================
+function el(tag, cls, html) {
+  var e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (typeof html !== 'undefined') e.innerHTML = html;
+  return e;
+}
 
-function renderViewPage(lesson, pageNumber) {
-  const page = document.createElement('div');
-  page.className = 'page';
+function wordGrid(words, extraClass) {
+  var grid = el('div', 'word-grid ' + (extraClass || ''));
+  for (var i = 0; i < words.length; i++) {
+    grid.appendChild(el('div', 'pill', words[i]));
+  }
+  return grid;
+}
 
-  // export button (per page)
-  const actions = document.createElement('div');
-  actions.className = 'page-actions no-print';
-  const btn = document.createElement('button');
-  btn.className = 'export-btn';
-  btn.textContent = '📄 Export this page to PDF';
-  btn.onclick = () => {
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) { showToast('Please allow popups for PDF export.', 'warning'); return; }
-    const clone = document.querySelector('.view-container').cloneNode(true);
-    // keep only this page
-    const allPages = clone.querySelectorAll('.page');
-    allPages.forEach(p => p.remove());
-    const target = clone.querySelector(`.page[data-page-id="${page.dataset.pageId}"]`);
-    if (target) {
-      clone.innerHTML = '';
-      clone.appendChild(target);
-    }
-    const style = document.querySelector('style').cloneNode(true);
-    printWindow.document.write('<!DOCTYPE html><html><head><title>Lesson Export</title>');
-    printWindow.document.write(style.outerHTML);
-    printWindow.document.write('</head><body>');
-    printWindow.document.write(clone.outerHTML);
-    printWindow.document.write('</body></html>');
-    printWindow.document.close();
-    printWindow.focus();
-    printWindow.print();
-  };
+function buildPageOne(lesson, pageNumber) {
+  var page = el('div', 'page');
+  // Export button per page
+  var actions = el('div', 'page-actions no-print');
+  var btn = el('button', 'export-btn', '📄 Export this page to PDF');
+  btn.type = 'button';
+  btn.onclick = function() { exportSinglePage(page); };
   actions.appendChild(btn);
   page.appendChild(actions);
 
-  const card = document.createElement('div');
-  card.className = 'card';
+  var card = el('div', 'card');
   page.appendChild(card);
 
-  // 🆕 DYNAMIC MAIN TITLE
-  const titleText = lesson.mainTitle || 'SHORT VOWEL CVC WORDS';
-  card.appendChild(createElement('div', 'title', titleText));
+  var titleText = lesson.mainTitle || 'SHORT VOWEL CVC WORDS';
+  card.appendChild(el('div', 'title', titleText));
 
-  // header row
-  const headerRow = createElement('div', 'header-row');
-  const badge = createElement('div', 'lesson-badge');
-  badge.appendChild(createElement('div', 'arrow'));
-  badge.appendChild(createElement('div', 'label', 'Lesson'));
-  badge.appendChild(createElement('div', 'num', String(lesson.lessonNumber)));
+  var headerRow = el('div', 'header-row');
+  var badge = el('div', 'lesson-badge');
+  badge.appendChild(el('div', 'arrow'));
+  badge.appendChild(el('div', 'label', 'Lesson'));
+  badge.appendChild(el('div', 'num', lesson.lessonNumber));
   headerRow.appendChild(badge);
 
-  const introBox = createElement('div', 'intro-box');
-  introBox.appendChild(createElement('p', null, lesson.introText || ''));
+  var introBox = el('div', 'intro-box');
+  introBox.appendChild(el('p', null, lesson.introText || ''));
   headerRow.appendChild(introBox);
   card.appendChild(headerRow);
 
-  // hero
-  const heroRow = createElement('div', 'hero-row');
-  const heroImage = createElement('div', 'hero-image');
+  var heroRow = el('div', 'hero-row');
+  var heroImage = el('div', 'hero-image');
   if (lesson.imagePath) {
-    const img = document.createElement('img');
+    var img = el('img');
     img.src = lesson.imagePath;
     img.alt = lesson.imageCaption || '';
     heroImage.appendChild(img);
   } else {
-    const ph = createElement('div', 'placeholder', '🖼️');
-    heroImage.appendChild(ph);
+    heroImage.appendChild(el('div', 'placeholder', '🖼️'));
   }
-  heroImage.appendChild(createElement('div', 'caption', lesson.imageCaption || ''));
+  heroImage.appendChild(el('div', 'caption', lesson.imageCaption || ''));
   heroRow.appendChild(heroImage);
-  heroRow.appendChild(createElement('div', 'hero-letter', lesson.letterTile || ''));
+  heroRow.appendChild(el('div', 'hero-letter', lesson.letterTile || ''));
   card.appendChild(heroRow);
 
-  // words
-  const sec1 = createElement('div', 'section-header');
-  sec1.appendChild(createElement('div', 'circle', '1'));
-  sec1.appendChild(createElement('div', 'label-box', 'Look and say aloud'));
+  var sec1 = el('div', 'section-header');
+  sec1.appendChild(el('div', 'circle', '1'));
+  sec1.appendChild(el('div', 'label-box', 'Look and say aloud'));
   card.appendChild(sec1);
-  const allWords = lesson.words ? lesson.words.flat() : [];
+  var allWords = lesson.words ? lesson.words.flat() : [];
   card.appendChild(wordGrid(allWords));
 
-  // page number
-  const pn = createElement('div', 'page-number', String(pageNumber));
-  card.appendChild(pn);
-
-  // store id for export
-  page.dataset.pageId = 'page-' + lesson.id + '-' + pageNumber;
+  card.appendChild(el('div', 'page-number', pageNumber));
 
   return page;
 }
 
-function renderViewPageTwo(lesson, pageNumber) {
-  const page = document.createElement('div');
-  page.className = 'page';
-
-  const actions = document.createElement('div');
-  actions.className = 'page-actions no-print';
-  const btn = document.createElement('button');
-  btn.className = 'export-btn';
-  btn.textContent = '📄 Export this page to PDF';
-  btn.onclick = () => {
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) { showToast('Please allow popups for PDF export.', 'warning'); return; }
-    const clone = document.querySelector('.view-container').cloneNode(true);
-    const allPages = clone.querySelectorAll('.page');
-    allPages.forEach(p => p.remove());
-    const target = clone.querySelector(`.page[data-page-id="${page.dataset.pageId}"]`);
-    if (target) {
-      clone.innerHTML = '';
-      clone.appendChild(target);
-    }
-    const style = document.querySelector('style').cloneNode(true);
-    printWindow.document.write('<!DOCTYPE html><html><head><title>Lesson Export</title>');
-    printWindow.document.write(style.outerHTML);
-    printWindow.document.write('</head><body>');
-    printWindow.document.write(clone.outerHTML);
-    printWindow.document.write('</body></html>');
-    printWindow.document.close();
-    printWindow.focus();
-    printWindow.print();
-  };
+function buildPageTwo(lesson, pageNumber) {
+  var page = el('div', 'page');
+  var actions = el('div', 'page-actions no-print');
+  var btn = el('button', 'export-btn', '📄 Export this page to PDF');
+  btn.type = 'button';
+  btn.onclick = function() { exportSinglePage(page); };
   actions.appendChild(btn);
   page.appendChild(actions);
 
-  const card = document.createElement('div');
-  card.className = 'card';
+  var card = el('div', 'card');
   page.appendChild(card);
 
-  const sec2 = createElement('div', 'section-header');
-  sec2.appendChild(createElement('div', 'circle', '2'));
-  sec2.appendChild(createElement('div', 'label-box', 'Decodable Reading'));
+  var sec2 = el('div', 'section-header');
+  sec2.appendChild(el('div', 'circle', '2'));
+  sec2.appendChild(el('div', 'label-box', 'Decodable Reading'));
   card.appendChild(sec2);
-  card.appendChild(createElement('div', 'instructions', 'Read ALOUD and circle all words with the short vowel sound'));
-  const readingBox = createElement('div', 'reading-box');
+  card.appendChild(el('div', 'instructions', 'Read ALOUD and circle all words with the short vowel sound'));
+  var readingBox = el('div', 'reading-box');
   if (lesson.sentences) {
-    lesson.sentences.forEach((s, idx) => {
-      readingBox.appendChild(createElement('p', null, (idx + 1) + '. ' + s));
+    lesson.sentences.forEach(function(s, idx) {
+      readingBox.appendChild(el('p', null, (idx + 1) + '. ' + s));
     });
   }
   card.appendChild(readingBox);
 
-  const sec3 = createElement('div', 'section-header');
-  sec3.appendChild(createElement('div', 'circle', '3'));
-  sec3.appendChild(createElement('div', 'label-box', 'Activities'));
+  var sec3 = el('div', 'section-header');
+  sec3.appendChild(el('div', 'circle', '3'));
+  sec3.appendChild(el('div', 'label-box', 'Activities'));
   card.appendChild(sec3);
 
-  card.appendChild(createElement('div', 'activity-label', 'A. Fill in the missing letters and say word'));
+  card.appendChild(el('div', 'activity-label', 'A. Fill in the missing letters and say word'));
   card.appendChild(wordGrid(lesson.fillBlanks || [], 'blanks'));
 
-  const emptySlots = (lesson.fillBlanks || []).map(() => '&nbsp;');
-  card.appendChild(createElement('div', 'activity-label', 'B. Copy each word from above'));
+  var emptySlots = (lesson.fillBlanks || []).map(function() { return '&nbsp;'; });
+  card.appendChild(el('div', 'activity-label', 'B. Copy each word from above'));
   card.appendChild(wordGrid(emptySlots, 'empty'));
 
-  card.appendChild(createElement('div', 'activity-label', 'C. Choose any word from above and form 2 sentences'));
-  card.appendChild(createElement('div', 'sentence-line', '1.'));
-  card.appendChild(createElement('div', 'sentence-line', '2.'));
+  card.appendChild(el('div', 'activity-label', 'C. Choose any word from above and form 2 sentences'));
+  card.appendChild(el('div', 'sentence-line', '1.'));
+  card.appendChild(el('div', 'sentence-line', '2.'));
 
-  const pn = createElement('div', 'page-number', String(pageNumber));
-  card.appendChild(pn);
+  card.appendChild(el('div', 'page-number', pageNumber));
 
-  page.dataset.pageId = 'page-' + lesson.id + '-' + pageNumber;
   return page;
 }
 
-function createElement(tag, cls, html) {
-  const el = document.createElement(tag);
-  if (cls) el.className = cls;
-  if (html !== undefined) el.innerHTML = html;
-  return el;
-}
-
-function wordGrid(words, extraClass) {
-  const grid = document.createElement('div');
-  grid.className = 'word-grid' + (extraClass ? ' ' + extraClass : '');
-  words.forEach(w => {
-    const pill = document.createElement('div');
-    pill.className = 'pill';
-    pill.innerHTML = w;
-    grid.appendChild(pill);
-  });
-  return grid;
-}
-
 function renderAllView() {
-  const container = document.getElementById('viewContainer');
+  var container = document.getElementById('viewContainer');
   container.innerHTML = '';
-  let pageNum = 1;
-  lessons.forEach(lesson => {
-    container.appendChild(renderViewPage(lesson, pageNum++));
-    container.appendChild(renderViewPageTwo(lesson, pageNum++));
-  });
-  if (lessons.length === 0) {
-    container.innerHTML = `
-      <div style="text-align:center;padding:80px 20px;color:#6c757d;">
-        <div style="font-size:64px;margin-bottom:16px;">📖</div>
-        <h3 style="color:#1a1a1a;">No lessons yet</h3>
-        <p>Switch to the <strong>Edit</strong> tab to create your first lesson.</p>
-      </div>
-    `;
+  var pageNum = 1;
+  for (var i = 0; i < lessons.length; i++) {
+    var lesson = lessons[i];
+    container.appendChild(buildPageOne(lesson, pageNum++));
+    container.appendChild(buildPageTwo(lesson, pageNum++));
   }
-  // update export all button
-  const allBtn = document.getElementById('exportAllBtn');
+  if (lessons.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:80px 20px;color:#6c757d;"><div style="font-size:64px;">📖</div><h3>No lessons yet</h3><p>Switch to Edit tab to create your first lesson.</p></div>';
+  }
+  // Update bulk export button
+  var allBtn = document.getElementById('exportAllBtn');
   if (allBtn) {
-    allBtn.onclick = () => {
-      if (lessons.length === 0) {
-        showToast('No lessons to export.', 'warning');
-        return;
-      }
-      const printWindow = window.open('', '_blank');
-      if (!printWindow) { showToast('Please allow popups for PDF export.', 'warning'); return; }
-      const clone = document.querySelector('.view-container').cloneNode(true);
-      // remove all export buttons from clone
-      clone.querySelectorAll('.page-actions').forEach(el => el.remove());
-      const style = document.querySelector('style').cloneNode(true);
+    allBtn.onclick = function() {
+      if (lessons.length === 0) { showToast('No lessons to export.', 'warning'); return; }
+      var printWindow = window.open('', '_blank');
+      if (!printWindow) { showToast('Allow popups for PDF export.', 'warning'); return; }
+      var clone = document.querySelector('.view-container').cloneNode(true);
+      clone.querySelectorAll('.page-actions').forEach(function(el) { el.remove(); });
+      var style = document.querySelector('style').cloneNode(true);
       printWindow.document.write('<!DOCTYPE html><html><head><title>All Lessons</title>');
       printWindow.document.write(style.outerHTML);
       printWindow.document.write('</head><body>');
@@ -1047,155 +897,37 @@ function renderAllView() {
   }
 }
 
-// ============================================================
-//  EDIT TAB — CRUD + list + search + drag-drop + import/export
-// ============================================================
-
-function renderEditTab() {
-  const container = document.getElementById('editContainer');
-  const filtered = lessons.filter(l => {
-    if (!searchQuery) return true;
-    const q = searchQuery.toLowerCase();
-    const words = (l.words || []).flat().join(' ');
-    const sentences = (l.sentences || []).join(' ');
-    const blanks = (l.fillBlanks || []).join(' ');
-    return (l.lessonNumber + '').includes(q) ||
-           (l.mainTitle || '').toLowerCase().includes(q) ||
-           (l.letterTile || '').toLowerCase().includes(q) ||
-           (l.imageCaption || '').toLowerCase().includes(q) ||
-           (l.introText || '').toLowerCase().includes(q) ||
-           words.toLowerCase().includes(q) ||
-           sentences.toLowerCase().includes(q) ||
-           blanks.toLowerCase().includes(q);
-  });
-
-  let listHtml = `
-    <div class="list-toolbar">
-      <input class="search-box" type="text" placeholder="🔍 Search lessons..." id="searchInput" value="${searchQuery}" />
-      <span class="count">${filtered.length} / ${lessons.length}</span>
-      <button class="btn btn-success btn-sm" onclick="exportJSON()">📤 Export JSON</button>
-      <button class="btn btn-outline btn-sm" onclick="document.getElementById('importFileInput').click()">📥 Import JSON</button>
-      <input type="file" id="importFileInput" accept=".json" style="display:none" onchange="importJSON(event)" />
-    </div>
-    <div class="lesson-list" id="lessonList">
-  `;
-
-  if (filtered.length === 0) {
-    listHtml += `
-      <div class="empty-state">
-        <div class="icon">🔍</div>
-        <h3>No lessons found</h3>
-        <p>${searchQuery ? 'Try adjusting your search.' : 'Click "Add New Lesson" to get started.'}</p>
-      </div>
-    `;
-  } else {
-    filtered.forEach((l, idx) => {
-      const actualIdx = lessons.indexOf(l);
-      const thumb = l.imagePath ? `<img class="thumb" src="${l.imagePath}" alt="" />` :
-                                   `<div class="thumb placeholder">📄</div>`;
-      listHtml += `
-        <div class="lesson-item" draggable="true" data-index="${actualIdx}" data-id="${l.id}">
-          <span class="drag-handle">⠿</span>
-          ${thumb}
-          <div class="info">
-            <div class="title">Lesson ${l.lessonNumber} — ${l.mainTitle || 'CVC'} ${l.imageCaption ? '· ' + l.imageCaption : ''}</div>
-            <div class="sub">${(l.introText || '').replace(/<[^>]*>/g,'').slice(0,80)}${(l.introText || '').length > 80 ? '…' : ''}</div>
-          </div>
-          <div class="actions">
-            <button class="btn btn-primary btn-xs" onclick="editLesson('${l.id}')">✏️</button>
-            <button class="btn btn-warning btn-xs" onclick="duplicateLesson('${l.id}')">📋</button>
-            <button class="btn btn-danger btn-xs" onclick="deleteLesson('${l.id}')">🗑️</button>
-          </div>
-        </div>
-      `;
-    });
-  }
-  listHtml += '</div>';
-  container.innerHTML = listHtml;
-
-  // attach drag & drop
-  attachDragDrop();
-
-  // search handler
-  const searchInput = document.getElementById('searchInput');
-  if (searchInput) {
-    searchInput.addEventListener('input', (e) => {
-      searchQuery = e.target.value;
-      renderEditTab();
-    });
-  }
+function exportSinglePage(pageElement) {
+  var clone = pageElement.cloneNode(true);
+  var actions = clone.querySelector('.page-actions');
+  if (actions) actions.remove();
+  var printWindow = window.open('', '_blank');
+  if (!printWindow) { showToast('Allow popups for PDF export.', 'warning'); return; }
+  var style = document.querySelector('style').cloneNode(true);
+  printWindow.document.write('<!DOCTYPE html><html><head><title>Lesson Export</title>');
+  printWindow.document.write(style.outerHTML);
+  printWindow.document.write('</head><body>');
+  printWindow.document.write(clone.outerHTML);
+  printWindow.document.write('</body></html>');
+  printWindow.document.close();
+  printWindow.focus();
+  printWindow.print();
 }
 
 // ============================================================
-//  DRAG & DROP REORDER
-// ============================================================
-
-function attachDragDrop() {
-  const items = document.querySelectorAll('.lesson-item');
-  let dragIndex = null;
-  let dragOverIndex = null;
-
-  items.forEach(item => {
-    item.addEventListener('dragstart', (e) => {
-      dragIndex = parseInt(item.dataset.index);
-      item.classList.add('dragging');
-      e.dataTransfer.effectAllowed = 'move';
-      e.dataTransfer.setData('text/plain', String(dragIndex));
-    });
-    item.addEventListener('dragend', () => {
-      item.classList.remove('dragging');
-      document.querySelectorAll('.lesson-item.drag-over').forEach(el => el.classList.remove('drag-over'));
-    });
-    item.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      e.dataTransfer.dropEffect = 'move';
-      const targetIndex = parseInt(item.dataset.index);
-      if (targetIndex !== dragIndex) {
-        document.querySelectorAll('.lesson-item.drag-over').forEach(el => el.classList.remove('drag-over'));
-        item.classList.add('drag-over');
-        dragOverIndex = targetIndex;
-      }
-    });
-    item.addEventListener('dragleave', () => {
-      item.classList.remove('drag-over');
-    });
-    item.addEventListener('drop', (e) => {
-      e.preventDefault();
-      item.classList.remove('drag-over');
-      const from = parseInt(e.dataTransfer.getData('text/plain'));
-      const to = parseInt(item.dataset.index);
-      if (from !== to && !isNaN(from) && !isNaN(to)) {
-        reorderLessons(from, to);
-      }
-    });
-  });
-}
-
-function reorderLessons(from, to) {
-  const [removed] = lessons.splice(from, 1);
-  lessons.splice(to, 0, removed);
-  saveData();
-  renderEditTab();
-  renderAllView();
-  updateFormList();
-  showToast('Lesson reordered.', 'success');
-}
-
-// ============================================================
-//  CRUD OPERATIONS
+//  EDIT TAB – CRUD, LIST, DRAG, SEARCH, IMPORT/EXPORT
 // ============================================================
 
 function getFormData() {
-  const wordsRaw = document.getElementById('fWords').value;
-  const words = wordsRaw.split(',').map(s => s.trim()).filter(Boolean);
-  const wordsChunked = [];
-  for (let i = 0; i < words.length; i += 4) {
+  var wordsRaw = document.getElementById('fWords').value;
+  var words = wordsRaw.split(',').map(s => s.trim()).filter(Boolean);
+  var wordsChunked = [];
+  for (var i = 0; i < words.length; i += 4) {
     wordsChunked.push(words.slice(i, i + 4));
   }
   while (wordsChunked.length < 3) wordsChunked.push([]);
-  const sentences = document.getElementById('fSentences').value.split(',').map(s => s.trim()).filter(Boolean);
-  const fillBlanks = document.getElementById('fFillBlanks').value.split(',').map(s => s.trim()).filter(Boolean);
-
+  var sentences = document.getElementById('fSentences').value.split(',').map(s => s.trim()).filter(Boolean);
+  var fillBlanks = document.getElementById('fFillBlanks').value.split(',').map(s => s.trim()).filter(Boolean);
   return {
     mainTitle: document.getElementById('fMainTitle').value.trim() || 'SHORT VOWEL CVC WORDS',
     lessonNumber: parseInt(document.getElementById('fLessonNumber').value) || 0,
@@ -1219,9 +951,8 @@ function fillForm(data) {
   document.getElementById('fWords').value = (data.words || []).flat().join(', ');
   document.getElementById('fSentences').value = (data.sentences || []).join(', ');
   document.getElementById('fFillBlanks').value = (data.fillBlanks || []).join(', ');
-  
-  const img = document.getElementById('imagePreview');
-  const placeholder = document.getElementById('imagePreviewPlaceholder');
+  var img = document.getElementById('imagePreview');
+  var placeholder = document.getElementById('imagePreviewPlaceholder');
   if (data.imagePath) {
     img.src = data.imagePath;
     img.style.display = 'block';
@@ -1246,19 +977,19 @@ function resetForm() {
   document.getElementById('fWords').value = '';
   document.getElementById('fSentences').value = '';
   document.getElementById('fFillBlanks').value = '';
-  const img = document.getElementById('imagePreview');
-  const placeholder = document.getElementById('imagePreviewPlaceholder');
+  var img = document.getElementById('imagePreview');
+  var placeholder = document.getElementById('imagePreviewPlaceholder');
   img.src = '';
   img.style.display = 'none';
   placeholder.style.display = 'flex';
   document.getElementById('saveBtn').textContent = '💾 Save Lesson';
   document.getElementById('cancelBtn').style.display = 'none';
   document.getElementById('fImageFile').value = '';
-  updateFormList();
+  renderEditTab(); // refresh list
 }
 
 function editLesson(id) {
-  const lesson = lessons.find(l => l.id === id);
+  var lesson = lessons.find(l => l.id === id);
   if (!lesson) { showToast('Lesson not found.', 'error'); return; }
   editingId = id;
   document.getElementById('formTitle').textContent = '✏️ Edit Lesson';
@@ -1267,7 +998,6 @@ function editLesson(id) {
   document.getElementById('saveBtn').textContent = '💾 Update Lesson';
   document.getElementById('cancelBtn').style.display = 'inline-block';
   document.querySelector('.form-section').scrollIntoView({ behavior: 'smooth' });
-  updateFormList();
 }
 
 function cancelEdit() {
@@ -1276,185 +1006,117 @@ function cancelEdit() {
 }
 
 function saveLesson() {
-  const data = getFormData();
+  var data = getFormData();
+  // Validation
+  if (!data.mainTitle) { showToast('Main Title is required.', 'error'); document.getElementById('fMainTitle').focus(); return; }
+  if (!data.lessonNumber || data.lessonNumber <= 0) { showToast('Lesson Number must be positive.', 'error'); document.getElementById('fLessonNumber').focus(); return; }
+  if (!data.letterTile) { showToast('Letter Tile is required.', 'error'); document.getElementById('fLetterTile').focus(); return; }
+  if (!data.imageCaption) { showToast('Image Caption is required.', 'error'); document.getElementById('fImageCaption').focus(); return; }
+  if (!data.introText) { showToast('Intro Text is required.', 'error'); document.getElementById('fIntroText').focus(); return; }
+  if (data.words.flat().length < 6) { showToast('Add at least 6 words.', 'error'); document.getElementById('fWords').focus(); return; }
+  if (data.sentences.length < 2) { showToast('Add at least 2 sentences.', 'error'); document.getElementById('fSentences').focus(); return; }
+  if (data.fillBlanks.length < 4) { showToast('Add at least 4 fill-in blanks.', 'error'); document.getElementById('fFillBlanks').focus(); return; }
 
-  // validation
-  if (!data.mainTitle) {
-    showToast('Main Title is required.', 'error');
-    document.getElementById('fMainTitle').focus();
-    return;
-  }
-  if (!data.lessonNumber || data.lessonNumber <= 0) {
-    showToast('Lesson Number must be a positive number.', 'error');
-    document.getElementById('fLessonNumber').focus();
-    return;
-  }
-  if (!data.letterTile) {
-    showToast('Letter Tile is required.', 'error');
-    document.getElementById('fLetterTile').focus();
-    return;
-  }
-  if (!data.imageCaption) {
-    showToast('Image Caption is required.', 'error');
-    document.getElementById('fImageCaption').focus();
-    return;
-  }
-  if (!data.introText) {
-    showToast('Intro Text is required.', 'error');
-    document.getElementById('fIntroText').focus();
-    return;
-  }
-  if (data.words.flat().length < 6) {
-    showToast('Please add at least 6 words (e.g. cat, bat, hat, mat, dad, fat).', 'error');
-    document.getElementById('fWords').focus();
-    return;
-  }
-  if (data.sentences.length < 2) {
-    showToast('Please add at least 2 sentences.', 'error');
-    document.getElementById('fSentences').focus();
-    return;
-  }
-  if (data.fillBlanks.length < 4) {
-    showToast('Please add at least 4 fill-in-the-blank items (e.g. c__t, b__t).', 'error');
-    document.getElementById('fFillBlanks').focus();
-    return;
-  }
-
-  // check duplicate lesson number
-  const duplicate = lessons.find(l => l.lessonNumber === data.lessonNumber && l.id !== editingId);
-  if (duplicate) {
-    if (!confirm(`Lesson ${data.lessonNumber} already exists. Continue anyway?`)) {
-      return;
-    }
-  }
+  var duplicate = lessons.find(l => l.lessonNumber === data.lessonNumber && l.id !== editingId);
+  if (duplicate && !confirm('Lesson ' + data.lessonNumber + ' already exists. Continue?')) { return; }
 
   if (editingId) {
-    const idx = lessons.findIndex(l => l.id === editingId);
+    var idx = lessons.findIndex(l => l.id === editingId);
     if (idx === -1) { showToast('Lesson not found.', 'error'); return; }
     lessons[idx] = { ...lessons[idx], ...data, id: editingId };
-    showToast(`Lesson ${data.lessonNumber} updated.`, 'success');
+    showToast('Lesson ' + data.lessonNumber + ' updated.', 'success');
   } else {
-    const newLesson = { ...data, id: generateId() };
+    var newLesson = { ...data, id: generateId() };
     lessons.push(newLesson);
-    showToast(`Lesson ${data.lessonNumber} created.`, 'success');
+    showToast('Lesson ' + data.lessonNumber + ' created.', 'success');
   }
-
   saveData();
   resetForm();
   renderEditTab();
   renderAllView();
-  updateFormList();
 }
 
 function deleteLesson(id) {
-  const lesson = lessons.find(l => l.id === id);
+  var lesson = lessons.find(l => l.id === id);
   if (!lesson) return;
-  confirmDialog(`Delete Lesson ${lesson.lessonNumber} "${lesson.imageCaption || ''}"? This cannot be undone.`, () => {
+  confirmDialog('Delete Lesson ' + lesson.lessonNumber + ' "' + lesson.imageCaption + '"?', function() {
     lessons = lessons.filter(l => l.id !== id);
     saveData();
     renderEditTab();
     renderAllView();
-    updateFormList();
     if (editingId === id) resetForm();
-    showToast(`Lesson ${lesson.lessonNumber} deleted.`, 'success');
+    showToast('Lesson deleted.', 'success');
   });
 }
 
 function duplicateLesson(id) {
-  const lesson = lessons.find(l => l.id === id);
+  var lesson = lessons.find(l => l.id === id);
   if (!lesson) { showToast('Lesson not found.', 'error'); return; }
-  const copy = JSON.parse(JSON.stringify(lesson));
+  var copy = JSON.parse(JSON.stringify(lesson));
   delete copy.id;
-  copy.lessonNumber = lessons.reduce((max, l) => Math.max(max, l.lessonNumber), 0) + 1;
+  copy.lessonNumber = lessons.reduce(function(max, l) { return Math.max(max, l.lessonNumber); }, 0) + 1;
   copy.imageCaption = copy.imageCaption + ' (copy)';
-  const newId = generateId();
-  copy.id = newId;
+  copy.id = generateId();
   lessons.push(copy);
   saveData();
   renderEditTab();
   renderAllView();
-  updateFormList();
-  showToast(`Lesson ${copy.lessonNumber} duplicated.`, 'success');
+  showToast('Lesson duplicated.', 'success');
 }
 
-// ============================================================
-//  IMAGE UPLOAD
-// ============================================================
-
+// Image upload
 function handleImageUpload(event) {
-  const file = event.target.files[0];
+  var file = event.target.files[0];
   if (!file) return;
-  if (file.size > 2 * 1024 * 1024) {
-    showToast('Image must be smaller than 2MB. Please compress it.', 'error');
-    event.target.value = '';
-    return;
-  }
-  if (!file.type.startsWith('image/')) {
-    showToast('Please select an image file.', 'error');
-    event.target.value = '';
-    return;
-  }
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    const dataUrl = e.target.result;
+  if (file.size > 2 * 1024 * 1024) { showToast('Image must be <2MB.', 'error'); event.target.value = ''; return; }
+  if (!file.type.startsWith('image/')) { showToast('Please select an image.', 'error'); event.target.value = ''; return; }
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var dataUrl = e.target.result;
     document.getElementById('fImagePath').value = dataUrl;
-    const img = document.getElementById('imagePreview');
-    const placeholder = document.getElementById('imagePreviewPlaceholder');
+    var img = document.getElementById('imagePreview');
+    var placeholder = document.getElementById('imagePreviewPlaceholder');
     img.src = dataUrl;
     img.style.display = 'block';
     placeholder.style.display = 'none';
-    showToast('Image uploaded successfully.', 'success');
+    showToast('Image uploaded.', 'success');
   };
-  reader.onerror = () => {
-    showToast('Failed to read image file.', 'error');
-  };
+  reader.onerror = function() { showToast('Failed to read file.', 'error'); };
   reader.readAsDataURL(file);
 }
 
-// ============================================================
-//  JSON IMPORT / EXPORT
-// ============================================================
-
+// JSON import/export
 function exportJSON() {
-  if (lessons.length === 0) {
-    showToast('No lessons to export.', 'warning');
-    return;
-  }
-  const json = JSON.stringify(lessons, null, 2);
-  const blob = new Blob([json], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
+  if (lessons.length === 0) { showToast('No lessons to export.', 'warning'); return; }
+  var json = JSON.stringify(lessons, null, 2);
+  var blob = new Blob([json], { type: 'application/json' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
   a.href = url;
   a.download = 'phonics_lessons_' + new Date().toISOString().slice(0,10) + '.json';
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
-  showToast('JSON exported successfully.', 'success');
+  showToast('JSON exported.', 'success');
 }
 
 function importJSON(event) {
-  const file = event.target.files[0];
+  var file = event.target.files[0];
   if (!file) return;
-  const reader = new FileReader();
-  reader.onload = (e) => {
+  var reader = new FileReader();
+  reader.onload = function(e) {
     try {
-      const data = JSON.parse(e.target.result);
-      if (!Array.isArray(data) || data.length === 0) {
-        showToast('Invalid JSON: expected an array of lessons.', 'error');
-        return;
-      }
-      const first = data[0];
-      if (!first.lessonNumber && !first.letterTile) {
-        showToast('Invalid lesson data: missing required fields.', 'error');
-        return;
-      }
-      confirmDialog(`Import ${data.length} lessons? This will REPLACE all current lessons.`, () => {
-        let maxId = 0;
-        data.forEach(l => {
+      var data = JSON.parse(e.target.result);
+      if (!Array.isArray(data) || data.length === 0) { showToast('Invalid JSON.', 'error'); return; }
+      var first = data[0];
+      if (!first.lessonNumber && !first.letterTile) { showToast('Invalid lesson data.', 'error'); return; }
+      confirmDialog('Import ' + data.length + ' lessons? (Replaces all)', function() {
+        var maxId = 0;
+        data.forEach(function(l) {
           if (!l.id) l.id = 'l' + Date.now() + Math.random().toString(36).slice(2,6);
           if (!l.mainTitle) l.mainTitle = 'SHORT VOWEL CVC WORDS';
-          const num = parseInt(l.id.replace('l','')) || 0;
+          var num = parseInt(l.id.replace('l','')) || 0;
           if (num > maxId) maxId = num;
         });
         lessons = data;
@@ -1463,37 +1125,136 @@ function importJSON(event) {
         resetForm();
         renderEditTab();
         renderAllView();
-        updateFormList();
-        showToast(`Imported ${lessons.length} lessons.`, 'success');
+        showToast('Imported ' + lessons.length + ' lessons.', 'success');
       });
     } catch(err) {
       showToast('Failed to parse JSON: ' + err.message, 'error');
     }
   };
-  reader.onerror = () => showToast('Failed to read file.', 'error');
+  reader.onerror = function() { showToast('Failed to read file.', 'error'); };
   reader.readAsText(file);
   event.target.value = '';
 }
 
-// ============================================================
-//  FORM HELPERS
-// ============================================================
+// Drag & Drop reorder
+function attachDragDrop() {
+  var items = document.querySelectorAll('.lesson-item');
+  var dragIndex = null;
+  items.forEach(function(item) {
+    item.addEventListener('dragstart', function(e) {
+      dragIndex = parseInt(item.dataset.index);
+      item.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', String(dragIndex));
+    });
+    item.addEventListener('dragend', function() {
+      item.classList.remove('dragging');
+      document.querySelectorAll('.lesson-item.drag-over').forEach(function(el) { el.classList.remove('drag-over'); });
+    });
+    item.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      var targetIndex = parseInt(item.dataset.index);
+      if (targetIndex !== dragIndex) {
+        document.querySelectorAll('.lesson-item.drag-over').forEach(function(el) { el.classList.remove('drag-over'); });
+        item.classList.add('drag-over');
+      }
+    });
+    item.addEventListener('dragleave', function() {
+      item.classList.remove('drag-over');
+    });
+    item.addEventListener('drop', function(e) {
+      e.preventDefault();
+      item.classList.remove('drag-over');
+      var from = parseInt(e.dataTransfer.getData('text/plain'));
+      var to = parseInt(item.dataset.index);
+      if (from !== to && !isNaN(from) && !isNaN(to)) {
+        var removed = lessons.splice(from, 1)[0];
+        lessons.splice(to, 0, removed);
+        saveData();
+        renderEditTab();
+        renderAllView();
+        showToast('Lesson reordered.', 'success');
+      }
+    });
+  });
+}
 
-function updateFormList() {
-  renderEditTab();
-  if (editingId) {
-    const lesson = lessons.find(l => l.id === editingId);
-    if (lesson) fillForm(lesson);
+function renderEditTab() {
+  var container = document.getElementById('editContainer');
+  var filtered = lessons.filter(function(l) {
+    if (!searchQuery) return true;
+    var q = searchQuery.toLowerCase();
+    var words = (l.words || []).flat().join(' ');
+    var sentences = (l.sentences || []).join(' ');
+    var blanks = (l.fillBlanks || []).join(' ');
+    return (l.lessonNumber + '').includes(q) ||
+           (l.mainTitle || '').toLowerCase().includes(q) ||
+           (l.letterTile || '').toLowerCase().includes(q) ||
+           (l.imageCaption || '').toLowerCase().includes(q) ||
+           (l.introText || '').toLowerCase().includes(q) ||
+           words.toLowerCase().includes(q) ||
+           sentences.toLowerCase().includes(q) ||
+           blanks.toLowerCase().includes(q);
+  });
+
+  var listHtml = `
+    <div class="list-toolbar">
+      <input class="search-box" type="text" placeholder="🔍 Search lessons..." id="searchInput" value="${searchQuery}" />
+      <span class="count">${filtered.length} / ${lessons.length}</span>
+      <button class="btn btn-success btn-sm" onclick="exportJSON()">📤 Export JSON</button>
+      <button class="btn btn-outline btn-sm" onclick="document.getElementById('importFileInput').click()">📥 Import JSON</button>
+      <input type="file" id="importFileInput" accept=".json" style="display:none" onchange="importJSON(event)" />
+    </div>
+    <div class="lesson-list" id="lessonList">
+  `;
+  if (filtered.length === 0) {
+    listHtml += `<div class="empty-state"><div class="icon">🔍</div><h3>No lessons found</h3><p>${searchQuery ? 'Try adjusting your search.' : 'Click "Add New Lesson" to get started.'}</p></div>`;
+  } else {
+    filtered.forEach(function(l, idx) {
+      var actualIdx = lessons.indexOf(l);
+      var thumb = l.imagePath ? '<img class="thumb" src="' + l.imagePath + '" alt="" />' :
+                                 '<div class="thumb placeholder">📄</div>';
+      listHtml += `
+        <div class="lesson-item" draggable="true" data-index="${actualIdx}" data-id="${l.id}">
+          <span class="drag-handle">⠿</span>
+          ${thumb}
+          <div class="info">
+            <div class="title">Lesson ${l.lessonNumber} — ${l.mainTitle || 'CVC'} ${l.imageCaption ? '· ' + l.imageCaption : ''}</div>
+            <div class="sub">${(l.introText || '').replace(/<[^>]*>/g,'').slice(0,80)}${(l.introText || '').length > 80 ? '…' : ''}</div>
+          </div>
+          <div class="actions">
+            <button class="btn btn-primary btn-xs" onclick="editLesson('${l.id}')">✏️</button>
+            <button class="btn btn-warning btn-xs" onclick="duplicateLesson('${l.id}')">📋</button>
+            <button class="btn btn-danger btn-xs" onclick="deleteLesson('${l.id}')">🗑️</button>
+          </div>
+        </div>
+      `;
+    });
+  }
+  listHtml += '</div>';
+  container.innerHTML = listHtml;
+
+  attachDragDrop();
+  var searchInput = document.getElementById('searchInput');
+  if (searchInput) {
+    searchInput.addEventListener('input', function(e) {
+      searchQuery = e.target.value;
+      renderEditTab();
+    });
   }
 }
 
 // ============================================================
 //  TAB SWITCHING
 // ============================================================
-
 function switchTab(tab) {
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === tab + 'Panel'));
+  document.querySelectorAll('.tab-btn').forEach(function(b) {
+    b.classList.toggle('active', b.dataset.tab === tab);
+  });
+  document.querySelectorAll('.tab-panel').forEach(function(p) {
+    p.classList.toggle('active', p.id === tab + 'Panel');
+  });
   if (tab === 'view') renderAllView();
   if (tab === 'edit') renderEditTab();
 }
@@ -1501,7 +1262,6 @@ function switchTab(tab) {
 // ============================================================
 //  INIT
 // ============================================================
-
 function init() {
   loadData();
   document.getElementById('fLessonNumber').value = lessons.length + 1;
@@ -1511,55 +1271,44 @@ function init() {
   switchTab('edit');
 }
 
-// expose to global for inline onclick
+// Expose globals
+window.switchTab = switchTab;
+window.saveLesson = saveLesson;
 window.editLesson = editLesson;
 window.deleteLesson = deleteLesson;
 window.duplicateLesson = duplicateLesson;
-window.saveLesson = saveLesson;
 window.cancelEdit = cancelEdit;
-window.switchTab = switchTab;
 window.exportJSON = exportJSON;
 window.importJSON = importJSON;
 window.handleImageUpload = handleImageUpload;
 
 // ============================================================
-//  BUILD APP HTML
+//  BUILD APP DOM
 // ============================================================
-
-document.addEventListener('DOMContentLoaded', () => {
-  const app = document.getElementById('app');
+document.addEventListener('DOMContentLoaded', function() {
+  var app = document.getElementById('app');
   app.innerHTML = `
     <div class="app">
-      <!-- header -->
       <div class="app-header">
         <h1>📚 Phonics Lesson Publisher</h1>
-        <span class="badge">${lessons ? lessons.length : 0} lessons</span>
+        <span class="badge" id="lessonCount">${lessons ? lessons.length : 0} lessons</span>
       </div>
-
-      <!-- tabs -->
       <div class="tabs">
         <button class="tab-btn active" data-tab="edit" onclick="switchTab('edit')">✏️ Edit</button>
         <button class="tab-btn" data-tab="view" onclick="switchTab('view')">👁️ View</button>
       </div>
-
-      <!-- Edit Panel -->
       <div class="tab-panel active" id="editPanel">
         <div class="edit-layout">
-          <!-- Form -->
           <div class="form-section">
             <h2 id="formTitle">➕ Add New Lesson <span class="edit-id" id="formId"></span></h2>
-
-            <!-- 🆕 Main Title field -->
             <div class="form-group">
               <label>Main Title <span class="req">*</span></label>
               <input type="text" id="fMainTitle" placeholder="e.g. SHORT VOWEL CVC WORDS" />
             </div>
-
             <div class="form-group">
               <label>Lesson Number <span class="req">*</span></label>
               <input type="number" id="fLessonNumber" min="1" step="1" />
             </div>
-
             <div class="form-row">
               <div class="form-group">
                 <label>Letter Tile <span class="req">*</span></label>
@@ -1570,7 +1319,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 <input type="text" id="fImageCaption" placeholder="e.g. Apple" />
               </div>
             </div>
-
             <div class="form-group">
               <label>Image (upload from device)</label>
               <div class="image-upload-wrap">
@@ -1580,42 +1328,33 @@ document.addEventListener('DOMContentLoaded', () => {
                 <input type="hidden" id="fImagePath" />
               </div>
             </div>
-
             <div class="form-group">
               <label>Intro Text <span class="req">*</span></label>
               <textarea id="fIntroText" rows="2" placeholder="Custom introduction for this lesson..."></textarea>
             </div>
-
             <div class="form-group">
               <label>Words (comma separated) <span class="req">*</span></label>
-              <textarea id="fWords" rows="2" placeholder="cat, bat, hat, mat, dad, fat, sat, rat, jam, fan, can, car"></textarea>
+              <textarea id="fWords" rows="2" placeholder="cat, bat, hat, mat, dad, fat..."></textarea>
             </div>
-
             <div class="form-group">
               <label>Sentences (comma separated) <span class="req">*</span></label>
               <textarea id="fSentences" rows="2" placeholder="The cat sat on a mat., A rat had a hat."></textarea>
             </div>
-
             <div class="form-group">
               <label>Fill Blanks (comma separated) <span class="req">*</span></label>
-              <textarea id="fFillBlanks" rows="2" placeholder="c__t, b__t, h__t, m__t, d__d, f__t, s__t, r__t"></textarea>
+              <textarea id="fFillBlanks" rows="2" placeholder="c__t, b__t, h__t, m__t..."></textarea>
             </div>
-
             <div class="form-actions">
               <button class="btn btn-primary" id="saveBtn" onclick="saveLesson()">💾 Save Lesson</button>
               <button class="btn btn-outline" id="cancelBtn" onclick="cancelEdit()" style="display:none">Cancel</button>
             </div>
           </div>
-
-          <!-- Lesson List -->
           <div class="list-section">
             <h2 style="font-size:18px;margin-bottom:12px;">📖 All Lessons</h2>
             <div id="editContainer"></div>
           </div>
         </div>
       </div>
-
-      <!-- View Panel -->
       <div class="tab-panel" id="viewPanel">
         <div class="view-toolbar">
           <span class="info">📄 ${lessons ? lessons.length : 0} lessons · ${lessons ? lessons.length * 2 : 0} pages</span>
@@ -1626,7 +1365,8 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
     </div>
   `;
-
+  // Update badge count
+  document.getElementById('lessonCount').textContent = lessons ? lessons.length : 0;
   init();
 });
 </script>
