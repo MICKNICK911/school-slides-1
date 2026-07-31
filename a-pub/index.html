@@ -14,8 +14,8 @@
 
   .page {
     width: 850px;
-    min-height: 1100px;
-    padding: 36px 40px;
+    min-height: 1080px;
+    padding: 30px 40px;
     position: relative;
     page-break-after: always;
   }
@@ -24,8 +24,8 @@
   .card {
     border: 3px solid #F5A623;
     border-radius: 28px;
-    min-height: 1028px;
-    padding: 28px 34px;
+    min-height: 1000px;
+    padding: 24px 32px;
     position: relative;
   }
 
@@ -129,8 +129,8 @@
   .section-header {
     display: flex;
     align-items: center;
-    margin-bottom: 14px;
-    margin-top: 20px;
+    margin-bottom: 10px;
+    margin-top: 12px;
   }
   .section-header .circle {
     background: #F5A623;
@@ -155,16 +155,16 @@
   .word-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
+    gap: 8px;
   }
   .word-grid .pill {
     background: #E2571C;
     color: #fff;
     border-radius: 14px;
     text-align: center;
-    padding: 12px 6px;
+    padding: 8px 6px;
     font-weight: 800;
-    font-size: 18px;
+    font-size: 17px;
   }
   .word-grid.blanks .pill {
     background: #fff;
@@ -187,22 +187,22 @@
   .reading-box {
     border: 2px solid #F5A623;
     border-radius: 16px;
-    padding: 16px 22px;
+    padding: 12px 22px;
   }
   .reading-box p {
-    margin: 0 0 8px 0;
+    margin: 0 0 5px 0;
     color: #E2571C;
     font-weight: 800;
-    font-size: 16px;
+    font-size: 15px;
   }
   .reading-box p:last-child { margin-bottom: 0; }
 
-  .activity-label { font-weight: 700; font-size: 13px; margin: 14px 0 8px 0; }
+  .activity-label { font-weight: 700; font-size: 13px; margin: 10px 0 6px 0; }
 
   .sentence-line {
     border-bottom: 1px solid #999;
-    padding: 4px 0 6px 0;
-    font-size: 14px;
+    padding: 3px 0 4px 0;
+    font-size: 13px;
     color: #E2571C;
     font-weight: 600;
   }
@@ -213,6 +213,39 @@
     font-weight: 800;
     font-size: 13px;
     color: #1a1a1a;
+  }
+
+  .page-actions {
+    text-align: right;
+    margin-bottom: 8px;
+  }
+  .export-btn {
+    background: #E2571C;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-weight: 700;
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .export-btn:hover { background: #c8481a; }
+
+  /* keep colors/borders in print + PDF export */
+  .card, .lesson-badge, .hero-letter, .word-grid .pill,
+  .intro-box, .section-header .circle, .reading-box {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  @media print {
+    .no-print { display: none !important; }
+    body.print-single .page { display: none; }
+    body.print-single .page.print-target {
+      display: block;
+      page-break-after: auto !important;
+    }
   }
 </style>
 </head>
@@ -237,14 +270,40 @@ function wordGrid(words, extraClass) {
   return grid;
 }
 
-function buildPage(lesson) {
+function exportButton(pageId) {
+  var wrap = el('div', 'page-actions no-print');
+  var btn = el('button', 'export-btn', 'Export this page to PDF');
+  btn.type = 'button';
+  btn.onclick = function () { exportSinglePage(pageId); };
+  wrap.appendChild(btn);
+  return wrap;
+}
+
+function exportSinglePage(pageId) {
+  var target = document.getElementById(pageId);
+  if (!target) return;
+  target.classList.add('print-target');
+  document.body.classList.add('print-single');
+  window.print();
+}
+
+window.addEventListener('afterprint', function () {
+  document.body.classList.remove('print-single');
+  var targets = document.querySelectorAll('.print-target');
+  for (var i = 0; i < targets.length; i++) targets[i].classList.remove('print-target');
+});
+
+// Page 1 of a lesson: title, badge, intro, hero image/letter, word grid
+function buildPageOne(lesson, pageId, pageNumber) {
   var page = el('div', 'page');
+  page.id = pageId;
+  page.appendChild(exportButton(pageId));
+
   var card = el('div', 'card');
   page.appendChild(card);
 
   card.appendChild(el('div', 'title', 'SHORT VOWEL CVC WORDS'));
 
-  // header row: badge + intro
   var headerRow = el('div', 'header-row');
   var badge = el('div', 'lesson-badge');
   badge.appendChild(el('div', 'arrow'));
@@ -260,7 +319,6 @@ function buildPage(lesson) {
   headerRow.appendChild(introBox);
   card.appendChild(headerRow);
 
-  // hero row: image + big letter
   var heroRow = el('div', 'hero-row');
   var heroImage = el('div', 'hero-image');
   if (lesson.imagePath) {
@@ -275,7 +333,6 @@ function buildPage(lesson) {
   heroRow.appendChild(el('div', 'hero-letter', lesson.letterTile));
   card.appendChild(heroRow);
 
-  // section 1
   var sec1 = el('div', 'section-header');
   sec1.appendChild(el('div', 'circle', '1'));
   sec1.appendChild(el('div', 'label-box', 'Look and say aloud'));
@@ -286,7 +343,20 @@ function buildPage(lesson) {
   }
   card.appendChild(wordGrid(allWords));
 
-  // section 2
+  card.appendChild(el('div', 'page-number', pageNumber));
+
+  return page;
+}
+
+// Page 2 of a lesson: decodable reading + activities, in its own bordered card
+function buildPageTwo(lesson, pageId, pageNumber) {
+  var page = el('div', 'page');
+  page.id = pageId;
+  page.appendChild(exportButton(pageId));
+
+  var card = el('div', 'card');
+  page.appendChild(card);
+
   var sec2 = el('div', 'section-header');
   sec2.appendChild(el('div', 'circle', '2'));
   sec2.appendChild(el('div', 'label-box', 'Decodable Reading'));
@@ -298,7 +368,6 @@ function buildPage(lesson) {
   }
   card.appendChild(readingBox);
 
-  // section 3
   var sec3 = el('div', 'section-header');
   sec3.appendChild(el('div', 'circle', '3'));
   sec3.appendChild(el('div', 'label-box', 'Activities'));
@@ -316,7 +385,7 @@ function buildPage(lesson) {
   card.appendChild(el('div', 'sentence-line', '1.'));
   card.appendChild(el('div', 'sentence-line', '2.'));
 
-  card.appendChild(el('div', 'page-number', lesson.pageNumber));
+  card.appendChild(el('div', 'page-number', pageNumber));
 
   return page;
 }
@@ -324,8 +393,13 @@ function buildPage(lesson) {
 function render(lessons) {
   var root = document.getElementById('root');
   root.innerHTML = '';
+  var pageCounter = 1;
   for (var i = 0; i < lessons.length; i++) {
-    root.appendChild(buildPage(lessons[i]));
+    var lesson = lessons[i];
+    var idOne = 'lesson-' + (i + 1) + '-page-1';
+    var idTwo = 'lesson-' + (i + 1) + '-page-2';
+    root.appendChild(buildPageOne(lesson, idOne, pageCounter++));
+    root.appendChild(buildPageTwo(lesson, idTwo, pageCounter++));
   }
 }
 
