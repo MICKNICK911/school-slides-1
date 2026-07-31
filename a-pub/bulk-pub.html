@@ -1,0 +1,1634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>📚 Phonics Lesson Publisher</title>
+  <style>
+    /* ----- global reset & base ----- */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f5f7fa;
+      color: #1a1a1a;
+      padding: 20px;
+    }
+
+    /* ----- app wrapper ----- */
+    .app {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 24px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.08);
+      overflow: hidden;
+    }
+
+    /* ----- header ----- */
+    .app-header {
+      background: #1a1a2e;
+      color: #fff;
+      padding: 20px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .app-header h1 { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; }
+    .app-header .badge {
+      background: #F5A623;
+      color: #1a1a1a;
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    /* ----- tabs ----- */
+    .tabs {
+      display: flex;
+      border-bottom: 2px solid #e9ecef;
+      background: #fafbfc;
+      padding: 0 32px;
+      gap: 4px;
+    }
+    .tab-btn {
+      padding: 16px 28px;
+      border: none;
+      background: transparent;
+      font-size: 15px;
+      font-weight: 700;
+      color: #6c757d;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+    .tab-btn:hover { color: #1a1a2e; }
+    .tab-btn.active {
+      color: #1a1a2e;
+      border-bottom-color: #F5A623;
+    }
+    .tab-panel { display: none; padding: 24px 32px 32px; }
+    .tab-panel.active { display: block; }
+
+    /* ----- toast notifications ----- */
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-width: 420px;
+      width: 100%;
+    }
+    .toast {
+      padding: 14px 20px;
+      border-radius: 12px;
+      color: #fff;
+      font-weight: 600;
+      font-size: 14px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+      animation: slideIn 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .toast.success { background: #2d7d46; }
+    .toast.error { background: #dc3545; }
+    .toast.warning { background: #e67e22; }
+    .toast.info { background: #2c7be5; }
+    .toast .close-toast {
+      background: none;
+      border: none;
+      color: inherit;
+      font-size: 18px;
+      cursor: pointer;
+      margin-left: auto;
+      opacity: 0.7;
+    }
+    .toast .close-toast:hover { opacity: 1; }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ----- edit tab ----- */
+    .edit-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+    }
+    @media (max-width: 1100px) { .edit-layout { grid-template-columns: 1fr; } }
+
+    /* --- form --- */
+    .form-section {
+      background: #f8f9fa;
+      border-radius: 16px;
+      padding: 24px;
+      border: 2px solid #e9ecef;
+      position: sticky;
+      top: 20px;
+      max-height: calc(100vh - 200px);
+      overflow-y: auto;
+    }
+    .form-section h2 {
+      font-size: 18px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .form-section h2 .edit-id { color: #6c757d; font-weight: 400; font-size: 14px; }
+    .form-group { margin-bottom: 14px; }
+    .form-group label {
+      display: block;
+      font-weight: 700;
+      font-size: 13px;
+      color: #495057;
+      margin-bottom: 4px;
+    }
+    .form-group label .req { color: #dc3545; }
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      width: 100%;
+      padding: 10px 14px;
+      border: 2px solid #dee2e6;
+      border-radius: 10px;
+      font-size: 14px;
+      font-family: inherit;
+      transition: border 0.2s;
+      background: #fff;
+    }
+    .form-group input:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #F5A623;
+      box-shadow: 0 0 0 3px rgba(245,166,35,0.15);
+    }
+    .form-group textarea { resize: vertical; min-height: 50px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      padding: 10px 22px;
+      border: none;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-primary { background: #F5A623; color: #1a1a1a; }
+    .btn-primary:hover:not(:disabled) { background: #e0950f; transform: translateY(-1px); }
+    .btn-success { background: #2d7d46; color: #fff; }
+    .btn-success:hover:not(:disabled) { background: #1f5f34; }
+    .btn-danger { background: #dc3545; color: #fff; }
+    .btn-danger:hover:not(:disabled) { background: #b02a37; }
+    .btn-outline { background: transparent; border: 2px solid #dee2e6; color: #495057; }
+    .btn-outline:hover:not(:disabled) { background: #f1f3f5; }
+    .btn-sm { padding: 6px 14px; font-size: 12px; }
+    .btn-xs { padding: 4px 10px; font-size: 11px; border-radius: 6px; }
+    .btn-warning { background: #e67e22; color: #fff; }
+    .btn-warning:hover:not(:disabled) { background: #cf6d17; }
+
+    /* --- image upload preview --- */
+    .image-upload-wrap {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .image-upload-wrap .preview {
+      width: 64px;
+      height: 64px;
+      border-radius: 10px;
+      object-fit: cover;
+      border: 2px solid #dee2e6;
+      background: #f1f3f5;
+    }
+    .image-upload-wrap .preview-placeholder {
+      width: 64px;
+      height: 64px;
+      border-radius: 10px;
+      border: 2px dashed #dee2e6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      color: #adb5bd;
+      background: #f8f9fa;
+    }
+    .image-upload-wrap input[type="file"] { flex: 1; }
+
+    /* --- lesson list --- */
+    .list-section { min-height: 400px; }
+    .list-toolbar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 16px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid #e9ecef;
+    }
+    .list-toolbar .search-box {
+      flex: 1;
+      min-width: 180px;
+      padding: 10px 16px;
+      border: 2px solid #dee2e6;
+      border-radius: 10px;
+      font-size: 14px;
+      font-family: inherit;
+    }
+    .list-toolbar .search-box:focus {
+      outline: none;
+      border-color: #F5A623;
+    }
+    .list-toolbar .count {
+      font-weight: 700;
+      color: #6c757d;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+
+    .lesson-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .lesson-list .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #6c757d;
+    }
+    .lesson-list .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+    .lesson-list .empty-state h3 { color: #1a1a1a; margin-bottom: 4px; }
+
+    .lesson-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      background: #f8f9fa;
+      border-radius: 12px;
+      border: 2px solid transparent;
+      transition: all 0.2s;
+      cursor: grab;
+      user-select: none;
+    }
+    .lesson-item:hover { border-color: #F5A623; background: #fff; }
+    .lesson-item.dragging { opacity: 0.4; border-color: #F5A623; background: #fff8e7; }
+    .lesson-item .drag-handle {
+      color: #adb5bd;
+      font-size: 20px;
+      cursor: grab;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+    .lesson-item .drag-handle:active { cursor: grabbing; }
+    .lesson-item .thumb {
+      width: 48px;
+      height: 48px;
+      border-radius: 8px;
+      object-fit: cover;
+      background: #e9ecef;
+      border: 1px solid #dee2e6;
+      flex-shrink: 0;
+    }
+    .lesson-item .thumb.placeholder { display: flex; align-items: center; justify-content: center; font-size: 20px; }
+    .lesson-item .info {
+      flex: 1;
+      min-width: 0;
+    }
+    .lesson-item .info .title {
+      font-weight: 700;
+      font-size: 15px;
+    }
+    .lesson-item .info .sub {
+      font-size: 13px;
+      color: #6c757d;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .lesson-item .actions {
+      display: flex;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+    .lesson-item.drag-over { border-color: #F5A623; background: #fff8e7; }
+
+    /* ----- view tab ----- */
+    .view-toolbar {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid #e9ecef;
+    }
+    .view-toolbar .info {
+      font-weight: 700;
+      color: #6c757d;
+      font-size: 14px;
+      margin-right: auto;
+    }
+
+    /* --- re-use the original page styles (with minor tweaks) --- */
+    @page { size: 850px 1100px; margin: 0; }
+
+    .view-container .page {
+      width: 850px;
+      min-height: 1080px;
+      padding: 30px 40px;
+      position: relative;
+      page-break-after: always;
+      margin: 0 auto 30px;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    }
+    .view-container .page:last-child { margin-bottom: 0; }
+
+    .view-container .card {
+      border: 3px solid #F5A623;
+      border-radius: 28px;
+      min-height: 1000px;
+      padding: 24px 32px;
+      position: relative;
+    }
+
+    .view-container .title {
+      font-size: 30px;
+      font-weight: 800;
+      color: #1a1a1a;
+      letter-spacing: 0.5px;
+      margin: 4px 0 18px 0;
+    }
+
+    .view-container .header-row {
+      display: flex;
+      align-items: stretch;
+      gap: 0;
+      margin-bottom: 22px;
+    }
+
+    .view-container .lesson-badge {
+      background: #F5A623;
+      border-radius: 16px;
+      color: #fff;
+      width: 130px;
+      min-width: 130px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 6px;
+      position: relative;
+      margin-right: 18px;
+    }
+    .view-container .lesson-badge .arrow {
+      position: absolute;
+      top: -22px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 22px solid transparent;
+      border-right: 22px solid transparent;
+      border-bottom: 26px solid #F5A623;
+    }
+    .view-container .lesson-badge .label { font-size: 13px; font-weight: 600; opacity: 0.95; }
+    .view-container .lesson-badge .num { font-size: 34px; font-weight: 800; line-height: 1.1; }
+
+    .view-container .intro-box {
+      flex: 1;
+      border: 3px dashed #E2571C;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      padding: 14px 20px;
+    }
+    .view-container .intro-box p {
+      margin: 0;
+      color: #E2571C;
+      font-weight: 700;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .view-container .hero-row {
+      display: flex;
+      border-radius: 20px;
+      overflow: hidden;
+      border: 3px solid #F5A623;
+      height: 280px;
+      margin-bottom: 22px;
+    }
+    .view-container .hero-image {
+      flex: 1;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .view-container .hero-image img { max-height: 200px; max-width: 80%; object-fit: contain; }
+    .view-container .hero-image .placeholder {
+      width: 200px;
+      height: 100px;
+      border: 2px dashed #ccc;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #999;
+      font-size: 12px;
+    }
+    .view-container .hero-image .caption { font-weight: 800; font-size: 18px; color: #1a1a1a; }
+    .view-container .hero-letter {
+      flex: 1;
+      background: #F5A623;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 90px;
+      font-weight: 800;
+      font-style: italic;
+    }
+
+    .view-container .section-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+      margin-top: 12px;
+    }
+    .view-container .section-header .circle {
+      background: #F5A623;
+      color: #fff;
+      width: 42px; height: 42px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 18px;
+      margin-right: 14px;
+      flex-shrink: 0;
+    }
+    .view-container .section-header .label-box {
+      flex: 1;
+      border: 3px dashed #E2571C;
+      border-radius: 14px;
+      padding: 8px 18px;
+      font-weight: 800;
+      font-size: 19px;
+      color: #1a1a1a;
+    }
+
+    .view-container .word-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+    .view-container .word-grid .pill {
+      background: #E2571C;
+      color: #fff;
+      border-radius: 14px;
+      text-align: center;
+      padding: 8px 6px;
+      font-weight: 600;
+      font-size: 28px;
+      min-height: 60px;
+    }
+    .view-container .word-grid.blanks .pill {
+      background: #fff;
+      color: #E2571C;
+      border: 2px solid #F5A623;
+      min-height: 60px;
+    }
+    .view-container .word-grid.empty .pill {
+      background: #fff;
+      border: 2px solid #F5A623;
+      min-height: 60px;
+    }
+
+    .view-container .instructions {
+      font-weight: 700;
+      font-size: 13px;
+      margin: 8px 0 10px 0;
+      color: #1a1a1a;
+    }
+
+    .view-container .reading-box {
+      border: 2px solid #F5A623;
+      border-radius: 16px;
+      padding: 12px 22px;
+    }
+    .view-container .reading-box p {
+      margin: 0 0 5px 0;
+      color: #E2571C;
+      font-weight: 700;
+      font-size: 25px;
+    }
+    .view-container .reading-box p:last-child { margin-bottom: 0; }
+
+    .view-container .activity-label { font-weight: 700; font-size: 13px; margin: 10px 0 6px 0; }
+
+    .view-container .sentence-line {
+      border-bottom: 1px solid #999;
+      padding: 15px 0 25px 0;
+      font-size: 16px;
+      color: #E2571C;
+      font-weight: 800;
+    }
+
+    .view-container .card .page-number {
+      position: absolute;
+      bottom: 20px;
+      right: 30px;
+      margin: 0;
+      font-weight: 800;
+      font-size: 16px;
+      color: #1a1a1a;
+    }
+
+    .view-container .page-actions {
+      text-align: right;
+      margin-bottom: 8px;
+    }
+    .view-container .export-btn {
+      background: #E2571C;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-weight: 700;
+      font-size: 13px;
+      font-family: inherit;
+      cursor: pointer;
+    }
+    .view-container .export-btn:hover { background: #c8481a; }
+
+    .view-container .card,
+    .view-container .lesson-badge,
+    .view-container .hero-letter,
+    .view-container .word-grid .pill,
+    .view-container .intro-box,
+    .view-container .section-header .circle,
+    .view-container .reading-box {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    /* print overrides for view tab */
+    @media print {
+      body { padding: 0; background: #fff; }
+      .app { border-radius: 0; box-shadow: none; }
+      .app-header, .tabs, .tab-panel, .view-toolbar, .no-print { display: none !important; }
+      .view-container .page {
+        box-shadow: none;
+        border-radius: 0;
+        margin: 0 auto;
+        padding: 0;
+        width: 850px;
+        min-height: 1080px;
+      }
+      .view-container .page .page-actions { display: none !important; }
+      .view-container .page { page-break-after: always; }
+      .view-container .page:last-child { page-break-after: auto; }
+    }
+
+    /* ----- modal / confirm dialog ----- */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9998;
+      animation: fadeIn 0.2s ease;
+    }
+    .modal-overlay .modal {
+      background: #fff;
+      border-radius: 20px;
+      padding: 32px;
+      max-width: 440px;
+      width: 90%;
+      box-shadow: 0 30px 60px rgba(0,0,0,0.2);
+    }
+    .modal-overlay .modal h3 { margin-bottom: 8px; }
+    .modal-overlay .modal p { color: #6c757d; margin-bottom: 20px; font-size: 15px; }
+    .modal-overlay .modal .actions { display: flex; gap: 10px; justify-content: flex-end; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    /* responsive tweaks */
+    @media (max-width: 900px) {
+      .view-container .page {
+        width: 100%;
+        padding: 16px;
+        min-height: auto;
+      }
+      .view-container .card { min-height: auto; padding: 16px; }
+      .view-container .hero-row { height: 180px; flex-direction: column; }
+      .view-container .hero-letter { font-size: 50px; padding: 20px; }
+      .view-container .word-grid .pill { font-size: 18px; min-height: 40px; }
+      .view-container .reading-box p { font-size: 18px; }
+      .view-container .title { font-size: 22px; }
+      .view-container .header-row { flex-direction: column; gap: 12px; }
+      .view-container .lesson-badge { width: 100%; min-width: unset; flex-direction: row; gap: 12px; padding: 8px 16px; }
+      .view-container .lesson-badge .arrow { display: none; }
+      .view-container .lesson-badge .num { font-size: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="app"></div>
+
+<!-- Toast container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// ============================================================
+//  DATA LAYER
+// ============================================================
+
+const STORAGE_KEY = 'phonics_lessons_data';
+const DEFAULT_LESSONS = [
+  {
+    id: 'l1',
+    mainTitle: 'SHORT VOWEL CVC WORDS',
+    lessonNumber: 1,
+    letterTile: 'Aa',
+    imageCaption: 'Apple',
+    imagePath: '',
+    introText: 'Vowels are letters of the alphabets that we usually say with our mouth open. There are 5 short vowels – a, e, i, o, u and 5 long vowels – a, e, i, o, u. The letter Y can sometimes make the vowel sounds. Let\'s start with short vowel <strong>\'a\'</strong> as in <strong>apple</strong>.',
+    words: [['cat','bat','hat','mat'], ['dad','fat','sat','rat'], ['jam','fan','can','car']],
+    sentences: ['The cat sat on a mat.', 'A rat had a hat.', 'The cat is mad.', 'The rat ran to a van.', 'The cat had a nap.'],
+    fillBlanks: ['c__t','b__t','h__t','m__t','d__d','f__t','s__t','r__t']
+  },
+  {
+    id: 'l2',
+    mainTitle: 'SHORT VOWEL CVC WORDS',
+    lessonNumber: 2,
+    letterTile: 'Ee',
+    imageCaption: 'Net',
+    imagePath: '',
+    introText: 'This lesson focuses on the short vowel sound <strong>\'e\'</strong>. Remember, vowels are said with our mouth open. Practice saying \'e\' as in <strong>net</strong>. Keep your tongue flat and say \'eh\'.',
+    words: [['net','bed','hen','men'], ['let','fed','set','red'], ['jet','get','ten','vet']],
+    sentences: ['Jen has a pet hen.', 'The hen is wet.', 'Jen gets a red net.', 'The hen sits on a bed.', 'Ten men let the hen rest.'],
+    fillBlanks: ['n__t','b__d','h__n','m__n','l__t','g__t','t__n','r__d']
+  },
+  {
+    id: 'l3',
+    mainTitle: 'SHORT VOWEL CVC WORDS',
+    lessonNumber: 3,
+    letterTile: 'Ii',
+    imageCaption: 'Pin',
+    imagePath: '',
+    introText: 'This lesson focuses on the short vowel sound <strong>\'i\'</strong>. Keep your mouth slightly open and say \'i\' as in <strong>pin</strong>. Practice these words carefully and listen for the short \'i\' in the middle.',
+    words: [['sit','hit','fit','tin'], ['mix','lip','pin','fix'], ['pit','win','sip','zip']],
+    sentences: ['Tim has a big pig.', 'The pig can sit.', 'Tim hits the lid.', 'The pig digs in the bin.', 'Tim wins a pin.'],
+    fillBlanks: ['s__t','h__t','f__t','t__n','p__g','p__t','s__p','w__n']
+  },
+  {
+    id: 'l4',
+    mainTitle: 'SHORT VOWEL CVC WORDS',
+    lessonNumber: 4,
+    letterTile: 'Oo',
+    imageCaption: 'Mop',
+    imagePath: '',
+    introText: 'This lesson focuses on the short vowel sound <strong>\'o\'</strong>. Open your mouth round and say \'o\' as in <strong>mop</strong>. Let\'s practice reading and writing words with the short \'o\' sound.',
+    words: [['hot','lot','fox','top'], ['not','rot','got','pot'], ['bot','cot','dot','mob']],
+    sentences: ['Bob has a red fox.', 'The fox hops on a log.', 'Bob gets a mop and a pot.', 'The fox stops and drops the top.', 'Bob hops with the fox.'],
+    fillBlanks: ['p__t','B__b','f__x','t__p','l__t','g__t','m__p','h__p']
+  },
+  {
+    id: 'l5',
+    mainTitle: 'SHORT VOWEL CVC WORDS',
+    lessonNumber: 5,
+    letterTile: 'Uu',
+    imageCaption: 'Bug',
+    imagePath: '',
+    introText: 'This lesson focuses on the short vowel sound <strong>\'u\'</strong>. Purse your lips and say \'u\' as in <strong>bug</strong>. Follow along with the activities below to master the short \'u\' sound.',
+    words: [['sun','bug','run','hug'], ['gun','bus','gum','rug'], ['fun','cut','but','mud']],
+    sentences: ['Bud has a bug.', 'The bug sits on a mug.', 'Bud runs to the sun.', 'The bug is on the rug.', 'Bud hugs the bug.'],
+    fillBlanks: ['b__t','b__d','h__g','r__g','s__n','b__s','m__d','g__n']
+  }
+];
+
+let lessons = [];
+let editingId = null;
+let searchQuery = '';
+let nextId = 1;
+
+// Load from localStorage or use defaults
+function loadData() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        lessons = parsed;
+        // ensure each has an id and mainTitle
+        let maxId = 0;
+        lessons.forEach(l => {
+          if (!l.id) { l.id = 'l' + Date.now() + Math.random().toString(36).slice(2,6); }
+          if (!l.mainTitle) { l.mainTitle = 'SHORT VOWEL CVC WORDS'; }
+          const num = parseInt(l.id.replace('l','')) || 0;
+          if (num > maxId) maxId = num;
+        });
+        nextId = maxId + 1;
+        return;
+      }
+    }
+  } catch(e) { /* fall through */ }
+  lessons = JSON.parse(JSON.stringify(DEFAULT_LESSONS));
+  lessons.forEach(l => { if (!l.id) l.id = 'l' + Date.now() + Math.random().toString(36).slice(2,6); });
+  nextId = lessons.length + 1;
+  saveData();
+}
+
+function saveData() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(lessons));
+  } catch(e) {
+    showToast('Failed to save to localStorage. Storage may be full.', 'error');
+  }
+}
+
+function generateId() { return 'l' + (nextId++); }
+
+// ============================================================
+//  TOAST SYSTEM
+// ============================================================
+
+function showToast(message, type = 'info', duration = 3500) {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = 'toast ' + type;
+  const icons = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
+  toast.innerHTML = `<span>${icons[type] || 'ℹ️'}</span> ${message} <button class="close-toast">&times;</button>`;
+  container.appendChild(toast);
+  toast.querySelector('.close-toast').addEventListener('click', () => toast.remove());
+  setTimeout(() => { if (toast.parentNode) toast.remove(); }, duration);
+}
+
+// ============================================================
+//  CONFIRM DIALOG
+// ============================================================
+
+function confirmDialog(message, onConfirm) {
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal">
+      <h3>⚠️ Confirm</h3>
+      <p>${message}</p>
+      <div class="actions">
+        <button class="btn btn-outline btn-cancel">Cancel</button>
+        <button class="btn btn-danger btn-confirm">Yes, do it</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  overlay.querySelector('.btn-cancel').addEventListener('click', () => overlay.remove());
+  overlay.querySelector('.btn-confirm').addEventListener('click', () => {
+    overlay.remove();
+    onConfirm();
+  });
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+}
+
+// ============================================================
+//  RENDER ENGINE (View tab)
+// ============================================================
+
+function renderViewPage(lesson, pageNumber) {
+  const page = document.createElement('div');
+  page.className = 'page';
+
+  // export button (per page)
+  const actions = document.createElement('div');
+  actions.className = 'page-actions no-print';
+  const btn = document.createElement('button');
+  btn.className = 'export-btn';
+  btn.textContent = '📄 Export this page to PDF';
+  btn.onclick = () => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) { showToast('Please allow popups for PDF export.', 'warning'); return; }
+    const clone = document.querySelector('.view-container').cloneNode(true);
+    // keep only this page
+    const allPages = clone.querySelectorAll('.page');
+    allPages.forEach(p => p.remove());
+    const target = clone.querySelector(`.page[data-page-id="${page.dataset.pageId}"]`);
+    if (target) {
+      clone.innerHTML = '';
+      clone.appendChild(target);
+    }
+    const style = document.querySelector('style').cloneNode(true);
+    printWindow.document.write('<!DOCTYPE html><html><head><title>Lesson Export</title>');
+    printWindow.document.write(style.outerHTML);
+    printWindow.document.write('</head><body>');
+    printWindow.document.write(clone.outerHTML);
+    printWindow.document.write('</body></html>');
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+  };
+  actions.appendChild(btn);
+  page.appendChild(actions);
+
+  const card = document.createElement('div');
+  card.className = 'card';
+  page.appendChild(card);
+
+  // 🆕 DYNAMIC MAIN TITLE
+  const titleText = lesson.mainTitle || 'SHORT VOWEL CVC WORDS';
+  card.appendChild(createElement('div', 'title', titleText));
+
+  // header row
+  const headerRow = createElement('div', 'header-row');
+  const badge = createElement('div', 'lesson-badge');
+  badge.appendChild(createElement('div', 'arrow'));
+  badge.appendChild(createElement('div', 'label', 'Lesson'));
+  badge.appendChild(createElement('div', 'num', String(lesson.lessonNumber)));
+  headerRow.appendChild(badge);
+
+  const introBox = createElement('div', 'intro-box');
+  introBox.appendChild(createElement('p', null, lesson.introText || ''));
+  headerRow.appendChild(introBox);
+  card.appendChild(headerRow);
+
+  // hero
+  const heroRow = createElement('div', 'hero-row');
+  const heroImage = createElement('div', 'hero-image');
+  if (lesson.imagePath) {
+    const img = document.createElement('img');
+    img.src = lesson.imagePath;
+    img.alt = lesson.imageCaption || '';
+    heroImage.appendChild(img);
+  } else {
+    const ph = createElement('div', 'placeholder', '🖼️');
+    heroImage.appendChild(ph);
+  }
+  heroImage.appendChild(createElement('div', 'caption', lesson.imageCaption || ''));
+  heroRow.appendChild(heroImage);
+  heroRow.appendChild(createElement('div', 'hero-letter', lesson.letterTile || ''));
+  card.appendChild(heroRow);
+
+  // words
+  const sec1 = createElement('div', 'section-header');
+  sec1.appendChild(createElement('div', 'circle', '1'));
+  sec1.appendChild(createElement('div', 'label-box', 'Look and say aloud'));
+  card.appendChild(sec1);
+  const allWords = lesson.words ? lesson.words.flat() : [];
+  card.appendChild(wordGrid(allWords));
+
+  // page number
+  const pn = createElement('div', 'page-number', String(pageNumber));
+  card.appendChild(pn);
+
+  // store id for export
+  page.dataset.pageId = 'page-' + lesson.id + '-' + pageNumber;
+
+  return page;
+}
+
+function renderViewPageTwo(lesson, pageNumber) {
+  const page = document.createElement('div');
+  page.className = 'page';
+
+  const actions = document.createElement('div');
+  actions.className = 'page-actions no-print';
+  const btn = document.createElement('button');
+  btn.className = 'export-btn';
+  btn.textContent = '📄 Export this page to PDF';
+  btn.onclick = () => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) { showToast('Please allow popups for PDF export.', 'warning'); return; }
+    const clone = document.querySelector('.view-container').cloneNode(true);
+    const allPages = clone.querySelectorAll('.page');
+    allPages.forEach(p => p.remove());
+    const target = clone.querySelector(`.page[data-page-id="${page.dataset.pageId}"]`);
+    if (target) {
+      clone.innerHTML = '';
+      clone.appendChild(target);
+    }
+    const style = document.querySelector('style').cloneNode(true);
+    printWindow.document.write('<!DOCTYPE html><html><head><title>Lesson Export</title>');
+    printWindow.document.write(style.outerHTML);
+    printWindow.document.write('</head><body>');
+    printWindow.document.write(clone.outerHTML);
+    printWindow.document.write('</body></html>');
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+  };
+  actions.appendChild(btn);
+  page.appendChild(actions);
+
+  const card = document.createElement('div');
+  card.className = 'card';
+  page.appendChild(card);
+
+  const sec2 = createElement('div', 'section-header');
+  sec2.appendChild(createElement('div', 'circle', '2'));
+  sec2.appendChild(createElement('div', 'label-box', 'Decodable Reading'));
+  card.appendChild(sec2);
+  card.appendChild(createElement('div', 'instructions', 'Read ALOUD and circle all words with the short vowel sound'));
+  const readingBox = createElement('div', 'reading-box');
+  if (lesson.sentences) {
+    lesson.sentences.forEach((s, idx) => {
+      readingBox.appendChild(createElement('p', null, (idx + 1) + '. ' + s));
+    });
+  }
+  card.appendChild(readingBox);
+
+  const sec3 = createElement('div', 'section-header');
+  sec3.appendChild(createElement('div', 'circle', '3'));
+  sec3.appendChild(createElement('div', 'label-box', 'Activities'));
+  card.appendChild(sec3);
+
+  card.appendChild(createElement('div', 'activity-label', 'A. Fill in the missing letters and say word'));
+  card.appendChild(wordGrid(lesson.fillBlanks || [], 'blanks'));
+
+  const emptySlots = (lesson.fillBlanks || []).map(() => '&nbsp;');
+  card.appendChild(createElement('div', 'activity-label', 'B. Copy each word from above'));
+  card.appendChild(wordGrid(emptySlots, 'empty'));
+
+  card.appendChild(createElement('div', 'activity-label', 'C. Choose any word from above and form 2 sentences'));
+  card.appendChild(createElement('div', 'sentence-line', '1.'));
+  card.appendChild(createElement('div', 'sentence-line', '2.'));
+
+  const pn = createElement('div', 'page-number', String(pageNumber));
+  card.appendChild(pn);
+
+  page.dataset.pageId = 'page-' + lesson.id + '-' + pageNumber;
+  return page;
+}
+
+function createElement(tag, cls, html) {
+  const el = document.createElement(tag);
+  if (cls) el.className = cls;
+  if (html !== undefined) el.innerHTML = html;
+  return el;
+}
+
+function wordGrid(words, extraClass) {
+  const grid = document.createElement('div');
+  grid.className = 'word-grid' + (extraClass ? ' ' + extraClass : '');
+  words.forEach(w => {
+    const pill = document.createElement('div');
+    pill.className = 'pill';
+    pill.innerHTML = w;
+    grid.appendChild(pill);
+  });
+  return grid;
+}
+
+function renderAllView() {
+  const container = document.getElementById('viewContainer');
+  container.innerHTML = '';
+  let pageNum = 1;
+  lessons.forEach(lesson => {
+    container.appendChild(renderViewPage(lesson, pageNum++));
+    container.appendChild(renderViewPageTwo(lesson, pageNum++));
+  });
+  if (lessons.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center;padding:80px 20px;color:#6c757d;">
+        <div style="font-size:64px;margin-bottom:16px;">📖</div>
+        <h3 style="color:#1a1a1a;">No lessons yet</h3>
+        <p>Switch to the <strong>Edit</strong> tab to create your first lesson.</p>
+      </div>
+    `;
+  }
+  // update export all button
+  const allBtn = document.getElementById('exportAllBtn');
+  if (allBtn) {
+    allBtn.onclick = () => {
+      if (lessons.length === 0) {
+        showToast('No lessons to export.', 'warning');
+        return;
+      }
+      const printWindow = window.open('', '_blank');
+      if (!printWindow) { showToast('Please allow popups for PDF export.', 'warning'); return; }
+      const clone = document.querySelector('.view-container').cloneNode(true);
+      // remove all export buttons from clone
+      clone.querySelectorAll('.page-actions').forEach(el => el.remove());
+      const style = document.querySelector('style').cloneNode(true);
+      printWindow.document.write('<!DOCTYPE html><html><head><title>All Lessons</title>');
+      printWindow.document.write(style.outerHTML);
+      printWindow.document.write('</head><body>');
+      printWindow.document.write(clone.outerHTML);
+      printWindow.document.write('</body></html>');
+      printWindow.document.close();
+      printWindow.focus();
+      printWindow.print();
+    };
+  }
+}
+
+// ============================================================
+//  EDIT TAB — CRUD + list + search + drag-drop + import/export
+// ============================================================
+
+function renderEditTab() {
+  const container = document.getElementById('editContainer');
+  const filtered = lessons.filter(l => {
+    if (!searchQuery) return true;
+    const q = searchQuery.toLowerCase();
+    const words = (l.words || []).flat().join(' ');
+    const sentences = (l.sentences || []).join(' ');
+    const blanks = (l.fillBlanks || []).join(' ');
+    return (l.lessonNumber + '').includes(q) ||
+           (l.mainTitle || '').toLowerCase().includes(q) ||
+           (l.letterTile || '').toLowerCase().includes(q) ||
+           (l.imageCaption || '').toLowerCase().includes(q) ||
+           (l.introText || '').toLowerCase().includes(q) ||
+           words.toLowerCase().includes(q) ||
+           sentences.toLowerCase().includes(q) ||
+           blanks.toLowerCase().includes(q);
+  });
+
+  let listHtml = `
+    <div class="list-toolbar">
+      <input class="search-box" type="text" placeholder="🔍 Search lessons..." id="searchInput" value="${searchQuery}" />
+      <span class="count">${filtered.length} / ${lessons.length}</span>
+      <button class="btn btn-success btn-sm" onclick="exportJSON()">📤 Export JSON</button>
+      <button class="btn btn-outline btn-sm" onclick="document.getElementById('importFileInput').click()">📥 Import JSON</button>
+      <input type="file" id="importFileInput" accept=".json" style="display:none" onchange="importJSON(event)" />
+    </div>
+    <div class="lesson-list" id="lessonList">
+  `;
+
+  if (filtered.length === 0) {
+    listHtml += `
+      <div class="empty-state">
+        <div class="icon">🔍</div>
+        <h3>No lessons found</h3>
+        <p>${searchQuery ? 'Try adjusting your search.' : 'Click "Add New Lesson" to get started.'}</p>
+      </div>
+    `;
+  } else {
+    filtered.forEach((l, idx) => {
+      const actualIdx = lessons.indexOf(l);
+      const thumb = l.imagePath ? `<img class="thumb" src="${l.imagePath}" alt="" />` :
+                                   `<div class="thumb placeholder">📄</div>`;
+      listHtml += `
+        <div class="lesson-item" draggable="true" data-index="${actualIdx}" data-id="${l.id}">
+          <span class="drag-handle">⠿</span>
+          ${thumb}
+          <div class="info">
+            <div class="title">Lesson ${l.lessonNumber} — ${l.mainTitle || 'CVC'} ${l.imageCaption ? '· ' + l.imageCaption : ''}</div>
+            <div class="sub">${(l.introText || '').replace(/<[^>]*>/g,'').slice(0,80)}${(l.introText || '').length > 80 ? '…' : ''}</div>
+          </div>
+          <div class="actions">
+            <button class="btn btn-primary btn-xs" onclick="editLesson('${l.id}')">✏️</button>
+            <button class="btn btn-warning btn-xs" onclick="duplicateLesson('${l.id}')">📋</button>
+            <button class="btn btn-danger btn-xs" onclick="deleteLesson('${l.id}')">🗑️</button>
+          </div>
+        </div>
+      `;
+    });
+  }
+  listHtml += '</div>';
+  container.innerHTML = listHtml;
+
+  // attach drag & drop
+  attachDragDrop();
+
+  // search handler
+  const searchInput = document.getElementById('searchInput');
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      searchQuery = e.target.value;
+      renderEditTab();
+    });
+  }
+}
+
+// ============================================================
+//  DRAG & DROP REORDER
+// ============================================================
+
+function attachDragDrop() {
+  const items = document.querySelectorAll('.lesson-item');
+  let dragIndex = null;
+  let dragOverIndex = null;
+
+  items.forEach(item => {
+    item.addEventListener('dragstart', (e) => {
+      dragIndex = parseInt(item.dataset.index);
+      item.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', String(dragIndex));
+    });
+    item.addEventListener('dragend', () => {
+      item.classList.remove('dragging');
+      document.querySelectorAll('.lesson-item.drag-over').forEach(el => el.classList.remove('drag-over'));
+    });
+    item.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      const targetIndex = parseInt(item.dataset.index);
+      if (targetIndex !== dragIndex) {
+        document.querySelectorAll('.lesson-item.drag-over').forEach(el => el.classList.remove('drag-over'));
+        item.classList.add('drag-over');
+        dragOverIndex = targetIndex;
+      }
+    });
+    item.addEventListener('dragleave', () => {
+      item.classList.remove('drag-over');
+    });
+    item.addEventListener('drop', (e) => {
+      e.preventDefault();
+      item.classList.remove('drag-over');
+      const from = parseInt(e.dataTransfer.getData('text/plain'));
+      const to = parseInt(item.dataset.index);
+      if (from !== to && !isNaN(from) && !isNaN(to)) {
+        reorderLessons(from, to);
+      }
+    });
+  });
+}
+
+function reorderLessons(from, to) {
+  const [removed] = lessons.splice(from, 1);
+  lessons.splice(to, 0, removed);
+  saveData();
+  renderEditTab();
+  renderAllView();
+  updateFormList();
+  showToast('Lesson reordered.', 'success');
+}
+
+// ============================================================
+//  CRUD OPERATIONS
+// ============================================================
+
+function getFormData() {
+  const wordsRaw = document.getElementById('fWords').value;
+  const words = wordsRaw.split(',').map(s => s.trim()).filter(Boolean);
+  const wordsChunked = [];
+  for (let i = 0; i < words.length; i += 4) {
+    wordsChunked.push(words.slice(i, i + 4));
+  }
+  while (wordsChunked.length < 3) wordsChunked.push([]);
+  const sentences = document.getElementById('fSentences').value.split(',').map(s => s.trim()).filter(Boolean);
+  const fillBlanks = document.getElementById('fFillBlanks').value.split(',').map(s => s.trim()).filter(Boolean);
+
+  return {
+    mainTitle: document.getElementById('fMainTitle').value.trim() || 'SHORT VOWEL CVC WORDS',
+    lessonNumber: parseInt(document.getElementById('fLessonNumber').value) || 0,
+    letterTile: document.getElementById('fLetterTile').value.trim(),
+    imageCaption: document.getElementById('fImageCaption').value.trim(),
+    imagePath: document.getElementById('fImagePath').value || '',
+    introText: document.getElementById('fIntroText').value,
+    words: wordsChunked,
+    sentences: sentences,
+    fillBlanks: fillBlanks
+  };
+}
+
+function fillForm(data) {
+  document.getElementById('fMainTitle').value = data.mainTitle || 'SHORT VOWEL CVC WORDS';
+  document.getElementById('fLessonNumber').value = data.lessonNumber || '';
+  document.getElementById('fLetterTile').value = data.letterTile || '';
+  document.getElementById('fImageCaption').value = data.imageCaption || '';
+  document.getElementById('fImagePath').value = data.imagePath || '';
+  document.getElementById('fIntroText').value = data.introText || '';
+  document.getElementById('fWords').value = (data.words || []).flat().join(', ');
+  document.getElementById('fSentences').value = (data.sentences || []).join(', ');
+  document.getElementById('fFillBlanks').value = (data.fillBlanks || []).join(', ');
+  
+  const img = document.getElementById('imagePreview');
+  const placeholder = document.getElementById('imagePreviewPlaceholder');
+  if (data.imagePath) {
+    img.src = data.imagePath;
+    img.style.display = 'block';
+    placeholder.style.display = 'none';
+  } else {
+    img.src = '';
+    img.style.display = 'none';
+    placeholder.style.display = 'flex';
+  }
+}
+
+function resetForm() {
+  editingId = null;
+  document.getElementById('formTitle').textContent = '➕ Add New Lesson';
+  document.getElementById('formId').textContent = '';
+  document.getElementById('fMainTitle').value = '';
+  document.getElementById('fLessonNumber').value = lessons.length + 1;
+  document.getElementById('fLetterTile').value = '';
+  document.getElementById('fImageCaption').value = '';
+  document.getElementById('fImagePath').value = '';
+  document.getElementById('fIntroText').value = '';
+  document.getElementById('fWords').value = '';
+  document.getElementById('fSentences').value = '';
+  document.getElementById('fFillBlanks').value = '';
+  const img = document.getElementById('imagePreview');
+  const placeholder = document.getElementById('imagePreviewPlaceholder');
+  img.src = '';
+  img.style.display = 'none';
+  placeholder.style.display = 'flex';
+  document.getElementById('saveBtn').textContent = '💾 Save Lesson';
+  document.getElementById('cancelBtn').style.display = 'none';
+  document.getElementById('fImageFile').value = '';
+  updateFormList();
+}
+
+function editLesson(id) {
+  const lesson = lessons.find(l => l.id === id);
+  if (!lesson) { showToast('Lesson not found.', 'error'); return; }
+  editingId = id;
+  document.getElementById('formTitle').textContent = '✏️ Edit Lesson';
+  document.getElementById('formId').textContent = '#' + id;
+  fillForm(lesson);
+  document.getElementById('saveBtn').textContent = '💾 Update Lesson';
+  document.getElementById('cancelBtn').style.display = 'inline-block';
+  document.querySelector('.form-section').scrollIntoView({ behavior: 'smooth' });
+  updateFormList();
+}
+
+function cancelEdit() {
+  resetForm();
+  showToast('Edit cancelled.', 'info');
+}
+
+function saveLesson() {
+  const data = getFormData();
+
+  // validation
+  if (!data.mainTitle) {
+    showToast('Main Title is required.', 'error');
+    document.getElementById('fMainTitle').focus();
+    return;
+  }
+  if (!data.lessonNumber || data.lessonNumber <= 0) {
+    showToast('Lesson Number must be a positive number.', 'error');
+    document.getElementById('fLessonNumber').focus();
+    return;
+  }
+  if (!data.letterTile) {
+    showToast('Letter Tile is required.', 'error');
+    document.getElementById('fLetterTile').focus();
+    return;
+  }
+  if (!data.imageCaption) {
+    showToast('Image Caption is required.', 'error');
+    document.getElementById('fImageCaption').focus();
+    return;
+  }
+  if (!data.introText) {
+    showToast('Intro Text is required.', 'error');
+    document.getElementById('fIntroText').focus();
+    return;
+  }
+  if (data.words.flat().length < 6) {
+    showToast('Please add at least 6 words (e.g. cat, bat, hat, mat, dad, fat).', 'error');
+    document.getElementById('fWords').focus();
+    return;
+  }
+  if (data.sentences.length < 2) {
+    showToast('Please add at least 2 sentences.', 'error');
+    document.getElementById('fSentences').focus();
+    return;
+  }
+  if (data.fillBlanks.length < 4) {
+    showToast('Please add at least 4 fill-in-the-blank items (e.g. c__t, b__t).', 'error');
+    document.getElementById('fFillBlanks').focus();
+    return;
+  }
+
+  // check duplicate lesson number
+  const duplicate = lessons.find(l => l.lessonNumber === data.lessonNumber && l.id !== editingId);
+  if (duplicate) {
+    if (!confirm(`Lesson ${data.lessonNumber} already exists. Continue anyway?`)) {
+      return;
+    }
+  }
+
+  if (editingId) {
+    const idx = lessons.findIndex(l => l.id === editingId);
+    if (idx === -1) { showToast('Lesson not found.', 'error'); return; }
+    lessons[idx] = { ...lessons[idx], ...data, id: editingId };
+    showToast(`Lesson ${data.lessonNumber} updated.`, 'success');
+  } else {
+    const newLesson = { ...data, id: generateId() };
+    lessons.push(newLesson);
+    showToast(`Lesson ${data.lessonNumber} created.`, 'success');
+  }
+
+  saveData();
+  resetForm();
+  renderEditTab();
+  renderAllView();
+  updateFormList();
+}
+
+function deleteLesson(id) {
+  const lesson = lessons.find(l => l.id === id);
+  if (!lesson) return;
+  confirmDialog(`Delete Lesson ${lesson.lessonNumber} "${lesson.imageCaption || ''}"? This cannot be undone.`, () => {
+    lessons = lessons.filter(l => l.id !== id);
+    saveData();
+    renderEditTab();
+    renderAllView();
+    updateFormList();
+    if (editingId === id) resetForm();
+    showToast(`Lesson ${lesson.lessonNumber} deleted.`, 'success');
+  });
+}
+
+function duplicateLesson(id) {
+  const lesson = lessons.find(l => l.id === id);
+  if (!lesson) { showToast('Lesson not found.', 'error'); return; }
+  const copy = JSON.parse(JSON.stringify(lesson));
+  delete copy.id;
+  copy.lessonNumber = lessons.reduce((max, l) => Math.max(max, l.lessonNumber), 0) + 1;
+  copy.imageCaption = copy.imageCaption + ' (copy)';
+  const newId = generateId();
+  copy.id = newId;
+  lessons.push(copy);
+  saveData();
+  renderEditTab();
+  renderAllView();
+  updateFormList();
+  showToast(`Lesson ${copy.lessonNumber} duplicated.`, 'success');
+}
+
+// ============================================================
+//  IMAGE UPLOAD
+// ============================================================
+
+function handleImageUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (file.size > 2 * 1024 * 1024) {
+    showToast('Image must be smaller than 2MB. Please compress it.', 'error');
+    event.target.value = '';
+    return;
+  }
+  if (!file.type.startsWith('image/')) {
+    showToast('Please select an image file.', 'error');
+    event.target.value = '';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const dataUrl = e.target.result;
+    document.getElementById('fImagePath').value = dataUrl;
+    const img = document.getElementById('imagePreview');
+    const placeholder = document.getElementById('imagePreviewPlaceholder');
+    img.src = dataUrl;
+    img.style.display = 'block';
+    placeholder.style.display = 'none';
+    showToast('Image uploaded successfully.', 'success');
+  };
+  reader.onerror = () => {
+    showToast('Failed to read image file.', 'error');
+  };
+  reader.readAsDataURL(file);
+}
+
+// ============================================================
+//  JSON IMPORT / EXPORT
+// ============================================================
+
+function exportJSON() {
+  if (lessons.length === 0) {
+    showToast('No lessons to export.', 'warning');
+    return;
+  }
+  const json = JSON.stringify(lessons, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'phonics_lessons_' + new Date().toISOString().slice(0,10) + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('JSON exported successfully.', 'success');
+}
+
+function importJSON(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!Array.isArray(data) || data.length === 0) {
+        showToast('Invalid JSON: expected an array of lessons.', 'error');
+        return;
+      }
+      const first = data[0];
+      if (!first.lessonNumber && !first.letterTile) {
+        showToast('Invalid lesson data: missing required fields.', 'error');
+        return;
+      }
+      confirmDialog(`Import ${data.length} lessons? This will REPLACE all current lessons.`, () => {
+        let maxId = 0;
+        data.forEach(l => {
+          if (!l.id) l.id = 'l' + Date.now() + Math.random().toString(36).slice(2,6);
+          if (!l.mainTitle) l.mainTitle = 'SHORT VOWEL CVC WORDS';
+          const num = parseInt(l.id.replace('l','')) || 0;
+          if (num > maxId) maxId = num;
+        });
+        lessons = data;
+        nextId = maxId + 1;
+        saveData();
+        resetForm();
+        renderEditTab();
+        renderAllView();
+        updateFormList();
+        showToast(`Imported ${lessons.length} lessons.`, 'success');
+      });
+    } catch(err) {
+      showToast('Failed to parse JSON: ' + err.message, 'error');
+    }
+  };
+  reader.onerror = () => showToast('Failed to read file.', 'error');
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+// ============================================================
+//  FORM HELPERS
+// ============================================================
+
+function updateFormList() {
+  renderEditTab();
+  if (editingId) {
+    const lesson = lessons.find(l => l.id === editingId);
+    if (lesson) fillForm(lesson);
+  }
+}
+
+// ============================================================
+//  TAB SWITCHING
+// ============================================================
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === tab + 'Panel'));
+  if (tab === 'view') renderAllView();
+  if (tab === 'edit') renderEditTab();
+}
+
+// ============================================================
+//  INIT
+// ============================================================
+
+function init() {
+  loadData();
+  document.getElementById('fLessonNumber').value = lessons.length + 1;
+  resetForm();
+  renderEditTab();
+  renderAllView();
+  switchTab('edit');
+}
+
+// expose to global for inline onclick
+window.editLesson = editLesson;
+window.deleteLesson = deleteLesson;
+window.duplicateLesson = duplicateLesson;
+window.saveLesson = saveLesson;
+window.cancelEdit = cancelEdit;
+window.switchTab = switchTab;
+window.exportJSON = exportJSON;
+window.importJSON = importJSON;
+window.handleImageUpload = handleImageUpload;
+
+// ============================================================
+//  BUILD APP HTML
+// ============================================================
+
+document.addEventListener('DOMContentLoaded', () => {
+  const app = document.getElementById('app');
+  app.innerHTML = `
+    <div class="app">
+      <!-- header -->
+      <div class="app-header">
+        <h1>📚 Phonics Lesson Publisher</h1>
+        <span class="badge">${lessons ? lessons.length : 0} lessons</span>
+      </div>
+
+      <!-- tabs -->
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="edit" onclick="switchTab('edit')">✏️ Edit</button>
+        <button class="tab-btn" data-tab="view" onclick="switchTab('view')">👁️ View</button>
+      </div>
+
+      <!-- Edit Panel -->
+      <div class="tab-panel active" id="editPanel">
+        <div class="edit-layout">
+          <!-- Form -->
+          <div class="form-section">
+            <h2 id="formTitle">➕ Add New Lesson <span class="edit-id" id="formId"></span></h2>
+
+            <!-- 🆕 Main Title field -->
+            <div class="form-group">
+              <label>Main Title <span class="req">*</span></label>
+              <input type="text" id="fMainTitle" placeholder="e.g. SHORT VOWEL CVC WORDS" />
+            </div>
+
+            <div class="form-group">
+              <label>Lesson Number <span class="req">*</span></label>
+              <input type="number" id="fLessonNumber" min="1" step="1" />
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Letter Tile <span class="req">*</span></label>
+                <input type="text" id="fLetterTile" placeholder="e.g. Aa" />
+              </div>
+              <div class="form-group">
+                <label>Image Caption <span class="req">*</span></label>
+                <input type="text" id="fImageCaption" placeholder="e.g. Apple" />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Image (upload from device)</label>
+              <div class="image-upload-wrap">
+                <img id="imagePreview" class="preview" src="" alt="Preview" style="display:none;" />
+                <div id="imagePreviewPlaceholder" class="preview-placeholder">🖼️</div>
+                <input type="file" id="fImageFile" accept="image/*" onchange="handleImageUpload(event)" />
+                <input type="hidden" id="fImagePath" />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Intro Text <span class="req">*</span></label>
+              <textarea id="fIntroText" rows="2" placeholder="Custom introduction for this lesson..."></textarea>
+            </div>
+
+            <div class="form-group">
+              <label>Words (comma separated) <span class="req">*</span></label>
+              <textarea id="fWords" rows="2" placeholder="cat, bat, hat, mat, dad, fat, sat, rat, jam, fan, can, car"></textarea>
+            </div>
+
+            <div class="form-group">
+              <label>Sentences (comma separated) <span class="req">*</span></label>
+              <textarea id="fSentences" rows="2" placeholder="The cat sat on a mat., A rat had a hat."></textarea>
+            </div>
+
+            <div class="form-group">
+              <label>Fill Blanks (comma separated) <span class="req">*</span></label>
+              <textarea id="fFillBlanks" rows="2" placeholder="c__t, b__t, h__t, m__t, d__d, f__t, s__t, r__t"></textarea>
+            </div>
+
+            <div class="form-actions">
+              <button class="btn btn-primary" id="saveBtn" onclick="saveLesson()">💾 Save Lesson</button>
+              <button class="btn btn-outline" id="cancelBtn" onclick="cancelEdit()" style="display:none">Cancel</button>
+            </div>
+          </div>
+
+          <!-- Lesson List -->
+          <div class="list-section">
+            <h2 style="font-size:18px;margin-bottom:12px;">📖 All Lessons</h2>
+            <div id="editContainer"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- View Panel -->
+      <div class="tab-panel" id="viewPanel">
+        <div class="view-toolbar">
+          <span class="info">📄 ${lessons ? lessons.length : 0} lessons · ${lessons ? lessons.length * 2 : 0} pages</span>
+          <button class="btn btn-success" id="exportAllBtn">⬇ Export ALL pages as PDF</button>
+          <button class="btn btn-outline" onclick="switchTab('edit')">✏️ Back to Edit</button>
+        </div>
+        <div class="view-container" id="viewContainer"></div>
+      </div>
+    </div>
+  `;
+
+  init();
+});
+</script>
+</body>
+</html>

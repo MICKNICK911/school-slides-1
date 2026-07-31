@@ -1,0 +1,1699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Phonics Lessons</title>
+<style>
+  @page { size: 850px 1100px; margin: 0; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Poppins', 'Segoe UI', Arial, sans-serif;
+    background: #fff;
+  }
+
+  /* --- Global Controls (Export All) --- */
+  .global-controls {
+    padding: 12px 40px;
+    background: #f8f9fa;
+    border-bottom: 3px solid #F5A623;
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    justify-content: flex-end;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .global-controls .label {
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-right: auto;
+    font-size: 18px;
+  }
+  .export-all-btn {
+    background: #2d7d46;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 24px;
+    font-weight: 700;
+    font-size: 15px;
+    font-family: inherit;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  }
+  .export-all-btn:hover { background: #1f5f34; }
+
+  /* --- Page & Card Styles --- */
+  .page {
+    width: 850px;
+    min-height: 1080px;
+    padding: 30px 40px;
+    position: relative;
+    page-break-after: always;
+  }
+  .page:last-child { page-break-after: auto; }
+
+  .card {
+    border: 3px solid #F5A623;
+    border-radius: 28px;
+    min-height: 1000px;
+    padding: 24px 32px;
+    position: relative;
+  }
+
+  .title {
+    font-size: 30px;
+    font-weight: 800;
+    color: #1a1a1a;
+    letter-spacing: 0.5px;
+    margin: 4px 0 18px 0;
+  }
+
+  .header-row {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    margin-bottom: 22px;
+  }
+
+  .lesson-badge {
+    background: #F5A623;
+    border-radius: 16px;
+    color: #fff;
+    width: 130px;
+    min-width: 130px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 6px;
+    position: relative;
+    margin-right: 18px;
+  }
+  .lesson-badge .arrow {
+    position: absolute;
+    top: -22px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 22px solid transparent;
+    border-right: 22px solid transparent;
+    border-bottom: 26px solid #F5A623;
+  }
+  .lesson-badge .label { font-size: 13px; font-weight: 600; opacity: 0.95; }
+  .lesson-badge .num { font-size: 34px; font-weight: 800; line-height: 1.1; }
+
+  .intro-box {
+    flex: 1;
+    border: 3px dashed #E2571C;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    padding: 14px 20px;
+  }
+  .intro-box p {
+    margin: 0;
+    color: #E2571C;
+    font-weight: 700;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .hero-row {
+    display: flex;
+    border-radius: 20px;
+    overflow: hidden;
+    border: 3px solid #F5A623;
+    height: 280px;
+    margin-bottom: 22px;
+  }
+  .hero-image {
+    flex: 1;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .hero-image img { max-height: 200px; max-width: 80%; object-fit: contain; }
+  .hero-image .placeholder {
+    width: 200px; height: 2cqw;
+    border: 2px dashed #ccc;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    color: #999; font-size: 12px;
+  }
+  .hero-image .caption { font-weight: 800; font-size: 18px; color: #1a1a1a; }
+  .hero-letter {
+    flex: 1;
+    background: #F5A623;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 90px;
+    font-weight: 800;
+    font-style: italic;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    margin-top: 12px;
+  }
+  .section-header .circle {
+    background: #F5A623;
+    color: #fff;
+    width: 42px; height: 42px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 18px;
+    margin-right: 14px;
+    flex-shrink: 0;
+  }
+  .section-header .label-box {
+    flex: 1;
+    border: 3px dashed #E2571C;
+    border-radius: 14px;
+    padding: 8px 18px;
+    font-weight: 800;
+    font-size: 19px;
+    color: #1a1a1a;
+  }
+
+  .word-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+  .word-grid .pill {
+    background: #E2571C;
+    color: #fff;
+    border-radius: 14px;
+    text-align: center;
+    padding: 8px 6px;
+    font-weight: 600;
+    font-size: 28px;
+    min-height: 60px;
+  }
+  .word-grid.blanks .pill {
+    background: #fff;
+    color: #E2571C;
+    border: 2px solid #F5A623;
+    min-height: 60px;
+  }
+  .word-grid.empty .pill {
+    background: #fff;
+    border: 2px solid #F5A623;
+    min-height: 60px;
+  }
+
+  .instructions {
+    font-weight: 700;
+    font-size: 13px;
+    margin: 8px 0 10px 0;
+    color: #1a1a1a;
+  }
+
+  .reading-box {
+    border: 2px solid #F5A623;
+    border-radius: 16px;
+    padding: 12px 22px;
+  }
+  .reading-box p {
+    margin: 0 0 5px 0;
+    color: #E2571C;
+    font-weight: 700;
+    font-size: 18px;
+  }
+  .reading-box p:last-child { margin-bottom: 0; }
+
+  .activity-label { font-weight: 700; font-size: 13px; margin: 10px 0 6px 0; }
+
+  .sentence-line {
+    border-bottom: 1px solid #999;
+    padding: 6px 0 14px 0;
+    font-size: 16px;
+    color: #E2571C;
+    font-weight: 800;
+  }
+
+  /* Page number fixed at bottom right */
+  .card {
+    position: relative;  
+  }
+
+  .page-number {
+    position: absolute;
+    bottom: 20px;
+    right: 30px;
+    margin: 0;
+    font-weight: 800;
+    font-size: 16px;
+    color: #1a1a1a;
+  }
+
+  .page-actions {
+    text-align: right;
+    margin-bottom: 8px;
+  }
+  .export-btn {
+    background: #E2571C;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-weight: 700;
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .export-btn:hover { background: #c8481a; }
+
+  /* keep colors/borders in print + PDF export */
+  .card, .lesson-badge, .hero-letter, .word-grid .pill,
+  .intro-box, .section-header .circle, .reading-box {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Print overrides */
+  @media print {
+    .no-print { display: none !important; }
+    body.print-single .page { display: none; }
+    body.print-single .page.print-target {
+      display: block;
+      page-break-after: auto !important;
+    }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script>
+// ==================== LESSONS DATA (embedded) ====================
+window.LESSONS = [
+  // ==================== SHORT VOWEL CVC WORDS ====================
+  {
+    mainTitle: "SHORT VOWEL CVC WORDS",
+    lessonNumber: 1,
+    letterTile: "Short a",
+    imageCaption: "bag",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"Short a\".",
+    words: ["bag", "cat", "mat", "hat", "rat", "bat", "sat", "pat", "fat", "man"],
+    sentences: ["I can say the word bag and the word cat.", "Look at the mat. Now look at the hat."],
+    fillBlanks: ["b_g", "c_t", "m_t", "h_t", "r_t"]
+  },
+  {
+    mainTitle: "SHORT VOWEL CVC WORDS",
+    lessonNumber: 2,
+    letterTile: "Short e",
+    imageCaption: "get",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"Short e\".",
+    words: ["get", "wet", "net", "let", "pen", "ten", "hen", "men", "bed", "red"],
+    sentences: ["I can say the word get and the word wet.", "Look at the net. Now look at the let."],
+    fillBlanks: ["g_t", "w_t", "n_t", "l_t", "p_n"]
+  },
+  {
+    mainTitle: "SHORT VOWEL CVC WORDS",
+    lessonNumber: 3,
+    letterTile: "Short i",
+    imageCaption: "sit",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"Short i\".",
+    words: ["sit", "fix", "hit", "win", "pin", "big", "pig", "dig", "lid", "kid"],
+    sentences: ["I can say the word sit and the word fix.", "Look at the hit. Now look at the win."],
+    fillBlanks: ["s_t", "f_x", "h_t", "w_n", "p_n"]
+  },
+  {
+    mainTitle: "SHORT VOWEL CVC WORDS",
+    lessonNumber: 4,
+    letterTile: "Short o",
+    imageCaption: "pot",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"Short o\".",
+    words: ["pot", "hot", "not", "lot", "got", "dog", "log", "fog", "hop", "mop"],
+    sentences: ["I can say the word pot and the word hot.", "Look at the not. Now look at the lot."],
+    fillBlanks: ["p_t", "h_t", "n_t", "l_t", "g_t"]
+  },
+  {
+    mainTitle: "SHORT VOWEL CVC WORDS",
+    lessonNumber: 5,
+    letterTile: "Short u",
+    imageCaption: "sum",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"Short u\".",
+    words: ["sum", "fun", "gun", "mud", "but", "sun", "run", "cup", "bug", "rug"],
+    sentences: ["I can say the word sum and the word fun.", "Look at the gun. Now look at the mud."],
+    fillBlanks: ["s_m", "f_n", "g_n", "m_d", "b_t"]
+  },
+
+  // ==================== SPECIAL CONSONANTS ====================
+  {
+    mainTitle: "SPECIAL CONSONANTS",
+    lessonNumber: 6,
+    letterTile: "x (ks)",
+    imageCaption: "box",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"x (ks)\".",
+    words: ["box", "fox", "mix", "six", "ax", "ox", "fix", "wax", "tax", "next"],
+    sentences: ["I can say the word box and the word fox.", "Look at the mix. Now look at the six."],
+    fillBlanks: ["b_x", "f_x", "m_x", "s_x", "a_"]
+  },
+  {
+    mainTitle: "SPECIAL CONSONANTS",
+    lessonNumber: 7,
+    letterTile: "qu",
+    imageCaption: "quit",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"qu\".",
+    words: ["quit", "queen", "quiz", "quick", "quack", "quill", "quilt", "quest", "quench", "quote"],
+    sentences: ["I can say the word quit and the word queen.", "Look at the quiz. Now look at the quick."],
+    fillBlanks: ["q__t", "q__n", "q__z", "q__k", "q__k"]
+  },
+  {
+    mainTitle: "SPECIAL CONSONANTS",
+    lessonNumber: 8,
+    letterTile: "y (as i)",
+    imageCaption: "gym",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"y (as i)\".",
+    words: ["gym", "cry", "fly", "try", "sky", "my", "by", "why", "spy", "dry"],
+    sentences: ["I can say the word gym and the word cry.", "Look at the fly. Now look at the try."],
+    fillBlanks: ["g_m", "c_y", "f_y", "t_y", "s_y"]
+  },
+  {
+    mainTitle: "SPECIAL CONSONANTS",
+    lessonNumber: 9,
+    letterTile: "y (as e)",
+    imageCaption: "happy",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"y (as e)\".",
+    words: ["happy", "baby", "city", "lady", "party", "puppy", "sunny", "funny", "silly", "jelly"],
+    sentences: ["I can say the word happy and the word baby.", "Look at the city. Now look at the lady."],
+    fillBlanks: ["h___y", "b__y", "c__y", "l__y", "p___y"]
+  },
+
+  // ==================== C/K RULE ====================
+  {
+    mainTitle: "C/K RULE",
+    lessonNumber: 10,
+    letterTile: "c (before a, o, u)",
+    imageCaption: "cat",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"c (before a, o, u)\".",
+    words: ["cat", "cot", "cup", "can", "cap", "cop", "cub", "cut", "cab", "cod"],
+    sentences: ["I can say the word cat and the word cot.", "Look at the cup. Now look at the can."],
+    fillBlanks: ["c_t", "c_t", "c_p", "c_n", "c_p"]
+  },
+  {
+    mainTitle: "C/K RULE",
+    lessonNumber: 11,
+    letterTile: "k (before e, i)",
+    imageCaption: "ken",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"k (before e, i)\".",
+    words: ["ken", "kit", "key", "keg", "kid", "kiss", "king", "kick", "kept", "kite"],
+    sentences: ["I can say the word ken and the word kit.", "Look at the key. Now look at the keg."],
+    fillBlanks: ["k_n", "k_t", "k_y", "k_g", "k_d"]
+  },
+
+  // ==================== RAINBOW S / J (SOFT C AND G) ====================
+  {
+    mainTitle: "RAINBOW S / J (SOFT C AND G)",
+    lessonNumber: 12,
+    letterTile: "Soft c (ce, ci, cy)",
+    imageCaption: "cent",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"Soft c (ce, ci, cy)\".",
+    words: ["cent", "city", "cyst", "ice", "race", "face", "lace", "circle", "circus", "cycle"],
+    sentences: ["I can say the word cent and the word city.", "Look at the cyst. Now look at the ice."],
+    fillBlanks: ["c__t", "c__y", "c__t", "i_e", "r__e"]
+  },
+  {
+    mainTitle: "RAINBOW S / J (SOFT C AND G)",
+    lessonNumber: 13,
+    letterTile: "Soft g (ge, gi, gy)",
+    imageCaption: "page",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"Soft g (ge, gi, gy)\".",
+    words: ["page", "ginger", "gym", "age", "cage", "gem", "giant", "giraffe", "magic", "engine"],
+    sentences: ["I can say the word page and the word ginger.", "Look at the gym. Now look at the age."],
+    fillBlanks: ["p__e", "g____r", "g_m", "a_e", "c__e"]
+  },
+
+  // ==================== BEGINNING BLENDS - BL, CL, FL, GL, PL, SL ====================
+  {
+    mainTitle: "BEGINNING BLENDS - BL, CL, FL, GL, PL, SL",
+    lessonNumber: 14,
+    letterTile: "bl",
+    imageCaption: "blast",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"bl\".",
+    words: ["blast", "black", "blue", "blow", "blend", "blob", "blink", "blank", "bliss", "bloom"],
+    sentences: ["I can say the word blast and the word black.", "Look at the blue. Now look at the blow."],
+    fillBlanks: ["b___t", "b___k", "b__e", "b__w", "b___d"]
+  },
+  {
+    mainTitle: "BEGINNING BLENDS - BL, CL, FL, GL, PL, SL",
+    lessonNumber: 15,
+    letterTile: "cl",
+    imageCaption: "class",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"cl\".",
+    words: ["class", "clip", "click", "clap", "club", "clog", "cluck", "cliff", "clock", "clown"],
+    sentences: ["I can say the word class and the word clip.", "Look at the click. Now look at the clap."],
+    fillBlanks: ["c___s", "c__p", "c___k", "c__p", "c__b"]
+  },
+  {
+    mainTitle: "BEGINNING BLENDS - BL, CL, FL, GL, PL, SL",
+    lessonNumber: 16,
+    letterTile: "fl",
+    imageCaption: "flip",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"fl\".",
+    words: ["flip", "flat", "flask", "flag", "flock", "flame", "flood", "flute", "flash"],
+    sentences: ["I can say the word flip and the word flat.", "Look at the flask. Now look at the flag."],
+    fillBlanks: ["f__p", "f__t", "f___k", "f__g", "f___k"]
+  },
+  {
+    mainTitle: "BEGINNING BLENDS - BL, CL, FL, GL, PL, SL",
+    lessonNumber: 17,
+    letterTile: "gl",
+    imageCaption: "glass",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"gl\".",
+    words: ["glass", "glow", "glue", "glad", "glide", "globe", "gloss", "glum", "gloom", "glaze"],
+    sentences: ["I can say the word glass and the word glow.", "Look at the glue. Now look at the glad."],
+    fillBlanks: ["g___s", "g__w", "g__e", "g__d", "g___e"]
+  },
+  {
+    mainTitle: "BEGINNING BLENDS - BL, CL, FL, GL, PL, SL",
+    lessonNumber: 18,
+    letterTile: "pl",
+    imageCaption: "plus",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"pl\".",
+    words: ["plus", "play", "plant", "plum", "plop", "pluck", "plank", "plot", "plow", "plaid"],
+    sentences: ["I can say the word plus and the word play.", "Look at the plant. Now look at the plum."],
+    fillBlanks: ["p__s", "p__y", "p___t", "p__m", "p__p"]
+  },
+  {
+    mainTitle: "BEGINNING BLENDS - BL, CL, FL, GL, PL, SL",
+    lessonNumber: 19,
+    letterTile: "sl",
+    imageCaption: "slip",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"sl\".",
+    words: ["slip", "slow", "slide", "slap", "slim", "slop", "slack", "sled", "slid", "slosh"],
+    sentences: ["I can say the word slip and the word slow.", "Look at the slide. Now look at the slap."],
+    fillBlanks: ["s__p", "s__w", "s___e", "s__p", "s__m"]
+  },
+
+  // ==================== BEGINNING BLENDS - BR, CR, DR, FR, GR, PR, TR ====================
+  {
+    mainTitle: "BEGINNING BLENDS - BR, CR, DR, FR, GR, PR, TR",
+    lessonNumber: 20,
+    letterTile: "br",
+    imageCaption: "brown",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"br\".",
+    words: ["brown", "brush", "bring", "brick", "bread", "brother", "brave", "branch", "break", "bright"],
+    sentences: ["I can say the word brown and the word brush.", "Look at the bring. Now look at the brick."],
+    fillBlanks: ["b___n", "b___h", "b___g", "b___k", "b___d"]
+  },
+  {
+    mainTitle: "BEGINNING BLENDS - BR, CR, DR, FR, GR, PR, TR",
+    lessonNumber: 21,
+    letterTile: "cr",
+    imageCaption: "crab",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"cr\".",
+    words: ["crab", "crash", "crop", "crack", "crawl", "cream", "crisp", "crown", "cradle", "crumb"],
+    sentences: ["I can say the word crab and the word crash.", "Look at the crop. Now look at the crack."],
+    fillBlanks: ["c__b", "c___h", "c__p", "c___k", "c___l"]
+  },
+  {
+    mainTitle: "BEGINNING BLENDS - BR, CR, DR, FR, GR, PR, TR",
+    lessonNumber: 22,
+    letterTile: "dr",
+    imageCaption: "drop",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"dr\".",
+    words: ["drop", "drink", "draw", "drum", "dress", "dream", "drive", "drip", "dragon", "drill"],
+    sentences: ["I can say the word drop and the word drink.", "Look at the draw. Now look at the drum."],
+    fillBlanks: ["d__p", "d___k", "d__w", "d__m", "d___s"]
+  },
+  {
+    mainTitle: "BEGINNING BLENDS - BR, CR, DR, FR, GR, PR, TR",
+    lessonNumber: 23,
+    letterTile: "fr",
+    imageCaption: "from",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"fr\".",
+    words: ["from", "fresh", "frame", "frog", "frost", "fruit", "free", "front", "fry", "frown"],
+    sentences: ["I can say the word from and the word fresh.", "Look at the frame. Now look at the frog."],
+    fillBlanks: ["f__m", "f___h", "f___e", "f__g", "f___t"]
+  },
+  {
+    mainTitle: "BEGINNING BLENDS - BR, CR, DR, FR, GR, PR, TR",
+    lessonNumber: 24,
+    letterTile: "gr",
+    imageCaption: "grape",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"gr\".",
+    words: ["grape", "grip", "grow", "grass", "grand", "green", "ground", "grain", "gravel", "grin"],
+    sentences: ["I can say the word grape and the word grip.", "Look at the grow. Now look at the grass."],
+    fillBlanks: ["g___e", "g__p", "g__w", "g___s", "g___d"]
+  },
+  {
+    mainTitle: "BEGINNING BLENDS - BR, CR, DR, FR, GR, PR, TR",
+    lessonNumber: 25,
+    letterTile: "pr",
+    imageCaption: "prune",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"pr\".",
+    words: ["prune", "pray", "pride", "price", "press", "prank", "print", "proud", "proof", "prime"],
+    sentences: ["I can say the word prune and the word pray.", "Look at the pride. Now look at the price."],
+    fillBlanks: ["p___e", "p__y", "p___e", "p___e", "p___s"]
+  },
+  {
+    mainTitle: "BEGINNING BLENDS - BR, CR, DR, FR, GR, PR, TR",
+    lessonNumber: 26,
+    letterTile: "tr",
+    imageCaption: "tree",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"tr\".",
+    words: ["tree", "try", "trust", "trap", "truck", "train", "trip", "track", "trick", "troop"],
+    sentences: ["I can say the word tree and the word try.", "Look at the trust. Now look at the trap."],
+    fillBlanks: ["t__e", "t_y", "t___t", "t__p", "t___k"]
+  },
+
+  // ==================== BEGINNING BLENDS - SC, SK, SM, SN, SP, ST, SW, TW ====================
+  {
+    mainTitle: "BEGINNING BLENDS - SC, SK, SM, SN, SP, ST, SW, TW",
+    lessonNumber: 27,
+    letterTile: "sc",
+    imageCaption: "scale",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"sc\".",
+    words: ["scale", "scan", "scalp", "scare", "score", "scout", "scold", "scrap", "scuff"],
+    sentences: ["I can say the word scale and the word scan.", "Look at the scalp. Now look at the scare."],
+    fillBlanks: ["s___e", "s__n", "s___p", "s___e", "s___e"]
+  },
+  {
+    mainTitle: "BEGINNING BLENDS - SC, SK, SM, SN, SP, ST, SW, TW",
+    lessonNumber: 28,
+    letterTile: "sk",
+    imageCaption: "skin",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"sk\".",
+    words: ["skin", "skill", "skull", "skip", "skate", "skid", "skirt", "sketch", "skimp"],
+    sentences: ["I can say the word skin and the word skill.", "Look at the skull. Now look at the skip."],
+    fillBlanks: ["s__n", "s___l", "s___l", "s__p", "s___e"]
+  },
+  {
+    mainTitle: "BEGINNING BLENDS - SC, SK, SM, SN, SP, ST, SW, TW",
+    lessonNumber: 29,
+    letterTile: "sm",
+    imageCaption: "small",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"sm\".",
+    words: ["small", "smart", "smile", "smoke", "smash", "smell", "smock", "smooth", "smirk", "smug"],
+    sentences: ["I can say the word small and the word smart.", "Look at the smile. Now look at the smoke."],
+    fillBlanks: ["s___l", "s___t", "s___e", "s___e", "s___h"]
+  },
+  {
+    mainTitle: "BEGINNING BLENDS - SC, SK, SM, SN, SP, ST, SW, TW",
+    lessonNumber: 30,
+    letterTile: "sn",
+    imageCaption: "snake",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"sn\".",
+    words: ["snake", "snap", "sneeze", "snip", "snail", "snore", "snug", "snack", "snout", "snow"],
+    sentences: ["I can say the word snake and the word snap.", "Look at the sneeze. Now look at the snip."],
+    fillBlanks: ["s___e", "s__p", "s____e", "s__p", "s___l"]
+  },
+  {
+    mainTitle: "BEGINNING BLENDS - SC, SK, SM, SN, SP, ST, SW, TW",
+    lessonNumber: 31,
+    letterTile: "sp",
+    imageCaption: "spine",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"sp\".",
+    words: ["spine", "space", "spend", "spoon", "spell", "spot", "spark", "spin", "spy", "spill"],
+    sentences: ["I can say the word spine and the word space.", "Look at the spend. Now look at the spoon."],
+    fillBlanks: ["s___e", "s___e", "s___d", "s___n", "s___l"]
+  },
+  {
+    mainTitle: "BEGINNING BLENDS - SC, SK, SM, SN, SP, ST, SW, TW",
+    lessonNumber: 32,
+    letterTile: "st",
+    imageCaption: "start",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"st\".",
+    words: ["start", "stop", "stone", "step", "stamp", "star", "stir", "stem", "sting", "stun"],
+    sentences: ["I can say the word start and the word stop.", "Look at the stone. Now look at the step."],
+    fillBlanks: ["s___t", "s__p", "s___e", "s__p", "s___p"]
+  },
+  {
+    mainTitle: "BEGINNING BLENDS - SC, SK, SM, SN, SP, ST, SW, TW",
+    lessonNumber: 33,
+    letterTile: "sw",
+    imageCaption: "sweet",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"sw\".",
+    words: ["sweet", "swim", "swing", "swan", "swell", "swap", "swear", "sweep", "sword", "swamp"],
+    sentences: ["I can say the word sweet and the word swim.", "Look at the swing. Now look at the swan."],
+    fillBlanks: ["s___t", "s__m", "s___g", "s__n", "s___l"]
+  },
+  {
+    mainTitle: "BEGINNING BLENDS - SC, SK, SM, SN, SP, ST, SW, TW",
+    lessonNumber: 34,
+    letterTile: "tw",
+    imageCaption: "twist",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"tw\".",
+    words: ["twist", "twin", "twine", "twice", "twig", "tweak", "tweet", "twirl", "twang"],
+    sentences: ["I can say the word twist and the word twin.", "Look at the twine. Now look at the twice."],
+    fillBlanks: ["t___t", "t__n", "t___e", "t___e", "t__g"]
+  },
+
+  // ==================== BEGINNING BLENDS - SQU, DW ====================
+  {
+    mainTitle: "BEGINNING BLENDS - SQU, DW",
+    lessonNumber: 35,
+    letterTile: "squ",
+    imageCaption: "squat",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"squ\".",
+    words: ["squat", "squeeze", "square", "squid", "squint", "squash", "squirm", "squeak", "squeal", "squawk"],
+    sentences: ["I can say the word squat and the word squeeze.", "Look at the square. Now look at the squid."],
+    fillBlanks: ["s___t", "s_____e", "s___e", "s___d", "s___t"]
+  },
+  {
+    mainTitle: "BEGINNING BLENDS - SQU, DW",
+    lessonNumber: 36,
+    letterTile: "dw",
+    imageCaption: "dwell",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"dw\".",
+    words: ["dwell", "dwarf", "dwindle", "dweller", "dweeb"],
+    sentences: ["I can say the word dwell and the word dwarf.", "Look at the dwindle. Now look at the dweller."],
+    fillBlanks: ["d___l", "d___f", "d_____e", "d_____r", "d___b"]
+  },
+
+  // ==================== ENDING BLENDS - ND, NT, NK, MP, ST, SK, SP ====================
+  {
+    mainTitle: "ENDING BLENDS - ND, NT, NK, MP, ST, SK, SP",
+    lessonNumber: 37,
+    letterTile: "nd",
+    imageCaption: "hand",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"nd\".",
+    words: ["hand", "land", "blend", "send", "find", "wind", "stand", "round", "sound", "ground"],
+    sentences: ["I can say the word hand and the word land.", "Look at the blend. Now look at the send."],
+    fillBlanks: ["h__d", "l__d", "b___d", "s__d", "f__d"]
+  },
+  {
+    mainTitle: "ENDING BLENDS - ND, NT, NK, MP, ST, SK, SP",
+    lessonNumber: 38,
+    letterTile: "nt",
+    imageCaption: "plant",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"nt\".",
+    words: ["plant", "went", "rent", "sent", "bent", "tent", "hunt", "pant", "vent", "lint"],
+    sentences: ["I can say the word plant and the word went.", "Look at the rent. Now look at the sent."],
+    fillBlanks: ["p___t", "w__t", "r__t", "s__t", "b__t"]
+  },
+  {
+    mainTitle: "ENDING BLENDS - ND, NT, NK, MP, ST, SK, SP",
+    lessonNumber: 39,
+    letterTile: "nk",
+    imageCaption: "sink",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"nk\".",
+    words: ["sink", "blink", "bank", "drink", "thank", "sank", "drunk", "stink", "think", "shrink"],
+    sentences: ["I can say the word sink and the word blink.", "Look at the bank. Now look at the drink."],
+    fillBlanks: ["s__k", "b___k", "b__k", "d___k", "t___k"]
+  },
+  {
+    mainTitle: "ENDING BLENDS - ND, NT, NK, MP, ST, SK, SP",
+    lessonNumber: 40,
+    letterTile: "mp",
+    imageCaption: "jump",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"mp\".",
+    words: ["jump", "camp", "pump", "lamp", "stamp", "lump", "clump", "plump", "stomp", "tramp"],
+    sentences: ["I can say the word jump and the word camp.", "Look at the pump. Now look at the lamp."],
+    fillBlanks: ["j__p", "c__p", "p__p", "l__p", "s___p"]
+  },
+  {
+    mainTitle: "ENDING BLENDS - ND, NT, NK, MP, ST, SK, SP",
+    lessonNumber: 41,
+    letterTile: "st",
+    imageCaption: "list",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"st\".",
+    words: ["list", "fast", "best", "last", "cast", "past", "nest", "rest", "test", "west"],
+    sentences: ["I can say the word list and the word fast.", "Look at the best. Now look at the last."],
+    fillBlanks: ["l__t", "f__t", "b__t", "l__t", "c__t"]
+  },
+  {
+    mainTitle: "ENDING BLENDS - ND, NT, NK, MP, ST, SK, SP",
+    lessonNumber: 42,
+    letterTile: "sk",
+    imageCaption: "flask",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"sk\".",
+    words: ["flask", "husk", "desk", "task", "mask", "brisk", "risk", "disk", "whisk", "tusk"],
+    sentences: ["I can say the word flask and the word husk.", "Look at the desk. Now look at the task."],
+    fillBlanks: ["f___k", "h__k", "d__k", "t__k", "m__k"]
+  },
+  {
+    mainTitle: "ENDING BLENDS - ND, NT, NK, MP, ST, SK, SP",
+    lessonNumber: 43,
+    letterTile: "sp",
+    imageCaption: "rasp",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"sp\".",
+    words: ["rasp", "gasp", "grasp", "clasp", "wisp", "crisp", "lisp", "wasp", "hasp"],
+    sentences: ["I can say the word rasp and the word gasp.", "Look at the grasp. Now look at the clasp."],
+    fillBlanks: ["r__p", "g__p", "g___p", "c___p", "w__p"]
+  },
+
+  // ==================== ENDING BLENDS - LD, LP, PT, FT, CT, LK, LT, XT, TS, RD ====================
+  {
+    mainTitle: "ENDING BLENDS - LD, LP, PT, FT, CT, LK, LT, XT, TS, RD",
+    lessonNumber: 44,
+    letterTile: "ld",
+    imageCaption: "wild",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"ld\".",
+    words: ["wild", "hold", "child", "cold", "fold", "gold", "mold", "scold", "told", "bold"],
+    sentences: ["I can say the word wild and the word hold.", "Look at the child. Now look at the cold."],
+    fillBlanks: ["w__d", "h__d", "c___d", "c__d", "f__d"]
+  },
+  {
+    mainTitle: "ENDING BLENDS - LD, LP, PT, FT, CT, LK, LT, XT, TS, RD",
+    lessonNumber: 45,
+    letterTile: "lp",
+    imageCaption: "help",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"lp\".",
+    words: ["help", "gulp", "scalp", "yelp", "pulp", "kelp", "alp"],
+    sentences: ["I can say the word help and the word gulp.", "Look at the scalp. Now look at the yelp."],
+    fillBlanks: ["h__p", "g__p", "s___p", "y__p", "p__p"]
+  },
+  {
+    mainTitle: "ENDING BLENDS - LD, LP, PT, FT, CT, LK, LT, XT, TS, RD",
+    lessonNumber: 46,
+    letterTile: "pt",
+    imageCaption: "kept",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"pt\".",
+    words: ["kept", "wept", "slept", "crept", "leapt", "swept", "adept"],
+    sentences: ["I can say the word kept and the word wept.", "Look at the slept. Now look at the crept."],
+    fillBlanks: ["k__t", "w__t", "s___t", "c___t", "l___t"]
+  },
+  {
+    mainTitle: "ENDING BLENDS - LD, LP, PT, FT, CT, LK, LT, XT, TS, RD",
+    lessonNumber: 47,
+    letterTile: "ft",
+    imageCaption: "left",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"ft\".",
+    words: ["left", "soft", "swift", "craft", "loft", "sift", "drift", "gift", "lift", "shift"],
+    sentences: ["I can say the word left and the word soft.", "Look at the swift. Now look at the craft."],
+    fillBlanks: ["l__t", "s__t", "s___t", "c___t", "l__t"]
+  },
+  {
+    mainTitle: "ENDING BLENDS - LD, LP, PT, FT, CT, LK, LT, XT, TS, RD",
+    lessonNumber: 48,
+    letterTile: "ct",
+    imageCaption: "fact",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"ct\".",
+    words: ["fact", "erect", "sect", "act", "react", "impact", "contract", "exact", "attract", "predict"],
+    sentences: ["I can say the word fact and the word erect.", "Look at the sect. Now look at the act."],
+    fillBlanks: ["f__t", "e___t", "s__t", "a_t", "r___t"]
+  },
+  {
+    mainTitle: "ENDING BLENDS - LD, LP, PT, FT, CT, LK, LT, XT, TS, RD",
+    lessonNumber: 49,
+    letterTile: "lk",
+    imageCaption: "milk",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"lk\".",
+    words: ["milk", "walk", "talk", "chalk", "stalk", "folk", "yolk", "silk", "bulk", "skulk"],
+    sentences: ["I can say the word milk and the word walk.", "Look at the talk. Now look at the chalk."],
+    fillBlanks: ["m__k", "w__k", "t__k", "c___k", "s___k"]
+  },
+  {
+    mainTitle: "ENDING BLENDS - LD, LP, PT, FT, CT, LK, LT, XT, TS, RD",
+    lessonNumber: 50,
+    letterTile: "lt",
+    imageCaption: "salt",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"lt\".",
+    words: ["salt", "felt", "malt", "bolt", "kilt", "melt", "belt", "colt", "wilt", "guilt"],
+    sentences: ["I can say the word salt and the word felt.", "Look at the malt. Now look at the bolt."],
+    fillBlanks: ["s__t", "f__t", "m__t", "b__t", "k__t"]
+  },
+  {
+    mainTitle: "ENDING BLENDS - LD, LP, PT, FT, CT, LK, LT, XT, TS, RD",
+    lessonNumber: 51,
+    letterTile: "xt",
+    imageCaption: "text",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"xt\".",
+    words: ["text", "next", "context", "pretext"],
+    sentences: ["I can say the word text and the word next.", "Look at the context. Now look at the pretext."],
+    fillBlanks: ["t__t", "n__t", "c_____t", "p_____t"]
+  },
+  {
+    mainTitle: "ENDING BLENDS - LD, LP, PT, FT, CT, LK, LT, XT, TS, RD",
+    lessonNumber: 52,
+    letterTile: "ts",
+    imageCaption: "pets",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"ts\".",
+    words: ["pets", "pots", "cats", "hats", "rats", "bats", "mats", "sits", "bits", "hits"],
+    sentences: ["I can say the word pets and the word pots.", "Look at the cats. Now look at the hats."],
+    fillBlanks: ["p__s", "p__s", "c__s", "h__s", "r__s"]
+  },
+  {
+    mainTitle: "ENDING BLENDS - LD, LP, PT, FT, CT, LK, LT, XT, TS, RD",
+    lessonNumber: 53,
+    letterTile: "rd",
+    imageCaption: "hard",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"rd\".",
+    words: ["hard", "word", "herd", "card", "bird", "cord", "ford", "lord", "ward", "yard"],
+    sentences: ["I can say the word hard and the word word.", "Look at the herd. Now look at the card."],
+    fillBlanks: ["h__d", "w__d", "h__d", "c__d", "b__d"]
+  },
+
+  // ==================== DIGRAPHS ====================
+  {
+    mainTitle: "DIGRAPHS",
+    lessonNumber: 54,
+    letterTile: "sh",
+    imageCaption: "ship",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"sh\".",
+    words: ["ship", "shot", "trash", "crash", "shop", "wish", "fish", "dish", "rush", "shell"],
+    sentences: ["I can say the word ship and the word shot.", "Look at the trash. Now look at the crash."],
+    fillBlanks: ["s__p", "s__t", "t___h", "c___h", "s__p"]
+  },
+  {
+    mainTitle: "DIGRAPHS",
+    lessonNumber: 55,
+    letterTile: "ch",
+    imageCaption: "chat",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"ch\".",
+    words: ["chat", "chop", "branch", "much", "chip", "chin", "chest", "chick", "chase", "chill"],
+    sentences: ["I can say the word chat and the word chop.", "Look at the branch. Now look at the much."],
+    fillBlanks: ["c__t", "c__p", "b____h", "m__h", "c__p"]
+  },
+  {
+    mainTitle: "DIGRAPHS",
+    lessonNumber: 56,
+    letterTile: "tch",
+    imageCaption: "match",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"tch\".",
+    words: ["match", "fetch", "switch", "scratch", "catch", "patch", "watch", "hatch", "stitch", "clutch"],
+    sentences: ["I can say the word match and the word fetch.", "Look at the switch. Now look at the scratch."],
+    fillBlanks: ["m___h", "f___h", "s____h", "s_____h", "c___h"]
+  },
+  {
+    mainTitle: "DIGRAPHS",
+    lessonNumber: 57,
+    letterTile: "th (voiced)",
+    imageCaption: "that",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"th (voiced)\".",
+    words: ["that", "the", "them", "this", "then", "than", "there", "those", "they", "though"],
+    sentences: ["I can say the word that and the word the.", "Look at the them. Now look at the this."],
+    fillBlanks: ["t__t", "t_e", "t__m", "t__s", "t__n"]
+  },
+  {
+    mainTitle: "DIGRAPHS",
+    lessonNumber: 58,
+    letterTile: "th (unvoiced)",
+    imageCaption: "thin",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"th (unvoiced)\".",
+    words: ["thin", "thank", "both", "with", "three", "thumb", "thick", "thing", "think", "bath"],
+    sentences: ["I can say the word thin and the word thank.", "Look at the both. Now look at the with."],
+    fillBlanks: ["t__n", "t___k", "b__h", "w__h", "t___e"]
+  },
+  {
+    mainTitle: "DIGRAPHS",
+    lessonNumber: 59,
+    letterTile: "ng",
+    imageCaption: "song",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"ng\".",
+    words: ["song", "long", "wing", "string", "ring", "king", "sing", "bang", "hang", "strong"],
+    sentences: ["I can say the word song and the word long.", "Look at the wing. Now look at the string."],
+    fillBlanks: ["s__g", "l__g", "w__g", "s____g", "r__g"]
+  },
+  {
+    mainTitle: "DIGRAPHS",
+    lessonNumber: 60,
+    letterTile: "nk",
+    imageCaption: "pink",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"nk\".",
+    words: ["pink", "link", "sink", "drink", "bank", "thank", "sank", "blink", "drunk", "stink"],
+    sentences: ["I can say the word pink and the word link.", "Look at the sink. Now look at the drink."],
+    fillBlanks: ["p__k", "l__k", "s__k", "d___k", "b__k"]
+  },
+  {
+    mainTitle: "DIGRAPHS",
+    lessonNumber: 61,
+    letterTile: "wh",
+    imageCaption: "which",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"wh\".",
+    words: ["which", "what", "white", "when", "why", "where", "whale", "wheel", "whisper", "whistle"],
+    sentences: ["I can say the word which and the word what.", "Look at the white. Now look at the when."],
+    fillBlanks: ["w___h", "w__t", "w___e", "w__n", "w_y"]
+  },
+  {
+    mainTitle: "DIGRAPHS",
+    lessonNumber: 62,
+    letterTile: "ph",
+    imageCaption: "phone",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"ph\".",
+    words: ["phone", "photo", "graph", "alphabet", "dolphin", "elephant", "phrase", "sphere", "phonics"],
+    sentences: ["I can say the word phone and the word photo.", "Look at the graph. Now look at the alphabet."],
+    fillBlanks: ["p___e", "p___o", "g___h", "a_____t", "d_____n"]
+  },
+  {
+    mainTitle: "DIGRAPHS",
+    lessonNumber: 63,
+    letterTile: "ck",
+    imageCaption: "track",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"ck\".",
+    words: ["track", "back", "black", "sack", "pack", "pick", "sick", "duck", "neck", "clock"],
+    sentences: ["I can say the word track and the word back.", "Look at the black. Now look at the sack."],
+    fillBlanks: ["t___k", "b__k", "b___k", "s__k", "p__k"]
+  },
+  {
+    mainTitle: "DIGRAPHS",
+    lessonNumber: 64,
+    letterTile: "wr",
+    imageCaption: "write",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"wr\".",
+    words: ["write", "wrote", "wrap", "wrath", "wrist", "wrong", "wreck", "wrench", "wrinkle", "wrestle"],
+    sentences: ["I can say the word write and the word wrote.", "Look at the wrap. Now look at the wrath."],
+    fillBlanks: ["w___e", "w___e", "w__p", "w___h", "w___t"]
+  },
+  {
+    mainTitle: "DIGRAPHS",
+    lessonNumber: 65,
+    letterTile: "rh",
+    imageCaption: "rhino",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"rh\".",
+    words: ["rhino", "rhyme", "rhythm"],
+    sentences: ["I can say the word rhino and the word rhyme.", "Look at the rhythm. Now look at the rhythm."],
+    fillBlanks: ["r___o", "r___e", "r____m"]
+  },
+  {
+    mainTitle: "DIGRAPHS",
+    lessonNumber: 66,
+    letterTile: "kn",
+    imageCaption: "know",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"kn\".",
+    words: ["know", "knap", "knot", "knob", "knee", "knife", "knight", "knock", "knit", "knoll"],
+    sentences: ["I can say the word know and the word knap.", "Look at the knot. Now look at the knob."],
+    fillBlanks: ["k__w", "k__p", "k__t", "k__b", "k__e"]
+  },
+  {
+    mainTitle: "DIGRAPHS",
+    lessonNumber: 67,
+    letterTile: "gn",
+    imageCaption: "gnash",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"gn\".",
+    words: ["gnash", "gnome", "gnat", "gnaw", "sign", "design", "campaign", "foreign", "gnarl", "gnostic"],
+    sentences: ["I can say the word gnash and the word gnome.", "Look at the gnat. Now look at the gnaw."],
+    fillBlanks: ["g___h", "g___e", "g__t", "g__w", "s__n"]
+  },
+  {
+    mainTitle: "DIGRAPHS",
+    lessonNumber: 68,
+    letterTile: "gh",
+    imageCaption: "ghost",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"gh\".",
+    words: ["ghost", "Ghana", "ghetto", "ghastly", "ghoul", "gharry", "gherkin", "Ghanaian", "ghostly", "ghazal"],
+    sentences: ["I can say the word ghost and the word Ghana.", "Look at the ghetto. Now look at the ghastly."],
+    fillBlanks: ["g___t", "G___a", "g____o", "g_____y", "g___l"]
+  },
+
+  // ==================== STUBBORN DIGRAPHS (MULTIPLE SOUNDS OF CH) ====================
+  {
+    mainTitle: "STUBBORN DIGRAPHS (MULTIPLE SOUNDS OF CH)",
+    lessonNumber: 69,
+    letterTile: "ch (tch sound)",
+    imageCaption: "church",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"ch (tch sound)\".",
+    words: ["church", "child", "chair", "cheese", "champion", "chocolate", "chest", "chase", "chill", "chop"],
+    sentences: ["I can say the word church and the word child.", "Look at the chair. Now look at the cheese."],
+    fillBlanks: ["c____h", "c___d", "c___r", "c____e", "c_____n"]
+  },
+  {
+    mainTitle: "STUBBORN DIGRAPHS (MULTIPLE SOUNDS OF CH)",
+    lessonNumber: 70,
+    letterTile: "ch (k sound)",
+    imageCaption: "chorus",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"ch (k sound)\".",
+    words: ["chorus", "chrome", "chasm", "chemist", "chord", "chlorine", "chaos", "character", "chronic", "choir"],
+    sentences: ["I can say the word chorus and the word chrome.", "Look at the chasm. Now look at the chemist."],
+    fillBlanks: ["c____s", "c____e", "c___m", "c_____t", "c___d"]
+  },
+  {
+    mainTitle: "STUBBORN DIGRAPHS (MULTIPLE SOUNDS OF CH)",
+    lessonNumber: 71,
+    letterTile: "ch (sh sound)",
+    imageCaption: "chef",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"ch (sh sound)\".",
+    words: ["chef", "champagne", "chateau", "chauffeur", "chic", "moustache", "parachute", "chalet", "chandelier", "brochure"],
+    sentences: ["I can say the word chef and the word champagne.", "Look at the chateau. Now look at the chauffeur."],
+    fillBlanks: ["c__f", "c_______e", "c_____u", "c_______r", "c__c"]
+  },
+
+  // ==================== VOWEL-CONSONANT DIGRAPHS ====================
+  {
+    mainTitle: "VOWEL-CONSONANT DIGRAPHS",
+    lessonNumber: 72,
+    letterTile: "ank",
+    imageCaption: "bank",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"ank\".",
+    words: ["bank", "tank", "thank", "sank", "drank", "rank", "blank", "flank", "plank", "prank"],
+    sentences: ["I can say the word bank and the word tank.", "Look at the thank. Now look at the sank."],
+    fillBlanks: ["b__k", "t__k", "t___k", "s__k", "d___k"]
+  },
+  {
+    mainTitle: "VOWEL-CONSONANT DIGRAPHS",
+    lessonNumber: 73,
+    letterTile: "ink",
+    imageCaption: "link",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"ink\".",
+    words: ["link", "pink", "sink", "blink", "drink", "think", "wink", "stink", "shrink", "mink"],
+    sentences: ["I can say the word link and the word pink.", "Look at the sink. Now look at the blink."],
+    fillBlanks: ["l__k", "p__k", "s__k", "b___k", "d___k"]
+  },
+  {
+    mainTitle: "VOWEL-CONSONANT DIGRAPHS",
+    lessonNumber: 74,
+    letterTile: "onk",
+    imageCaption: "honk",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"onk\".",
+    words: ["honk", "bonk", "clonk", "monk", "wonk"],
+    sentences: ["I can say the word honk and the word bonk.", "Look at the clonk. Now look at the monk."],
+    fillBlanks: ["h__k", "b__k", "c___k", "m__k", "w__k"]
+  },
+  {
+    mainTitle: "VOWEL-CONSONANT DIGRAPHS",
+    lessonNumber: 75,
+    letterTile: "unk",
+    imageCaption: "bunk",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"unk\".",
+    words: ["bunk", "chunk", "dunk", "drunk", "sunk", "junk", "skunk", "trunk", "flunk", "spunk"],
+    sentences: ["I can say the word bunk and the word chunk.", "Look at the dunk. Now look at the drunk."],
+    fillBlanks: ["b__k", "c___k", "d__k", "d___k", "s__k"]
+  },
+  {
+    mainTitle: "VOWEL-CONSONANT DIGRAPHS",
+    lessonNumber: 76,
+    letterTile: "ang",
+    imageCaption: "bang",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"ang\".",
+    words: ["bang", "sang", "gang", "hang", "pang", "fang", "rang", "clang", "slang", "twang"],
+    sentences: ["I can say the word bang and the word sang.", "Look at the gang. Now look at the hang."],
+    fillBlanks: ["b__g", "s__g", "g__g", "h__g", "p__g"]
+  },
+  {
+    mainTitle: "VOWEL-CONSONANT DIGRAPHS",
+    lessonNumber: 77,
+    letterTile: "ing",
+    imageCaption: "sing",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"ing\".",
+    words: ["sing", "ring", "wing", "bring", "thing", "king", "swing", "spring", "string", "cling"],
+    sentences: ["I can say the word sing and the word ring.", "Look at the wing. Now look at the bring."],
+    fillBlanks: ["s__g", "r__g", "w__g", "b___g", "t___g"]
+  },
+  {
+    mainTitle: "VOWEL-CONSONANT DIGRAPHS",
+    lessonNumber: 78,
+    letterTile: "ong",
+    imageCaption: "song",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"ong\".",
+    words: ["song", "long", "gong", "tong", "wrong", "strong", "belong", "along", "thong", "prong"],
+    sentences: ["I can say the word song and the word long.", "Look at the gong. Now look at the tong."],
+    fillBlanks: ["s__g", "l__g", "g__g", "t__g", "w___g"]
+  },
+  {
+    mainTitle: "VOWEL-CONSONANT DIGRAPHS",
+    lessonNumber: 79,
+    letterTile: "ung",
+    imageCaption: "sung",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"ung\".",
+    words: ["sung", "hung", "lung", "rung", "dung", "clung", "flung", "stung", "swung", "wrung"],
+    sentences: ["I can say the word sung and the word hung.", "Look at the lung. Now look at the rung."],
+    fillBlanks: ["s__g", "h__g", "l__g", "r__g", "d__g"]
+  },
+
+  // ==================== LONG VOWEL SOUNDS (SILENT E RULE) ====================
+  {
+    mainTitle: "LONG VOWEL SOUNDS (SILENT E RULE)",
+    lessonNumber: 80,
+    letterTile: "a_e",
+    imageCaption: "cake",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"a_e\".",
+    words: ["cake", "came", "mate", "gate", "date", "name", "lane", "pace", "safe", "tape"],
+    sentences: ["I can say the word cake and the word came.", "Look at the mate. Now look at the gate."],
+    fillBlanks: ["c__e", "c__e", "m__e", "g__e", "d__e"]
+  },
+  {
+    mainTitle: "LONG VOWEL SOUNDS (SILENT E RULE)",
+    lessonNumber: 81,
+    letterTile: "e_e",
+    imageCaption: "Pete",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"e_e\".",
+    words: ["Pete", "mete", "eve", "these", "here", "scene", "complete", "delete", "extreme", "athlete"],
+    sentences: ["I can say the word Pete and the word mete.", "Look at the eve. Now look at the these."],
+    fillBlanks: ["P__e", "m__e", "e_e", "t___e", "h__e"]
+  },
+  {
+    mainTitle: "LONG VOWEL SOUNDS (SILENT E RULE)",
+    lessonNumber: 82,
+    letterTile: "i_e",
+    imageCaption: "bike",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"i_e\".",
+    words: ["bike", "hive", "like", "bite", "line", "kite", "time", "nine", "prize", "slide"],
+    sentences: ["I can say the word bike and the word hive.", "Look at the like. Now look at the bite."],
+    fillBlanks: ["b__e", "h__e", "l__e", "b__e", "l__e"]
+  },
+  {
+    mainTitle: "LONG VOWEL SOUNDS (SILENT E RULE)",
+    lessonNumber: 83,
+    letterTile: "o_e",
+    imageCaption: "cone",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"o_e\".",
+    words: ["cone", "bone", "home", "note", "stone", "hope", "rope", "vote", "joke", "dose"],
+    sentences: ["I can say the word cone and the word bone.", "Look at the home. Now look at the note."],
+    fillBlanks: ["c__e", "b__e", "h__e", "n__e", "s___e"]
+  },
+  {
+    mainTitle: "LONG VOWEL SOUNDS (SILENT E RULE)",
+    lessonNumber: 84,
+    letterTile: "u_e (yoo sound)",
+    imageCaption: "cube",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"u_e (yoo sound)\".",
+    words: ["cube", "mute", "tune", "cute", "flute", "fuse", "mule", "huge", "use", "fume"],
+    sentences: ["I can say the word cube and the word mute.", "Look at the tune. Now look at the cute."],
+    fillBlanks: ["c__e", "m__e", "t__e", "c__e", "f___e"]
+  },
+  {
+    mainTitle: "LONG VOWEL SOUNDS (SILENT E RULE)",
+    lessonNumber: 85,
+    letterTile: "u_e (oo sound)",
+    imageCaption: "rude",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"u_e (oo sound)\".",
+    words: ["rude", "rule", "June", "brute", "crude", "prune", "include", "exclude", "conclude"],
+    sentences: ["I can say the word rude and the word rule.", "Look at the June. Now look at the brute."],
+    fillBlanks: ["r__e", "r__e", "J__e", "b___e", "c___e"]
+  },
+
+  // ==================== SHORT WORDS WITH LONG VOWEL SOUNDS ====================
+  {
+    mainTitle: "SHORT WORDS WITH LONG VOWEL SOUNDS",
+    lessonNumber: 86,
+    letterTile: "Long e",
+    imageCaption: "me",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"Long e\".",
+    words: ["me", "she", "we", "be", "he", "the", "see", "bee", "flea", "tea"],
+    sentences: ["I can say the word me and the word she.", "Look at the we. Now look at the be."],
+    fillBlanks: ["m_", "s_e", "w_", "b_", "h_"]
+  },
+  {
+    mainTitle: "SHORT WORDS WITH LONG VOWEL SOUNDS",
+    lessonNumber: 87,
+    letterTile: "Long i",
+    imageCaption: "hi",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"Long i\".",
+    words: ["hi", "my", "by", "fly", "cry", "sky", "why", "try", "dry", "shy"],
+    sentences: ["I can say the word hi and the word my.", "Look at the by. Now look at the fly."],
+    fillBlanks: ["h_", "m_", "b_", "f_y", "c_y"]
+  },
+  {
+    mainTitle: "SHORT WORDS WITH LONG VOWEL SOUNDS",
+    lessonNumber: 88,
+    letterTile: "Long o",
+    imageCaption: "go",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"Long o\".",
+    words: ["go", "no", "so", "lo", "co", "yo", "bo", "po", "to", "do"],
+    sentences: ["I can say the word go and the word no.", "Look at the so. Now look at the lo."],
+    fillBlanks: ["g_", "n_", "s_", "l_", "c_"]
+  },
+  {
+    mainTitle: "SHORT WORDS WITH LONG VOWEL SOUNDS",
+    lessonNumber: 89,
+    letterTile: "Long u",
+    imageCaption: "flu",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"Long u\".",
+    words: ["flu", "you", "moo", "boo", "coo", "zoo", "too", "new", "due", "few"],
+    sentences: ["I can say the word flu and the word you.", "Look at the moo. Now look at the boo."],
+    fillBlanks: ["f_u", "y_u", "m_o", "b_o", "c_o"]
+  },
+
+  // ==================== PHONOGRAMS WITH LONG VOWELS ====================
+  {
+    mainTitle: "PHONOGRAMS WITH LONG VOWELS",
+    lessonNumber: 90,
+    letterTile: "old",
+    imageCaption: "cold",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"old\".",
+    words: ["cold", "bold", "sold", "hold", "gold"],
+    sentences: ["I can say the word cold and the word bold.", "Look at the sold. Now look at the hold."],
+    fillBlanks: ["c__d", "b__d", "s__d", "h__d", "g__d"]
+  },
+  {
+    mainTitle: "PHONOGRAMS WITH LONG VOWELS",
+    lessonNumber: 91,
+    letterTile: "oll",
+    imageCaption: "poll",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"oll\".",
+    words: ["poll", "toll", "roll", "scroll", "stroll"],
+    sentences: ["I can say the word poll and the word toll.", "Look at the roll. Now look at the scroll."],
+    fillBlanks: ["p__l", "t__l", "r__l", "s____l", "s____l"]
+  },
+  {
+    mainTitle: "PHONOGRAMS WITH LONG VOWELS",
+    lessonNumber: 92,
+    letterTile: "olt",
+    imageCaption: "bolt",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"olt\".",
+    words: ["bolt", "volt", "holt", "jolt", "molt"],
+    sentences: ["I can say the word bolt and the word volt.", "Look at the holt. Now look at the jolt."],
+    fillBlanks: ["b__t", "v__t", "h__t", "j__t", "m__t"]
+  },
+  {
+    mainTitle: "PHONOGRAMS WITH LONG VOWELS",
+    lessonNumber: 93,
+    letterTile: "oth",
+    imageCaption: "both",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"oth\".",
+    words: ["both", "loth", "quoth", "zeroth", "betroth"],
+    sentences: ["I can say the word both and the word loth.", "Look at the quoth. Now look at the zeroth."],
+    fillBlanks: ["b__h", "l__h", "q___h", "z____h", "b_____h"]
+  },
+  {
+    mainTitle: "PHONOGRAMS WITH LONG VOWELS",
+    lessonNumber: 94,
+    letterTile: "ost",
+    imageCaption: "most",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"ost\".",
+    words: ["most", "post", "host", "ghost", "almost"],
+    sentences: ["I can say the word most and the word post.", "Look at the host. Now look at the ghost."],
+    fillBlanks: ["m__t", "p__t", "h__t", "g___t", "a____t"]
+  },
+  {
+    mainTitle: "PHONOGRAMS WITH LONG VOWELS",
+    lessonNumber: 95,
+    letterTile: "ind",
+    imageCaption: "bind",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"ind\".",
+    words: ["bind", "find", "kind", "mind", "blind"],
+    sentences: ["I can say the word bind and the word find.", "Look at the kind. Now look at the mind."],
+    fillBlanks: ["b__d", "f__d", "k__d", "m__d", "b___d"]
+  },
+  {
+    mainTitle: "PHONOGRAMS WITH LONG VOWELS",
+    lessonNumber: 96,
+    letterTile: "ild",
+    imageCaption: "mild",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"ild\".",
+    words: ["mild", "wild", "child"],
+    sentences: ["I can say the word mild and the word wild.", "Look at the child. Now look at the child."],
+    fillBlanks: ["m__d", "w__d", "c___d"]
+  },
+
+  // ==================== RHYMING WORDS (SAME END-SOUND) ====================
+  {
+    mainTitle: "RHYMING WORDS (SAME END-SOUND)",
+    lessonNumber: 97,
+    letterTile: "1",
+    imageCaption: "pat",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"1\".",
+    words: ["pat", "sat", "mat", "fat", "rat"],
+    sentences: ["I can say the word pat and the word sat.", "Look at the mat. Now look at the fat."],
+    fillBlanks: ["p_t", "s_t", "m_t", "f_t", "r_t"]
+  },
+  {
+    mainTitle: "RHYMING WORDS (SAME END-SOUND)",
+    lessonNumber: 98,
+    letterTile: "2",
+    imageCaption: "pot",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"2\".",
+    words: ["pot", "spot", "cot", "hot", "lot"],
+    sentences: ["I can say the word pot and the word spot.", "Look at the cot. Now look at the hot."],
+    fillBlanks: ["p_t", "s__t", "c_t", "h_t", "l_t"]
+  },
+  {
+    mainTitle: "RHYMING WORDS (SAME END-SOUND)",
+    lessonNumber: 99,
+    letterTile: "3",
+    imageCaption: "beat",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"3\".",
+    words: ["beat", "meet", "feat", "seat", "sheet"],
+    sentences: ["I can say the word beat and the word meet.", "Look at the feat. Now look at the seat."],
+    fillBlanks: ["b__t", "m__t", "f__t", "s__t", "s___t"]
+  },
+  {
+    mainTitle: "RHYMING WORDS (SAME END-SOUND)",
+    lessonNumber: 100,
+    letterTile: "4",
+    imageCaption: "make",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"4\".",
+    words: ["make", "take", "lake", "fake", "rake"],
+    sentences: ["I can say the word make and the word take.", "Look at the lake. Now look at the fake."],
+    fillBlanks: ["m__e", "t__e", "l__e", "f__e", "r__e"]
+  },
+  {
+    mainTitle: "RHYMING WORDS (SAME END-SOUND)",
+    lessonNumber: 101,
+    letterTile: "5",
+    imageCaption: "boat",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"5\".",
+    words: ["boat", "float", "coat", "goat", "oat"],
+    sentences: ["I can say the word boat and the word float.", "Look at the coat. Now look at the goat."],
+    fillBlanks: ["b__t", "f___t", "c__t", "g__t", "o_t"]
+  },
+  {
+    mainTitle: "RHYMING WORDS (SAME END-SOUND)",
+    lessonNumber: 102,
+    letterTile: "6",
+    imageCaption: "flute",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"6\".",
+    words: ["flute", "fruit", "suite", "cute", "put"],
+    sentences: ["I can say the word flute and the word fruit.", "Look at the suite. Now look at the cute."],
+    fillBlanks: ["f___e", "f___t", "s___e", "c__e", "p_t"]
+  },
+
+  // ==================== 2-CONSONANT DIVISION (COMPOUND) WORDS ====================
+  {
+    mainTitle: "2-CONSONANT DIVISION (COMPOUND) WORDS",
+    lessonNumber: 103,
+    letterTile: "Compound Words",
+    imageCaption: "myself",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"Compound Words\".",
+    words: ["myself", "keyboard", "knapsack", "clockwise", "cupcake", "footprint", "popcorn", "napkin", "rainbow", "chopstick"],
+    sentences: ["I can say the word myself and the word keyboard.", "Look at the knapsack. Now look at the clockwise."],
+    fillBlanks: ["m____f", "k_____d", "k_____k", "c______e", "c____e"]
+  },
+
+  // ==================== R-CONTROLLED VOWELS ====================
+  {
+    mainTitle: "R-CONTROLLED VOWELS",
+    lessonNumber: 104,
+    letterTile: "ar",
+    imageCaption: "bar",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"ar\".",
+    words: ["bar", "dark", "mark", "park", "hard", "star", "farm", "charm", "smart", "chart"],
+    sentences: ["I can say the word bar and the word dark.", "Look at the mark. Now look at the park."],
+    fillBlanks: ["b_r", "d__k", "m__k", "p__k", "h__d"]
+  },
+  {
+    mainTitle: "R-CONTROLLED VOWELS",
+    lessonNumber: 105,
+    letterTile: "or",
+    imageCaption: "born",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"or\".",
+    words: ["born", "fork", "torn", "cord", "fort", "scorn", "corn", "storm", "for", "worn"],
+    sentences: ["I can say the word born and the word fork.", "Look at the torn. Now look at the cord."],
+    fillBlanks: ["b__n", "f__k", "t__n", "c__d", "f__t"]
+  },
+  {
+    mainTitle: "R-CONTROLLED VOWELS",
+    lessonNumber: 106,
+    letterTile: "er",
+    imageCaption: "her",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"er\".",
+    words: ["her", "herd", "term", "verse", "there", "perm", "clerk", "were", "jerk", "expert"],
+    sentences: ["I can say the word her and the word herd.", "Look at the term. Now look at the verse."],
+    fillBlanks: ["h_r", "h__d", "t__m", "v___e", "t___e"]
+  },
+  {
+    mainTitle: "R-CONTROLLED VOWELS",
+    lessonNumber: 107,
+    letterTile: "ir",
+    imageCaption: "stir",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"ir\".",
+    words: ["stir", "third", "dirt", "bird", "girl", "first", "sir", "firm", "birth", "shirt"],
+    sentences: ["I can say the word stir and the word third.", "Look at the dirt. Now look at the bird."],
+    fillBlanks: ["s__r", "t___d", "d__t", "b__d", "g__l"]
+  },
+  {
+    mainTitle: "R-CONTROLLED VOWELS",
+    lessonNumber: 108,
+    letterTile: "ur",
+    imageCaption: "hurt",
+    imagePath: "",
+    introText: "Say each picture word out loud. Listen for the sound of \"ur\".",
+    words: ["hurt", "burn", "turn", "curb", "curve", "burst", "curl", "surf", "lurk", "churn"],
+    sentences: ["I can say the word hurt and the word burn.", "Look at the turn. Now look at the curb."],
+    fillBlanks: ["h__t", "b__n", "t__n", "c__b", "c___e"]
+  }
+];
+
+// ==================== RENDER ENGINE ====================
+function el(tag, cls, html) {
+  var e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (typeof html !== 'undefined') e.innerHTML = html;
+  return e;
+}
+
+function wordGrid(words, extraClass) {
+  var grid = el('div', 'word-grid ' + (extraClass || ''));
+  for (var i = 0; i < words.length; i++) {
+    grid.appendChild(el('div', 'pill', words[i]));
+  }
+  return grid;
+}
+
+function exportButton(pageId) {
+  var wrap = el('div', 'page-actions no-print');
+  var btn = el('button', 'export-btn', 'Export this page to PDF');
+  btn.type = 'button';
+  btn.onclick = function () { exportSinglePage(pageId); };
+  wrap.appendChild(btn);
+  return wrap;
+}
+
+function exportSinglePage(pageId) {
+  var target = document.getElementById(pageId);
+  if (!target) return;
+  target.classList.add('print-target');
+  document.body.classList.add('print-single');
+  window.print();
+}
+
+window.addEventListener('afterprint', function () {
+  document.body.classList.remove('print-single');
+  var targets = document.querySelectorAll('.print-target');
+  for (var i = 0; i < targets.length; i++) targets[i].classList.remove('print-target');
+});
+
+function buildGlobalControls(lessons) {
+  var wrap = el('div', 'global-controls no-print');
+  // 🆕 Dynamic label – use the first lesson's mainTitle or a fallback
+  var mainTitle = (lessons && lessons.length > 0 && lessons[0].mainTitle) 
+                    ? lessons[0].mainTitle 
+                    : '📚 Phonics Lessons';
+  var label = el('span', 'label', '📚 ' + mainTitle + ' — ' + lessons.length + ' Lessons');
+  var btn = el('button', 'export-all-btn', '⬇ Export ALL pages as PDF');
+  btn.type = 'button';
+  btn.onclick = function () { window.print(); };
+  wrap.appendChild(label);
+  wrap.appendChild(btn);
+  return wrap;
+}
+
+function buildPageOne(lesson, pageId, pageNumber) {
+  var page = el('div', 'page');
+  page.id = pageId;
+  page.appendChild(exportButton(pageId));
+
+  var card = el('div', 'card');
+  page.appendChild(card);
+
+  // 🆕 Use dynamic mainTitle from lesson data
+  var titleText = lesson.mainTitle || 'SHORT VOWEL CVC WORDS';
+  card.appendChild(el('div', 'title', titleText));
+
+  var headerRow = el('div', 'header-row');
+  var badge = el('div', 'lesson-badge');
+  badge.appendChild(el('div', 'arrow'));
+  badge.appendChild(el('div', 'label', 'Lesson'));
+  badge.appendChild(el('div', 'num', lesson.lessonNumber));
+  headerRow.appendChild(badge);
+
+  var introBox = el('div', 'intro-box');
+  introBox.appendChild(el('p', null, lesson.introText));
+  headerRow.appendChild(introBox);
+  card.appendChild(headerRow);
+
+  var heroRow = el('div', 'hero-row');
+  var heroImage = el('div', 'hero-image');
+  if (lesson.imagePath) {
+    var img = el('img');
+    img.src = lesson.imagePath;
+    img.alt = lesson.imageCaption;
+    heroImage.appendChild(img);
+  } else {
+    heroImage.appendChild(el('div', 'placeholder', 'image'));
+  }
+  heroImage.appendChild(el('div', 'caption', lesson.imageCaption));
+  heroRow.appendChild(heroImage);
+  heroRow.appendChild(el('div', 'hero-letter', lesson.letterTile));
+  card.appendChild(heroRow);
+
+  var sec1 = el('div', 'section-header');
+  sec1.appendChild(el('div', 'circle', '1'));
+  sec1.appendChild(el('div', 'label-box', 'Look and say aloud'));
+  card.appendChild(sec1);
+  var allWords = [];
+  for (var r = 0; r < lesson.words.length; r++) {
+    allWords = allWords.concat(lesson.words[r]);
+  }
+  card.appendChild(wordGrid(allWords));
+
+  card.appendChild(el('div', 'page-number', pageNumber));
+
+  return page;
+}
+
+function buildPageTwo(lesson, pageId, pageNumber) {
+  var page = el('div', 'page');
+  page.id = pageId;
+  page.appendChild(exportButton(pageId));
+
+  var card = el('div', 'card');
+  page.appendChild(card);
+
+  var sec2 = el('div', 'section-header');
+  sec2.appendChild(el('div', 'circle', '2'));
+  sec2.appendChild(el('div', 'label-box', 'Decodable Reading'));
+  card.appendChild(sec2);
+  card.appendChild(el('div', 'instructions', 'Read ALOUD and circle all words with the short vowel sound'));
+  var readingBox = el('div', 'reading-box');
+  for (var s = 0; s < lesson.sentences.length; s++) {
+    readingBox.appendChild(el('p', null, (s + 1) + '. ' + lesson.sentences[s]));
+  }
+  card.appendChild(readingBox);
+
+  var sec3 = el('div', 'section-header');
+  sec3.appendChild(el('div', 'circle', '3'));
+  sec3.appendChild(el('div', 'label-box', 'Activities'));
+  card.appendChild(sec3);
+
+  card.appendChild(el('div', 'activity-label', 'A. Fill in the missing letters and say word'));
+  card.appendChild(wordGrid(lesson.fillBlanks, 'blanks'));
+
+  var emptySlots = [];
+  for (var b = 0; b < lesson.fillBlanks.length; b++) emptySlots.push('&nbsp;');
+  card.appendChild(el('div', 'activity-label', 'B. Copy each word from above'));
+  card.appendChild(wordGrid(emptySlots, 'empty'));
+
+  card.appendChild(el('div', 'activity-label', 'C. Choose any word from above and form 2 sentences'));
+  card.appendChild(el('div', 'sentence-line', '1.'));
+  card.appendChild(el('div', 'sentence-line', '2.'));
+
+  card.appendChild(el('div', 'page-number', pageNumber));
+
+  return page;
+}
+
+function render(lessons) {
+  var root = document.getElementById('root');
+  root.innerHTML = '';
+
+  // Add the global "Export All" control at the top (pass lessons for dynamic label)
+  root.appendChild(buildGlobalControls(lessons));
+
+  // Render all pages
+  var pageCounter = 1;
+  for (var i = 0; i < lessons.length; i++) {
+    var lesson = lessons[i];
+    var idOne = 'lesson-' + (i + 1) + '-page-1';
+    var idTwo = 'lesson-' + (i + 1) + '-page-2';
+    root.appendChild(buildPageOne(lesson, idOne, pageCounter++));
+    root.appendChild(buildPageTwo(lesson, idTwo, pageCounter++));
+  }
+}
+
+render(window.LESSONS);
+</script>
+</body>
+</html>
