@@ -275,9 +275,54 @@
   }
   .export-btn:hover { background: #c8481a; }
 
+  /* --- Table of Contents Styles --- */
+  .toc-card {
+    border: 3px solid #F5A623;
+    border-radius: 28px;
+    min-height: 1000px;
+    padding: 40px 48px;
+    position: relative;
+  }
+  .toc-title {
+    font-size: 36px;
+    font-weight: 800;
+    color: #1a1a2e;
+    text-align: center;
+    margin-bottom: 30px;
+    border-bottom: 4px solid #F5A623;
+    padding-bottom: 16px;
+  }
+  .toc-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .toc-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 12px 8px;
+    border-bottom: 1px dashed #dee2e6;
+    font-size: 18px;
+    font-weight: 600;
+    color: #1a1a1a;
+  }
+  .toc-item .toc-lesson-title {
+    flex: 1;
+    text-align: left;
+    padding-right: 20px;
+  }
+  .toc-item .toc-page-num {
+    font-weight: 800;
+    color: #E2571C;
+    min-width: 80px;
+    text-align: right;
+  }
+
   /* keep colors/borders in print + PDF export */
   .card, .lesson-badge, .hero-letter, .word-grid .pill,
-  .intro-box, .section-header .circle, .reading-box {
+  .intro-box, .section-header .circle, .reading-box,
+  .toc-card {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
@@ -2174,7 +2219,9 @@ window.LESSONS = [
   }
 ];
 
-// ==================== RENDER ENGINE ====================
+// ==================== RENDER ENGINE (with TOC) ====================
+const MAX_TOC_ENTRIES_PER_PAGE = 18; // Safe number of lessons per Table of Contents page
+
 function el(tag, cls, html) {
   var e = document.createElement(tag);
   if (cls) e.className = cls;
@@ -2215,7 +2262,6 @@ window.addEventListener('afterprint', function () {
 
 function buildGlobalControls(lessons) {
   var wrap = el('div', 'global-controls no-print');
-  // 🆕 Dynamic label – use the first lesson's mainTitle or a fallback
   var mainTitle = (lessons && lessons.length > 0 && lessons[0].mainTitle) 
                     ? lessons[0].mainTitle 
                     : '📚 Phonics Lessons';
@@ -2228,6 +2274,34 @@ function buildGlobalControls(lessons) {
   return wrap;
 }
 
+function buildTocPage(pageId, pageNumber, entries) {
+  var page = el('div', 'page');
+  page.id = pageId;
+  page.appendChild(exportButton(pageId));
+
+  var card = el('div', 'toc-card');
+  page.appendChild(card);
+
+  var title = el('div', 'toc-title', 'Table of Contents');
+  card.appendChild(title);
+
+  var list = el('ul', 'toc-list');
+  entries.forEach(function(entry) {
+    var item = el('li', 'toc-item');
+    var lessonDesc = el('span', 'toc-lesson-title');
+    lessonDesc.textContent = 'Lesson ' + entry.lessonNumber + ': ' + entry.mainTitle +
+        (entry.imageCaption ? ' — ' + entry.imageCaption : '');
+    item.appendChild(lessonDesc);
+    var pageNum = el('span', 'toc-page-num', 'Page ' + entry.firstPage);
+    item.appendChild(pageNum);
+    list.appendChild(item);
+  });
+  card.appendChild(list);
+
+  card.appendChild(el('div', 'page-number', pageNumber));
+  return page;
+}
+
 function buildPageOne(lesson, pageId, pageNumber) {
   var page = el('div', 'page');
   page.id = pageId;
@@ -2236,7 +2310,6 @@ function buildPageOne(lesson, pageId, pageNumber) {
   var card = el('div', 'card');
   page.appendChild(card);
 
-  // 🆕 Use dynamic mainTitle from lesson data
   var titleText = lesson.mainTitle || 'SHORT VOWEL CVC WORDS';
   card.appendChild(el('div', 'title', titleText));
 
@@ -2327,11 +2400,34 @@ function render(lessons) {
   var root = document.getElementById('root');
   root.innerHTML = '';
 
-  // Add the global "Export All" control at the top (pass lessons for dynamic label)
+  // Add global "Export All" control (unchanged)
   root.appendChild(buildGlobalControls(lessons));
 
-  // Render all pages
-  var pageCounter = 1;
+  if (lessons.length === 0) return;
+
+  // Calculate TOC pages
+  const totalTocPages = Math.ceil(lessons.length / MAX_TOC_ENTRIES_PER_PAGE);
+  const lessonStartPage = totalTocPages + 1; // first lesson page number
+
+  // Build TOC entries with correct starting page numbers
+  const tocEntries = lessons.map((lesson, index) => ({
+    lessonNumber: lesson.lessonNumber,
+    mainTitle: lesson.mainTitle,
+    imageCaption: lesson.imageCaption,
+    firstPage: lessonStartPage + index * 2
+  }));
+
+  // Create TOC pages
+  for (let p = 0; p < totalTocPages; p++) {
+    const start = p * MAX_TOC_ENTRIES_PER_PAGE;
+    const end = start + MAX_TOC_ENTRIES_PER_PAGE;
+    const pageEntries = tocEntries.slice(start, end);
+    const tocId = 'toc-page-' + (p + 1);
+    root.appendChild(buildTocPage(tocId, p + 1, pageEntries));
+  }
+
+  // Create lesson pages
+  let pageCounter = lessonStartPage;
   for (var i = 0; i < lessons.length; i++) {
     var lesson = lessons[i];
     var idOne = 'lesson-' + (i + 1) + '-page-1';
