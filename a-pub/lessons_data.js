@@ -3273,3 +3273,3116 @@ window.LESSONS = [
     fillBlanks: ["h__t", "b__n", "t__n", "c__b", "c__ve", "b___t", "c__l", "s__f", "l__k", "ch__n", "p__se", "n__se"]
   }
 ];
+
+
+window.LESSONS = [
+  // ==================== SHORT VOWEL CVC WORDS ====================
+  {
+    mainTitle: "SHORT VOWEL CVC WORDS",
+    lessonNumber: 1,
+    letterTile: "Short a",
+    imageCaption: "bag",
+    imagePath: "",
+    introText: "Short a says /a/ like in apple — when a single vowel is boxed in between two consonants, it usually keeps this quick, clipped sound instead of saying its name. Say each picture word out loud and listen for this pattern.",
+    words: ["bag", "cat", "mat", "hat", "rat", "bat", "sat", "pat", "fat", "man", "van", "map"],
+    sentences: [
+      "I see a bag.",
+      "Look at the cat and the mat.",
+      "Is this a hat?",
+      "I like my rat.",
+      "We have a bat."
+    ],
+    fillBlanks: ["b_g", "c_t", "m_t", "h_t", "r_t", "b_t", "s_t", "p_t", "f_t", "m_n", "v_n", "m_p"]
+  },
+  {
+    mainTitle: "SHORT VOWEL CVC WORDS",
+    lessonNumber: 2,
+    letterTile: "Short e",
+    imageCaption: "get",
+    imagePath: "",
+    introText: "Short e says /e/ like in egg — in a closed CVC word, a lone e squeezed between consonants stays short and fast. Say each picture word out loud and listen for this pattern.",
+    words: ["get", "wet", "net", "let", "pen", "ten", "hen", "men", "bed", "red", "led", "fed"],
+    sentences: [
+      "They will get a wet.",
+      "Here is a little net.",
+      "Can you find the let?",
+      "I have a big pen and a ten.",
+      "Go get the hen for me."
+    ],
+    fillBlanks: ["g_t", "w_t", "n_t", "l_t", "p_n", "t_n", "h_n", "m_n", "b_d", "r_d", "l_d", "f_d"]
+  },
+  {
+    mainTitle: "SHORT VOWEL CVC WORDS",
+    lessonNumber: 3,
+    letterTile: "Short i",
+    imageCaption: "sit",
+    imagePath: "",
+    introText: "Short i says /i/ like in igloo — notice how quickly your mouth taps the sound when i sits alone between two consonants. Say each picture word out loud and listen for this pattern.",
+    words: ["sit", "fix", "hit", "win", "pin", "big", "pig", "dig", "lid", "kid", "hid", "rip"],
+    sentences: [
+      "That is my sit.",
+      "Where is the fix?",
+      "I want the hit, not the win.",
+      "She will help with the pin.",
+      "Now we can see the big and the pig."
+    ],
+    fillBlanks: ["s_t", "f_x", "h_t", "w_n", "p_n", "b_g", "p_g", "d_g", "l_d", "k_d", "h_d", "r_p"]
+  },
+  {
+    mainTitle: "SHORT VOWEL CVC WORDS",
+    lessonNumber: 4,
+    letterTile: "Short o",
+    imageCaption: "pot",
+    imagePath: "",
+    introText: "Short o says /o/ like in octopus — a single o closed in by consonants stays short instead of stretching into its long name sound. Say each picture word out loud and listen for this pattern.",
+    words: ["pot", "hot", "not", "lot", "got", "dog", "log", "fog", "hop", "mop", "top", "cop"],
+    sentences: [
+      "Look at the pot and the hot.",
+      "Is this a not?",
+      "I like my lot.",
+      "We have a got.",
+      "You can see the dog."
+    ],
+    fillBlanks: ["p_t", "h_t", "n_t", "l_t", "g_t", "d_g", "l_g", "f_g", "h_p", "m_p", "t_p", "c_p"]
+  },
+  {
+    mainTitle: "SHORT VOWEL CVC WORDS",
+    lessonNumber: 5,
+    letterTile: "Short u",
+    imageCaption: "sum",
+    imagePath: "",
+    introText: "Short u says /u/ like in umbrella — this vowel keeps its short, punchy sound whenever it's boxed in by consonants on both sides. Say each picture word out loud and listen for this pattern.",
+    words: ["sum", "fun", "bun", "mud", "but", "sun", "run", "cup", "bug", "rug", "hug", "tub"],
+    sentences: [
+      "Here is a little sum.",
+      "Can you find the fun?",
+      "I have a big bun and a mud.",
+      "Go get the but for me.",
+      "We will play with the sun."
+    ],
+    fillBlanks: ["s_m", "f_n", "b_n", "m_d", "b_t", "s_n", "r_n", "c_p", "b_g", "r_g", "h_g", "t_b"]
+  },
+
+  // ==================== SPECIAL CONSONANTS ====================
+  {
+    mainTitle: "SPECIAL CONSONANTS",
+    lessonNumber: 6,
+    letterTile: "x (ks)",
+    imageCaption: "box",
+    imagePath: "",
+    introText: "The letter x usually stands for two sounds blended together, /k/ and /s/, especially at the end of a word like box or fix. Say each picture word out loud and listen for this pattern.",
+    words: ["box", "fox", "mix", "six", "ax", "ox", "fix", "wax", "tax", "next", "flex", "text"],
+    sentences: [
+      "Where is the box?",
+      "I want the fox, not the mix.",
+      "She will help with the six.",
+      "Now we can see the ax and the ox.",
+      "Put the fix here."
+    ],
+    fillBlanks: ["b_x", "f_x", "m_x", "s_x", "a_", "o_", "f_x", "w_x", "t_x", "n__t", "f__x", "t__t"]
+  },
+  {
+    mainTitle: "SPECIAL CONSONANTS",
+    lessonNumber: 7,
+    letterTile: "qu",
+    imageCaption: "quit",
+    imagePath: "",
+    introText: "The letter q never travels alone in English — it always teams up with u, and together qu makes the /kw/ sound heard in quit and queen. Say each picture word out loud and listen for this pattern.",
+    words: ["quit", "queen", "quiz", "quick", "quack", "quill", "quilt", "quest", "quench", "quote", "quail", "quirk"],
+    sentences: [
+      "Is this a quit?",
+      "I like my queen.",
+      "We have a quiz.",
+      "You can see the quick.",
+      "This is a good quack."
+    ],
+    fillBlanks: ["q__t", "q__n", "q__z", "q__k", "q__k", "q__l", "q__t", "q__t", "q____h", "q__e", "q__l", "q__k"]
+  },
+  {
+    mainTitle: "SPECIAL CONSONANTS",
+    lessonNumber: 8,
+    letterTile: "y (as i)",
+    imageCaption: "gym",
+    imagePath: "",
+    introText: "At the end of a one-syllable word, y often borrows the long i sound, turning words like cry and sky into rhymes for 'eye'. Say each picture word out loud and listen for this pattern.",
+    words: ["gym", "cry", "fly", "try", "sky", "my", "by", "why", "spy", "dry", "fry", "shy"],
+    sentences: [
+      "Can you find the gym?",
+      "I have a big cry and a fly.",
+      "Go get the try for me.",
+      "We will play with the sky.",
+      "Look! I see a my and a by."
+    ],
+    fillBlanks: ["g_m", "c_y", "f_y", "t_y", "s_y", "m_", "b_", "w_y", "s_y", "d_y", "f_y", "s_y"]
+  },
+  {
+    mainTitle: "SPECIAL CONSONANTS",
+    lessonNumber: 9,
+    letterTile: "y (as e)",
+    imageCaption: "happy",
+    imagePath: "",
+    introText: "At the end of a longer word, y usually softens into a long e sound, the way it does in happy and baby. Say each picture word out loud and listen for this pattern.",
+    words: ["happy", "baby", "city", "lady", "party", "puppy", "sunny", "funny", "silly", "jelly", "windy", "grassy"],
+    sentences: [
+      "I want the happy, not the baby.",
+      "She will help with the city.",
+      "Now we can see the lady and the party.",
+      "Put the puppy here.",
+      "I see a sunny."
+    ],
+    fillBlanks: ["h___y", "b__y", "c__y", "l__y", "p___y", "p___y", "s___y", "f___y", "s___y", "j___y", "w___y", "g_____y"]
+  },
+
+  // ==================== C/K RULE ====================
+  {
+    mainTitle: "C/K RULE",
+    lessonNumber: 10,
+    letterTile: "c (before a, o, u)",
+    imageCaption: "cat",
+    imagePath: "",
+    introText: "The letter c makes its hard /k/ sound whenever it comes before a, o, or u, as in cat, cot, and cup. Say each picture word out loud and listen for this pattern.",
+    words: ["cat", "cot", "cup", "can", "cap", "cop", "cub", "cut", "cab", "cod", "cuff", "cusp"],
+    sentences: [
+      "I like my cat.",
+      "We have a cot.",
+      "You can see the cup.",
+      "This is a good can.",
+      "They will get a cap."
+    ],
+    fillBlanks: ["c_t", "c_t", "c_p", "c_n", "c_p", "c_p", "c_b", "c_t", "c_b", "c_d", "c__f", "c__p"]
+  },
+  {
+    mainTitle: "C/K RULE",
+    lessonNumber: 11,
+    letterTile: "k (before e, i)",
+    imageCaption: "ken",
+    imagePath: "",
+    introText: "Because c would soften before e or i, English uses k instead to keep that hard /k/ sound, as in key and kid. Say each picture word out loud and listen for this pattern.",
+    words: ["ken", "kit", "key", "keg", "kid", "kiss", "king", "kick", "kept", "kite", "kiwi", "keep"],
+    sentences: [
+      "I have a big ken and a kit.",
+      "Go get the key for me.",
+      "We will play with the keg.",
+      "Look! I see a kid and a kiss.",
+      "That is my king."
+    ],
+    fillBlanks: ["k_n", "k_t", "k_y", "k_g", "k_d", "k__s", "k__g", "k__k", "k__t", "k__e", "k__i", "k__p"]
+  },
+
+  // ==================== RAINBOW S / J (SOFT C AND G) ====================
+  {
+    mainTitle: "RAINBOW S / J (SOFT C AND G)",
+    lessonNumber: 12,
+    letterTile: "Soft c (ce, ci, cy)",
+    imageCaption: "cent",
+    imagePath: "",
+    introText: "When c is followed by e, i, or y, it usually softens into an /s/ sound instead of its hard /k/ sound, as in cent and city. Say each picture word out loud and listen for this pattern.",
+    words: ["cent", "city", "cycle", "ice", "race", "face", "lace", "circle", "circus", "fancy", "juicy", "spicy"],
+    sentences: [
+      "She will help with the cent.",
+      "Now we can see the city and the cycle.",
+      "Put the ice here.",
+      "I see a race.",
+      "Look at the face and the lace."
+    ],
+    fillBlanks: ["c__t", "c__y", "c___e", "i_e", "r__e", "f__e", "l__e", "c____e", "c____s", "f___y", "j___y", "s___y"]
+  },
+  {
+    mainTitle: "RAINBOW S / J (SOFT C AND G)",
+    lessonNumber: 13,
+    letterTile: "Soft g (ge, gi, gy)",
+    imageCaption: "page",
+    imagePath: "",
+    introText: "When g is followed by e, i, or y, it can soften into a /j/ sound, the way it does in page and giant. Say each picture word out loud and listen for this pattern.",
+    words: ["page", "ginger", "gym", "age", "cage", "gem", "giant", "giraffe", "magic", "engine", "gentle", "germ"],
+    sentences: [
+      "We have a page.",
+      "You can see the ginger.",
+      "This is a good gym.",
+      "They will get a age.",
+      "Here is a little cage."
+    ],
+    fillBlanks: ["p__e", "g____r", "g_m", "a_e", "c__e", "g_m", "g___t", "g_____e", "m___c", "e____e", "g____e", "g__m"]
+  },
+  {
+    mainTitle: "BEGINNING BLENDS - BL, CL, FL, GL, PL, SL",
+    lessonNumber: 14,
+    letterTile: "bl",
+    imageCaption: "blast",
+    imagePath: "",
+    introText: "In the bl blend, the /b/ sound slides right into /l/ with no vowel between them, shaping words like blast and blue. Say each picture word out loud and listen for this pattern.",
+    words: ["blast", "black", "blue", "blow", "blend", "blob", "blink", "blank", "bliss", "bloom", "blip", "blunt"],
+    sentences: [
+      "Go get the blast for me.",
+      "We will play with the black.",
+      "Look! I see a blue and a blow.",
+      "That is my blend.",
+      "Where is the blob?"
+    ],
+    fillBlanks: ["b___t", "b___k", "b__e", "b__w", "b___d", "b__b", "b___k", "b___k", "b___s", "b___m", "b__p", "b___t"]
+  },
+  {
+    mainTitle: "BEGINNING BLENDS - BL, CL, FL, GL, PL, SL",
+    lessonNumber: 15,
+    letterTile: "cl",
+    imageCaption: "class",
+    imagePath: "",
+    introText: "The cl blend keeps both sounds, /k/ and /l/, audible as you glide from one into the other, as in class and clock. Say each picture word out loud and listen for this pattern.",
+    words: ["class", "clip", "click", "clap", "club", "clog", "cluck", "cliff", "clock", "clown", "clam", "clasp"],
+    sentences: [
+      "Now we can see the class and the clip.",
+      "Put the click here.",
+      "I see a clap.",
+      "Look at the club and the clog.",
+      "Is this a cluck?"
+    ],
+    fillBlanks: ["c___s", "c__p", "c___k", "c__p", "c__b", "c__g", "c___k", "c___f", "c___k", "c___n", "c__m", "c___p"]
+  },
+  {
+    mainTitle: "BEGINNING BLENDS - BL, CL, FL, GL, PL, SL",
+    lessonNumber: 16,
+    letterTile: "fl",
+    imageCaption: "flip",
+    imagePath: "",
+    introText: "In the fl blend, /f/ slides straight into /l/ without a pause, shaping words like flip and flag. Say each picture word out loud and listen for this pattern.",
+    words: ["flip", "flat", "flask", "flag", "flock", "flame", "flood", "flute", "flash", "flint", "fluff", "floss"],
+    sentences: [
+      "You can see the flip.",
+      "This is a good flat.",
+      "They will get a flask.",
+      "Here is a little flag.",
+      "Can you find the flock?"
+    ],
+    fillBlanks: ["f__p", "f__t", "f___k", "f__g", "f___k", "f___e", "f___d", "f___e", "f___h", "f___t", "f___f", "f___s"]
+  },
+  {
+    mainTitle: "BEGINNING BLENDS - BL, CL, FL, GL, PL, SL",
+    lessonNumber: 17,
+    letterTile: "gl",
+    imageCaption: "glass",
+    imagePath: "",
+    introText: "The gl blend links a hard /g/ sound to /l/, giving words like glass and glow their opening sound. Say each picture word out loud and listen for this pattern.",
+    words: ["glass", "glow", "glue", "glad", "glide", "globe", "gloss", "glum", "gloom", "glaze", "gland", "glitch"],
+    sentences: [
+      "We will play with the glass.",
+      "Look! I see a glow and a glue.",
+      "That is my glad.",
+      "Where is the glide?",
+      "I want the globe, not the gloss."
+    ],
+    fillBlanks: ["g___s", "g__w", "g__e", "g__d", "g___e", "g___e", "g___s", "g__m", "g___m", "g___e", "g___d", "g____h"]
+  },
+  {
+    mainTitle: "BEGINNING BLENDS - BL, CL, FL, GL, PL, SL",
+    lessonNumber: 18,
+    letterTile: "pl",
+    imageCaption: "plus",
+    imagePath: "",
+    introText: "Say /p/ and /l/ back to back without a break to build the pl blend heard in plus and play. Say each picture word out loud and listen for this pattern.",
+    words: ["plus", "play", "plant", "plum", "plop", "pluck", "plank", "plot", "plow", "plaid", "plex", "plume"],
+    sentences: [
+      "Put the plus here.",
+      "I see a plant.",
+      "Look at the plum and the plop.",
+      "Is this a pluck?",
+      "I like my plank."
+    ],
+    fillBlanks: ["p__s", "p__y", "p___t", "p__m", "p__p", "p___k", "p___k", "p__t", "p__w", "p___d", "p__x", "p___e"]
+  },
+  {
+    mainTitle: "BEGINNING BLENDS - BL, CL, FL, GL, PL, SL",
+    lessonNumber: 19,
+    letterTile: "sl",
+    imageCaption: "slip",
+    imagePath: "",
+    introText: "The sl blend starts with a hissing /s/ that flows straight into /l/, as in slip and slow. Say each picture word out loud and listen for this pattern.",
+    words: ["slip", "slow", "slide", "slap", "slim", "slop", "slack", "sled", "slid", "slosh", "slab", "slink"],
+    sentences: [
+      "This is a good slip.",
+      "They will get a slow.",
+      "Here is a little slide.",
+      "Can you find the slap?",
+      "I have a big slim and a slop."
+    ],
+    fillBlanks: ["s__p", "s__w", "s___e", "s__p", "s__m", "s__p", "s___k", "s__d", "s__d", "s___h", "s__b", "s___k"]
+  },
+  {
+    mainTitle: "BEGINNING BLENDS - BR, CR, DR, FR, GR, PR, TR",
+    lessonNumber: 20,
+    letterTile: "br",
+    imageCaption: "brown",
+    imagePath: "",
+    introText: "The br blend pairs a /b/ sound with a rolled /r/, giving words like brown and brick their sturdy start. Say each picture word out loud and listen for this pattern.",
+    words: ["brown", "brush", "bring", "brick", "bread", "brother", "brave", "branch", "break", "bright", "bride", "brim"],
+    sentences: [
+      "Look! I see a brown and a brush.",
+      "That is my bring.",
+      "Where is the brick?",
+      "I want the bread, not the brother.",
+      "She will help with the brave."
+    ],
+    fillBlanks: ["b___n", "b___h", "b___g", "b___k", "b___d", "b_____r", "b___e", "b____h", "b___k", "b____t", "b___e", "b__m"]
+  },
+  {
+    mainTitle: "BEGINNING BLENDS - BR, CR, DR, FR, GR, PR, TR",
+    lessonNumber: 21,
+    letterTile: "cr",
+    imageCaption: "crab",
+    imagePath: "",
+    introText: "The cr blend pairs /k/ with /r/, the combination that opens words like crab and crash. Say each picture word out loud and listen for this pattern.",
+    words: ["crab", "crash", "crop", "crack", "crawl", "cream", "crisp", "crown", "cradle", "crumb", "crust", "crane"],
+    sentences: [
+      "I see a crab.",
+      "Look at the crash and the crop.",
+      "Is this a crack?",
+      "I like my crawl.",
+      "We have a cream."
+    ],
+    fillBlanks: ["c__b", "c___h", "c__p", "c___k", "c___l", "c___m", "c___p", "c___n", "c____e", "c___b", "c___t", "c___e"]
+  },
+  {
+    mainTitle: "BEGINNING BLENDS - BR, CR, DR, FR, GR, PR, TR",
+    lessonNumber: 22,
+    letterTile: "dr",
+    imageCaption: "drop",
+    imagePath: "",
+    introText: "When d meets r at the start of a word, the /d/ often shifts slightly toward a /j/ sound, which is why drop and drum can sound a bit like 'jrop' and 'jrum'. Say each picture word out loud and listen for this pattern.",
+    words: ["drop", "drink", "draw", "drum", "dress", "dream", "drive", "drip", "dragon", "drill", "drift", "drape"],
+    sentences: [
+      "They will get a drop.",
+      "Here is a little drink.",
+      "Can you find the draw?",
+      "I have a big drum and a dress.",
+      "Go get the dream for me."
+    ],
+    fillBlanks: ["d__p", "d___k", "d__w", "d__m", "d___s", "d___m", "d___e", "d__p", "d____n", "d___l", "d___t", "d___e"]
+  },
+  {
+    mainTitle: "BEGINNING BLENDS - BR, CR, DR, FR, GR, PR, TR",
+    lessonNumber: 23,
+    letterTile: "fr",
+    imageCaption: "from",
+    imagePath: "",
+    introText: "The fr blend joins /f/ and /r/ together, the same sound pair that starts words like frog and fresh. Say each picture word out loud and listen for this pattern.",
+    words: ["from", "fresh", "frame", "frog", "frost", "fruit", "free", "front", "fry", "frown", "frill", "frantic"],
+    sentences: [
+      "That is my from.",
+      "Where is the fresh?",
+      "I want the frame, not the frog.",
+      "She will help with the frost.",
+      "Now we can see the fruit and the free."
+    ],
+    fillBlanks: ["f__m", "f___h", "f___e", "f__g", "f___t", "f___t", "f__e", "f___t", "f_y", "f___n", "f___l", "f_____c"]
+  },
+  {
+    mainTitle: "BEGINNING BLENDS - BR, CR, DR, FR, GR, PR, TR",
+    lessonNumber: 24,
+    letterTile: "gr",
+    imageCaption: "grape",
+    imagePath: "",
+    introText: "The gr blend joins a hard /g/ with /r/, giving grape and green their opening sound. Say each picture word out loud and listen for this pattern.",
+    words: ["grape", "grip", "grow", "grass", "grand", "green", "ground", "grain", "gravel", "grin", "groom", "grunt"],
+    sentences: [
+      "Look at the grape and the grip.",
+      "Is this a grow?",
+      "I like my grass.",
+      "We have a grand.",
+      "You can see the green."
+    ],
+    fillBlanks: ["g___e", "g__p", "g__w", "g___s", "g___d", "g___n", "g____d", "g___n", "g____l", "g__n", "g___m", "g___t"]
+  },
+  {
+    mainTitle: "BEGINNING BLENDS - BR, CR, DR, FR, GR, PR, TR",
+    lessonNumber: 25,
+    letterTile: "pr",
+    imageCaption: "prune",
+    imagePath: "",
+    introText: "The pr blend joins /p/ and /r/ into one quick sound, the way it does in prize and print. Say each picture word out loud and listen for this pattern.",
+    words: ["prune", "pray", "pride", "price", "press", "prank", "print", "proud", "proof", "prime", "prism", "prone"],
+    sentences: [
+      "Here is a little prune.",
+      "Can you find the pray?",
+      "I have a big pride and a price.",
+      "Go get the press for me.",
+      "We will play with the prank."
+    ],
+    fillBlanks: ["p___e", "p__y", "p___e", "p___e", "p___s", "p___k", "p___t", "p___d", "p___f", "p___e", "p___m", "p___e"]
+  },
+  {
+    mainTitle: "BEGINNING BLENDS - BR, CR, DR, FR, GR, PR, TR",
+    lessonNumber: 26,
+    letterTile: "tr",
+    imageCaption: "tree",
+    imagePath: "",
+    introText: "When t meets r at the start of a word, it often sounds a bit like /ch/, which is why tree and trip can sound like 'chree' and 'chrip'. Say each picture word out loud and listen for this pattern.",
+    words: ["tree", "try", "trust", "trap", "truck", "train", "trip", "track", "trick", "troop", "trump", "trout"],
+    sentences: [
+      "Where is the tree?",
+      "I want the try, not the trust.",
+      "She will help with the trap.",
+      "Now we can see the truck and the train.",
+      "Put the trip here."
+    ],
+    fillBlanks: ["t__e", "t_y", "t___t", "t__p", "t___k", "t___n", "t__p", "t___k", "t___k", "t___p", "t___p", "t___t"]
+  },
+  {
+    mainTitle: "BEGINNING BLENDS - SC, SK, SM, SN, SP, ST, SW, TW",
+    lessonNumber: 27,
+    letterTile: "sc",
+    imageCaption: "scale",
+    imagePath: "",
+    introText: "The sc blend keeps its hard /k/ sound before a, o, or u, as in scale and scout. Say each picture word out loud and listen for this pattern.",
+    words: ["scale", "scan", "scalp", "scare", "score", "scout", "scold", "scrap", "scuff", "scum", "scorch", "scoop"],
+    sentences: [
+      "Is this a scale?",
+      "I like my scan.",
+      "We have a scalp.",
+      "You can see the scare.",
+      "This is a good score."
+    ],
+    fillBlanks: ["s___e", "s__n", "s___p", "s___e", "s___e", "s___t", "s___d", "s___p", "s___f", "s__m", "s____h", "s___p"]
+  },
+  {
+    mainTitle: "BEGINNING BLENDS - SC, SK, SM, SN, SP, ST, SW, TW",
+    lessonNumber: 28,
+    letterTile: "sk",
+    imageCaption: "skin",
+    imagePath: "",
+    introText: "The sk blend pairs a hissing /s/ with a hard /k/, the combination you hear at the start of skin and sky. Say each picture word out loud and listen for this pattern.",
+    words: ["skin", "skill", "skull", "skip", "skate", "skid", "skirt", "sketch", "skimp", "sky", "skeleton", "skew"],
+    sentences: [
+      "Can you find the skin?",
+      "I have a big skill and a skull.",
+      "Go get the skip for me.",
+      "We will play with the skate.",
+      "Look! I see a skid and a skirt."
+    ],
+    fillBlanks: ["s__n", "s___l", "s___l", "s__p", "s___e", "s__d", "s___t", "s____h", "s___p", "s_y", "s_______n", "s__w"]
+  },
+  {
+    mainTitle: "BEGINNING BLENDS - SC, SK, SM, SN, SP, ST, SW, TW",
+    lessonNumber: 29,
+    letterTile: "sm",
+    imageCaption: "small",
+    imagePath: "",
+    introText: "The sm blend links /s/ smoothly into /m/, as in small and smile. Say each picture word out loud and listen for this pattern.",
+    words: ["small", "smart", "smile", "smoke", "smash", "smell", "smock", "smooth", "smirk", "smug", "smudge", "smolder"],
+    sentences: [
+      "I want the small, not the smart.",
+      "She will help with the smile.",
+      "Now we can see the smoke and the smash.",
+      "Put the smell here.",
+      "I see a smock."
+    ],
+    fillBlanks: ["s___l", "s___t", "s___e", "s___e", "s___h", "s___l", "s___k", "s____h", "s___k", "s__g", "s____e", "s_____r"]
+  },
+  {
+    mainTitle: "BEGINNING BLENDS - SC, SK, SM, SN, SP, ST, SW, TW",
+    lessonNumber: 30,
+    letterTile: "sn",
+    imageCaption: "snake",
+    imagePath: "",
+    introText: "The sn blend combines a hissing /s/ with /n/, giving snake and snow their opening sound. Say each picture word out loud and listen for this pattern.",
+    words: ["snake", "snap", "sneeze", "snip", "snail", "snore", "snug", "snack", "snout", "snow", "sniff", "snicker"],
+    sentences: [
+      "I like my snake.",
+      "We have a snap.",
+      "You can see the sneeze.",
+      "This is a good snip.",
+      "They will get a snail."
+    ],
+    fillBlanks: ["s___e", "s__p", "s____e", "s__p", "s___l", "s___e", "s__g", "s___k", "s___t", "s__w", "s___f", "s_____r"]
+  },
+  {
+    mainTitle: "BEGINNING BLENDS - SC, SK, SM, SN, SP, ST, SW, TW",
+    lessonNumber: 31,
+    letterTile: "sp",
+    imageCaption: "spine",
+    imagePath: "",
+    introText: "The sp blend pairs /s/ with /p/, the sound combo that opens words like spot and spin. Say each picture word out loud and listen for this pattern.",
+    words: ["spine", "space", "spend", "spoon", "spell", "spot", "spark", "spin", "spy", "spill", "spade", "spoke"],
+    sentences: [
+      "I have a big spine and a space.",
+      "Go get the spend for me.",
+      "We will play with the spoon.",
+      "Look! I see a spell and a spot.",
+      "That is my spark."
+    ],
+    fillBlanks: ["s___e", "s___e", "s___d", "s___n", "s___l", "s__t", "s___k", "s__n", "s_y", "s___l", "s___e", "s___e"]
+  },
+  {
+    mainTitle: "BEGINNING BLENDS - SC, SK, SM, SN, SP, ST, SW, TW",
+    lessonNumber: 32,
+    letterTile: "st",
+    imageCaption: "start",
+    imagePath: "",
+    introText: "The st blend joins /s/ and /t/ together at the start of a word, as in star and stop. Say each picture word out loud and listen for this pattern.",
+    words: ["start", "stop", "stone", "step", "stamp", "star", "stir", "stem", "sting", "stun", "stall", "stare"],
+    sentences: [
+      "She will help with the start.",
+      "Now we can see the stop and the stone.",
+      "Put the step here.",
+      "I see a stamp.",
+      "Look at the star and the stir."
+    ],
+    fillBlanks: ["s___t", "s__p", "s___e", "s__p", "s___p", "s__r", "s__r", "s__m", "s___g", "s__n", "s___l", "s___e"]
+  },
+  {
+    mainTitle: "BEGINNING BLENDS - SC, SK, SM, SN, SP, ST, SW, TW",
+    lessonNumber: 33,
+    letterTile: "sw",
+    imageCaption: "sweet",
+    imagePath: "",
+    introText: "The sw blend links /s/ to /w/, giving sweet and swim their opening sound. Say each picture word out loud and listen for this pattern.",
+    words: ["sweet", "swim", "swing", "swan", "swell", "swap", "swear", "sweep", "sword", "swamp", "swirl", "swift"],
+    sentences: [
+      "We have a sweet.",
+      "You can see the swim.",
+      "This is a good swing.",
+      "They will get a swan.",
+      "Here is a little swell."
+    ],
+    fillBlanks: ["s___t", "s__m", "s___g", "s__n", "s___l", "s__p", "s___r", "s___p", "s___d", "s___p", "s___l", "s___t"]
+  },
+  {
+    mainTitle: "BEGINNING BLENDS - SC, SK, SM, SN, SP, ST, SW, TW",
+    lessonNumber: 34,
+    letterTile: "tw",
+    imageCaption: "twist",
+    imagePath: "",
+    introText: "The tw blend combines /t/ and /w/ into one quick sound, the pairing that opens twin and twist. Say each picture word out loud and listen for this pattern.",
+    words: ["twist", "twin", "twine", "twice", "twig", "tweak", "tweet", "twirl", "twang", "twill", "tweak", "twelve"],
+    sentences: [
+      "Go get the twist for me.",
+      "We will play with the twin.",
+      "Look! I see a twine and a twice.",
+      "That is my twig.",
+      "Where is the tweak?"
+    ],
+    fillBlanks: ["t___t", "t__n", "t___e", "t___e", "t__g", "t___k", "t___t", "t___l", "t___g", "t___l", "t___k", "t____e"]
+  },
+  {
+    mainTitle: "BEGINNING BLENDS - SQU, DW",
+    lessonNumber: 35,
+    letterTile: "squ",
+    imageCaption: "squat",
+    imagePath: "",
+    introText: "The squ blend is really three sounds working together — /s/, /k/, and /w/ — as heard in squid and square. Say each picture word out loud and listen for this pattern.",
+    words: ["squat", "squeeze", "square", "squid", "squint", "squash", "squirm", "squeak", "squeal", "squawk", "squad", "squire"],
+    sentences: [
+      "Now we can see the squat and the squeeze.",
+      "Put the square here.",
+      "I see a squid.",
+      "Look at the squint and the squash.",
+      "Is this a squirm?"
+    ],
+    fillBlanks: ["s___t", "s_____e", "s___e", "s___d", "s___t", "s___h", "s___m", "s___k", "s___l", "s___k", "s___d", "s___e"]
+  },
+  {
+    mainTitle: "BEGINNING BLENDS - SQU, DW",
+    lessonNumber: 36,
+    letterTile: "dw",
+    imageCaption: "dwell",
+    imagePath: "",
+    introText: "The dw blend joins /d/ and /w/ at the start of a word, a less common pairing found in dwell and dwarf. Say each picture word out loud and listen for this pattern.",
+    words: ["dwarf", "dwell", "dwelling", "dwindle", "dwarfed", "dwelt"],
+    sentences: [
+      "You can see the dwarf.",
+      "This is a good dwell.",
+      "They will get a dwelling.",
+      "Here is a little dwindle.",
+      "Can you find the dwarfed?"
+    ],
+    fillBlanks: ["d___f", "d__ll", "d_____ng", "d_____e", "d____ed", "d__lt"]
+  },
+  {
+    mainTitle: "ENDING BLENDS - ND, NT, NK, MP, ST, SK, SP",
+    lessonNumber: 37,
+    letterTile: "nd",
+    imageCaption: "hand",
+    imagePath: "",
+    introText: "In the ending blend nd, both consonant sounds stay crisp and separate, as in hand and land. Say each picture word out loud and listen for this pattern.",
+    words: ["hand", "land", "blend", "send", "find", "wind", "stand", "round", "sound", "ground", "grand", "bend"],
+    sentences: [
+      "We will play with the hand.",
+      "Look! I see a land and a blend.",
+      "That is my send.",
+      "Where is the wind?",
+      "I want the stand, not the round."
+    ],
+    fillBlanks: ["h__d", "l__d", "b___d", "s__d", "f__d", "w__d", "s___d", "r___d", "s___d", "g____d", "g___d", "b__d"]
+  },
+  {
+    mainTitle: "ENDING BLENDS - ND, NT, NK, MP, ST, SK, SP",
+    lessonNumber: 38,
+    letterTile: "nt",
+    imageCaption: "plant",
+    imagePath: "",
+    introText: "In the ending blend nt, both /n/ and /t/ stay audible, as in plant and tent. Say each picture word out loud and listen for this pattern.",
+    words: ["plant", "went", "rent", "sent", "bent", "tent", "hunt", "pant", "vent", "lint", "mint", "dent"],
+    sentences: [
+      "Put the plant here.",
+      "I see a went.",
+      "Look at the rent and the sent.",
+      "Is this a bent?",
+      "I like my tent."
+    ],
+    fillBlanks: ["p___t", "w__t", "r__t", "s__t", "b__t", "t__t", "h__t", "p__t", "v__t", "l__t", "m__t", "d__t"]
+  },
+  {
+    mainTitle: "ENDING BLENDS - ND, NT, NK, MP, ST, SK, SP",
+    lessonNumber: 39,
+    letterTile: "nk",
+    imageCaption: "sink",
+    imagePath: "",
+    introText: "When a word ends in nk, the n and k blend into one nasal sound right before your tongue taps /k/, as in sink and think. Say each picture word out loud and listen for this pattern.",
+    words: ["sink", "blink", "bank", "drink", "thank", "sank", "drunk", "stink", "think", "shrink", "clink", "plank"],
+    sentences: [
+      "This is a good sink.",
+      "They will get a blink.",
+      "Here is a little bank.",
+      "Can you find the drink?",
+      "I have a big thank and a sank."
+    ],
+    fillBlanks: ["s__k", "b___k", "b__k", "d___k", "t___k", "s__k", "d___k", "s___k", "t___k", "s____k", "c___k", "p___k"]
+  },
+  {
+    mainTitle: "ENDING BLENDS - ND, NT, NK, MP, ST, SK, SP",
+    lessonNumber: 40,
+    letterTile: "mp",
+    imageCaption: "jump",
+    imagePath: "",
+    introText: "The ending blend mp lets your lips close on /m/ right before you release the /p/, as in jump and camp. Say each picture word out loud and listen for this pattern.",
+    words: ["jump", "camp", "pump", "lamp", "stamp", "lump", "clump", "plump", "stomp", "tramp", "champ", "romp"],
+    sentences: [
+      "Look! I see a jump and a camp.",
+      "That is my pump.",
+      "Where is the lamp?",
+      "I want the stamp, not the lump.",
+      "She will help with the clump."
+    ],
+    fillBlanks: ["j__p", "c__p", "p__p", "l__p", "s___p", "l__p", "c___p", "p___p", "s___p", "t___p", "c___p", "r__p"]
+  },
+  {
+    mainTitle: "ENDING BLENDS - ND, NT, NK, MP, ST, SK, SP",
+    lessonNumber: 41,
+    letterTile: "st",
+    imageCaption: "list",
+    imagePath: "",
+    introText: "At the end of a word, st keeps both the /s/ and /t/ sounds crisp, without blending into one new sound, as in list and fast. Say each picture word out loud and listen for this pattern.",
+    words: ["list", "fast", "best", "last", "cast", "past", "nest", "rest", "test", "west", "dust", "rust"],
+    sentences: [
+      "I see a list.",
+      "Look at the fast and the best.",
+      "Is this a last?",
+      "I like my cast.",
+      "We have a past."
+    ],
+    fillBlanks: ["l__t", "f__t", "b__t", "l__t", "c__t", "p__t", "n__t", "r__t", "t__t", "w__t", "d__t", "r__t"]
+  },
+  {
+    mainTitle: "ENDING BLENDS - ND, NT, NK, MP, ST, SK, SP",
+    lessonNumber: 42,
+    letterTile: "sk",
+    imageCaption: "flask",
+    imagePath: "",
+    introText: "When sk ends a word, both the hissing /s/ and hard /k/ stay clearly separate, as in desk and mask. Say each picture word out loud and listen for this pattern.",
+    words: ["flask", "husk", "desk", "task", "mask", "brisk", "risk", "disk", "whisk", "tusk", "dusk", "frisk"],
+    sentences: [
+      "Here is a little husk.",
+      "Can you find the desk?",
+      "I have a big task and a mask.",
+      "Go get the brisk for me.",
+      "We will play with the risk."
+    ],
+    fillBlanks: ["f___k", "h__k", "d__k", "t__k", "m__k", "b___k", "r__k", "d__k", "w___k", "t__k", "d__k", "f___k"]
+  },
+  {
+    mainTitle: "ENDING BLENDS - ND, NT, NK, MP, ST, SK, SP",
+    lessonNumber: 43,
+    letterTile: "sp",
+    imageCaption: "rasp",
+    imagePath: "",
+    introText: "The ending blend sp holds onto both consonant sounds all the way through, as in wasp and gasp. Say each picture word out loud and listen for this pattern.",
+    words: ["rasp", "gasp", "grasp", "clasp", "wisp", "crisp", "lisp", "wasp", "hasp", "wispy", "clasper", "grasper"],
+    sentences: [
+      "That is my rasp.",
+      "Where is the gasp?",
+      "I want the grasp, not the clasp.",
+      "She will help with the wisp.",
+      "Now we can see the crisp and the lisp."
+    ],
+    fillBlanks: ["r__p", "g__p", "g___p", "c___p", "w__p", "c___p", "l__p", "w__p", "h__p", "w___y", "c_____r", "g_____r"]
+  },
+  {
+    mainTitle: "ENDING BLENDS - LD, LP, PT, FT, CT, LK, LT, XT, TS, RD",
+    lessonNumber: 44,
+    letterTile: "ld",
+    imageCaption: "wild",
+    imagePath: "",
+    introText: "At the end of a word, ld keeps its /l/ and /d/ sounds linked together, as in child and gold. Say each picture word out loud and listen for this pattern.",
+    words: ["wild", "hold", "child", "cold", "fold", "gold", "mold", "scold", "told", "bold", "sold", "wold"],
+    sentences: [
+      "Look at the wild and the hold.",
+      "Is this a child?",
+      "I like my cold.",
+      "We have a fold.",
+      "You can see the gold."
+    ],
+    fillBlanks: ["w__d", "h__d", "c___d", "c__d", "f__d", "g__d", "m__d", "s___d", "t__d", "b__d", "s__d", "w__d"]
+  },
+  {
+    mainTitle: "ENDING BLENDS - LD, LP, PT, FT, CT, LK, LT, XT, TS, RD",
+    lessonNumber: 45,
+    letterTile: "lp",
+    imageCaption: "help",
+    imagePath: "",
+    introText: "The ending blend lp lets you hear both /l/ and /p/ close together, as in help and gulp. Say each picture word out loud and listen for this pattern.",
+    words: ["help", "gulp", "scalp", "yelp", "pulp", "kelp", "alp", "whelp", "skelp", "yelper", "gulper", "helper"],
+    sentences: [
+      "Here is a little gulp.",
+      "Can you find the scalp?",
+      "I have a big yelp and a pulp.",
+      "Go get the kelp for me.",
+      "We will play with the alp."
+    ],
+    fillBlanks: ["h__p", "g__p", "s___p", "y__p", "p__p", "k__p", "a_p", "w___p", "s___p", "y____r", "g____r", "h____r"]
+  },
+  {
+    mainTitle: "ENDING BLENDS - LD, LP, PT, FT, CT, LK, LT, XT, TS, RD",
+    lessonNumber: 46,
+    letterTile: "pt",
+    imageCaption: "kept",
+    imagePath: "",
+    introText: "Many past-tense words like kept and slept end in the pt blend, where /p/ and /t/ sound close together with almost no vowel between them. Say each picture word out loud and listen for this pattern.",
+    words: ["kept", "wept", "slept", "crept", "leapt", "swept"],
+    sentences: [
+      "Where is the kept?",
+      "I want the wept, not the slept.",
+      "She will help with the crept.",
+      "Now we can see the leapt and the swept.",
+      "Put the kept here."
+    ],
+    fillBlanks: ["k__t", "w__t", "s___t", "c___t", "l___t", "s___t"]
+  },
+  {
+    mainTitle: "ENDING BLENDS - LD, LP, PT, FT, CT, LK, LT, XT, TS, RD",
+    lessonNumber: 47,
+    letterTile: "ft",
+    imageCaption: "left",
+    imagePath: "",
+    introText: "The ending blend ft pairs /f/ with /t/, as in left and gift. Say each picture word out loud and listen for this pattern.",
+    words: ["left", "soft", "swift", "craft", "loft", "sift", "drift", "gift", "lift", "shift", "raft", "theft"],
+    sentences: [
+      "Is this a left?",
+      "I like my soft.",
+      "We have a swift.",
+      "You can see the craft.",
+      "This is a good loft."
+    ],
+    fillBlanks: ["l__t", "s__t", "s___t", "c___t", "l__t", "s__t", "d___t", "g__t", "l__t", "s___t", "r__t", "t___t"]
+  },
+  {
+    mainTitle: "ENDING BLENDS - LD, LP, PT, FT, CT, LK, LT, XT, TS, RD",
+    lessonNumber: 48,
+    letterTile: "ct",
+    imageCaption: "fact",
+    imagePath: "",
+    introText: "Words ending in ct, like fact and act, keep both the /k/ and /t/ sounds distinct all the way to the end. Say each picture word out loud and listen for this pattern.",
+    words: ["fact", "act", "react", "exact", "attract", "predict", "detect", "protect"],
+    sentences: [
+      "Can you find the fact?",
+      "I have a big act and a react.",
+      "Go get the exact for me.",
+      "We will play with the attract.",
+      "Look! I see a predict and a detect."
+    ],
+    fillBlanks: ["f__t", "a_t", "r___t", "e___t", "a_____t", "p_____t", "d_____t", "p______t"]
+  },
+  {
+    mainTitle: "ENDING BLENDS - LD, LP, PT, FT, CT, LK, LT, XT, TS, RD",
+    lessonNumber: 49,
+    letterTile: "lk",
+    imageCaption: "milk",
+    imagePath: "",
+    introText: "In many lk words, the l becomes almost silent and you mostly hear the /k/ sound, as in walk and talk. Say each picture word out loud and listen for this pattern.",
+    words: ["milk", "walk", "talk", "chalk", "stalk", "folk", "yolk", "silk", "bulk", "skulk", "hulk", "bilk"],
+    sentences: [
+      "I want the milk, not the walk.",
+      "She will help with the talk.",
+      "Now we can see the chalk and the stalk.",
+      "Put the folk here.",
+      "I see a yolk."
+    ],
+    fillBlanks: ["m__k", "w__k", "t__k", "c___k", "s___k", "f__k", "y__k", "s__k", "b__k", "s___k", "h__k", "b__k"]
+  },
+  {
+    mainTitle: "ENDING BLENDS - LD, LP, PT, FT, CT, LK, LT, XT, TS, RD",
+    lessonNumber: 50,
+    letterTile: "lt",
+    imageCaption: "salt",
+    imagePath: "",
+    introText: "The ending blend lt keeps both /l/ and /t/ audible, as in salt and belt. Say each picture word out loud and listen for this pattern.",
+    words: ["salt", "felt", "malt", "bolt", "kilt", "melt", "belt", "colt", "wilt", "guilt", "pelt", "silt"],
+    sentences: [
+      "I like my salt.",
+      "We have a felt.",
+      "You can see the malt.",
+      "This is a good bolt.",
+      "They will get a kilt."
+    ],
+    fillBlanks: ["s__t", "f__t", "m__t", "b__t", "k__t", "m__t", "b__t", "c__t", "w__t", "g___t", "p__t", "s__t"]
+  },
+  {
+    mainTitle: "ENDING BLENDS - LD, LP, PT, FT, CT, LK, LT, XT, TS, RD",
+    lessonNumber: 51,
+    letterTile: "xt",
+    imageCaption: "text",
+    imagePath: "",
+    introText: "The letters xt combine the /ks/ sound of x with a final /t/, as in text and next. Say each picture word out loud and listen for this pattern.",
+    words: ["text", "next", "context", "pretext", "sext", "vext", "perplexed", "annexed", "flexed", "vexed", "hexed", "boxed"],
+    sentences: [
+      "I have a big text and a next.",
+      "Go get the context for me.",
+      "We will play with the pretext.",
+      "Look! I see a sext and a vext.",
+      "That is my perplexed."
+    ],
+    fillBlanks: ["t__t", "n__t", "c_____t", "p_____t", "s__t", "v__t", "p________d", "a______d", "f____d", "v___d", "h___d", "b___d"]
+  },
+  {
+    mainTitle: "ENDING BLENDS - LD, LP, PT, FT, CT, LK, LT, XT, TS, RD",
+    lessonNumber: 52,
+    letterTile: "ts",
+    imageCaption: "pets",
+    imagePath: "",
+    introText: "Adding s to a word that already ends in t creates the ts blend, the plural sound you hear in cats and hats. Say each picture word out loud and listen for this pattern.",
+    words: ["pets", "pots", "cats", "hats", "rats", "bats", "mats", "sits", "bits", "hits", "fits", "kits"],
+    sentences: [
+      "She will help with the pets.",
+      "Now we can see the pots and the cats.",
+      "Put the hats here.",
+      "I see a rats.",
+      "Look at the bats and the mats."
+    ],
+    fillBlanks: ["p__s", "p__s", "c__s", "h__s", "r__s", "b__s", "m__s", "s__s", "b__s", "h__s", "f__s", "k__s"]
+  },
+  {
+    mainTitle: "ENDING BLENDS - LD, LP, PT, FT, CT, LK, LT, XT, TS, RD",
+    lessonNumber: 53,
+    letterTile: "rd",
+    imageCaption: "hard",
+    imagePath: "",
+    introText: "R-controlled endings like rd change the vowel sound right before it, as in hard and bird. Say each picture word out loud and listen for this pattern.",
+    words: ["hard", "word", "herd", "card", "bird", "cord", "ford", "lord", "ward", "yard", "bard", "curd"],
+    sentences: [
+      "We have a hard.",
+      "You can see the word.",
+      "This is a good herd.",
+      "They will get a card.",
+      "Here is a little bird."
+    ],
+    fillBlanks: ["h__d", "w__d", "h__d", "c__d", "b__d", "c__d", "f__d", "l__d", "w__d", "y__d", "b__d", "c__d"]
+  },
+  {
+    mainTitle: "DIGRAPHS",
+    lessonNumber: 54,
+    letterTile: "sh",
+    imageCaption: "ship",
+    imagePath: "",
+    introText: "The digraph sh blends into one brand-new sound, /sh/ — it isn't s plus h, it's a sound all its own, as in ship and fish. Say each picture word out loud and listen for this pattern.",
+    words: ["ship", "shot", "trash", "crash", "shop", "wish", "fish", "dish", "rush", "shell", "shut", "shock"],
+    sentences: [
+      "Go get the ship for me.",
+      "We will play with the shot.",
+      "Look! I see a trash and a crash.",
+      "That is my shop.",
+      "Where is the wish?"
+    ],
+    fillBlanks: ["s__p", "s__t", "t___h", "c___h", "s__p", "w__h", "f__h", "d__h", "r__h", "s___l", "s__t", "s___k"]
+  },
+  {
+    mainTitle: "DIGRAPHS",
+    lessonNumber: 55,
+    letterTile: "ch",
+    imageCaption: "chat",
+    imagePath: "",
+    introText: "The digraph ch usually makes one soft, puffing sound, /ch/, as in chat and much. Say each picture word out loud and listen for this pattern.",
+    words: ["chat", "chop", "branch", "much", "chip", "chin", "chest", "chick", "chase", "chill", "charm", "check"],
+    sentences: [
+      "Now we can see the chat and the chop.",
+      "Put the branch here.",
+      "I see a much.",
+      "Look at the chip and the chin.",
+      "Is this a chest?"
+    ],
+    fillBlanks: ["c__t", "c__p", "b____h", "m__h", "c__p", "c__n", "c___t", "c___k", "c___e", "c___l", "c___m", "c___k"]
+  },
+  {
+    mainTitle: "DIGRAPHS",
+    lessonNumber: 56,
+    letterTile: "tch",
+    imageCaption: "match",
+    imagePath: "",
+    introText: "Right after a short vowel, the /ch/ sound is usually spelled tch instead of just ch, as in match and catch. Say each picture word out loud and listen for this pattern.",
+    words: ["match", "fetch", "switch", "scratch", "catch", "patch", "watch", "hatch", "stitch", "clutch", "sketch", "twitch"],
+    sentences: [
+      "You can see the match.",
+      "This is a good fetch.",
+      "They will get a switch.",
+      "Here is a little scratch.",
+      "Can you find the catch?"
+    ],
+    fillBlanks: ["m___h", "f___h", "s____h", "s_____h", "c___h", "p___h", "w___h", "h___h", "s____h", "c____h", "s____h", "t____h"]
+  },
+  {
+    mainTitle: "DIGRAPHS",
+    lessonNumber: 57,
+    letterTile: "th (voiced)",
+    imageCaption: "that",
+    imagePath: "",
+    introText: "This th is a voiced sound where your vocal cords buzz as you say it, as in that and the. Say each picture word out loud and listen for this pattern.",
+    words: ["that", "the", "them", "this", "then", "than", "there", "those", "they", "though", "thus", "thy"],
+    sentences: [
+      "We will play with the the.",
+      "Look! I see a them and a then.",
+      "That is my than.",
+      "Where is the there?",
+      "I want the those, not the they."
+    ],
+    fillBlanks: ["t__t", "t_e", "t__m", "t__s", "t__n", "t__n", "t___e", "t___e", "t__y", "t____h", "t__s", "t_y"]
+  },
+  {
+    mainTitle: "DIGRAPHS",
+    lessonNumber: 58,
+    letterTile: "th (unvoiced)",
+    imageCaption: "thin",
+    imagePath: "",
+    introText: "This th is a quiet, breathy sound with no vocal buzz at all, as in thin and three. Say each picture word out loud and listen for this pattern.",
+    words: ["thin", "thank", "both", "with", "three", "thumb", "thick", "thing", "think", "bath", "thaw", "thrill"],
+    sentences: [
+      "Put the thin here.",
+      "I see a thank.",
+      "Look at the both and the with.",
+      "Is this a three?",
+      "I like my thumb."
+    ],
+    fillBlanks: ["t__n", "t___k", "b__h", "w__h", "t___e", "t___b", "t___k", "t___g", "t___k", "b__h", "t__w", "t____l"]
+  },
+  {
+    mainTitle: "DIGRAPHS",
+    lessonNumber: 59,
+    letterTile: "ng",
+    imageCaption: "song",
+    imagePath: "",
+    introText: "The digraph ng makes one nasal sound at the back of your throat, not an n sound followed by a g, as in song and ring. Say each picture word out loud and listen for this pattern.",
+    words: ["song", "long", "wing", "string", "ring", "king", "sing", "bang", "hang", "strong", "bring", "swing"],
+    sentences: [
+      "This is a good song.",
+      "They will get a long.",
+      "Here is a little wing.",
+      "Can you find the string?",
+      "I have a big ring and a king."
+    ],
+    fillBlanks: ["s__g", "l__g", "w__g", "s____g", "r__g", "k__g", "s__g", "b__g", "h__g", "s____g", "b___g", "s___g"]
+  },
+  {
+    mainTitle: "DIGRAPHS",
+    lessonNumber: 60,
+    letterTile: "nk",
+    imageCaption: "pink",
+    imagePath: "",
+    introText: "The letters nk always stay together as a blended nasal sound at the end of a syllable, as in pink and drink. Say each picture word out loud and listen for this pattern.",
+    words: ["pink", "link", "sink", "drink", "bank", "thank", "sank", "blink", "drunk", "stink", "chunk", "plank"],
+    sentences: [
+      "Look! I see a pink and a link.",
+      "That is my sink.",
+      "Where is the drink?",
+      "I want the bank, not the thank.",
+      "She will help with the sank."
+    ],
+    fillBlanks: ["p__k", "l__k", "s__k", "d___k", "b__k", "t___k", "s__k", "b___k", "d___k", "s___k", "c___k", "p___k"]
+  },
+  {
+    mainTitle: "DIGRAPHS",
+    lessonNumber: 61,
+    letterTile: "wh",
+    imageCaption: "which",
+    imagePath: "",
+    introText: "Most wh words simply make a plain /w/ sound, as in what and when. Say each picture word out loud and listen for this pattern.",
+    words: ["which", "what", "white", "when", "why", "where", "whale", "wheel", "whisper", "whistle", "whack", "whine"],
+    sentences: [
+      "I see a which.",
+      "Look at the what and the white.",
+      "Is this a when?",
+      "I like my why.",
+      "We have a where."
+    ],
+    fillBlanks: ["w___h", "w__t", "w___e", "w__n", "w_y", "w___e", "w___e", "w___l", "w_____r", "w_____e", "w___k", "w___e"]
+  },
+  {
+    mainTitle: "DIGRAPHS",
+    lessonNumber: 62,
+    letterTile: "ph",
+    imageCaption: "phone",
+    imagePath: "",
+    introText: "The digraph ph stands for the /f/ sound, borrowed from Greek spelling, as in phone and elephant. Say each picture word out loud and listen for this pattern.",
+    words: ["phone", "photo", "graph", "alphabet", "dolphin", "elephant", "phrase", "sphere", "phonics", "phantom", "pharmacy", "phobia"],
+    sentences: [
+      "They will get a phone.",
+      "Here is a little photo.",
+      "Can you find the graph?",
+      "I have a big alphabet and a dolphin.",
+      "Go get the elephant for me."
+    ],
+    fillBlanks: ["p___e", "p___o", "g___h", "a_____t", "d_____n", "e______t", "p____e", "s____e", "p_____s", "p______m", "p_______y", "p____a"]
+  },
+  {
+    mainTitle: "DIGRAPHS",
+    lessonNumber: 63,
+    letterTile: "ck",
+    imageCaption: "track",
+    imagePath: "",
+    introText: "Right after a short vowel, the /k/ sound at the end of a word is usually spelled ck, as in track and duck. Say each picture word out loud and listen for this pattern.",
+    words: ["track", "back", "black", "sack", "pack", "pick", "sick", "duck", "neck", "clock", "stick", "thick"],
+    sentences: [
+      "That is my track.",
+      "Where is the back?",
+      "I want the black, not the sack.",
+      "She will help with the pack.",
+      "Now we can see the pick and the sick."
+    ],
+    fillBlanks: ["t___k", "b__k", "b___k", "s__k", "p__k", "p__k", "s__k", "d__k", "n__k", "c___k", "s___k", "t___k"]
+  },
+  {
+    mainTitle: "DIGRAPHS",
+    lessonNumber: 64,
+    letterTile: "wr",
+    imageCaption: "write",
+    imagePath: "",
+    introText: "In a wr word, the w is silent and you only hear the /r/ sound, as in write and wrist. Say each picture word out loud and listen for this pattern.",
+    words: ["write", "wrote", "wrap", "wrath", "wrist", "wrong", "wreck", "wrench", "wrinkle", "wrestle", "wring", "wry"],
+    sentences: [
+      "Look at the write and the wrote.",
+      "Is this a wrap?",
+      "I like my wrath.",
+      "We have a wrist.",
+      "You can see the wrong."
+    ],
+    fillBlanks: ["w___e", "w___e", "w__p", "w___h", "w___t", "w___g", "w___k", "w____h", "w_____e", "w_____e", "w___g", "w_y"]
+  },
+  {
+    mainTitle: "DIGRAPHS",
+    lessonNumber: 65,
+    letterTile: "rh",
+    imageCaption: "rhino",
+    imagePath: "",
+    introText: "In an rh word, the h is silent and you only hear the /r/ sound, as in rhino and rhyme. Say each picture word out loud and listen for this pattern.",
+    words: ["rhino", "rhyme", "rhythm", "rhubarb"],
+    sentences: [
+      "Here is a little rhino.",
+      "Can you find the rhyme?",
+      "I have a big rhythm and a rhubarb.",
+      "Go get the rhino for me.",
+      "We will play with the rhyme."
+    ],
+    fillBlanks: ["r___o", "r___e", "r____m", "r_____b"]
+  },
+  {
+    mainTitle: "DIGRAPHS",
+    lessonNumber: 66,
+    letterTile: "kn",
+    imageCaption: "know",
+    imagePath: "",
+    introText: "In a kn word, the k is silent and only the /n/ sound is heard, as in know and knee. Say each picture word out loud and listen for this pattern.",
+    words: ["know", "knap", "knot", "knob", "knee", "knife", "knight", "knock", "knit", "knoll", "knack", "knead"],
+    sentences: [
+      "Where is the know?",
+      "I want the knap, not the knot.",
+      "She will help with the knob.",
+      "Now we can see the knee and the knife.",
+      "Put the knight here."
+    ],
+    fillBlanks: ["k__w", "k__p", "k__t", "k__b", "k__e", "k___e", "k____t", "k___k", "k__t", "k___l", "k___k", "k___d"]
+  },
+  {
+    mainTitle: "DIGRAPHS",
+    lessonNumber: 67,
+    letterTile: "gn",
+    imageCaption: "gnash",
+    imagePath: "",
+    introText: "In a gn word, the g is silent and only the /n/ sound is heard, as in gnat and sign. Say each picture word out loud and listen for this pattern.",
+    words: ["gnash", "gnome", "gnat", "gnaw", "sign", "design", "campaign", "foreign", "gnarl", "gnostic", "gnu", "gnarr"],
+    sentences: [
+      "Is this a gnash?",
+      "I like my gnome.",
+      "We have a gnat.",
+      "You can see the gnaw.",
+      "This is a good sign."
+    ],
+    fillBlanks: ["g___h", "g___e", "g__t", "g__w", "s__n", "d____n", "c______n", "f_____n", "g___l", "g_____c", "g_u", "g___r"]
+  },
+  {
+    mainTitle: "DIGRAPHS",
+    lessonNumber: 68,
+    letterTile: "gh",
+    imageCaption: "ghost",
+    imagePath: "",
+    introText: "In many words gh is silent, but in a handful of others it makes a hard /g/ sound, as in ghost and ghetto. Say each picture word out loud and listen for this pattern.",
+    words: ["ghost", "Ghana", "ghetto", "ghastly", "ghoul", "gharry", "gherkin", "Ghanaian", "ghostly", "ghazal", "ghat", "ghazi"],
+    sentences: [
+      "Can you find the ghost?",
+      "I have a big Ghana and a ghetto.",
+      "Go get the ghastly for me.",
+      "We will play with the ghoul.",
+      "Look! I see a gharry and a gherkin."
+    ],
+    fillBlanks: ["g___t", "G___a", "g____o", "g_____y", "g___l", "g____y", "g____n", "G______n", "g____y", "g____l", "g__t", "g__i"]
+  },
+  {
+    mainTitle: "STUBBORN DIGRAPHS (MULTIPLE SOUNDS OF CH)",
+    lessonNumber: 69,
+    letterTile: "ch (tch sound)",
+    imageCaption: "church",
+    imagePath: "",
+    introText: "In most English words, ch makes its familiar soft /ch/ sound, as in church and chair. Say each picture word out loud and listen for this pattern.",
+    words: ["church", "child", "chair", "cheese", "champion", "chocolate", "chest", "chase", "chill", "chop", "chime", "chunk"],
+    sentences: [
+      "I want the church, not the child.",
+      "She will help with the chair.",
+      "Now we can see the cheese and the champion.",
+      "Put the chocolate here.",
+      "I see a chest."
+    ],
+    fillBlanks: ["c____h", "c___d", "c___r", "c____e", "c_____n", "c_______e", "c___t", "c___e", "c___l", "c__p", "c___e", "c___k"]
+  },
+  {
+    mainTitle: "STUBBORN DIGRAPHS (MULTIPLE SOUNDS OF CH)",
+    lessonNumber: 70,
+    letterTile: "ch (k sound)",
+    imageCaption: "chorus",
+    imagePath: "",
+    introText: "Borrowed from Greek, some ch words make a hard /k/ sound instead of the usual soft one, as in chorus and chemist. Say each picture word out loud and listen for this pattern.",
+    words: ["chorus", "chrome", "chasm", "chemist", "chord", "chlorine", "chaos", "character", "chronic", "choir", "chyle", "chyme"],
+    sentences: [
+      "I like my chorus.",
+      "We have a chrome.",
+      "You can see the chasm.",
+      "This is a good chemist.",
+      "They will get a chord."
+    ],
+    fillBlanks: ["c____s", "c____e", "c___m", "c_____t", "c___d", "c______e", "c___s", "c_______r", "c_____c", "c___r", "c___e", "c___e"]
+  },
+  {
+    mainTitle: "STUBBORN DIGRAPHS (MULTIPLE SOUNDS OF CH)",
+    lessonNumber: 71,
+    letterTile: "ch (sh sound)",
+    imageCaption: "chef",
+    imagePath: "",
+    introText: "Borrowed from French, some ch words make a /sh/ sound instead of the usual soft one, as in chef and machine. Say each picture word out loud and listen for this pattern.",
+    words: ["chef", "machine", "moustache", "parachute", "brochure"],
+    sentences: [
+      "I have a big chef and a machine.",
+      "Go get the moustache for me.",
+      "We will play with the parachute.",
+      "Look! I see a brochure and a chef.",
+      "That is my machine."
+    ],
+    fillBlanks: ["c__f", "m_____e", "m_______e", "p________e", "b______e"]
+  },
+  {
+    mainTitle: "VOWEL-CONSONANT DIGRAPHS",
+    lessonNumber: 72,
+    letterTile: "ank",
+    imageCaption: "bank",
+    imagePath: "",
+    introText: "The phonogram ank blends the short a sound with the nasal ending nk, as in bank and thank. Say each picture word out loud and listen for this pattern.",
+    words: ["bank", "tank", "thank", "sank", "drank", "rank", "blank", "flank", "plank", "prank", "shank", "crank"],
+    sentences: [
+      "She will help with the bank.",
+      "Now we can see the tank and the thank.",
+      "Put the sank here.",
+      "I see a drank.",
+      "Look at the rank and the blank."
+    ],
+    fillBlanks: ["b__k", "t__k", "t___k", "s__k", "d___k", "r__k", "b___k", "f___k", "p___k", "p___k", "s___k", "c___k"]
+  },
+  {
+    mainTitle: "VOWEL-CONSONANT DIGRAPHS",
+    lessonNumber: 73,
+    letterTile: "ink",
+    imageCaption: "link",
+    imagePath: "",
+    introText: "The phonogram ink blends the short i sound with the nasal ending nk, as in pink and think. Say each picture word out loud and listen for this pattern.",
+    words: ["link", "pink", "sink", "blink", "drink", "think", "wink", "stink", "shrink", "mink", "clink", "fink"],
+    sentences: [
+      "Can you find the think?",
+      "I have a big wink and a stink.",
+      "Go get the shrink for me.",
+      "We will play with the mink.",
+      "Look! I see a clink and a fink."
+    ],
+    fillBlanks: ["l__k", "p__k", "s__k", "b___k", "d___k", "t___k", "w__k", "s___k", "s____k", "m__k", "c___k", "f__k"]
+  },
+  {
+    mainTitle: "VOWEL-CONSONANT DIGRAPHS",
+    lessonNumber: 74,
+    letterTile: "onk",
+    imageCaption: "honk",
+    imagePath: "",
+    introText: "The phonogram onk blends the short o sound with the nasal ending nk, as in honk and monk. Say each picture word out loud and listen for this pattern.",
+    words: ["honk", "bonk", "monk"],
+    sentences: [
+      "Go get the honk for me.",
+      "We will play with the bonk.",
+      "Look! I see a monk and a honk.",
+      "That is my bonk.",
+      "Where is the monk?"
+    ],
+    fillBlanks: ["h__k", "b__k", "m__k"]
+  },
+  {
+    mainTitle: "VOWEL-CONSONANT DIGRAPHS",
+    lessonNumber: 75,
+    letterTile: "unk",
+    imageCaption: "bunk",
+    imagePath: "",
+    introText: "The phonogram unk blends the short u sound with the nasal ending nk, as in bunk and skunk. Say each picture word out loud and listen for this pattern.",
+    words: ["bunk", "chunk", "dunk", "drunk", "sunk", "junk", "skunk", "trunk", "flunk", "spunk", "clunk", "slunk"],
+    sentences: [
+      "Now we can see the bunk and the chunk.",
+      "Put the dunk here.",
+      "I see a drunk.",
+      "Look at the sunk and the junk.",
+      "Is this a skunk?"
+    ],
+    fillBlanks: ["b__k", "c___k", "d__k", "d___k", "s__k", "j__k", "s___k", "t___k", "f___k", "s___k", "c___k", "s___k"]
+  },
+  {
+    mainTitle: "VOWEL-CONSONANT DIGRAPHS",
+    lessonNumber: 76,
+    letterTile: "ang",
+    imageCaption: "bang",
+    imagePath: "",
+    introText: "The phonogram ang blends the short a sound with the nasal ending ng, as in bang and sang. Say each picture word out loud and listen for this pattern.",
+    words: ["bang", "sang", "gang", "hang", "pang", "fang", "rang", "clang", "slang", "twang", "prang", "brang"],
+    sentences: [
+      "You can see the bang.",
+      "This is a good sang.",
+      "They will get a gang.",
+      "Here is a little hang.",
+      "Can you find the pang?"
+    ],
+    fillBlanks: ["b__g", "s__g", "g__g", "h__g", "p__g", "f__g", "r__g", "c___g", "s___g", "t___g", "p___g", "b___g"]
+  },
+  {
+    mainTitle: "VOWEL-CONSONANT DIGRAPHS",
+    lessonNumber: 77,
+    letterTile: "ing",
+    imageCaption: "sing",
+    imagePath: "",
+    introText: "The phonogram ing blends the short i sound with the nasal ending ng — it's also the ending added to action words like jumping. Say each picture word out loud and listen for this pattern.",
+    words: ["sing", "ring", "wing", "bring", "thing", "king", "swing", "spring", "string", "cling", "fling", "sting"],
+    sentences: [
+      "That is my wing.",
+      "Where is the bring?",
+      "I want the thing, not the king.",
+      "She will help with the swing.",
+      "Now we can see the spring and the string."
+    ],
+    fillBlanks: ["s__g", "r__g", "w__g", "b___g", "t___g", "k__g", "s___g", "s____g", "s____g", "c___g", "f___g", "s___g"]
+  },
+  {
+    mainTitle: "VOWEL-CONSONANT DIGRAPHS",
+    lessonNumber: 78,
+    letterTile: "ong",
+    imageCaption: "song",
+    imagePath: "",
+    introText: "The phonogram ong blends the short o sound with the nasal ending ng, as in song and long. Say each picture word out loud and listen for this pattern.",
+    words: ["song", "long", "gong", "tong", "wrong", "strong", "belong", "along", "thong", "prong", "throng", "dong"],
+    sentences: [
+      "Put the song here.",
+      "I see a long.",
+      "Look at the gong and the tong.",
+      "Is this a wrong?",
+      "I like my strong."
+    ],
+    fillBlanks: ["s__g", "l__g", "g__g", "t__g", "w___g", "s____g", "b____g", "a___g", "t___g", "p___g", "t____g", "d__g"]
+  },
+  {
+    mainTitle: "VOWEL-CONSONANT DIGRAPHS",
+    lessonNumber: 79,
+    letterTile: "ung",
+    imageCaption: "sung",
+    imagePath: "",
+    introText: "The phonogram ung blends the short u sound with the nasal ending ng, as in sung and hung. Say each picture word out loud and listen for this pattern.",
+    words: ["sung", "hung", "lung", "rung", "dung", "clung", "flung", "stung", "swung", "wrung", "slung", "sprung"],
+    sentences: [
+      "This is a good sung.",
+      "They will get a hung.",
+      "Here is a little lung.",
+      "Can you find the rung?",
+      "I have a big dung and a clung."
+    ],
+    fillBlanks: ["s__g", "h__g", "l__g", "r__g", "d__g", "c___g", "f___g", "s___g", "s___g", "w___g", "s___g", "s____g"]
+  },
+  {
+    mainTitle: "LONG VOWEL SOUNDS (SILENT E RULE)",
+    lessonNumber: 80,
+    letterTile: "a_e",
+    imageCaption: "cake",
+    imagePath: "",
+    introText: "A silent e at the end of a word reaches back over one consonant and makes the a say its own name, /ay/, as in cake. Say each picture word out loud and listen for this pattern.",
+    words: ["cake", "came", "mate", "gate", "date", "name", "lane", "pace", "safe", "tape", "lake", "fame"],
+    sentences: [
+      "Look! I see a cake and a came.",
+      "That is my mate.",
+      "Where is the gate?",
+      "I want the date, not the name.",
+      "She will help with the lane."
+    ],
+    fillBlanks: ["c__e", "c__e", "m__e", "g__e", "d__e", "n__e", "l__e", "p__e", "s__e", "t__e", "l__e", "f__e"]
+  },
+  {
+    mainTitle: "LONG VOWEL SOUNDS (SILENT E RULE)",
+    lessonNumber: 81,
+    letterTile: "e_e",
+    imageCaption: "Pete",
+    imagePath: "",
+    introText: "A silent e at the end of a word can make the e say its own name, /ee/, as in these and Pete. Say each picture word out loud and listen for this pattern.",
+    words: ["Pete", "mete", "eve", "these", "here", "scene", "complete", "delete", "extreme", "athlete", "concede", "recede"],
+    sentences: [
+      "I see a Pete.",
+      "Look at the mete and the eve.",
+      "Is this a these?",
+      "I like my scene.",
+      "We have a complete."
+    ],
+    fillBlanks: ["P__e", "m__e", "e_e", "t___e", "h__e", "s___e", "c_______e", "d_____e", "e______e", "a______e", "c______e", "r_____e"]
+  },
+  {
+    mainTitle: "LONG VOWEL SOUNDS (SILENT E RULE)",
+    lessonNumber: 82,
+    letterTile: "i_e",
+    imageCaption: "bike",
+    imagePath: "",
+    introText: "A silent e at the end of a word makes the i say its own name, /eye/, as in bike and time. Say each picture word out loud and listen for this pattern.",
+    words: ["bike", "hive", "like", "bite", "line", "kite", "time", "nine", "prize", "slide", "dine", "vibe"],
+    sentences: [
+      "They will get a bike.",
+      "Here is a little hive.",
+      "Can you find the like?",
+      "I have a big bite and a line.",
+      "Go get the kite for me."
+    ],
+    fillBlanks: ["b__e", "h__e", "l__e", "b__e", "l__e", "k__e", "t__e", "n__e", "p___e", "s___e", "d__e", "v__e"]
+  },
+  {
+    mainTitle: "LONG VOWEL SOUNDS (SILENT E RULE)",
+    lessonNumber: 83,
+    letterTile: "o_e",
+    imageCaption: "cone",
+    imagePath: "",
+    introText: "A silent e at the end of a word makes the o say its own name, /oh/, as in cone and note. Say each picture word out loud and listen for this pattern.",
+    words: ["cone", "bone", "home", "note", "stone", "hope", "rope", "vote", "joke", "dose", "pole", "sole"],
+    sentences: [
+      "That is my cone.",
+      "Where is the bone?",
+      "I want the home, not the note.",
+      "She will help with the stone.",
+      "Now we can see the hope and the rope."
+    ],
+    fillBlanks: ["c__e", "b__e", "h__e", "n__e", "s___e", "h__e", "r__e", "v__e", "j__e", "d__e", "p__e", "s__e"]
+  },
+  {
+    mainTitle: "LONG VOWEL SOUNDS (SILENT E RULE)",
+    lessonNumber: 84,
+    letterTile: "u_e (yoo sound)",
+    imageCaption: "cube",
+    imagePath: "",
+    introText: "A silent e at the end of a word can make u say its own name, /yoo/, as in cube and cute. Say each picture word out loud and listen for this pattern.",
+    words: ["cube", "mute", "tune", "cute", "flute", "fuse", "mule", "huge", "use", "fume", "pure", "cure"],
+    sentences: [
+      "Look at the cube and the mute.",
+      "Is this a tune?",
+      "I like my cute.",
+      "We have a flute.",
+      "You can see the fuse."
+    ],
+    fillBlanks: ["c__e", "m__e", "t__e", "c__e", "f___e", "f__e", "m__e", "h__e", "u_e", "f__e", "p__e", "c__e"]
+  },
+  {
+    mainTitle: "LONG VOWEL SOUNDS (SILENT E RULE)",
+    lessonNumber: 85,
+    letterTile: "u_e (oo sound)",
+    imageCaption: "rude",
+    imagePath: "",
+    introText: "A silent e can also make u say /oo/ instead of its letter name, as in rule and June. Say each picture word out loud and listen for this pattern.",
+    words: ["rude", "rule", "June", "brute", "crude", "prune", "include", "exclude", "conclude", "intrude", "protrude", "delude"],
+    sentences: [
+      "Here is a little rude.",
+      "Can you find the rule?",
+      "I have a big June and a brute.",
+      "Go get the crude for me.",
+      "We will play with the prune."
+    ],
+    fillBlanks: ["r__e", "r__e", "J__e", "b___e", "c___e", "p___e", "i______e", "e______e", "c_______e", "i______e", "p______e", "d_____e"]
+  },
+  {
+    mainTitle: "SHORT WORDS WITH LONG VOWEL SOUNDS",
+    lessonNumber: 86,
+    letterTile: "Long e",
+    imageCaption: "me",
+    imagePath: "",
+    introText: "In some very short, common words, a single e can say its long name, /ee/, all on its own, as in me and he. Say each picture word out loud and listen for this pattern.",
+    words: ["me", "she", "we", "be", "he", "the", "see", "bee", "flea", "tea", "pea", "knee"],
+    sentences: [
+      "Where is the me?",
+      "I want the she, not the we.",
+      "She will help with the be.",
+      "Now we can see the he and the the.",
+      "Put the bee here."
+    ],
+    fillBlanks: ["m_", "s_e", "w_", "b_", "h_", "t_e", "s_e", "b_e", "f__a", "t_a", "p_a", "k__e"]
+  },
+  {
+    mainTitle: "SHORT WORDS WITH LONG VOWEL SOUNDS",
+    lessonNumber: 87,
+    letterTile: "Long i",
+    imageCaption: "hi",
+    imagePath: "",
+    introText: "In short words, a lone y or i at the end can say the long i sound, /eye/, without any silent e to help, as in my and hi. Say each picture word out loud and listen for this pattern.",
+    words: ["hi", "my", "by", "fly", "cry", "sky", "why", "try", "dry", "shy", "spy", "fry"],
+    sentences: [
+      "Is this a hi?",
+      "I like my my.",
+      "We have a by.",
+      "You can see the fly.",
+      "This is a good cry."
+    ],
+    fillBlanks: ["h_", "m_", "b_", "f_y", "c_y", "s_y", "w_y", "t_y", "d_y", "s_y", "s_y", "f_y"]
+  },
+  {
+    mainTitle: "SHORT WORDS WITH LONG VOWEL SOUNDS",
+    lessonNumber: 88,
+    letterTile: "Long o",
+    imageCaption: "go",
+    imagePath: "",
+    introText: "In short words, o can say its own long name, /oh/, even without a silent e at the end, as in go and no. Say each picture word out loud and listen for this pattern.",
+    words: ["go", "no", "so", "do", "to", "toe", "hoe", "foe", "woe"],
+    sentences: [
+      "Can you find the no?",
+      "I have a big so and a do.",
+      "Go get the to for me.",
+      "We will play with the toe.",
+      "Look! I see a hoe and a foe."
+    ],
+    fillBlanks: ["g_", "n_", "s_", "d_", "t_", "t_e", "h_e", "f_e", "w_e"]
+  },
+  {
+    mainTitle: "SHORT WORDS WITH LONG VOWEL SOUNDS",
+    lessonNumber: 89,
+    letterTile: "Long u",
+    imageCaption: "flu",
+    imagePath: "",
+    introText: "In short words, u or ew can say the long u sound, /oo/, without needing a silent e, as in flu and new. Say each picture word out loud and listen for this pattern.",
+    words: ["flu", "you", "moo", "boo", "coo", "zoo", "too", "new", "due", "few", "dew", "pew"],
+    sentences: [
+      "I want the flu, not the you.",
+      "She will help with the moo.",
+      "Now we can see the boo and the coo.",
+      "Put the zoo here.",
+      "I see a too."
+    ],
+    fillBlanks: ["f_u", "y_u", "m_o", "b_o", "c_o", "z_o", "t_o", "n_w", "d_e", "f_w", "d_w", "p_w"]
+  },
+  {
+    mainTitle: "PHONOGRAMS WITH LONG VOWELS",
+    lessonNumber: 90,
+    letterTile: "old",
+    imageCaption: "cold",
+    imagePath: "",
+    introText: "The phonogram old keeps the o saying its long name even though there's no silent e in sight, as in cold and gold. Say each picture word out loud and listen for this pattern.",
+    words: ["cold", "bold", "sold", "hold", "gold", "mold", "scold", "told", "fold"],
+    sentences: [
+      "We have a bold.",
+      "You can see the sold.",
+      "This is a good hold.",
+      "They will get a gold.",
+      "Here is a little mold."
+    ],
+    fillBlanks: ["c__d", "b__d", "s__d", "h__d", "g__d", "m__d", "s___d", "t__d", "f__d"]
+  },
+  {
+    mainTitle: "PHONOGRAMS WITH LONG VOWELS",
+    lessonNumber: 91,
+    letterTile: "oll",
+    imageCaption: "poll",
+    imagePath: "",
+    introText: "The phonogram oll also holds onto a long o sound before the double l, as in roll and toll. Say each picture word out loud and listen for this pattern.",
+    words: ["poll", "toll", "roll", "scroll", "stroll", "doll", "knoll"],
+    sentences: [
+      "I have a big poll and a toll.",
+      "Go get the roll for me.",
+      "We will play with the scroll.",
+      "Look! I see a stroll and a doll.",
+      "That is my knoll."
+    ],
+    fillBlanks: ["p__l", "t__l", "r__l", "s____l", "s____l", "d__l", "k___l"]
+  },
+  {
+    mainTitle: "PHONOGRAMS WITH LONG VOWELS",
+    lessonNumber: 92,
+    letterTile: "olt",
+    imageCaption: "bolt",
+    imagePath: "",
+    introText: "Like old, the phonogram olt keeps a long o sound before its final consonants, as in bolt and jolt. Say each picture word out loud and listen for this pattern.",
+    words: ["bolt", "volt", "jolt", "molt", "colt"],
+    sentences: [
+      "She will help with the bolt.",
+      "Now we can see the volt and the jolt.",
+      "Put the molt here.",
+      "I see a colt.",
+      "Look at the bolt and the volt."
+    ],
+    fillBlanks: ["b__t", "v__t", "j__t", "m__t", "c__t"]
+  },
+  {
+    mainTitle: "PHONOGRAMS WITH LONG VOWELS",
+    lessonNumber: 93,
+    letterTile: "oth",
+    imageCaption: "both",
+    imagePath: "",
+    introText: "The phonogram oth can carry a long o sound, as in both, or a shorter o sound, as in cloth — so listen carefully to each word. Say each picture word out loud and listen for this pattern.",
+    words: ["both", "cloth", "clothe", "moth"],
+    sentences: [
+      "We have a both.",
+      "You can see the cloth.",
+      "This is a good clothe.",
+      "They will get a moth.",
+      "Here is a little both."
+    ],
+    fillBlanks: ["b__h", "c___h", "c_____e", "m__h"]
+  },
+  {
+    mainTitle: "PHONOGRAMS WITH LONG VOWELS",
+    lessonNumber: 94,
+    letterTile: "ost",
+    imageCaption: "most",
+    imagePath: "",
+    introText: "The phonogram ost usually keeps a long o sound before the st ending, as in most and ghost. Say each picture word out loud and listen for this pattern.",
+    words: ["most", "post", "host", "ghost", "almost", "boast", "coast", "roast", "toast", "utmost", "foremost", "outpost"],
+    sentences: [
+      "Go get the most for me.",
+      "We will play with the post.",
+      "Look! I see a host and a ghost.",
+      "That is my almost.",
+      "Where is the boast?"
+    ],
+    fillBlanks: ["m__t", "p__t", "h__t", "g___t", "a____t", "b___t", "c___t", "r___t", "t___t", "u____t", "f______t", "o______t"]
+  },
+  {
+    mainTitle: "PHONOGRAMS WITH LONG VOWELS",
+    lessonNumber: 95,
+    letterTile: "ind",
+    imageCaption: "bind",
+    imagePath: "",
+    introText: "The phonogram ind usually keeps a long i sound before the nd ending, as in find and kind. Say each picture word out loud and listen for this pattern.",
+    words: ["bind", "find", "kind", "mind", "blind", "wind", "grind", "behind", "remind", "unkind", "mankind", "wind"],
+    sentences: [
+      "Now we can see the bind and the kind.",
+      "Put the mind here.",
+      "I see a blind.",
+      "Look at the wind and the grind.",
+      "Is this a behind?"
+    ],
+    fillBlanks: ["b__d", "f__d", "k__d", "m__d", "b___d", "w__d", "g___d", "b____d", "r____d", "u____d", "m______d", "w__d"]
+  },
+  {
+    mainTitle: "PHONOGRAMS WITH LONG VOWELS",
+    lessonNumber: 96,
+    letterTile: "ild",
+    imageCaption: "mild",
+    imagePath: "",
+    introText: "The phonogram ild usually keeps a long i sound before the ld ending, as in mild and child. Say each picture word out loud and listen for this pattern.",
+    words: ["mild", "wild", "child", "filed", "tiled", "piled", "smiled", "stiled", "whiled", "compiled", "reviled", "exiled"],
+    sentences: [
+      "You can see the mild.",
+      "This is a good wild.",
+      "They will get a child.",
+      "Here is a little filed.",
+      "Can you find the tiled?"
+    ],
+    fillBlanks: ["m__d", "w__d", "c___d", "f___d", "t___d", "p___d", "s___d", "s___d", "w___d", "c______d", "r_____d", "e____d"]
+  },
+  {
+    mainTitle: "RHYMING WORDS (SAME END-SOUND)",
+    lessonNumber: 97,
+    letterTile: "1",
+    imageCaption: "pat",
+    imagePath: "",
+    introText: "Rhyming words that share the same at ending, like cat and hat, show how changing just the first sound builds a whole new word. Say each picture word out loud and listen for this pattern.",
+    words: ["pat", "sat", "mat", "fat", "rat", "cat", "hat", "bat", "vat", "flat", "chat", "splat"],
+    sentences: [
+      "We will play with the pat.",
+      "Look! I see a sat and a mat.",
+      "That is my fat.",
+      "Where is the rat?",
+      "I want the cat, not the hat."
+    ],
+    fillBlanks: ["p_t", "s_t", "m_t", "f_t", "r_t", "c_t", "h_t", "b_t", "v_t", "f__t", "c__t", "s___t"]
+  },
+  {
+    mainTitle: "RHYMING WORDS (SAME END-SOUND)",
+    lessonNumber: 98,
+    letterTile: "2",
+    imageCaption: "pot",
+    imagePath: "",
+    introText: "Words in the ot family, like pot and hot, rhyme because they share the same short o ending sound. Say each picture word out loud and listen for this pattern.",
+    words: ["pot", "spot", "cot", "hot", "lot", "dot", "got", "not", "rot", "tot", "plot", "slot"],
+    sentences: [
+      "Put the pot here.",
+      "I see a spot.",
+      "Look at the cot and the hot.",
+      "Is this a lot?",
+      "I like my dot."
+    ],
+    fillBlanks: ["p_t", "s__t", "c_t", "h_t", "l_t", "d_t", "g_t", "n_t", "r_t", "t_t", "p__t", "s__t"]
+  },
+  {
+    mainTitle: "RHYMING WORDS (SAME END-SOUND)",
+    lessonNumber: 99,
+    letterTile: "3",
+    imageCaption: "beat",
+    imagePath: "",
+    introText: "Words in the eat family, like beat and seat, rhyme because they share the same long e ending sound. Say each picture word out loud and listen for this pattern.",
+    words: ["beat", "meet", "feat", "seat", "sheet", "neat", "peat", "fleet", "treat", "wheat", "bleat", "cheat"],
+    sentences: [
+      "This is a good beat.",
+      "They will get a meet.",
+      "Here is a little feat.",
+      "Can you find the seat?",
+      "I have a big sheet and a neat."
+    ],
+    fillBlanks: ["b__t", "m__t", "f__t", "s__t", "s___t", "n__t", "p__t", "f___t", "t___t", "w___t", "b___t", "c___t"]
+  },
+  {
+    mainTitle: "RHYMING WORDS (SAME END-SOUND)",
+    lessonNumber: 100,
+    letterTile: "4",
+    imageCaption: "make",
+    imagePath: "",
+    introText: "Words in the ake family, like make and cake, rhyme because they share the same long a ending sound. Say each picture word out loud and listen for this pattern.",
+    words: ["make", "take", "lake", "fake", "rake", "bake", "cake", "sake", "wake", "shake", "flake", "snake"],
+    sentences: [
+      "Look! I see a make and a take.",
+      "That is my lake.",
+      "Where is the fake?",
+      "I want the rake, not the bake.",
+      "She will help with the cake."
+    ],
+    fillBlanks: ["m__e", "t__e", "l__e", "f__e", "r__e", "b__e", "c__e", "s__e", "w__e", "s___e", "f___e", "s___e"]
+  },
+  {
+    mainTitle: "RHYMING WORDS (SAME END-SOUND)",
+    lessonNumber: 101,
+    letterTile: "5",
+    imageCaption: "boat",
+    imagePath: "",
+    introText: "Words in the oat family, like boat and goat, rhyme because they share the same long o ending sound. Say each picture word out loud and listen for this pattern.",
+    words: ["boat", "float", "coat", "goat", "oat", "moat", "bloat", "gloat", "throat", "note", "vote", "quote"],
+    sentences: [
+      "I see a boat.",
+      "Look at the float and the coat.",
+      "Is this a goat?",
+      "I like my oat.",
+      "We have a moat."
+    ],
+    fillBlanks: ["b__t", "f___t", "c__t", "g__t", "o_t", "m__t", "b___t", "g___t", "t____t", "n__e", "v__e", "q___e"]
+  },
+  {
+    mainTitle: "RHYMING WORDS (SAME END-SOUND)",
+    lessonNumber: 102,
+    letterTile: "6",
+    imageCaption: "flute",
+    imagePath: "",
+    introText: "Words in this family, like flute and root, rhyme because they share a similar long u or oo ending sound. Say each picture word out loud and listen for this pattern.",
+    words: ["flute", "fruit", "cute", "put", "mute", "chute", "coot", "hoot", "root"],
+    sentences: [
+      "They will get a flute.",
+      "Here is a little fruit.",
+      "Can you find the cute?",
+      "I have a big mute and a chute.",
+      "Go get the coot for me."
+    ],
+    fillBlanks: ["f___e", "f___t", "c__e", "p_t", "m__e", "c___e", "c__t", "h__t", "r__t"]
+  },
+  {
+    mainTitle: "2-CONSONANT DIVISION (COMPOUND) WORDS",
+    lessonNumber: 103,
+    letterTile: "Compound Words",
+    imageCaption: "myself",
+    imagePath: "",
+    introText: "A compound word joins two smaller words together to build one new word with its own meaning, the way cup and cake combine into cupcake. Say each picture word out loud and listen for this pattern.",
+    words: ["myself", "keyboard", "knapsack", "clockwise", "cupcake", "footprint", "popcorn", "napkin", "rainbow", "chopstick", "toothbrush", "sunshine"],
+    sentences: [
+      "That is my myself.",
+      "Where is the keyboard?",
+      "I want the knapsack, not the clockwise.",
+      "She will help with the cupcake.",
+      "Now we can see the footprint and the popcorn."
+    ],
+    fillBlanks: ["m____f", "k_____d", "k_____k", "c______e", "c____e", "f_______t", "p_____n", "n____n", "r____w", "c_______k", "t________h", "s______e"]
+  },
+  {
+    mainTitle: "R-CONTROLLED VOWELS",
+    lessonNumber: 104,
+    letterTile: "ar",
+    imageCaption: "bar",
+    imagePath: "",
+    introText: "When r follows a, it changes the vowel sound completely — ar makes the sound heard in car and star, not a plain short or long a. Say each picture word out loud and listen for this pattern.",
+    words: ["bar", "dark", "mark", "park", "hard", "star", "farm", "charm", "smart", "chart", "barn", "cart"],
+    sentences: [
+      "Is this a dark?",
+      "I like my mark.",
+      "We have a park.",
+      "You can see the hard.",
+      "This is a good star."
+    ],
+    fillBlanks: ["b_r", "d__k", "m__k", "p__k", "h__d", "s__r", "f__m", "c___m", "s___t", "c___t", "b__n", "c__t"]
+  },
+  {
+    mainTitle: "R-CONTROLLED VOWELS",
+    lessonNumber: 105,
+    letterTile: "or",
+    imageCaption: "born",
+    imagePath: "",
+    introText: "When r follows o, it makes the /or/ sound heard in born and fork. Say each picture word out loud and listen for this pattern.",
+    words: ["born", "fork", "torn", "cord", "fort", "scorn", "corn", "storm", "for", "worn", "thorn", "porch"],
+    sentences: [
+      "Here is a little born.",
+      "Can you find the fork?",
+      "I have a big torn and a cord.",
+      "Go get the fort for me.",
+      "We will play with the scorn."
+    ],
+    fillBlanks: ["b__n", "f__k", "t__n", "c__d", "f__t", "s___n", "c__n", "s___m", "f_r", "w__n", "t___n", "p___h"]
+  },
+  {
+    mainTitle: "R-CONTROLLED VOWELS",
+    lessonNumber: 106,
+    letterTile: "er",
+    imageCaption: "her",
+    imagePath: "",
+    introText: "When r follows e, it makes the /er/ sound heard in her and herd. Say each picture word out loud and listen for this pattern.",
+    words: ["her", "herd", "term", "verse", "there", "perm", "clerk", "were", "jerk", "expert", "nerve", "serve"],
+    sentences: [
+      "Where is the her?",
+      "I want the herd, not the term.",
+      "She will help with the verse.",
+      "Now we can see the there and the perm.",
+      "Put the clerk here."
+    ],
+    fillBlanks: ["h_r", "h__d", "t__m", "v___e", "t___e", "p__m", "c___k", "w__e", "j__k", "e____t", "n___e", "s___e"]
+  },
+  {
+    mainTitle: "R-CONTROLLED VOWELS",
+    lessonNumber: 107,
+    letterTile: "ir",
+    imageCaption: "stir",
+    imagePath: "",
+    introText: "When r follows i, it makes that same /er/ sound too, as in bird and stir. Say each picture word out loud and listen for this pattern.",
+    words: ["stir", "third", "dirt", "bird", "girl", "first", "sir", "firm", "birth", "shirt", "skirt", "squirt"],
+    sentences: [
+      "Is this a stir?",
+      "I like my third.",
+      "We have a dirt.",
+      "You can see the bird.",
+      "This is a good girl."
+    ],
+    fillBlanks: ["s__r", "t___d", "d__t", "b__d", "g__l", "f___t", "s_r", "f__m", "b___h", "s___t", "s___t", "s____t"]
+  },
+  {
+    mainTitle: "R-CONTROLLED VOWELS",
+    lessonNumber: 108,
+    letterTile: "ur",
+    imageCaption: "hurt",
+    imagePath: "",
+    introText: "When r follows u, it also makes that same /er/ sound, as in hurt and burn. Say each picture word out loud and listen for this pattern.",
+    words: ["hurt", "burn", "turn", "curb", "curve", "burst", "curl", "surf", "lurk", "churn", "purse", "nurse"],
+    sentences: [
+      "Can you find the hurt?",
+      "I have a big burn and a turn.",
+      "Go get the curb for me.",
+      "We will play with the curve.",
+      "Look! I see a burst and a curl."
+    ],
+    fillBlanks: ["h__t", "b__n", "t__n", "c__b", "c__ve", "b___t", "c__l", "s__f", "l__k", "ch__n", "p__se", "n__se"]
+  }
+];
+
+
+window.LESSONS = [
+  // ==================== SILENT E WORDS ====================
+  {
+    mainTitle: "SILENT E WORDS",
+    lessonNumber: 1,
+    letterTile: "a_e",
+    imageCaption: "cake",
+    imagePath: "",
+    introText: "When a silent e sits at the end of a word, it reaches back over one consonant and makes the vowel before it say its own name. Say each word out loud and listen for the long /ā/ sound.",
+    words: ["cake", "name", "lane", "gate", "made", "safe", "tape", "game", "wave", "rake", "lake", "late"],
+    sentences: [
+      "I can make a cake with my name on it.",
+      "The gate is by the lane.",
+      "We made a safe place to play a game.",
+      "She will tape the wave on the lake.",
+      "We rake the lake and get home late."
+    ],
+    fillBlanks: ["c__e", "n__e", "l__e", "g__e", "m__e", "s__e", "t__e", "g__e", "w__e", "r__e", "l__e", "l__e"]
+  },
+  {
+    mainTitle: "SILENT E WORDS",
+    lessonNumber: 2,
+    letterTile: "e_e",
+    imageCaption: "these",
+    imagePath: "",
+    introText: "E_e is the rarest of the silent-e patterns, but it works the same way as the others: the quiet e makes the vowel say its name, /ē/. Say each word out loud and listen for it.",
+    words: ["these", "eve", "scene", "gene", "theme", "Pete", "Steve", "delete", "compete", "complete", "athlete", "extreme"],
+    sentences: [
+      "These are the same cakes we made.",
+      "Pete and Steve like this scene.",
+      "We can delete the game and make it complete.",
+      "The athlete can compete with the team.",
+      "This theme is extreme but I like it."
+    ],
+    fillBlanks: ["t__se", "e_e", "s___e", "g__e", "t___e", "P__e", "S___e", "d____e", "c_____e", "c______e", "a_____e", "e_____e"]
+  },
+  {
+    mainTitle: "SILENT E WORDS",
+    lessonNumber: 3,
+    letterTile: "i_e",
+    imageCaption: "kite",
+    imagePath: "",
+    introText: "In an i_e word, the silent e turns a short i into the long i sound, /ī/. Say each word out loud and listen for the vowel saying its own name.",
+    words: ["kite", "bike", "time", "nine", "dive", "ride", "side", "wide", "life", "mile", "five", "smile"],
+    sentences: [
+      "I like to ride my bike at this time.",
+      "We can fly a kite on the side of the lake.",
+      "Nine kids will dive into the wide pool.",
+      "This is my life and I smile a lot.",
+      "We rode five miles on our bikes."
+    ],
+    fillBlanks: ["k__e", "b__e", "t__e", "n__e", "d__e", "r__e", "s__e", "w__e", "l__e", "m__e", "f__e", "sm__e"]
+  },
+  {
+    mainTitle: "SILENT E WORDS",
+    lessonNumber: 4,
+    letterTile: "o_e",
+    imageCaption: "hope",
+    imagePath: "",
+    introText: "Just like a_e, an o_e word keeps a silent e at the end so the o says its name, /ō/. Say each word out loud and listen for the long o.",
+    words: ["hope", "bone", "rope", "vote", "joke", "cone", "note", "rode", "home", "nose", "close", "stove"],
+    sentences: [
+      "I hope we can vote at home.",
+      "The dog has a bone and a rope.",
+      "We rode home to write a note.",
+      "That joke made my nose feel funny.",
+      "Close the stove and get a cone."
+    ],
+    fillBlanks: ["h__e", "b__e", "r__e", "v__e", "j__e", "c__e", "n__e", "r__e", "h__e", "n__e", "cl__e", "st__e"]
+  },
+  {
+    mainTitle: "SILENT E WORDS",
+    lessonNumber: 5,
+    letterTile: "u_e",
+    imageCaption: "cute",
+    imagePath: "",
+    introText: "U_e can spell two different sounds — the /yoo/ in \"cute\" or the /oo/ in \"flute\" — so listen closely to each word as you say it.",
+    words: ["cute", "cube", "mule", "tune", "huge", "use", "flute", "rule", "June", "rude", "prune", "dune"],
+    sentences: [
+      "Kate can use a huge cube to make a cake.",
+      "This cute mule can hum a tune.",
+      "It is not nice to be rude.",
+      "In June we play the flute by the dune.",
+      "We know the rule about eating a prune."
+    ],
+    fillBlanks: ["c__e", "c__e", "m__e", "t__e", "h__e", "u_e", "fl__e", "r__e", "J__e", "r__e", "pr__e", "d__e"]
+  },
+
+  // ==================== DIGRAPH-BLENDS ====================
+  {
+    mainTitle: "DIGRAPH-BLENDS",
+    lessonNumber: 6,
+    letterTile: "shr",
+    imageCaption: "shred",
+    imagePath: "",
+    introText: "Shr blends three sounds smoothly into one: /s/ + /h/ + /r/. Say each word out loud and listen for that blended start.",
+    words: ["shred", "shrimp", "shrink", "shrub", "shrug", "shrine", "shroud", "shrew", "shriek", "shrill", "shrank", "shrewd"],
+    sentences: [
+      "I saw a shrimp by the shrub.",
+      "This shirt will shrink if it gets wet.",
+      "She gave a shrug at the shrine.",
+      "The mouse gave a shrill shriek.",
+      "The shrewd fox shrank back from the shrew."
+    ],
+    fillBlanks: ["___ed", "___imp", "___ink", "___ub", "___ug", "___ine", "___oud", "___ew", "___iek", "___ill", "___ank", "___ewd"]
+  },
+  {
+    mainTitle: "DIGRAPH-BLENDS",
+    lessonNumber: 7,
+    letterTile: "thr",
+    imageCaption: "throw",
+    imagePath: "",
+    introText: "Thr combines /th/ and /r/ right at the front of a word. Say each word out loud and listen for the blend.",
+    words: ["throw", "throat", "three", "thread", "thrill", "throne", "thrash", "thrift", "throng", "thrive", "throb", "thrust"],
+    sentences: [
+      "I can throw the ball three times.",
+      "My throat feels a thrill from the cold thread.",
+      "The king sat on his throne.",
+      "A throng of kids will thrive at thrift camp.",
+      "My hand will throb if I thrust it too fast."
+    ],
+    fillBlanks: ["___ow", "___oat", "___ee", "___ead", "___ill", "___one", "___ash", "___ift", "___ong", "___ive", "___ob", "___ust"]
+  },
+  {
+    mainTitle: "DIGRAPH-BLENDS",
+    lessonNumber: 8,
+    letterTile: "sch",
+    imageCaption: "school",
+    imagePath: "",
+    introText: "In sch words, the h is silent and the whole team of letters just makes the /sk/ sound. Say each word out loud and listen for it.",
+    words: ["school", "schedule", "scheme", "scholar", "schooner", "schnauzer"],
+    sentences: [
+      "We go to school every day.",
+      "My teacher made a schedule for us.",
+      "The scholar had a good scheme for reading.",
+      "A schooner is a kind of boat.",
+      "Our dog is a schnauzer."
+    ],
+    fillBlanks: ["___ool", "___edule", "___eme", "___olar", "___ooner", "___nauzer"]
+  },
+
+  // ==================== R-CONTROLLED VOWELS (IRREGULAR SOUNDS) ====================
+  {
+    mainTitle: "R-CONTROLLED VOWELS (IRREGULAR SOUNDS)",
+    lessonNumber: 9,
+    letterTile: "ar(or)",
+    imageCaption: "war",
+    imagePath: "",
+    introText: "When w comes before ar, it changes the vowel's sound completely — ar after w usually says /or/, as in \"war\" and \"warm.\" Say each word out loud and listen closely.",
+    words: ["war", "warm", "ward", "award", "reward", "toward", "forward", "dwarf", "warn", "warp", "wart", "swarm"],
+    sentences: [
+      "It is warm today, not like the war.",
+      "I will walk toward the forward gate.",
+      "The dwarf got an award as a reward.",
+      "I warn you not to warp the wood.",
+      "A swarm of bees flew by the wart on the tree."
+    ],
+    fillBlanks: ["w_r", "w__m", "w__d", "a___d", "r____d", "t____d", "f_____d", "d___f", "w__n", "w__p", "w__t", "sw__m"]
+  },
+  {
+    mainTitle: "R-CONTROLLED VOWELS (IRREGULAR SOUNDS)",
+    lessonNumber: 10,
+    letterTile: "or(er)",
+    imageCaption: "worm",
+    imagePath: "",
+    introText: "W also changes the sound of or — wor usually says /er/, as in \"worm\" and \"world.\" Say each word out loud and listen for that twist.",
+    words: ["worm", "word", "work", "world", "worse", "worst", "worth", "worry", "worn", "worked", "worst", "worthy"],
+    sentences: [
+      "The worm did not say a word.",
+      "I have to work hard in this world.",
+      "This shirt is worn and worse than that one.",
+      "Do not worry, it is worth it.",
+      "She worked hard to be worthy of the prize."
+    ],
+    fillBlanks: ["w__m", "w__d", "w__k", "w___d", "w___e", "w___t", "w__th", "w___y", "w__n", "w___ed", "w___t", "w___hy"]
+  },
+
+  // ==================== AGENT SUFFIXES -OR, -ER ====================
+  {
+    mainTitle: "AGENT SUFFIXES -OR, -ER",
+    lessonNumber: 11,
+    letterTile: "or(a)",
+    imageCaption: "actor",
+    imagePath: "",
+    introText: "The ending -or often names a person who does something, like an actor or a visitor, and it says a quiet, unstressed /er/ sound. Say each word out loud and listen for it.",
+    words: ["actor", "doctor", "visitor", "sailor", "tailor", "vendor", "mayor", "author", "editor", "senator", "sponsor", "tractor"],
+    sentences: [
+      "The actor and the doctor are friends.",
+      "A visitor met the tailor by the door.",
+      "The vendor sold food to the mayor.",
+      "The author asked the editor for help.",
+      "A senator rode on the tractor with a sponsor."
+    ],
+    fillBlanks: ["a___r", "d____r", "v_____r", "s____r", "t____r", "v____r", "m___r", "a____r", "e____r", "s_____r", "s_____r", "t_____r"]
+  },
+  {
+    mainTitle: "AGENT SUFFIXES -OR, -ER",
+    lessonNumber: 12,
+    letterTile: "er(a)",
+    imageCaption: "camper",
+    imagePath: "",
+    introText: "-Er is the most common way to spell the /er/ sound at the end of a word, as in \"camper\" and \"teacher.\" Say each word out loud and listen for it.",
+    words: ["camper", "bigger", "better", "water", "helper", "never", "summer", "fever", "smaller", "lower", "farmer", "teacher"],
+    sentences: [
+      "The camper got a bigger cup of water.",
+      "My helper is never late in the summer.",
+      "She had a fever, but she is better now.",
+      "The smaller farmer stood lower than the fence.",
+      "My teacher is a good helper too."
+    ],
+    fillBlanks: ["c____r", "b____r", "b____r", "w___r", "h____r", "n___r", "s____r", "f___r", "s_____r", "l___r", "f____r", "t_____r"]
+  },
+
+  // ==================== PHONOGRAMS WITH LONG VOWELS 2 ====================
+  {
+    mainTitle: "PHONOGRAMS WITH LONG VOWELS 2",
+    lessonNumber: 13,
+    letterTile: "old",
+    imageCaption: "cold",
+    imagePath: "",
+    introText: "Old is a steady spelling pattern — the o keeps its long sound even in front of two consonants. Say each word out loud and listen for the long o.",
+    words: ["cold", "bold", "sold", "hold", "gold", "mold", "scold", "told", "fold", "old"],
+    sentences: [
+      "It is cold, so hold my hand.",
+      "The old dog was bold and gold.",
+      "She sold and told us not to be cold.",
+      "Do not scold me for the mold.",
+      "I will fold my old, gold shirt."
+    ],
+    fillBlanks: ["c__d", "b__d", "s__d", "h__d", "g__d", "m__d", "sc__d", "t__d", "f__d", "__d"]
+  },
+  {
+    mainTitle: "PHONOGRAMS WITH LONG VOWELS 2",
+    lessonNumber: 14,
+    letterTile: "oll",
+    imageCaption: "roll",
+    imagePath: "",
+    introText: "Like old, oll keeps its long o sound, as in \"roll\" and \"stroll.\" Say each word out loud and listen for it.",
+    words: ["poll", "toll", "roll", "scroll", "stroll", "doll", "troll", "knoll"],
+    sentences: [
+      "I will roll the doll down the hill.",
+      "We took a stroll by the toll road.",
+      "She read the scroll at the poll.",
+      "A troll sat on the knoll.",
+      "Roll the doll to the top of the knoll."
+    ],
+    fillBlanks: ["p__l", "t__l", "r__l", "scr__l", "str__l", "d__l", "tr__l", "kn__l"]
+  },
+  {
+    mainTitle: "PHONOGRAMS WITH LONG VOWELS 2",
+    lessonNumber: 15,
+    letterTile: "olt",
+    imageCaption: "bolt",
+    imagePath: "",
+    introText: "Olt belongs to the same long-o family as old and oll. Say each word out loud and listen for the long o before \"lt.\"",
+    words: ["bolt", "volt", "jolt", "molt", "colt", "dolt"],
+    sentences: [
+      "The bolt fell with a jolt.",
+      "The colt will molt this spring.",
+      "That volt of power gave me a jolt.",
+      "Do not call him a dolt.",
+      "The colt ran fast after the jolt."
+    ],
+    fillBlanks: ["b__t", "v__t", "j__t", "m__t", "c__t", "d__t"]
+  },
+  {
+    mainTitle: "PHONOGRAMS WITH LONG VOWELS 2",
+    lessonNumber: 16,
+    letterTile: "oth",
+    imageCaption: "both",
+    imagePath: "",
+    introText: "Oth usually keeps the long o sound, as in \"both\" — though a few words in this family can also say a short o, so listen carefully to each one.",
+    words: ["both", "moth", "cloth", "broth", "sloth"],
+    sentences: [
+      "Both the moth and the sloth are slow.",
+      "I spilled broth on the cloth.",
+      "The moth flew near the cloth.",
+      "A sloth ate broth for lunch.",
+      "Both animals liked the warm broth."
+    ],
+    fillBlanks: ["b__h", "m__h", "cl__h", "br__h", "sl__h"]
+  },
+  {
+    mainTitle: "PHONOGRAMS WITH LONG VOWELS 2",
+    lessonNumber: 17,
+    letterTile: "ost",
+    imageCaption: "most",
+    imagePath: "",
+    introText: "Most ost words say a long o, as in \"most\" and \"toast,\" but a couple of common exceptions (like \"cost\") do not — say each word out loud and listen for which sound it uses.",
+    words: ["most", "post", "host", "ghost", "almost", "toast", "coast", "roast"],
+    sentences: [
+      "Most kids like toast in the morning.",
+      "The host put up a post by the coast.",
+      "I am almost done with my roast.",
+      "A ghost sat by the mail post.",
+      "We ate roast and toast on the coast."
+    ],
+    fillBlanks: ["m__t", "p__t", "h__t", "gh__t", "alm__t", "t__st", "c__st", "r__st"]
+  },
+  {
+    mainTitle: "PHONOGRAMS WITH LONG VOWELS 2",
+    lessonNumber: 18,
+    letterTile: "ind",
+    imageCaption: "find",
+    imagePath: "",
+    introText: "Ind usually keeps its long i sound, as in \"find\" and \"kind.\" Say each word out loud and listen for it.",
+    words: ["find", "kind", "mind", "wind", "grind", "behind", "remind", "blind"],
+    sentences: [
+      "I will find my kind, blind dog.",
+      "Please remind me to wind the clock.",
+      "Do you mind if I sit behind you?",
+      "The wind will grind the old leaves.",
+      "Be kind and remind your friend."
+    ],
+    fillBlanks: ["f__d", "k__d", "m__d", "w__d", "gr__d", "beh__d", "rem__d", "bl__d"]
+  },
+  {
+    mainTitle: "PHONOGRAMS WITH LONG VOWELS 2",
+    lessonNumber: 19,
+    letterTile: "ild",
+    imageCaption: "child",
+    imagePath: "",
+    introText: "Ild is a short but dependable long-i pattern, as in \"child\" and \"wild.\" Say each word out loud and listen for it.",
+    words: ["mild", "wild", "child"],
+    sentences: [
+      "The child was mild and kind.",
+      "A wild dog ran by the child.",
+      "It was a mild day for the child to play.",
+      "The wild wind did not scare the child.",
+      "That child likes wild and mild days."
+    ],
+    fillBlanks: ["m__d", "w__d", "ch__d"]
+  },
+  {
+    mainTitle: "PHONOGRAMS WITH LONG VOWELS 2",
+    lessonNumber: 20,
+    letterTile: "ull",
+    imageCaption: "full",
+    imagePath: "",
+    introText: "Ull says the short /oo/ sound, as in \"full\" and \"pull.\" Say each word out loud and listen for it.",
+    words: ["full", "bull", "pull", "fully"],
+    sentences: [
+      "The cup is full of water.",
+      "Pull the bull to the barn.",
+      "I fully filled the full cup.",
+      "The bull did not want to pull.",
+      "We pull and fill it up full."
+    ],
+    fillBlanks: ["f__l", "b__l", "p__l", "f__ly"]
+  },
+  {
+    mainTitle: "PHONOGRAMS WITH LONG VOWELS 2",
+    lessonNumber: 21,
+    letterTile: "ush",
+    imageCaption: "push",
+    imagePath: "",
+    introText: "Ush also uses that short /oo/-ish sound, as in \"push\" and \"rush.\" Say each word out loud and listen for it.",
+    words: ["push", "bush", "hush", "mush", "rush", "gush", "blush", "flush"],
+    sentences: [
+      "Push the bush out of the way.",
+      "Hush now, do not rush.",
+      "The mush made me blush.",
+      "Water will gush and flush the sink.",
+      "Do not rush or push your friend."
+    ],
+    fillBlanks: ["p__h", "b__h", "h__h", "m__h", "r__h", "g__h", "bl__h", "fl__h"]
+  },
+  {
+    mainTitle: "PHONOGRAMS WITH LONG VOWELS 2",
+    lessonNumber: 22,
+    letterTile: "ul",
+    imageCaption: "careful",
+    imagePath: "",
+    introText: "The suffix -ful means \"full of\" and is always spelled with just one l, even though it sounds like it could have two. Say each word out loud and listen for the ending.",
+    words: ["careful", "helpful", "playful", "hopeful", "useful", "thankful"],
+    sentences: [
+      "Be careful and helpful today.",
+      "The playful dog is hopeful for a treat.",
+      "This tool is useful and helpful.",
+      "I am thankful for my careful friend.",
+      "She is hopeful and thankful too."
+    ],
+    fillBlanks: ["c_____l", "h_____l", "p_____l", "h_____l", "u____l", "t______l"]
+  },
+  {
+    mainTitle: "PHONOGRAMS WITH LONG VOWELS 2",
+    lessonNumber: 23,
+    letterTile: "ut",
+    imageCaption: "put",
+    imagePath: "",
+    introText: "Watch out for ut — it can say the short u in \"cut,\" or the /oo/ sound in \"put.\" Say each word out loud and listen for which one you hear.",
+    words: ["put", "but", "cut", "nut", "shut", "strut"],
+    sentences: [
+      "Put the nut on the table.",
+      "I will cut it, but shut the door first.",
+      "The bird will strut and cut in line.",
+      "Please shut the door and put it away.",
+      "But I want to cut this nut."
+    ],
+    fillBlanks: ["p_t", "b_t", "c_t", "n_t", "sh_t", "str_t"]
+  },
+
+  // ==================== PHONOGRAMS WITH SHORT VOWELS ====================
+  {
+    mainTitle: "PHONOGRAMS WITH SHORT VOWELS",
+    lessonNumber: 24,
+    letterTile: "all",
+    imageCaption: "ball",
+    imagePath: "",
+    introText: "All keeps its own steady sound no matter which letter comes before it, as in \"ball\" and \"small.\" Say each word out loud and listen for it.",
+    words: ["ball", "tall", "wall", "call", "hall", "mall", "fall", "small"],
+    sentences: [
+      "I will call you at the mall.",
+      "The ball hit the tall wall.",
+      "We will fall down the hall.",
+      "A small ball rolled by the wall.",
+      "Call me if you fall at the mall."
+    ],
+    fillBlanks: ["b__l", "t__l", "w__l", "c__l", "h__l", "m__l", "f__l", "sm__l"]
+  },
+  {
+    mainTitle: "PHONOGRAMS WITH SHORT VOWELS",
+    lessonNumber: 25,
+    letterTile: "al",
+    imageCaption: "walk",
+    imagePath: "",
+    introText: "Before k or t, al often goes quiet on the l, as in \"walk\" and \"talk.\" Say each word out loud and listen for the missing l sound.",
+    words: ["walk", "chalk", "talk", "salt", "malt", "halt"],
+    sentences: [
+      "We walk and talk on the way to school.",
+      "I have chalk and salt in my bag.",
+      "Halt at the sign before you walk.",
+      "We will talk about the malt shop.",
+      "Do not put too much salt on it."
+    ],
+    fillBlanks: ["w__k", "ch__k", "t__k", "s__t", "m__t", "h__t"]
+  },
+
+  // ==================== VOWEL DIGRAPHS (AI, -AY) ====================
+  {
+    mainTitle: "VOWEL DIGRAPHS (AI, -AY)",
+    lessonNumber: 26,
+    letterTile: "ai (long a)",
+    imageCaption: "rain",
+    imagePath: "",
+    introText: "Ai spells the long a sound in the middle of a word or syllable, as in \"rain\" and \"train.\" Say each word out loud and listen for it.",
+    words: ["rain", "mail", "jail", "wait", "gain", "train", "brain", "chain", "paint", "tail"],
+    sentences: [
+      "We wait for the mail in the rain.",
+      "The train has a long chain.",
+      "I will paint the tail of the train.",
+      "Use your brain to gain a good grade.",
+      "The jail is by the train tracks."
+    ],
+    fillBlanks: ["r__n", "m__l", "j__l", "w__t", "g__n", "tr__n", "br__n", "ch__n", "p__nt", "t__l"]
+  },
+  {
+    mainTitle: "VOWEL DIGRAPHS (AI, -AY)",
+    lessonNumber: 27,
+    letterTile: "-ay (long a)",
+    imageCaption: "play",
+    imagePath: "",
+    introText: "Ay spells that same long a sound, but at the end of a word, as in \"play\" and \"day.\" Ai and ay are a team — just used in different spots. Say each word out loud and listen.",
+    words: ["play", "day", "way", "say", "stay", "may", "gray", "tray", "away", "today"],
+    sentences: [
+      "We play every day after school.",
+      "May I stay away from the rain?",
+      "Say what you want to do today.",
+      "The gray tray is on the way.",
+      "I may play in a gray shirt today."
+    ],
+    fillBlanks: ["pl_y", "d_y", "w_y", "s_y", "st_y", "m_y", "gr_y", "tr_y", "aw_y", "tod_y"]
+  },
+
+  // ==================== VOWEL DIGRAPHS (EE, -EY) ====================
+  {
+    mainTitle: "VOWEL DIGRAPHS (EE, -EY)",
+    lessonNumber: 28,
+    letterTile: "ee (long e)",
+    imageCaption: "tree",
+    imagePath: "",
+    introText: "Ee is the most common way to spell the long e sound, as in \"tree\" and \"sweet.\" Say each word out loud and listen for it.",
+    words: ["tree", "see", "bee", "sleep", "week", "sweet", "free", "deep", "green", "keep"],
+    sentences: [
+      "I can see a bee in the tree.",
+      "We sleep every week and keep our sweet dreams.",
+      "The tree is free and green.",
+      "The pool is deep, so we keep away.",
+      "This week I will keep my tree green."
+    ],
+    fillBlanks: ["tr__", "s__", "b__", "sl__p", "w__k", "sw__t", "fr__", "d__p", "gr__n", "k__p"]
+  },
+  {
+    mainTitle: "VOWEL DIGRAPHS (EE, -EY)",
+    lessonNumber: 29,
+    letterTile: "-ey (long e)",
+    imageCaption: "key",
+    imagePath: "",
+    introText: "At the end of a word, ey can also spell the long e sound, as in \"key\" and \"money.\" Say each word out loud and listen for it.",
+    words: ["key", "money", "honey", "monkey", "donkey", "turkey"],
+    sentences: [
+      "I lost the key to the money box.",
+      "The monkey likes sweet honey.",
+      "A donkey and a turkey play in the tree.",
+      "Keep the key and the honey safe.",
+      "The monkey has a key for the money."
+    ],
+    fillBlanks: ["k_y", "mon_y", "hon_y", "monk_y", "donk_y", "turk_y"]
+  },
+
+  // ==================== VOWEL DIGRAPHS (EA) ====================
+  {
+    mainTitle: "VOWEL DIGRAPHS (EA)",
+    lessonNumber: 30,
+    letterTile: "ea (long e)",
+    imageCaption: "beach",
+    imagePath: "",
+    introText: "Ea often spells the long e sound, as in \"beach\" and \"read.\" Say each word out loud and listen for it.",
+    words: ["beach", "meat", "seat", "speak", "team", "read", "clean", "each", "leaf", "cream"],
+    sentences: [
+      "We read at the beach each week.",
+      "My team will speak about the leaf.",
+      "Take a seat and eat your meat.",
+      "Clean up the cream from the seat.",
+      "Each team will read on the beach."
+    ],
+    fillBlanks: ["b__ch", "m__t", "s__t", "sp__k", "t__m", "r__d", "cl__n", "__ch", "l__f", "cr__m"]
+  },
+  {
+    mainTitle: "VOWEL DIGRAPHS (EA)",
+    lessonNumber: 31,
+    letterTile: "ea (short e)",
+    imageCaption: "bread",
+    imagePath: "",
+    introText: "Ea can surprise you — in these words it spells short e instead, as in \"bread\" and \"head.\" Say each word out loud and listen for the different sound.",
+    words: ["bread", "head", "instead", "spread", "meant", "ready", "heavy", "weather"],
+    sentences: [
+      "I meant to spread bread on my head.",
+      "Instead of a heavy bag, I am ready.",
+      "The weather is not ready for us.",
+      "Spread the bread instead of the jam.",
+      "My head is ready for good weather."
+    ],
+    fillBlanks: ["br__d", "h__d", "inst__d", "spr__d", "m__nt", "r__dy", "h__vy", "w__ther"]
+  },
+  {
+    mainTitle: "VOWEL DIGRAPHS (EA)",
+    lessonNumber: 32,
+    letterTile: "ea (long a)",
+    imageCaption: "great",
+    imagePath: "",
+    introText: "In just a handful of words, ea unexpectedly spells long a, as in \"great\" and \"break.\" Say each word out loud and listen for it.",
+    words: ["great", "break", "steak"],
+    sentences: [
+      "We had a great day off with no break.",
+      "I will break for a steak dinner.",
+      "That was a great steak.",
+      "Take a break, it is great outside.",
+      "We ate steak on this great day."
+    ],
+    fillBlanks: ["gr__t", "br__k", "st__k"]
+  },
+
+  // ==================== VOWEL DIGRAPHS (IE) ====================
+  {
+    mainTitle: "VOWEL DIGRAPHS (IE)",
+    lessonNumber: 33,
+    letterTile: "ie (long e)",
+    imageCaption: "field",
+    imagePath: "",
+    introText: "Ie usually spells the long e sound, as in \"field\" and \"chief\" — think of the old rule \"i before e.\" Say each word out loud and listen.",
+    words: ["field", "brief", "chief", "piece", "shield", "belief"],
+    sentences: [
+      "The chief ran across the field.",
+      "I have a brief belief about this piece.",
+      "He held a shield in the field.",
+      "Take a piece of the shield.",
+      "Our chief has a brief plan for the field."
+    ],
+    fillBlanks: ["f__ld", "br__f", "ch__f", "p__ce", "sh__ld", "bel__f"]
+  },
+  {
+    mainTitle: "VOWEL DIGRAPHS (IE)",
+    lessonNumber: 34,
+    letterTile: "ie (long i)",
+    imageCaption: "pie",
+    imagePath: "",
+    introText: "At the end of a word, ie can also spell long i, as in \"pie\" and \"tie.\" Say each word out loud and listen for the different sound.",
+    words: ["lie", "tie", "die", "pie", "tried", "cried"],
+    sentences: [
+      "I tried to tie my shoe.",
+      "We cried when the pie fell.",
+      "Do not lie about the pie.",
+      "He tried not to lie or cried.",
+      "I tied the tie before I tried the pie."
+    ],
+    fillBlanks: ["l__", "t__", "d__", "p__", "tr__d", "cr__d"]
+  },
+
+  // ==================== VOWEL DIGRAPHS (AW, AU) ====================
+  {
+    mainTitle: "VOWEL DIGRAPHS (AW, AU)",
+    lessonNumber: 35,
+    letterTile: "aw (or)",
+    imageCaption: "saw",
+    imagePath: "",
+    introText: "Aw spells the /aw/ sound, usually at the end of a word or syllable, as in \"saw\" and \"paw.\" Say each word out loud and listen for it.",
+    words: ["saw", "law", "paw", "draw", "claw", "yawn", "dawn", "straw"],
+    sentences: [
+      "I saw a paw with a claw.",
+      "We draw the law with a straw.",
+      "At dawn, I gave a big yawn.",
+      "Draw the paw before dawn.",
+      "The claw and paw made me yawn."
+    ],
+    fillBlanks: ["s_w", "l_w", "p_w", "dr_w", "cl_w", "y__n", "d__n", "str_w"]
+  },
+  {
+    mainTitle: "VOWEL DIGRAPHS (AW, AU)",
+    lessonNumber: 36,
+    letterTile: "au (or)",
+    imageCaption: "sauce",
+    imagePath: "",
+    introText: "Au spells that same /aw/ sound, but in the middle of a word, as in \"sauce\" and \"autumn.\" Say each word out loud and listen for it.",
+    words: ["sauce", "cause", "fault", "haul", "autumn", "caught", "taught"],
+    sentences: [
+      "I caught the sauce before it spilled.",
+      "It was my fault, not the cause.",
+      "We haul leaves in autumn.",
+      "My teacher taught me about autumn.",
+      "The cause of the fault was caught."
+    ],
+    fillBlanks: ["s__ce", "c__se", "f__lt", "h__l", "__tumn", "c__ght", "t__ght"]
+  },
+
+  // ==================== VOWEL DIGRAPHS (OA, -OE) ====================
+  {
+    mainTitle: "VOWEL DIGRAPHS (OA, -OE)",
+    lessonNumber: 37,
+    letterTile: "oa (long o)",
+    imageCaption: "boat",
+    imagePath: "",
+    introText: "Oa spells the long o sound in the middle of a word, as in \"boat\" and \"coat.\" Say each word out loud and listen for it.",
+    words: ["boat", "coat", "soak", "toad", "road", "goal"],
+    sentences: [
+      "I wore my coat on the boat.",
+      "The toad will soak in the road.",
+      "Our goal is to cross the road.",
+      "Soak the coat before you get on the boat.",
+      "The toad sat by the road near the boat."
+    ],
+    fillBlanks: ["b__t", "c__t", "s__k", "t__d", "r__d", "g__l"]
+  },
+  {
+    mainTitle: "VOWEL DIGRAPHS (OA, -OE)",
+    lessonNumber: 38,
+    letterTile: "-oe (long o)",
+    imageCaption: "toe",
+    imagePath: "",
+    introText: "Oe spells the long o sound at the end of a word, as in \"toe\" and \"Joe.\" Say each word out loud and listen for it.",
+    words: ["toe", "doe", "hoe", "Joe", "goes"],
+    sentences: [
+      "Joe hurt his toe with a hoe.",
+      "The doe goes by the road.",
+      "My toe goes into my shoe.",
+      "Joe goes to see the doe.",
+      "The hoe fell near Joe's toe."
+    ],
+    fillBlanks: ["t__", "d__", "h__", "J__", "g__s"]
+  },
+
+  // ==================== VOWEL DIGRAPHS (OW) ====================
+  {
+    mainTitle: "VOWEL DIGRAPHS (OW)",
+    lessonNumber: 39,
+    letterTile: "-ow (long o)",
+    imageCaption: "snow",
+    imagePath: "",
+    introText: "Ow can spell the long o sound, as in \"snow\" and \"grow.\" Say each word out loud and listen for it.",
+    words: ["row", "grow", "show", "flow", "blow", "glow", "slow", "snow"],
+    sentences: [
+      "The snow will grow and show its glow.",
+      "Row the boat in the slow flow.",
+      "Blow on the snow to see it glow.",
+      "We grow slow in the snow.",
+      "Show me how the water will flow."
+    ],
+    fillBlanks: ["r_w", "gr_w", "sh_w", "fl_w", "bl_w", "gl_w", "sl_w", "sn_w"]
+  },
+
+  // ==================== VOWEL DIGRAPHS (-UE, -EW) ====================
+  {
+    mainTitle: "VOWEL DIGRAPHS (-UE, -EW)",
+    lessonNumber: 40,
+    letterTile: "-ue (long u)",
+    imageCaption: "glue",
+    imagePath: "",
+    introText: "Ue spells the long u sound, as in \"glue\" and \"blue.\" Say each word out loud and listen for it.",
+    words: ["glue", "blue", "true", "due", "clue", "cue"],
+    sentences: [
+      "I used glue to fix my blue cup.",
+      "It is true that I found a clue.",
+      "My work is due today.",
+      "Give me a cue for the true clue.",
+      "The blue glue is due for the clue."
+    ],
+    fillBlanks: ["gl__", "bl__", "tr__", "d__", "cl__", "c__"]
+  },
+  {
+    mainTitle: "VOWEL DIGRAPHS (-UE, -EW)",
+    lessonNumber: 41,
+    letterTile: "-ew (long u)",
+    imageCaption: "new",
+    imagePath: "",
+    introText: "Ew also spells the long u sound, as in \"new\" and \"grew.\" Say each word out loud and listen for it.",
+    words: ["new", "few", "flew", "grew", "chew", "stew", "crew", "drew"],
+    sentences: [
+      "I drew a picture of a new crew.",
+      "We grew a few plants for the stew.",
+      "The bird flew as I chew my food.",
+      "A few of the crew grew tall.",
+      "Drew flew to get a new stew."
+    ],
+    fillBlanks: ["n_w", "f_w", "fl_w", "gr_w", "ch_w", "st_w", "cr_w", "dr_w"]
+  },
+
+  // ==================== DIPHTHONGS (OW, OU) ====================
+  {
+    mainTitle: "DIPHTHONGS (OW, OU)",
+    lessonNumber: 42,
+    letterTile: "ow (a + w)",
+    imageCaption: "cow",
+    imagePath: "",
+    introText: "Ow can also spell a completely different sound, the /ow/ diphthong, as in \"cow\" and \"town.\" Same letters, new sound — say each word out loud and listen closely.",
+    words: ["how", "cow", "town", "down", "brown", "crown", "now", "frown"],
+    sentences: [
+      "How is the brown cow in town?",
+      "Sit down now, do not frown.",
+      "The king wore a brown crown.",
+      "Now the cow walks down to town.",
+      "Do not frown, sit down now."
+    ],
+    fillBlanks: ["h_w", "c_w", "t__n", "d__n", "br__n", "cr__n", "n_w", "fr__n"]
+  },
+  {
+    mainTitle: "DIPHTHONGS (OW, OU)",
+    lessonNumber: 43,
+    letterTile: "ou (a + w)",
+    imageCaption: "cloud",
+    imagePath: "",
+    introText: "Ou spells that same /ow/ diphthong, as in \"cloud\" and \"sound.\" Say each word out loud and listen for it.",
+    words: ["cloud", "found", "mouse", "out", "sound", "count", "ground", "shout", "loud", "house"],
+    sentences: [
+      "I found a mouse out by the cloud.",
+      "The loud sound made the house shake.",
+      "Count the clouds on the ground.",
+      "Do not shout, the mouse is out.",
+      "The sound of the house is loud."
+    ],
+    fillBlanks: ["cl__d", "f__nd", "m__se", "__t", "s__nd", "c__nt", "gr__nd", "sh__t", "l__d", "h__se"]
+  },
+
+  // ==================== DIPHTHONGS (OI, OY) ====================
+  {
+    mainTitle: "DIPHTHONGS (OI, OY)",
+    lessonNumber: 44,
+    letterTile: "oi (o + i)",
+    imageCaption: "coin",
+    imagePath: "",
+    introText: "Oi spells the /oy/ diphthong in the middle of a word, as in \"coin\" and \"oil.\" Say each word out loud and listen for it.",
+    words: ["boil", "soil", "coin", "oil", "join", "point", "noise", "voice"],
+    sentences: [
+      "I found a coin in the soil.",
+      "Join us as we boil the oil.",
+      "Her voice made a loud noise.",
+      "Point to the coin in the soil.",
+      "The noise came from the boiling oil."
+    ],
+    fillBlanks: ["b__l", "s__l", "c__n", "__l", "j__n", "p__nt", "n__se", "v__ce"]
+  },
+  {
+    mainTitle: "DIPHTHONGS (OI, OY)",
+    lessonNumber: 45,
+    letterTile: "oy (o + i)",
+    imageCaption: "boy",
+    imagePath: "",
+    introText: "Oy spells that same /oy/ sound, but at the end of a word, as in \"boy\" and \"toy.\" Say each word out loud and listen for it.",
+    words: ["boy", "toy", "joy", "enjoy"],
+    sentences: [
+      "The boy has a new toy.",
+      "I enjoy playing with joy.",
+      "That toy brings the boy joy.",
+      "The boy will enjoy his toy today.",
+      "We enjoy the joy of a new toy."
+    ],
+    fillBlanks: ["b_y", "t_y", "j_y", "enj_y"]
+  },
+
+  // ==================== DIPHTHONGS (OO) ====================
+  {
+    mainTitle: "DIPHTHONGS (OO)",
+    lessonNumber: 46,
+    letterTile: "oo (long u)",
+    imageCaption: "moon",
+    imagePath: "",
+    introText: "Oo can spell a long, breathy /oo/ sound, as in \"moon\" and \"food.\" Say each word out loud and listen for it.",
+    words: ["boot", "moon", "soon", "roof", "spoon", "cool", "food", "pool"],
+    sentences: [
+      "Soon we will see the moon.",
+      "I put my boot by the roof.",
+      "The spoon fell into the pool.",
+      "The food is cool by the pool.",
+      "We will eat food under the moon soon."
+    ],
+    fillBlanks: ["b__t", "m__n", "s__n", "r__f", "sp__n", "c__l", "f__d", "p__l"]
+  },
+  {
+    mainTitle: "DIPHTHONGS (OO)",
+    lessonNumber: 47,
+    letterTile: "oo (short u)",
+    imageCaption: "book",
+    imagePath: "",
+    introText: "Oo can also spell a shorter sound, as in \"book\" and \"look\" — the very same two letters making a different sound. Say each word out loud and listen closely.",
+    words: ["good", "hood", "foot", "look", "hook", "wood", "took", "book"],
+    sentences: [
+      "I took a good look at my book.",
+      "The hook fell from the wood.",
+      "Look at the hood on my foot.",
+      "We took the wood to make a hook.",
+      "That is a good book to look at."
+    ],
+    fillBlanks: ["g__d", "h__d", "f__t", "l__k", "h__k", "w__d", "t__k", "b__k"]
+  },
+
+  // ==================== Y AS VOWEL ====================
+  {
+    mainTitle: "Y AS VOWEL",
+    lessonNumber: 48,
+    letterTile: "y (short i)",
+    imageCaption: "gym",
+    imagePath: "",
+    introText: "In the middle of a word, y often acts like a short i, as in \"gym\" and \"myth.\" Say each word out loud and listen for it.",
+    words: ["gym", "myth", "system"],
+    sentences: [
+      "We go to the gym to hear the myth.",
+      "This system is not like the gym.",
+      "The myth is about the gym system.",
+      "I like the gym and the myth story.",
+      "Our system at the gym is new."
+    ],
+    fillBlanks: ["g_m", "m__h", "s___em"]
+  },
+  {
+    mainTitle: "Y AS VOWEL",
+    lessonNumber: 49,
+    letterTile: "y (long i)",
+    imageCaption: "fly",
+    imagePath: "",
+    introText: "At the end of a short word, y usually says long i, as in \"fly\" and \"sky.\" Say each word out loud and listen for it.",
+    words: ["fly", "try", "cry", "dry", "shy", "sky", "my", "why"],
+    sentences: [
+      "I will try to fly in the sky.",
+      "Do not cry, the sky is dry.",
+      "Why is my shy dog crying?",
+      "The fly went dry in my sky.",
+      "Try not to be shy in the sky."
+    ],
+    fillBlanks: ["fl_", "tr_", "cr_", "dr_", "sh_", "sk_", "m_", "wh_"]
+  },
+  {
+    mainTitle: "Y AS VOWEL",
+    lessonNumber: 50,
+    letterTile: "y (long e)",
+    imageCaption: "happy",
+    imagePath: "",
+    introText: "At the end of a longer word, y usually says long e instead, as in \"happy\" and \"candy.\" Say each word out loud and listen for the difference.",
+    words: ["happy", "party", "candy", "sleepy", "funny", "baby"],
+    sentences: [
+      "The happy baby is at the party.",
+      "I am sleepy after eating candy.",
+      "That funny baby makes me happy.",
+      "We had candy at the funny party.",
+      "The sleepy baby is happy now."
+    ],
+    fillBlanks: ["h___y", "p___y", "c___y", "sl___y", "f___y", "b__y"]
+  },
+
+  // ==================== WORDS BEGINNING WITH SHORT A ====================
+  {
+    mainTitle: "WORDS BEGINNING WITH SHORT A",
+    lessonNumber: 51,
+    letterTile: "a-",
+    imageCaption: "awake",
+    imagePath: "",
+    introText: "The prefix a- at the start of a word is usually said quickly and softly, like /uh/, as in \"awake\" and \"about.\" Say each word out loud and listen for that quiet beginning.",
+    words: ["awake", "aside", "apart", "alike", "about", "asleep", "ahead", "around"],
+    sentences: [
+      "I am awake and ready to go around.",
+      "Step aside and stay ahead of the game.",
+      "We are apart, but we look alike.",
+      "Talk about what is asleep ahead.",
+      "The dog was asleep, then awake and around."
+    ],
+    fillBlanks: ["a___e", "a___e", "a___t", "a___e", "a___t", "a____p", "a___d", "a____d"]
+  },
+
+  // ==================== RAINBOW C & J ====================
+  {
+    mainTitle: "RAINBOW C & J",
+    lessonNumber: 52,
+    letterTile: "c = s",
+    imageCaption: "cent",
+    imagePath: "",
+    introText: "When c is followed by e, i, or y, it softens and says /s/ instead of its usual hard sound, as in \"cent\" and \"city.\" Say each word out loud and listen for it.",
+    words: ["cent", "center", "nice", "mice", "city", "circle"],
+    sentences: [
+      "The nice mice live in the city.",
+      "I have one cent in the center.",
+      "Draw a circle in the center of the city.",
+      "The mice are nice and live in a circle.",
+      "One cent is not much in the city."
+    ],
+    fillBlanks: ["c__t", "c____r", "n__e", "m__e", "c__y", "c____e"]
+  },
+  {
+    mainTitle: "RAINBOW C & J",
+    lessonNumber: 53,
+    letterTile: "g = j",
+    imageCaption: "page",
+    imagePath: "",
+    introText: "When g is followed by e, i, or y, it can soften to say /j/, as in \"page\" and \"giant.\" Say each word out loud and listen for it.",
+    words: ["age", "page", "gym", "stage", "change", "giant"],
+    sentences: [
+      "The giant stood on the stage at his age.",
+      "Turn the page and change the story.",
+      "At my age, I like to go to the gym.",
+      "The giant will change on the next page.",
+      "We go to the gym and stand on the stage."
+    ],
+    fillBlanks: ["a_e", "p__e", "g_m", "s___e", "c____e", "g___t"]
+  },
+  {
+    mainTitle: "RAINBOW C & J",
+    lessonNumber: 54,
+    letterTile: "dge = j",
+    imageCaption: "bridge",
+    imagePath: "",
+    introText: "Dge also spells the /j/ sound, and it always follows a short vowel, as in \"bridge\" and \"judge.\" Say each word out loud and listen for it.",
+    words: ["bridge", "judge", "badge", "edge", "fridge", "lodge"],
+    sentences: [
+      "The judge crossed the bridge to the lodge.",
+      "I put my badge by the edge of the fridge.",
+      "The bridge is at the edge of the lodge.",
+      "The judge has a badge near the fridge.",
+      "Walk to the edge of the bridge to the lodge."
+    ],
+    fillBlanks: ["b____e", "j___e", "b___e", "e__e", "f____e", "l___e"]
+  },
+
+  // ==================== SOUNDS OF GH ====================
+  {
+    mainTitle: "SOUNDS OF GH",
+    lessonNumber: 55,
+    letterTile: "gh (silent)",
+    imageCaption: "night",
+    imagePath: "",
+    introText: "In many words, gh is completely silent — you just don't hear it at all, as in \"night\" and \"light.\" Say each word out loud and listen for the missing sound.",
+    words: ["night", "right", "light", "fight", "high", "sigh", "eight", "bright"],
+    sentences: [
+      "The light is bright at night.",
+      "I will fight for what is right.",
+      "The bird flew high with a sigh.",
+      "At eight, the night is bright.",
+      "Fight for the right, bright light."
+    ],
+    fillBlanks: ["n___t", "r___t", "l___t", "f___t", "h__h", "s__h", "e___t", "br___t"]
+  },
+  {
+    mainTitle: "SOUNDS OF GH",
+    lessonNumber: 56,
+    letterTile: "gh (f)",
+    imageCaption: "laugh",
+    imagePath: "",
+    introText: "In a smaller group of words, gh actually says /f/, as in \"laugh\" and \"tough.\" Say each word out loud and listen for the surprise sound.",
+    words: ["laugh", "tough", "cough", "rough", "enough"],
+    sentences: [
+      "I laugh at the rough, tough game.",
+      "That cough is enough for today.",
+      "The rough road made me laugh.",
+      "Enough laughing, my cough is tough.",
+      "It was a rough day, but I laugh enough."
+    ],
+    fillBlanks: ["l___h", "t___h", "c___h", "r___h", "en___h"]
+  },
+
+  // ==================== SOUNDS OF CH ====================
+  {
+    mainTitle: "SOUNDS OF CH",
+    lessonNumber: 57,
+    letterTile: "ch (k)",
+    imageCaption: "school",
+    imagePath: "",
+    introText: "In some words borrowed from Greek, ch says /k/ instead of its usual sound, as in \"school\" and \"chorus.\" Say each word out loud and listen for it.",
+    words: ["school", "chorus", "chemist", "chord", "echo"],
+    sentences: [
+      "The chorus sang at school today.",
+      "The chemist played a chord on the piano.",
+      "An echo came from the school chorus.",
+      "The chord had a nice echo.",
+      "At school, the chemist sang in the chorus."
+    ],
+    fillBlanks: ["s__ool", "__orus", "__emist", "__ord", "e__o"]
+  },
+  {
+    mainTitle: "SOUNDS OF CH",
+    lessonNumber: 58,
+    letterTile: "ch (tch)",
+    imageCaption: "church",
+    imagePath: "",
+    introText: "Ch usually makes its familiar sound at the start of a word, as in \"church\" and \"cheese.\" Say each word out loud and listen for it.",
+    words: ["church", "child", "chair", "cheese", "chest", "chase", "chill", "chop"],
+    sentences: [
+      "The child sat on a chair at church.",
+      "I will chase the cheese to the chest.",
+      "Chop the cheese before the chill sets in.",
+      "The child likes cheese and church.",
+      "Chase the chill away from the chest."
+    ],
+    fillBlanks: ["__urch", "__ild", "__air", "__eese", "__est", "__ase", "__ill", "__op"]
+  },
+
+  // ==================== SILENT LETTERS ====================
+  {
+    mainTitle: "SILENT LETTERS",
+    lessonNumber: 59,
+    letterTile: "k",
+    imageCaption: "knee",
+    imagePath: "",
+    introText: "When k comes right before n at the start of a word, the k stays completely silent, as in \"knee\" and \"knife.\" Say each word out loud and listen for the missing sound.",
+    words: ["knot", "knee", "knife", "know", "knock", "knight", "knit", "knuckle"],
+    sentences: [
+      "I know how to tie a knot.",
+      "The knight will knock on my knee.",
+      "Use a knife to cut the knit.",
+      "Knock on the door before you know.",
+      "My knee and knuckle hurt from the knot."
+    ],
+    fillBlanks: ["k__t", "k__e", "k___e", "k__w", "k___k", "k____t", "k__t", "k____le"]
+  },
+  {
+    mainTitle: "SILENT LETTERS",
+    lessonNumber: 60,
+    letterTile: "w",
+    imageCaption: "write",
+    imagePath: "",
+    introText: "When w comes right before r at the start of a word, the w stays silent, as in \"write\" and \"wrist.\" Say each word out loud and listen for the missing sound.",
+    words: ["write", "wrote", "wrist", "wrong", "wrap", "wreck"],
+    sentences: [
+      "I wrote the wrong word on my wrist.",
+      "Wrap the gift before the wreck.",
+      "Write it down before it is wrong.",
+      "My wrist hurts from the wreck.",
+      "Do not wrap the wrong wrist."
+    ],
+    fillBlanks: ["w___e", "w___e", "w___t", "w___g", "w__p", "w___k"]
+  },
+  {
+    mainTitle: "SILENT LETTERS",
+    lessonNumber: 61,
+    letterTile: "t",
+    imageCaption: "listen",
+    imagePath: "",
+    introText: "In some words, t goes silent right after s, as in \"listen\" and \"often.\" Say each word out loud and listen for the missing sound.",
+    words: ["listen", "hasten", "fasten", "soften", "often", "castle"],
+    sentences: [
+      "Listen and fasten your seatbelt often.",
+      "Soften the bread before you hasten.",
+      "I often listen to the castle story.",
+      "Fasten the castle gate and hasten home.",
+      "Often, we listen and soften our voice."
+    ],
+    fillBlanks: ["l____n", "h____n", "f____n", "s____n", "of__n", "cas__e"]
+  },
+  {
+    mainTitle: "SILENT LETTERS",
+    lessonNumber: 62,
+    letterTile: "b",
+    imageCaption: "comb",
+    imagePath: "",
+    introText: "When b follows m at the end of a word, it stays silent, as in \"comb\" and \"thumb.\" Say each word out loud and listen for the missing sound.",
+    words: ["comb", "climb", "crumb", "lamb", "limb", "thumb"],
+    sentences: [
+      "I comb my hair and climb the tree.",
+      "The lamb ate a crumb near the limb.",
+      "My thumb hurt when I climb.",
+      "Comb the lamb before it climbs.",
+      "A crumb fell from the limb by the lamb."
+    ],
+    fillBlanks: ["c__b", "c___b", "c___b", "l__b", "l__b", "th__b"]
+  },
+  {
+    mainTitle: "SILENT LETTERS",
+    lessonNumber: 63,
+    letterTile: "l",
+    imageCaption: "walk",
+    imagePath: "",
+    introText: "L often goes silent before f, k, m, or v, as in \"calf,\" \"walk,\" and \"calm.\" Say each word out loud and listen for the missing sound.",
+    words: ["would", "could", "should", "calf", "half", "calm", "talk", "chalk"],
+    sentences: [
+      "I could talk to the calm calf.",
+      "We should chalk half of the wall.",
+      "Would you walk with the calf?",
+      "Half of the calm calf could talk.",
+      "I should walk and talk calmly."
+    ],
+    fillBlanks: ["w___d", "c___d", "s____d", "c__f", "h__f", "c__m", "t__k", "ch__k"]
+  },
+
+  // ==================== SPELLING PATTERNS (SE, AS, IS) ====================
+  {
+    mainTitle: "SPELLING PATTERNS (SE, AS, IS)",
+    lessonNumber: 64,
+    letterTile: "se (z)",
+    imageCaption: "cheese",
+    imagePath: "",
+    introText: "At the end of a word, se can say /z/ instead of /s/, as in \"cheese\" and \"choose.\" Say each word out loud and listen for it.",
+    words: ["choose", "cheese", "tease", "pose", "chose", "rose", "wise", "please"],
+    sentences: [
+      "Choose the cheese, please.",
+      "I chose a rose and a pose.",
+      "Do not tease the wise rose.",
+      "Please choose wisely and pose nicely.",
+      "The wise cat chose the cheese, please."
+    ],
+    fillBlanks: ["c____e", "c____e", "t___e", "p__e", "c___e", "r__e", "w__e", "pl___e"]
+  },
+  {
+    mainTitle: "SPELLING PATTERNS (SE, AS, IS)",
+    lessonNumber: 65,
+    letterTile: "as (z)",
+    imageCaption: "has",
+    imagePath: "",
+    introText: "In these tiny, very common words, s says /z/ instead of its usual sound, as in \"has\" and \"was.\" Say each word out loud and listen for it.",
+    words: ["as", "has", "was"],
+    sentences: [
+      "She has as much as I was told.",
+      "It was as good as I thought.",
+      "He has a dog, as I do too.",
+      "As soon as she was here, he has fun.",
+      "Was it as fun as she has said?"
+    ],
+    fillBlanks: ["a_", "h_s", "w_s"]
+  },
+
+  // ==================== SPELLING PATTERNS (LE, TION, SION) ====================
+  {
+    mainTitle: "SPELLING PATTERNS (LE, TION, SION)",
+    lessonNumber: 66,
+    letterTile: "le",
+    imageCaption: "apple",
+    imagePath: "",
+    introText: "A final -le pairs a consonant with a quiet vowel sound to close out a word, as in \"apple\" and \"table.\" Say each word out loud and listen for that last syllable.",
+    words: ["apple", "table", "little", "candle", "purple", "circle"],
+    sentences: [
+      "The little apple sat on the table.",
+      "I lit a purple candle by the circle.",
+      "A little circle sat next to the table.",
+      "The purple apple is on the little table.",
+      "Draw a circle around the candle and apple."
+    ],
+    fillBlanks: ["app__", "tab__", "litt__", "cand__", "purp__", "circ__"]
+  },
+  {
+    mainTitle: "SPELLING PATTERNS (LE, TION, SION)",
+    lessonNumber: 67,
+    letterTile: "tion",
+    imageCaption: "station",
+    imagePath: "",
+    introText: "At the end of a word, tion says /shun/, as in \"station\" and \"nation.\" Say each word out loud and listen for it.",
+    words: ["station", "nation", "portion", "mention", "action", "motion"],
+    sentences: [
+      "We went to the station for the nation.",
+      "Please mention a portion of the plan.",
+      "The action was full of motion.",
+      "At the station, I saw a lot of motion.",
+      "Mention the nation and its action."
+    ],
+    fillBlanks: ["sta____", "na____", "por____", "men____", "ac____", "mo____"]
+  },
+  {
+    mainTitle: "SPELLING PATTERNS (LE, TION, SION)",
+    lessonNumber: 68,
+    letterTile: "sion",
+    imageCaption: "mission",
+    imagePath: "",
+    introText: "Sion also says /shun/, just like tion, as in \"mission\" and \"session.\" Say each word out loud and listen for it.",
+    words: ["mission", "session", "version"],
+    sentences: [
+      "Our mission is to finish this session.",
+      "This version of the mission is new.",
+      "The session was about a new version.",
+      "I like this version of our mission.",
+      "The mission will end this session."
+    ],
+    fillBlanks: ["mis____", "ses____", "ver____"]
+  },
+
+  // ==================== SPELLING PATTERNS (ED) ====================
+  {
+    mainTitle: "SPELLING PATTERNS (ED)",
+    lessonNumber: 69,
+    letterTile: "ed (ed)",
+    imageCaption: "added",
+    imagePath: "",
+    introText: "After a base word that ends in d or t, the ending -ed adds a whole new syllable, /ed/, as in \"added\" and \"wanted.\" Say each word out loud and listen for the extra beat.",
+    words: ["added", "ended", "wanted", "landed", "rested", "counted"],
+    sentences: [
+      "I added the numbers and counted them.",
+      "The game ended after we rested.",
+      "She wanted the plane to land, and it landed.",
+      "We rested after the game ended.",
+      "He counted and added the wanted numbers."
+    ],
+    fillBlanks: ["add__", "end__", "want__", "land__", "rest__", "count__"]
+  },
+  {
+    mainTitle: "SPELLING PATTERNS (ED)",
+    lessonNumber: 70,
+    letterTile: "ed (d)",
+    imageCaption: "played",
+    imagePath: "",
+    introText: "After most other sounds, -ed is said simply as /d/, with no extra syllable, as in \"played\" and \"called.\" Say each word out loud and listen for it.",
+    words: ["played", "saved", "stayed", "filled", "called", "smiled"],
+    sentences: [
+      "We played and stayed until it filled up.",
+      "She smiled and called her friend.",
+      "I saved my toy and played with it.",
+      "He called and smiled while he played.",
+      "We filled the cup and stayed a while."
+    ],
+    fillBlanks: ["play__", "sav__", "stay__", "fill__", "call__", "smil__"]
+  },
+
+  // ==================== LONG VOWELS IN OPEN SYLLABLES ====================
+  {
+    mainTitle: "LONG VOWELS IN OPEN SYLLABLES",
+    lessonNumber: 71,
+    letterTile: "Open Syllables",
+    imageCaption: "baker",
+    imagePath: "",
+    introText: "When a syllable ends in a vowel with nothing after it, that vowel is \"open\" and usually says its own long name, as in \"baker\" and \"paper.\" Say each word out loud and listen for it.",
+    words: ["baker", "paper", "final", "lady", "hero", "zero", "open", "silent"],
+    sentences: [
+      "The baker wrote on paper.",
+      "The lady is a hero to zero fear.",
+      "This is the final and open page.",
+      "The silent hero read the paper.",
+      "Open the paper to the final page."
+    ],
+    fillBlanks: ["b___r", "p___r", "f___l", "l__y", "h__o", "z__o", "o__n", "s___nt"]
+  }
+];
+
+
