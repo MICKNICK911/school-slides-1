@@ -7,62 +7,141 @@
     <style>
         @page { size: 850px 1120px; margin: 0; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f7fa; padding: 20px; }
+        body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f5f7fa; color: #1a1a1a; padding: 20px; }
         .app { max-width: 1400px; margin: 0 auto; background: #fff; border-radius: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.08); overflow: hidden; }
-        .app-header { background: #1a1a2e; color: #fff; padding: 20px 32px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+        .app-header { background: #1a1a2e; color: #fff; padding: 20px 32px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
         .app-header h1 { font-size: 24px; font-weight: 800; }
-        .badge { background: #F5A623; color: #1a1a1a; padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 700; }
+        .app-header .badge { background: #F5A623; color: #1a1a1a; padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 700; }
         .tabs { display: flex; border-bottom: 2px solid #e9ecef; background: #fafbfc; padding: 0 32px; gap: 4px; }
-        .tab-btn { padding: 16px 28px; border: none; background: transparent; font-size: 15px; font-weight: 700; color: #6c757d; cursor: pointer; border-bottom: 3px solid transparent; }
+        .tab-btn { padding: 16px 28px; border: none; background: transparent; font-size: 15px; font-weight: 700; color: #6c757d; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.2s; font-family: inherit; }
         .tab-btn:hover { color: #1a1a2e; }
         .tab-btn.active { color: #1a1a2e; border-bottom-color: #F5A623; }
-        .tab-panel { display: none; padding: 24px 32px; }
+        .tab-panel { display: none; padding: 24px 32px 32px; }
         .tab-panel.active { display: block; }
-        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; max-width: 420px; }
-        .toast { padding: 14px 20px; border-radius: 12px; color: #fff; font-weight: 600; margin-bottom: 8px; box-shadow: 0 8px 30px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 10px; }
+        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; max-width: 420px; width: 100%; pointer-events: none; }
+        .toast { padding: 14px 20px; border-radius: 12px; color: #fff; font-weight: 600; font-size: 14px; box-shadow: 0 8px 30px rgba(0,0,0,0.15); animation: slideIn 0.3s ease; display: flex; align-items: center; gap: 10px; pointer-events: auto; }
         .toast.success { background: #2d7d46; } .toast.error { background: #dc3545; } .toast.warning { background: #e67e22; } .toast.info { background: #2c7be5; }
+        .toast .close-toast { background: none; border: none; color: inherit; font-size: 18px; cursor: pointer; margin-left: auto; opacity: 0.7; }
+        .toast .close-toast:hover { opacity: 1; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
         .edit-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
         @media (max-width: 1100px) { .edit-layout { grid-template-columns: 1fr; } }
         .form-section { background: #f8f9fa; border-radius: 16px; padding: 24px; border: 2px solid #e9ecef; position: sticky; top: 20px; max-height: calc(100vh - 200px); overflow-y: auto; }
+        .form-section h2 { font-size: 18px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+        .form-section h2 .edit-id { color: #6c757d; font-weight: 400; font-size: 14px; }
         .form-group { margin-bottom: 14px; }
-        .form-group label { display: block; font-weight: 700; font-size: 13px; margin-bottom: 4px; }
-        .form-group input, .form-group textarea { width: 100%; padding: 10px; border: 2px solid #dee2e6; border-radius: 10px; font-size: 14px; }
-        .form-group input:focus, .form-group textarea:focus { border-color: #F5A623; outline: none; }
+        .form-group label { display: block; font-weight: 700; font-size: 13px; color: #495057; margin-bottom: 4px; }
+        .form-group label .req { color: #dc3545; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px 14px; border: 2px solid #dee2e6; border-radius: 10px; font-size: 14px; font-family: inherit; transition: border 0.2s; background: #fff; }
+        .form-group input:focus, .form-group textarea:focus { outline: none; border-color: #F5A623; box-shadow: 0 0 0 3px rgba(245,166,35,0.15); }
+        .form-group textarea { resize: vertical; min-height: 50px; }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .btn { padding: 10px 20px; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+        @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+        .form-actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+        .btn { padding: 10px 22px; border: none; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; transition: all 0.2s; font-family: inherit; display: inline-flex; align-items: center; gap: 6px; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .btn-primary { background: #F5A623; color: #1a1a1a; }
+        .btn-primary:hover:not(:disabled) { background: #e0950f; transform: translateY(-1px); }
         .btn-success { background: #2d7d46; color: #fff; }
+        .btn-success:hover:not(:disabled) { background: #1f5f34; }
         .btn-danger { background: #dc3545; color: #fff; }
-        .btn-outline { background: transparent; border: 2px solid #dee2e6; }
+        .btn-danger:hover:not(:disabled) { background: #b02a37; }
+        .btn-outline { background: transparent; border: 2px solid #dee2e6; color: #495057; }
+        .btn-outline:hover:not(:disabled) { background: #f1f3f5; }
         .btn-sm { padding: 6px 14px; font-size: 12px; }
-        .btn-xs { padding: 4px 10px; font-size: 11px; }
-        .lesson-list { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
-        .lesson-item { display: flex; align-items: center; gap: 12px; padding: 12px; background: #f8f9fa; border-radius: 12px; border: 2px solid transparent; }
-        .lesson-item:hover { border-color: #F5A623; }
-        .lesson-item .drag-handle { color: #adb5bd; font-size: 20px; cursor: grab; }
-        .lesson-item .info { flex: 1; }
-        .lesson-item .title { font-weight: 700; }
-        .lesson-item .sub { font-size: 13px; color: #6c757d; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .search-box { padding: 10px; border: 2px solid #dee2e6; border-radius: 10px; width: 100%; }
-        .view-container { overflow-x: auto; }
-        .page { width: 850px; min-width: 850px; min-height: 1080px; padding: 30px 40px; margin: 0 auto 30px; background: #fff; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
-        .card { border: 3px solid #F5A623; border-radius: 28px; min-height: 1000px; padding: 24px 32px; position: relative; }
-        .title { font-size: 30px; font-weight: 800; margin-bottom: 18px; }
-        .header-row { display: flex; margin-bottom: 22px; }
-        .lesson-badge { background: #F5A623; border-radius: 16px; color: #fff; width: 130px; min-width: 130px; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-right: 18px; position: relative; }
-        .lesson-badge .arrow { position: absolute; top: -22px; left: 50%; transform: translateX(-50%); border-left: 22px solid transparent; border-right: 22px solid transparent; border-bottom: 26px solid #F5A623; }
-        .intro-box { flex: 1; border: 3px dashed #E2571C; border-radius: 16px; display: flex; align-items: center; padding: 14px 20px; }
-        .intro-box p { margin: 0; color: #E2571C; font-weight: 700; }
-        .hero-tile { background: #F5A623; color: #fff; border-radius: 24px; padding: 30px 40px; text-align: center; margin-bottom: 22px; min-height: 220px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .hero-tile .letter-display { font-size: 90px; font-weight: 800; }
-        .word-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-        .word-grid .pill { background: #E2571C; color: #fff; border-radius: 14px; text-align: center; padding: 8px; font-weight: 600; font-size: 28px; min-height: 60px; }
-        .word-grid.blanks .pill { background: #fff; color: #E2571C; border: 2px solid #F5A623; }
-        .reading-box { border: 2px solid #F5A623; border-radius: 16px; padding: 12px 22px; margin-bottom: 12px; }
-        .reading-box p { color: #E2571C; font-weight: 700; font-size: 25px; }
-        .page-number { position: absolute; bottom: 20px; right: 30px; font-weight: 800; }
-        .export-btn { background: #E2571C; color: #fff; border: none; border-radius: 8px; padding: 8px 16px; font-weight: 700; cursor: pointer; }
-        @media print { .app, .app-header, .tabs, .tab-panel, .view-toolbar { display: none !important; } .page { box-shadow: none; margin: 0 auto; } }
+        .btn-xs { padding: 4px 10px; font-size: 11px; border-radius: 6px; }
+        .btn-warning { background: #e67e22; color: #fff; }
+        .btn-warning:hover:not(:disabled) { background: #cf6d17; }
+        .list-section { min-height: 400px; }
+        .list-toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 2px solid #e9ecef; }
+        .list-toolbar .search-box { flex: 1; min-width: 180px; padding: 10px 16px; border: 2px solid #dee2e6; border-radius: 10px; font-size: 14px; font-family: inherit; }
+        .list-toolbar .search-box:focus { outline: none; border-color: #F5A623; }
+        .list-toolbar .count { font-weight: 700; color: #6c757d; font-size: 14px; white-space: nowrap; }
+        .lesson-list { display: flex; flex-direction: column; gap: 8px; }
+        .lesson-list .empty-state { text-align: center; padding: 60px 20px; color: #6c757d; }
+        .lesson-list .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+        .lesson-list .empty-state h3 { color: #1a1a1a; margin-bottom: 4px; }
+        .lesson-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #f8f9fa; border-radius: 12px; border: 2px solid transparent; transition: all 0.2s; cursor: grab; user-select: none; }
+        .lesson-item:hover { border-color: #F5A623; background: #fff; }
+        .lesson-item.dragging { opacity: 0.4; border-color: #F5A623; background: #fff8e7; }
+        .lesson-item .drag-handle { color: #adb5bd; font-size: 20px; cursor: grab; line-height: 1; flex-shrink: 0; }
+        .lesson-item .drag-handle:active { cursor: grabbing; }
+        .lesson-item .info { flex: 1; min-width: 0; }
+        .lesson-item .info .title { font-weight: 700; font-size: 15px; }
+        .lesson-item .info .sub { font-size: 13px; color: #6c757d; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .lesson-item .actions { display: flex; gap: 4px; flex-shrink: 0; }
+        .lesson-item.drag-over { border-color: #F5A623; background: #fff8e7; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 9998; animation: fadeIn 0.2s ease; }
+        .modal-overlay .modal { background: #fff; border-radius: 20px; padding: 32px; max-width: 440px; width: 90%; box-shadow: 0 30px 60px rgba(0,0,0,0.2); }
+        .modal-overlay .modal h3 { margin-bottom: 8px; }
+        .modal-overlay .modal p { color: #6c757d; margin-bottom: 20px; font-size: 15px; }
+        .modal-overlay .modal .actions { display: flex; gap: 10px; justify-content: flex-end; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        /* ----- VIEW TAB ----- */
+        .view-container { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 8px; }
+        .view-container .page { width: 850px; min-width: 850px; min-height: 1080px; padding: 30px 40px; position: relative; page-break-after: always; margin: 0 auto 30px; background: #fff; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+        .view-container .page:last-child { margin-bottom: 0; }
+        .view-container .card { border: 3px solid #F5A623; border-radius: 28px; min-height: 1000px; padding: 24px 32px; position: relative; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .view-container .title { font-size: 30px; font-weight: 800; color: #1a1a1a; letter-spacing: 0.5px; margin: 4px 0 18px 0; }
+        .view-container .header-row { display: flex; align-items: stretch; gap: 0; margin-bottom: 22px; }
+        .view-container .lesson-badge { background: #F5A623; border-radius: 16px; color: #fff; width: 130px; min-width: 130px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 6px; position: relative; margin-right: 18px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .view-container .lesson-badge .arrow { position: absolute; top: -22px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 22px solid transparent; border-right: 22px solid transparent; border-bottom: 26px solid #F5A623; }
+        .view-container .lesson-badge .label { font-size: 13px; font-weight: 600; opacity: 0.95; }
+        .view-container .lesson-badge .num { font-size: 34px; font-weight: 800; line-height: 1.1; }
+        .view-container .intro-box { flex: 1; border: 3px dashed #E2571C; border-radius: 16px; display: flex; align-items: center; padding: 14px 20px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .view-container .intro-box p { margin: 0; color: #E2571C; font-weight: 700; font-size: 14px; line-height: 1.5; }
+        .view-container .hero-tile { background: #F5A623; color: #fff; border-radius: 24px; padding: 30px 40px; text-align: center; margin-bottom: 22px; box-shadow: 0 10px 24px rgba(0,0,0,0.15); display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 220px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .view-container .hero-tile .sound-label { font-size: 18px; font-weight: 700; opacity: 0.95; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 8px; }
+        .view-container .hero-tile .letter-display { font-size: 90px; font-weight: 800; line-height: 1.1; text-shadow: 3px 3px 6px rgba(0,0,0,0.25); margin: 8px 0; }
+        .view-container .hero-tile .decoration { font-size: 22px; opacity: 0.7; margin-top: 8px; }
+        .view-container .section-header { display: flex; align-items: center; margin-bottom: 10px; margin-top: 12px; }
+        .view-container .section-header .circle { background: #F5A623; color: #fff; width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px; margin-right: 14px; flex-shrink: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .view-container .section-header .label-box { flex: 1; border: 3px dashed #E2571C; border-radius: 14px; padding: 8px 18px; font-weight: 800; font-size: 19px; color: #1a1a1a; }
+        .view-container .word-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+        .view-container .word-grid .pill { background: #E2571C; color: #fff; border-radius: 14px; text-align: center; padding: 8px 6px; font-weight: 600; font-size: 28px; min-height: 60px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .view-container .word-grid.blanks .pill { background: #fff; color: #E2571C; border: 2px solid #F5A623; min-height: 60px; }
+        .view-container .word-grid.empty .pill { background: #fff; border: 2px solid #F5A623; min-height: 60px; }
+        .view-container .instructions { font-weight: 700; font-size: 13px; margin: 8px 0 10px 0; color: #1a1a1a; }
+        .view-container .reading-box { border: 2px solid #F5A623; border-radius: 16px; padding: 12px 22px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .view-container .reading-box p { margin: 0 0 5px 0; color: #E2571C; font-weight: 700; font-size: 25px; }
+        .view-container .reading-box p:last-child { margin-bottom: 0; }
+        .view-container .activity-label { font-weight: 700; font-size: 13px; margin: 10px 0 6px 0; }
+        .view-container .sentence-line { border-bottom: 1px solid #999; padding: 15px 0 25px 0; font-size: 16px; color: #E2571C; font-weight: 800; }
+        .view-container .card .page-number { position: absolute; bottom: 20px; right: 30px; margin: 0; font-weight: 800; font-size: 16px; color: #1a1a1a; }
+        .view-container .page-actions { text-align: right; margin-bottom: 8px; }
+        .view-container .export-btn { background: #E2571C; color: #fff; border: none; border-radius: 8px; padding: 8px 16px; font-weight: 700; font-size: 13px; font-family: inherit; cursor: pointer; }
+        .view-container .export-btn:hover { background: #c8481a; }
+        .toc-card { border: 3px solid #F5A623; border-radius: 28px; min-height: 1000px; padding: 40px 48px; position: relative; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .toc-title { font-size: 36px; font-weight: 800; color: #1a1a2e; text-align: center; margin-bottom: 30px; border-bottom: 4px solid #F5A623; padding-bottom: 16px; }
+        .toc-list { list-style: none; padding: 0; margin: 0; }
+        .toc-item { display: flex; justify-content: space-between; align-items: baseline; padding: 12px 8px; border-bottom: 1px dashed #dee2e6; font-size: 18px; font-weight: 600; color: #1a1a1a; }
+        .toc-item .toc-lesson-title { flex: 1; text-align: left; padding-right: 20px; }
+        .toc-item .toc-page-num { font-weight: 800; color: #E2571C; min-width: 80px; text-align: right; }
+        .view-toolbar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 2px solid #e9ecef; }
+        .view-toolbar .info { font-weight: 700; color: #6c757d; font-size: 14px; margin-right: auto; }
+        @media (max-width: 900px) {
+            .view-container .page { width: 850px; min-width: 850px; padding: 30px 40px; min-height: 1080px; margin: 0 auto 30px; }
+            .edit-layout { grid-template-columns: 1fr; }
+            .form-section { position: static; max-height: none; }
+            .app-header h1 { font-size: 20px; }
+            .tabs { padding: 0 16px; }
+            .tab-btn { padding: 12px 18px; font-size: 13px; }
+            .tab-panel { padding: 16px; }
+        }
+        @media print {
+            body { padding: 0; background: #fff; }
+            .app, .app-header, .tabs, .tab-panel, .view-toolbar, .no-print { display: none !important; }
+            .view-container { overflow-x: visible !important; }
+            .view-container .page { box-shadow: none !important; border-radius: 0 !important; margin: 0 auto !important; padding: 30px 40px !important; width: 850px !important; min-width: 850px !important; min-height: 1080px !important; page-break-after: always; background: #fff !important; }
+            .view-container .page .page-actions { display: none !important; }
+            .view-container .page:last-child { page-break-after: auto; }
+            .view-container .card, .view-container .lesson-badge, .view-container .hero-tile,
+            .view-container .word-grid .pill, .view-container .intro-box, .view-container .section-header .circle,
+            .view-container .reading-box, .view-container .lesson-badge .arrow, .toc-card {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -433,7 +512,6 @@
 
             // Initialisation
             loadData();
-            // Build the app HTML
             document.getElementById('app').innerHTML = `
                 <div class="app-header"><h1>📚 Phonics Lesson Publisher</h1><span class="badge" id="lessonCount">0</span></div>
                 <div class="tabs">
@@ -471,8 +549,8 @@
                     </div>
                 </div>
                 <div class="tab-panel" id="viewPanel">
-                    <div class="view-toolbar" style="margin-bottom:16px;display:flex;gap:12px">
-                        <span id="viewInfo" style="font-weight:700;margin-right:auto">0 lessons · 0 pages</span>
+                    <div class="view-toolbar">
+                        <span class="info" id="viewInfo">0 lessons · 0 pages</span>
                         <button class="btn btn-success" onclick="exportAllPages()">⬇ Export All</button>
                     </div>
                     <div class="view-container" id="viewContainer"></div>
@@ -481,7 +559,8 @@
             renderEditList();
             renderAllView();
             updateCounts();
-            // Attach drag-and-drop (basic)
+
+            // Drag-and-drop
             document.getElementById('lessonList').addEventListener('dragstart', e => {
                 const item = e.target.closest('.lesson-item');
                 if (item) e.dataTransfer.setData('text/plain', item.dataset.id);
@@ -502,7 +581,7 @@
                     }
                 }
             });
-            // Expose searchQuery for the inline oninput
+
             window.searchQuery = '';
             window.renderEditList = renderEditList;
         })();
