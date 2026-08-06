@@ -6,15 +6,8 @@
     <title>📚 Phonics Lesson Publisher</title>
     <style>
         /* ----- Page & print base ----- */
-        @page {
-            size: 850px 1120px;
-            margin: 0;
-        }
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        @page { size: 850px 1120px; margin: 0; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: 'Poppins', 'Segoe UI', Arial, sans-serif;
             background: #f5f7fa;
@@ -26,7 +19,7 @@
             margin: 0 auto;
             background: #fff;
             border-radius: 24px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.08);
             overflow: hidden;
         }
         .app-header {
@@ -39,10 +32,7 @@
             flex-wrap: wrap;
             gap: 12px;
         }
-        .app-header h1 {
-            font-size: 24px;
-            font-weight: 800;
-        }
+        .app-header h1 { font-size: 24px; font-weight: 800; }
         .app-header .badge {
             background: #F5A623;
             color: #1a1a1a;
@@ -70,20 +60,13 @@
             transition: all 0.2s;
             font-family: inherit;
         }
-        .tab-btn:hover {
-            color: #1a1a2e;
-        }
+        .tab-btn:hover { color: #1a1a2e; }
         .tab-btn.active {
             color: #1a1a2e;
             border-bottom-color: #F5A623;
         }
-        .tab-panel {
-            display: none;
-            padding: 24px 32px 32px;
-        }
-        .tab-panel.active {
-            display: block;
-        }
+        .tab-panel { display: none; padding: 24px 32px 32px; }
+        .tab-panel.active { display: block; }
         .toast-container {
             position: fixed;
             top: 20px;
@@ -102,7 +85,7 @@
             color: #fff;
             font-weight: 600;
             font-size: 14px;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
             animation: slideIn 0.3s ease;
             display: flex;
             align-items: center;
@@ -132,9 +115,7 @@
             grid-template-columns: 1fr 1fr;
             gap: 28px;
         }
-        @media (max-width: 1100px) {
-            .edit-layout { grid-template-columns: 1fr; }
-        }
+        @media (max-width: 1100px) { .edit-layout { grid-template-columns: 1fr; } }
         .form-section {
             background: #f8f9fa;
             border-radius: 16px;
@@ -157,9 +138,7 @@
             font-weight: 400;
             font-size: 14px;
         }
-        .form-group {
-            margin-bottom: 14px;
-        }
+        .form-group { margin-bottom: 14px; }
         .form-group label {
             display: block;
             font-weight: 700;
@@ -184,26 +163,12 @@
         .form-group textarea:focus {
             outline: none;
             border-color: #F5A623;
-            box-shadow: 0 0 0 3px rgba(245, 166, 35, 0.15);
+            box-shadow: 0 0 0 3px rgba(245,166,35,0.15);
         }
-        .form-group textarea {
-            resize: vertical;
-            min-height: 50px;
-        }
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
-        @media (max-width: 600px) {
-            .form-row { grid-template-columns: 1fr; }
-        }
-        .form-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 16px;
-            flex-wrap: wrap;
-        }
+        .form-group textarea { resize: vertical; min-height: 50px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+        .form-actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
         .btn {
             padding: 10px 22px;
             border: none;
@@ -256,20 +221,9 @@
             font-size: 14px;
             white-space: nowrap;
         }
-        .lesson-list {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        .lesson-list .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #6c757d;
-        }
-        .lesson-list .empty-state .icon {
-            font-size: 48px;
-            margin-bottom: 12px;
-        }
+        .lesson-list { display: flex; flex-direction: column; gap: 8px; }
+        .lesson-list .empty-state { text-align: center; padding: 60px 20px; color: #6c757d; }
+        .lesson-list .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
         .lesson-list .empty-state h3 { color: #1a1a1a; margin-bottom: 4px; }
         .lesson-item {
             display: flex;
@@ -307,7 +261,7 @@
         .modal-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(0, 0, 0, 0.4);
+            background: rgba(0,0,0,0.4);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -320,22 +274,14 @@
             padding: 32px;
             max-width: 440px;
             width: 90%;
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.2);
         }
         .modal-overlay .modal h3 { margin-bottom: 8px; }
         .modal-overlay .modal p { color: #6c757d; margin-bottom: 20px; font-size: 15px; }
-        .modal-overlay .modal .actions {
-            display: flex;
-            gap: 10px;
-            justify-content: flex-end;
-        }
+        .modal-overlay .modal .actions { display: flex; gap: 10px; justify-content: flex-end; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         /* ----- VIEW TAB ----- */
-        .view-container {
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            padding-bottom: 8px;
-        }
+        .view-container { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 8px; }
         .view-container .page {
             width: 850px;
             min-width: 850px;
@@ -346,7 +292,7 @@
             margin: 0 auto 30px;
             background: #fff;
             border-radius: 8px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
         }
         .view-container .page:last-child { margin-bottom: 0; }
         .view-container .card {
@@ -432,7 +378,7 @@
             padding: 30px 40px;
             text-align: center;
             margin-bottom: 22px;
-            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 10px 24px rgba(0,0,0,0.15);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -453,7 +399,7 @@
             font-size: 90px;
             font-weight: 800;
             line-height: 1.1;
-            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.25);
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.25);
             margin: 8px 0;
         }
         .view-container .hero-tile .decoration {
@@ -561,10 +507,7 @@
             font-size: 16px;
             color: #1a1a1a;
         }
-        .view-container .page-actions {
-            text-align: right;
-            margin-bottom: 8px;
-        }
+        .view-container .page-actions { text-align: right; margin-bottom: 8px; }
         .view-container .export-btn {
             background: #E2571C;
             color: #fff;
@@ -617,7 +560,12 @@
             padding-bottom: 16px;
             border-bottom: 2px solid #e9ecef;
         }
-        .view-toolbar .info { font-weight: 700; color: #6c757d; font-size: 14px; margin-right: auto; }
+        .view-toolbar .info {
+            font-weight: 700;
+            color: #6c757d;
+            font-size: 14px;
+            margin-right: auto;
+        }
         @media (max-width: 900px) {
             .view-container .page {
                 width: 850px;
@@ -667,7 +615,7 @@
             const STORAGE_KEY = 'phonics_lessons_v2';
             const MAX_TOC_PER_PAGE = 18;
 
-            // Polyfill for flat() – safe flattening of one level
+            // Safe flatten (no .flat())
             function flattenWords(arr) {
                 if (!Array.isArray(arr)) return [];
                 let result = [];
@@ -677,7 +625,7 @@
                 return result;
             }
 
-            // HTML escaping to prevent XSS
+            // Prevent XSS
             function escapeHtml(str) {
                 if (typeof str !== 'string') return '';
                 return str.replace(/[&<>"']/g, function(m) {
@@ -691,7 +639,7 @@
                 });
             }
 
-            // Toast notification system
+            // Toast notifications
             function showToast(msg, type = 'info', dur = 3500) {
                 const container = document.getElementById('toastContainer');
                 const toast = document.createElement('div');
@@ -703,7 +651,7 @@
                 setTimeout(() => { if (toast.parentNode) toast.remove(); }, dur);
             }
 
-            // Custom confirm modal (consistent everywhere)
+            // Custom confirm dialog (consistent)
             function confirmDialog(msg, onConfirm) {
                 const overlay = document.createElement('div');
                 overlay.className = 'modal-overlay';
@@ -753,7 +701,6 @@
                             lessons.forEach(l => {
                                 if (!l.id) l.id = 'l' + Date.now() + Math.random().toString(36).slice(2, 6);
                                 if (!l.mainTitle) l.mainTitle = 'SHORT VOWEL CVC WORDS';
-                                // Fix old data that might have flat words array
                                 if (l.words && l.words.length > 0 && !Array.isArray(l.words[0])) {
                                     const flat = l.words;
                                     const chunked = [];
@@ -767,10 +714,8 @@
                             return;
                         }
                     }
-                } catch (e) {
-                    console.error('Failed to load data', e);
-                }
-                // Fallback to defaults
+                } catch (e) { console.error('Failed to load data', e); }
+                // fallback to defaults
                 lessons = JSON.parse(JSON.stringify(DEFAULT_LESSONS));
                 lessons.forEach(l => { if (!l.id) l.id = 'l' + Date.now() + Math.random().toString(36).slice(2, 6); });
                 nextId = lessons.length + 1;
@@ -1247,7 +1192,7 @@
                 updateAllCounts();
             }
 
-            // ----- Edit list rendering (search persists) -----
+            // ----- Edit list rendering (search stays) -----
             let searchQuery = '';
 
             function renderEditList() {
@@ -1337,7 +1282,7 @@
                 });
             }
 
-            // Event delegation for list buttons (single listener on the list)
+            // Single event delegation for list buttons
             function handleListClick(e) {
                 const btn = e.target.closest('button');
                 if (!btn) return;
@@ -1356,7 +1301,7 @@
             function switchTab(tab) {
                 document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
                 document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === tab + 'Panel'));
-                if (tab === 'edit') renderEditList();   // ensure list is always fresh
+                if (tab === 'edit') renderEditList();   // always refresh list
                 if (tab === 'view') renderAllView();
                 updateAllCounts();
             }
@@ -1375,13 +1320,14 @@
                 // Attach event delegation once
                 const list = document.getElementById('lessonList');
                 if (list) list.addEventListener('click', handleListClick);
+
                 renderEditList();
                 renderAllView();
                 updateAllCounts();
-                switchTab('edit');  // start on edit tab
+                switchTab('edit');   // start on edit tab
             }
 
-            // Expose functions for inline onclick
+            // Expose necessary functions to global scope for inline onclick
             window.switchTab = switchTab;
             window.saveLesson = saveLesson;
             window.editLesson = editLesson;
