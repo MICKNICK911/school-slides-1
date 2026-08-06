@@ -128,69 +128,7 @@
             .tab-btn { padding: 12px 18px; font-size: 13px; }
             .tab-panel { padding: 16px; }
         }
-        @media print {
-            body { padding: 0; background: #fff; }
-            .app, .app-header, .tabs, .tab-panel, .view-toolbar, .no-print { display: none !important; }
-            .view-container { overflow-x: visible !important; }
-            .view-container .page { box-shadow: none !important; border-radius: 0 !important; margin: 0 auto !important; padding: 30px 40px !important; width: 850px !important; min-width: 850px !important; min-height: 1080px !important; page-break-after: always; background: #fff !important; }
-            .view-container .page .page-actions { display: none !important; }
-            .view-container .page:last-child { page-break-after: auto; }
-            .view-container .card, .view-container .lesson-badge, .view-container .hero-tile,
-            .view-container .word-grid .pill, .view-container .intro-box, .view-container .section-header .circle,
-            .view-container .reading-box, .view-container .lesson-badge .arrow, .toc-card {
-                -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
-            }
-        }
-        @page {
-    size: A4 portrait;
-    margin: 0;
-}
-        @media print {
-    body {
-        padding: 0;
-        background: #fff;
-    }
-    .app, .app-header, .tabs, .tab-panel, .view-toolbar, .no-print {
-        display: none !important;
-    }
-    .view-container {
-        overflow: visible !important;
-    }
-    .view-container .page {
-        box-shadow: none !important;
-        border-radius: 0 !important;
-        margin: 0 auto !important;
-        padding: 0 !important;                /* padding will be handled by the inner scaling */
-        width: 850px !important;            /* keep original internal size */
-        min-width: 850px !important;
-        min-height: 0 !important;
-        height: auto !important;
-        page-break-after: always;
-        background: #fff !important;
-        transform-origin: top left;
-        transform: scale(0.7);              /* 0.7 fits 850×1100 into A4 (595×842) */
-        margin-bottom: calc(1100px * 0.7 - 1100px) !important; /* negative margin to collapse space */
-    }
-    .view-container .page:last-child {
-        page-break-after: auto;
-    }
-    .view-container .card,
-    .view-container .lesson-badge,
-    .view-container .hero-tile,
-    .view-container .word-grid .pill,
-    .view-container .intro-box,
-    .view-container .section-header .circle,
-    .view-container .reading-box,
-    .view-container .lesson-badge .arrow,
-    .toc-card {
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-    }
-    /* Remove the export button from the printed page */
-    .view-container .page .page-actions {
-        display: none !important;
-    }
-}
+       
         @page {
     size: 850px 1100px;
     margin: 0;
