@@ -112,12 +112,37 @@
         .view-container .page-actions { text-align: right; margin-bottom: 8px; }
         .view-container .export-btn { background: #E2571C; color: #fff; border: none; border-radius: 8px; padding: 8px 16px; font-weight: 700; font-size: 13px; font-family: inherit; cursor: pointer; }
         .view-container .export-btn:hover { background: #c8481a; }
-        .toc-card { border: 3px solid #F5A623; border-radius: 28px; min-height: 1000px; padding: 40px 48px; position: relative; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        .toc-title { font-size: 36px; font-weight: 800; color: #1a1a2e; text-align: center; margin-bottom: 30px; border-bottom: 4px solid #F5A623; padding-bottom: 16px; }
+
+        /* ----- TOC adjustments ----- */
+        .toc-card {
+            border: 3px solid #F5A623; border-radius: 28px;
+            min-height: 1000px; padding: 40px 48px; position: relative;
+            -webkit-print-color-adjust: exact; print-color-adjust: exact;
+            font-family: 'Times New Roman', Times, serif;  /* TOC font */
+        }
+        .toc-title {
+            font-size: 32px;          /* reduced from 36px */
+            font-weight: 800; color: #1a1a2e; text-align: center;
+            margin-bottom: 30px; border-bottom: 4px solid #F5A623; padding-bottom: 16px;
+        }
         .toc-list { list-style: none; padding: 0; margin: 0; }
-        .toc-item { display: flex; justify-content: space-between; align-items: baseline; padding: 12px 8px; border-bottom: 1px dashed #dee2e6; font-size: 18px; font-weight: 600; color: #1a1a1a; }
+        .toc-item {
+            display: flex; justify-content: space-between; align-items: baseline;
+            padding: 12px 8px; border-bottom: 1px dashed #dee2e6;
+            font-size: 16px;        /* reduced from 18px */
+            font-weight: 600; color: #1a1a1a;
+        }
         .toc-item .toc-lesson-title { flex: 1; text-align: left; padding-right: 20px; }
-        .toc-item .toc-page-num { font-weight: 800; color: #E2571C; min-width: 80px; text-align: right; }
+        .toc-item .toc-page-num {
+            font-weight: 800; color: #E2571C; min-width: 80px; text-align: right;
+        }
+        /* Page number inside TOC – must match lesson pages */
+        .toc-card .page-number {
+            position: absolute; bottom: 20px; right: 30px; margin: 0;
+            font-weight: 800; font-size: 16px; color: #1a1a1a;
+            font-family: 'Poppins', 'Segoe UI', Arial, sans-serif;  /* same as lesson pages */
+        }
+
         .view-toolbar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 2px solid #e9ecef; }
         .view-toolbar .info { font-weight: 700; color: #6c757d; font-size: 14px; margin-right: auto; }
         @media (max-width: 900px) {
