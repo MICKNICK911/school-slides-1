@@ -113,8 +113,44 @@
         .view-container .export-btn:hover { background: #c8481a; }
 
         /* ----- Cover Page ----- */
-        .cover-title { font-size: 56px; font-weight: 800; color: #1a1a2e; text-align: center; margin-top: 200px; }
-        .cover-subtitle { font-size: 32px; font-weight: 600; color: #E2571C; text-align: center; margin-top: 20px; }
+        /* ----- Cover Page (centered + stylized) ----- */
+.view-container .card.cover-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;      /* vertical center */
+    align-items: center;          /* horizontal center */
+    font-family: 'Times New Roman', Times, serif;
+}
+
+.cover-text-block {
+    text-align: center;
+    padding: 0 40px;
+}
+
+.cover-line {
+    width: 120px;
+    height: 4px;
+    background-color: #F5A623;
+    margin: 30px auto;
+    border-radius: 2px;
+}
+
+.cover-title {
+    font-size: 64px;
+    font-weight: 800;
+    color: #1a1a2e;
+    letter-spacing: 2px;
+    margin: 0;
+}
+
+.cover-subtitle {
+    font-size: 34px;
+    font-weight: 400;
+    color: #E2571C;
+    margin-top: 16px;
+    letter-spacing: 1px;
+    font-style: italic;
+}
 
         /* ----- TOC adjustments ----- */
         .toc-card {
@@ -2343,16 +2379,20 @@
             }
 
             function buildCoverPage() {
-                const page = document.createElement('div'); page.className = 'page';
-                // No page number on cover
-                page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
-                const card = document.createElement('div'); card.className = 'card';
-                card.innerHTML = `
-                    <div class="cover-title">${escapeHtml(coverData.title)}</div>
-                    <div class="cover-subtitle">${escapeHtml(coverData.subtitle)}</div>`;
-                page.appendChild(card);
-                return page;
-            }
+    const page = document.createElement('div'); page.className = 'page';
+    page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
+    const card = document.createElement('div');
+    card.className = 'card cover-card';            // ← new class for centering
+    card.innerHTML = `
+        <div class="cover-text-block">
+            <div class="cover-line"></div>
+            <div class="cover-title">${escapeHtml(coverData.title)}</div>
+            <div class="cover-subtitle">${escapeHtml(coverData.subtitle)}</div>
+            <div class="cover-line"></div>
+        </div>`;
+    page.appendChild(card);
+    return page;
+}
 
             window.exportSinglePage = function(pageEl) {
                 const clone = pageEl.cloneNode(true);
