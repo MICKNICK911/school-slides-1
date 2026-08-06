@@ -141,7 +141,6 @@
                 -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
             }
         }
-        
         @page {
     size: A4 portrait;
     margin: 0;
@@ -190,6 +189,61 @@
     /* Remove the export button from the printed page */
     .view-container .page .page-actions {
         display: none !important;
+    }
+}
+        @page {
+    size: 850px 1100px;
+    margin: 0;
+}
+        @media print {
+    body {
+        padding: 0;
+        background: #fff;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    .app,
+    .app-header,
+    .tabs,
+    .tab-panel,
+    .view-toolbar,
+    .no-print {
+        display: none !important;
+    }
+    .view-container {
+        overflow-x: visible !important;
+    }
+    .view-container .page {
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        margin: 0 auto !important;
+        padding: 30px 40px !important;
+        width: 850px !important;
+        min-width: 850px !important;
+        min-height: 1080px !important;
+        page-break-after: always;
+        background: #fff !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    .view-container .page .page-actions {
+        display: none !important;
+    }
+    .view-container .page:last-child {
+        page-break-after: auto;
+    }
+    .view-container .card,
+    .view-container .lesson-badge,
+    .view-container .hero-tile,
+    .view-container .hero-letter,
+    .view-container .word-grid .pill,
+    .view-container .intro-box,
+    .view-container .section-header .circle,
+    .view-container .reading-box,
+    .view-container .lesson-badge .arrow,
+    .toc-card {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
     }
 }
     </style>
