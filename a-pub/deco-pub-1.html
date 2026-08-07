@@ -84,6 +84,7 @@
     .lesson-spread { display: flex; flex-wrap: wrap; justify-content: center; gap: 30px; margin-bottom: 40px; }
     @media print { .lesson-spread { gap: 0; margin-bottom: 0; page-break-after: always; } }
 
+    /* PREVENTS BLEEDING TO NEXT PAGE */
     .view-container .page { 
       width: 793px; 
       min-width: 793px; 
@@ -96,74 +97,79 @@
       background: #fff; 
       border-radius: 12px; 
       box-shadow: 0 4px 12px rgba(0,0,0,0.06); 
-      overflow: hidden; 
+      overflow: hidden; /* CRITICAL: STOPS BLEEDING */
     }
     .view-container .page .page-actions { text-align: right; padding: 8px 12px; background: #f1f3f5; border-bottom: 1px solid #e9ecef; }
     .view-container .export-btn { background: #C62828; color: #fff; border: none; border-radius: 8px; padding: 8px 16px; font-weight: 700; font-size: 13px; font-family: inherit; cursor: pointer; }
 
-    /* INNER-PAD - LOCKED HEIGHT & HIDDEN OVERFLOW TO PREVENT BLEEDING */
+    /* INNER-PAD - SPACE-BETWEEN LOCKS & MAX-HEIGHT CUTS BLEEDING */
     .inner-pad { 
       display: flex; 
       flex-direction: column; 
+      justify-content: space-between; /* Pushes parent corner to bottom, leaves space in middle */
       padding: 20px 25px 40px; 
       height: 1063px; /* STRICT HEIGHT LOCK */
       min-height: 1063px; 
       max-height: 1063px; 
       position: relative; 
-      overflow: hidden; /* STOPS ANY BLEEDING */
+      overflow: hidden; /* CRITICAL: CUTS OFF OVERFLOW */
     }
     
     /* Page Numbers - LOCKED IDENTICAL POSITION */
     .page-footer { position: absolute; bottom: 15px; right: 25px; color: #1a1a1a; font-weight: 800; font-size: 18px; }
 
     /* Header Blocks */
-    .header-row { display: flex; align-items: stretch; gap: 0; margin-bottom: 15px; font-weight: 800; height: 50px; flex-shrink: 0; }
-    .header-lesson { background: #F5A623; color: #1a1a1a; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 4px 20px; border-radius: 12px 0 0 12px; line-height: 1.1; font-size: 14px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .header-lesson span { font-size: 22px; }
+    .header-row { display: flex; align-items: stretch; gap: 0; margin-bottom: 10px; font-weight: 800; height: 45px; flex-shrink: 0; }
+    .header-lesson { background: #F5A623; color: #1a1a1a; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 4px 15px; border-radius: 12px 0 0 12px; line-height: 1.1; font-size: 13px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .header-lesson span { font-size: 20px; }
     .header-title { background: #C62828; color: #fff; flex: 1; display: flex; justify-content: center; align-items: center; font-size: 24px; letter-spacing: 1px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .header-grade { background: #F5A623; color: #1a1a1a; display: flex; justify-content: center; align-items: center; padding: 4px 20px; border-radius: 0 12px 12px 0; font-size: 18px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .header-grade { background: #F5A623; color: #1a1a1a; display: flex; justify-content: center; align-items: center; padding: 4px 15px; border-radius: 0 12px 12px 0; font-size: 16px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 
-    /* TITLE & IMAGE ROW - MATHEMATICAL HALF SPLIT */
-    .title-image-row { display: flex; gap: 20px; align-items: flex-start; margin-bottom: 15px; flex-shrink: 0; }
+    /* TITLE & IMAGE ROW */
+    .title-image-row { display: flex; gap: 20px; align-items: flex-start; margin-bottom: 10px; flex-shrink: 0; }
     .title-side { flex: 2; display: flex; flex-direction: column; justify-content: flex-start; } /* Text area = 66% */
-    .story-title { font-size: 26px; font-weight: 800; color: #1a1a1a; margin: 0 0 6px 0; line-height: 1.2; }
+    .story-title { font-size: 26px; font-weight: 800; color: #1a1a1a; margin: 0 0 6px 0; line-height: 1.1; }
     
-    /* FIX: PILL DOES NOT STRETCH */
-    .target-pill { display: inline-block; background: #FFF8E1; border: 2px solid #F5A623; border-radius: 30px; padding: 6px 18px; font-weight: 700; font-size: 18px; width: fit-content; align-self: flex-start; flex-shrink: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    /* SQUEEZED PILL */
+    .target-pill { display: inline-block; background: #FFF8E1; border: 2px solid #F5A623; border-radius: 30px; padding: 4px 14px; font-weight: 700; font-size: 16px; width: fit-content; align-self: flex-start; flex-shrink: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 
-    /* Story Image - 1/3 of row */
-    .story-img-container { flex: 1; width: 100%; max-width: 100%; height: auto; aspect-ratio: 800 / 350; flex-shrink: 0; border-radius: 12px; overflow: hidden; background: #e9ecef; position: relative; }
+    /* SQUEEZED IMAGE */
+    .story-img-container { flex: 1; width: 100%; max-width: 100%; height: auto; aspect-ratio: 800 / 350; max-height: 100px; flex-shrink: 0; border-radius: 12px; overflow: hidden; background: #e9ecef; position: relative; }
     .story-img-container img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .story-img-placeholder { width: 100%; height: 100%; background: linear-gradient(135deg, #1a365d 0%, #2a4365 100%); display: flex; align-items: center; justify-content: center; position: relative; }
     .story-img-placeholder svg { width: 100%; height: 100%; }
 
-    /* Story Text - FLEX: 0 0 auto CLOSES THE GAP */
-    .story-lines-area { flex: 0 0 auto; position: relative; padding-bottom: 0px; }
-    .story-line { display: flex; justify-content: space-between; align-items: baseline; padding: 4px 0; font-size: 20px; font-weight: 600; line-height: 1.8; }
+    /* Story Text */
+    .story-lines-area { flex: 0 0 auto; position: relative; }
+    .story-line { display: flex; justify-content: space-between; align-items: baseline; padding: 3px 0; font-size: 20px; font-weight: 600; line-height: 1.6; }
     .story-line .sentence { flex: 1; }
     .story-line .wc { font-weight: 700; color: #C62828; min-width: 30px; text-align: right; font-size: 16px; }
 
-    /* Parent Corner - BOLDER & RED TEXT */
+    /* SQUEEZED PARENT CORNER */
     .parent-corner { margin-top: 10px; border: 3px solid #A0522D; border-radius: 12px; overflow: hidden; flex-shrink: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .pc-header { background: #C62828; color: #fff; font-weight: 800; font-size: 18px; text-align: center; padding: 6px; letter-spacing: 2px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .pc-body { padding: 10px 12px; }
-    .pc-body p { font-size: 13px; margin-bottom: 6px; line-height: 1.4; font-weight: 800; color: #C62828; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .parent-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 12px; }
-    .parent-table th, .parent-table td { padding: 6px 4px; text-align: center; border: 2px solid #A0522D; }
+    .pc-header { background: #C62828; color: #fff; font-weight: 800; font-size: 16px; text-align: center; padding: 4px; letter-spacing: 2px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .pc-body { padding: 8px 10px; }
+    .pc-body p { font-size: 12px; margin-bottom: 4px; line-height: 1.4; font-weight: 800; color: #C62828; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .parent-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 11px; }
+    .parent-table th, .parent-table td { padding: 4px 2px; text-align: center; border: 2px solid #A0522D; }
     .parent-table th { background: #F5A623; color: #1a1a1a; font-weight: 800; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .parent-table td:first-child { font-weight: 700; text-align: left; background: #fdfdfd; }
 
     /* Comprehension & Phonics */
-    .comp-section { margin: 15px 0; flex-shrink: 0; }
-    .comp-header { background: #C62828; color: #fff; border-radius: 12px; padding: 10px 18px; font-size: 18px; font-weight: 700; display: inline-block; margin-bottom: 12px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .comp-q { margin-bottom: 20px; }
+    .comp-section { margin: 12px 0; flex-shrink: 0; }
+    .comp-header { background: #C62828; color: #fff; border-radius: 12px; padding: 8px 16px; font-size: 18px; font-weight: 700; display: inline-block; margin-bottom: 8px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .comp-q { margin-bottom: 16px; }
     .comp-q .qtext { font-weight: 700; font-size: 17px; margin-bottom: 6px; }
     .comp-q .opt { display: flex; align-items: center; gap: 10px; font-size: 16px; padding: 3px 0; }
     .comp-q .box-check { display: inline-block; width: 20px; height: 20px; border: 2px solid #C62828; border-radius: 4px; background: #fff; flex-shrink: 0; }
     
-    /* Writing Activity Boxes */
-    .activity-blank-large { min-height: 150px; border: 3px solid #A0522D; border-radius: 16px; margin: 12px 0 16px 0; background: #fff; width: 100%; overflow: hidden; }
-    .activity-blank-large.with-lines { padding: 14px 16px; min-height: 80px; background-image: repeating-linear-gradient(to bottom, transparent, transparent 27px, #d1d5db 27px, #d1d5db 28px); background-position: 0 14px; background-size: 100% 28px; }
+    /* WRITING LINE - REPLACED LARGE RECTANGLE TO SAVE SPACE */
+    .writing-line { 
+      border-bottom: 2px dashed #A0522D; 
+      height: 40px; 
+      margin: 8px 0 12px 0; 
+      width: 100%; 
+    }
     
     .comp-inst { font-size: 15px; color: #2c3e50; margin-bottom: 4px; line-height: 1.5; }
 
@@ -192,6 +198,7 @@
         min-width: 100% !important; 
         height: 1123px !important; 
         min-height: 1123px !important; 
+        max-height: 1123px !important;
         page-break-after: always; 
         background: #fff !important; 
         transform: scale(1) !important; 
@@ -417,18 +424,20 @@
     });
     html += `</div>`;
 
-    // Section B
+    // Section B - REPLACED RECTANGLE WITH SPACE-SAVING LINE
     html += `<div class="comp-section">
       <div class="comp-header">B. Find the Target Sound</div>
-      <div class="comp-inst">Find and list all the words in the story with the ${escapeHtml(lesson.targetSound)} sound. Write them in the box below.</div>
-      <div class="activity-blank-large"></div>
+      <div class="comp-inst">Find and list all the words in the story with the ${escapeHtml(lesson.targetSound)} sound.</div>
+      <div class="writing-line"></div>
+      <div class="writing-line"></div>
+      <div class="writing-line"></div>
     </div>`;
 
     // Section C
     html += `<div class="comp-section">
       <div class="comp-header">C. Write One Sentence from the Story</div>
       <div class="comp-inst">Write any one sentence from the story.</div>
-      <div class="activity-blank-large with-lines"></div>
+      <div class="writing-line" style="height:60px;"></div>
     </div>`;
 
     html += `<div class="page-footer">${pageNum}</div>`;
@@ -751,4 +760,4 @@
 })();
 </script>
 </body>
-</html> 
+</html>
