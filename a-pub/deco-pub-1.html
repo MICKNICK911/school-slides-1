@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>📖 Decodable Reader Publisher</title>
+  <style>
+    /* EXACT A4 DIMENSIONS */
+    @page { size: A4; margin: 0; }
+    
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f5f7fa; color: #1a1a1a; padding: 20px; }
+    .app { max-width: 1400px; margin: 0 auto; background: #fff; border-radius: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.08); overflow: hidden; }
+    .app-header { background: #1a1a2e; color: #fff; padding: 20px 32px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+    .app-header h1 { font-size: 24px; font-weight: 800; }
+    .app-header .badge { background: #F5A623; color: #1a1a1a; padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 700; }
+    .tabs { display: flex; border-bottom: 2px solid #e9ecef; background: #fafbfc; padding: 0 32px; gap: 4px; }
+    .tab-btn { padding: 16px 28px; border: none; background: transparent; font-size: 15px; font-weight: 700; color: #6c757d; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.2s; font-family: inherit; }
+    .tab-btn:hover { color: #1a1a2e; }
+    .tab-btn.active { color: #1a1a2e; border-bottom-color: #F5A623; }
+    .tab-panel { display: none; padding: 24px 32px 32px; }
+    .tab-panel.active { display: block; }
+    .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; max-width: 420px; width: 100%; pointer-events: none; }
+    .toast { padding: 14px 20px; border-radius: 12px; color: #fff; font-weight: 600; font-size: 14px; box-shadow: 0 8px 30px rgba(0,0,0,0.15); animation: slideIn 0.3s ease; display: flex; align-items: center; gap: 10px; pointer-events: auto; }
+    .toast.success { background: #2d7d46; } .toast.error { background: #dc3545; } .toast.warning { background: #e67e22; } .toast.info { background: #2c7be5; }
+    .toast .close-toast { background: none; border: none; color: inherit; font-size: 18px; cursor: pointer; margin-left: auto; opacity: 0.7; }
+    .toast .close-toast:hover { opacity: 1; }
+    @keyframes slideIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+    .edit-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+    @media (max-width: 1100px) { .edit-layout { grid-template-columns: 1fr; } }
+    .form-section { background: #f8f9fa; border-radius: 16px; padding: 24px; border: 2px solid #e9ecef; position: sticky; top: 20px; max-height: calc(100vh - 200px); overflow-y: auto; }
+    .form-section h2 { font-size: 18px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-weight: 700; font-size: 13px; color: #495057; margin-bottom: 4px; }
+    .form-group label .req { color: #dc3545; }
+    .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px 14px; border: 2px solid #dee2e6; border-radius: 10px; font-size: 14px; font-family: inherit; transition: border 0.2s; background: #fff; }
+    .form-group input:focus, .form-group textarea:focus { outline: none; border-color: #F5A623; box-shadow: 0 0 0 3px rgba(245,166,35,0.15); }
+    .form-group textarea { resize: vertical; min-height: 50px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+    .form-actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+    .btn { padding: 10px 22px; border: none; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; transition: all 0.2s; font-family: inherit; display: inline-flex; align-items: center; gap: 6px; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-primary { background: #F5A623; color: #1a1a1a; }
+    .btn-primary:hover:not(:disabled) { background: #e0950f; transform: translateY(-1px); }
+    .btn-success { background: #2d7d46; color: #fff; }
+    .btn-success:hover:not(:disabled) { background: #1f5f34; }
+    .btn-danger { background: #dc3545; color: #fff; }
+    .btn-danger:hover:not(:disabled) { background: #b02a37; }
+    .btn-outline { background: transparent; border: 2px solid #dee2e6; color: #495057; }
+    .btn-outline:hover:not(:disabled) { background: #f1f3f5; }
+    .btn-sm { padding: 6px 14px; font-size: 12px; }
+    .btn-xs { padding: 4px 10px; font-size: 11px; border-radius: 6px; }
+    .btn-warning { background: #e67e22; color: #fff; }
+    .btn-warning:hover:not(:disabled) { background: #cf6d17; }
+    .list-section { min-height: 400px; }
+    .list-toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 2px solid #e9ecef; }
+    .search-box { flex: 1; min-width: 180px; padding: 10px 16px; border: 2px solid #dee2e6; border-radius: 10px; font-size: 14px; font-family: inherit; }
+    .search-box:focus { outline: none; border-color: #F5A623; }
+    .list-toolbar .count { font-weight: 700; color: #6c757d; font-size: 14px; white-space: nowrap; }
+    .lesson-list { display: flex; flex-direction: column; gap: 8px; }
+    .lesson-list .empty-state { text-align: center; padding: 60px 20px; color: #6c757d; }
+    .lesson-list .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+    .lesson-list .empty-state h3 { color: #1a1a1a; margin-bottom: 4px; }
+    .lesson-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #f8f9fa; border-radius: 12px; border: 2px solid transparent; transition: all 0.2s; cursor: grab; user-select: none; }
+    .lesson-item:hover { border-color: #F5A623; background: #fff; }
+    .lesson-item.dragging { opacity: 0.4; border-color: #F5A623; background: #fff8e7; }
+    .lesson-item .drag-handle { color: #adb5bd; font-size: 20px; cursor: grab; line-height: 1; flex-shrink: 0; }
+    .lesson-item .drag-handle:active { cursor: grabbing; }
+    .lesson-item .info { flex: 1; min-width: 0; }
+    .lesson-item .info .title { font-weight: 700; font-size: 15px; }
+    .lesson-item .info .sub { font-size: 13px; color: #6c757d; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .lesson-item .actions { display: flex; gap: 4px; flex-shrink: 0; }
+    .lesson-item.drag-over { border-color: #F5A623; background: #fff8e7; }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 9998; animation: fadeIn 0.2s ease; }
+    .modal-overlay .modal { background: #fff; border-radius: 20px; padding: 32px; max-width: 440px; width: 90%; box-shadow: 0 30px 60px rgba(0,0,0,0.2); }
+    .modal-overlay .modal h3 { margin-bottom: 8px; }
+    .modal-overlay .modal p { color: #6c757d; margin-bottom: 20px; font-size: 15px; }
+    .modal-overlay .modal .actions { display: flex; gap: 10px; justify-content: flex-end; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    /* ----- VIEW TAB - STRICTLY LOCKED ----- */
+    .view-container { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 8px; }
+    .lesson-spread { display: flex; flex-wrap: wrap; justify-content: center; gap: 30px; margin-bottom: 40px; }
+    @media print { .lesson-spread { gap: 0; margin-bottom: 0; page-break-after: always; } }
+
+    .view-container .page { 
+      width: 793px; 
+      min-width: 793px; 
+      height: 1123px; 
+      min-height: 1123px; 
+      padding: 0; 
+      position: relative; 
+      page-break-after: always; 
+      margin: 0 auto; 
+      background: #fff; 
+      border-radius: 12px; 
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06); 
+    }
+    .view-container .page .page-actions { text-align: right; padding: 8px 12px; background: #f1f3f5; border-bottom: 1px solid #e9ecef; }
+    .view-container .export-btn { background: #C62828; color: #fff; border: none; border-radius: 8px; padding: 8px 16px; font-weight: 700; font-size: 13px; font-family: inherit; cursor: pointer; }
+
+    /* Page Common Styles - Padding bottom 40px moves card up */
+    .inner-pad { display: flex; flex-direction: column; padding: 20px 25px 40px; height: auto; min-height: 1063px; position: relative; }
+    
+    /* Page Numbers - LOCKED IDENTICAL POSITION */
+    .page-footer { position: absolute; bottom: 15px; right: 25px; color: #1a1a1a; font-weight: 800; font-size: 18px; }
+
+    /* Header Blocks */
+    .header-row { display: flex; align-items: stretch; gap: 0; margin-bottom: 15px; font-weight: 800; height: 50px; flex-shrink: 0; }
+    .header-lesson { background: #F5A623; color: #1a1a1a; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 4px 20px; border-radius: 12px 0 0 12px; line-height: 1.1; font-size: 14px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .header-lesson span { font-size: 22px; }
+    .header-title { background: #C62828; color: #fff; flex: 1; display: flex; justify-content: center; align-items: center; font-size: 24px; letter-spacing: 1px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .header-grade { background: #F5A623; color: #1a1a1a; display: flex; justify-content: center; align-items: center; padding: 4px 20px; border-radius: 0 12px 12px 0; font-size: 18px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+    /* TITLE & IMAGE ROW - MATHEMATICAL HALF SPLIT */
+    .title-image-row { display: flex; gap: 20px; align-items: flex-start; margin-bottom: 15px; flex-shrink: 0; }
+    .title-side { flex: 2; display: flex; flex-direction: column; justify-content: flex-start; } /* Text area = 66% */
+    .story-title { font-size: 26px; font-weight: 800; color: #1a1a1a; margin: 0 0 6px 0; line-height: 1.2; }
+    
+    /* FIX: PILL DOES NOT STRETCH */
+    .target-pill { display: inline-block; background: #FFF8E1; border: 2px solid #F5A623; border-radius: 30px; padding: 6px 18px; font-weight: 700; font-size: 18px; width: fit-content; align-self: flex-start; flex-shrink: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+    /* Story Image - 1/3 of row (Exactly half the width of the text column) */
+    .story-img-container { flex: 1; width: 100%; max-width: 100%; height: auto; aspect-ratio: 800 / 350; flex-shrink: 0; border-radius: 12px; overflow: hidden; background: #e9ecef; position: relative; }
+    .story-img-container img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .story-img-placeholder { width: 100%; height: 100%; background: linear-gradient(135deg, #1a365d 0%, #2a4365 100%); display: flex; align-items: center; justify-content: center; position: relative; }
+    .story-img-placeholder svg { width: 100%; height: 100%; }
+
+    /* Story Text - CLEANED UP, PILL REMOVED */
+    .story-lines-area { flex: 1; position: relative; padding-bottom: 0px; }
+    .story-line { display: flex; justify-content: space-between; align-items: baseline; padding: 4px 0; font-size: 20px; font-weight: 600; line-height: 1.8; }
+    .story-line .sentence { flex: 1; }
+    .story-line .wc { font-weight: 700; color: #C62828; min-width: 30px; text-align: right; font-size: 16px; }
+
+    /* Parent Corner - BOLDER & RED TEXT */
+    .parent-corner { margin-top: 10px; border: 3px solid #A0522D; border-radius: 12px; overflow: hidden; flex-shrink: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .pc-header { background: #C62828; color: #fff; font-weight: 800; font-size: 18px; text-align: center; padding: 6px; letter-spacing: 2px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .pc-body { padding: 10px 12px; }
+    .pc-body p { font-size: 13px; margin-bottom: 6px; line-height: 1.4; font-weight: 800; color: #C62828; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .parent-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 12px; }
+    .parent-table th, .parent-table td { padding: 6px 4px; text-align: center; border: 2px solid #A0522D; }
+    .parent-table th { background: #F5A623; color: #1a1a1a; font-weight: 800; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .parent-table td:first-child { font-weight: 700; text-align: left; background: #fdfdfd; }
+
+    /* Comprehension & Phonics */
+    .comp-section { margin: 15px 0; flex-shrink: 0; }
+    .comp-header { background: #C62828; color: #fff; border-radius: 12px; padding: 10px 18px; font-size: 18px; font-weight: 700; display: inline-block; margin-bottom: 12px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .comp-q { margin-bottom: 20px; }
+    .comp-q .qtext { font-weight: 700; font-size: 17px; margin-bottom: 6px; }
+    .comp-q .opt { display: flex; align-items: center; gap: 10px; font-size: 16px; padding: 3px 0; }
+    .comp-q .box-check { display: inline-block; width: 20px; height: 20px; border: 2px solid #C62828; border-radius: 4px; background: #fff; flex-shrink: 0; }
+    
+    /* Writing Activity Boxes */
+    .activity-blank-large { min-height: 150px; border: 3px solid #A0522D; border-radius: 16px; margin: 12px 0 16px 0; background: #fff; width: 100%; overflow: hidden; }
+    .activity-blank-large.with-lines { padding: 14px 16px; min-height: 80px; background-image: repeating-linear-gradient(to bottom, transparent, transparent 27px, #d1d5db 27px, #d1d5db 28px); background-position: 0 14px; background-size: 100% 28px; }
+    
+    .comp-inst { font-size: 15px; color: #2c3e50; margin-bottom: 4px; line-height: 1.5; }
+
+    .view-toolbar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 2px solid #e9ecef; }
+    .view-toolbar .info { font-weight: 700; color: #6c757d; font-size: 14px; margin-right: auto; }
+
+    @media (max-width: 900px) {
+      .view-container .page { width: 793px; min-width: 793px; transform: scale(0.8); transform-origin: top center; margin-bottom: -150px; }
+      .edit-layout { grid-template-columns: 1fr; }
+      .form-section { position: static; max-height: none; }
+      .app-header h1 { font-size: 20px; }
+      .tabs { padding: 0 16px; }
+      .tab-btn { padding: 12px 18px; font-size: 13px; }
+      .tab-panel { padding: 16px; }
+    }
+    @media print {
+      body { padding: 0; background: #fff; }
+      .app, .app-header, .tabs, .tab-panel, .view-toolbar, .no-print, .page-actions { display: none !important; }
+      .view-container { overflow-x: visible !important; }
+      .view-container .page { 
+        box-shadow: none !important; 
+        border-radius: 0 !important; 
+        margin: 0 auto !important; 
+        padding: 0 !important; 
+        width: 100% !important; 
+        min-width: 100% !important; 
+        height: 1123px !important; 
+        min-height: 1123px !important; 
+        page-break-after: always; 
+        background: #fff !important; 
+        transform: scale(1) !important; 
+      }
+      .view-container .page:last-child { page-break-after: auto; }
+      .lesson-spread { page-break-after: always !important; gap: 0 !important; }
+      .lesson-spread:last-child { page-break-after: auto !important; }
+      .inner-pad { padding: 15px 20px 35px !important; height: 1063px !important; min-height: 1063px !important; }
+      .view-container .card { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      .parent-table th, .header-lesson, .header-title, .header-grade, .pc-header, .comp-header, .page-footer { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    }
+  </style>
+</head>
+<body>
+<div id="app"></div>
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+(function() {
+  const STORAGE_KEY = 'decodable_readers_v1';
+
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+  function showToast(msg, type='info') {
+    const c = document.getElementById('toastContainer');
+    const t = document.createElement('div');
+    t.className = 'toast ' + type;
+    t.innerHTML = `<span>${type==='success'?'✅':type==='error'?'❌':'ℹ️'}</span> ${escapeHtml(msg)}`;
+    c.appendChild(t);
+    setTimeout(() => t.remove(), 3500);
+  }
+  function confirmDialog(msg, cb) {
+    const ov = document.createElement('div');
+    ov.className = 'modal-overlay';
+    ov.innerHTML = `<div class="modal"><h3>⚠️ Confirm</h3><p>${msg}</p><div class="actions"><button class="btn btn-outline cancel">Cancel</button><button class="btn btn-danger confirm">Yes</button></div></div>`;
+    document.body.appendChild(ov);
+    ov.querySelector('.cancel').onclick = () => ov.remove();
+    ov.querySelector('.confirm').onclick = () => { ov.remove(); cb(); };
+  }
+
+  // ----- Default data -----
+  const DEFAULT_LESSONS = [{
+    id: 'r1',
+    lessonNumber: 12,
+    grade: "3",
+    imageUrl: "",
+    title: "Ben's Camping Trip",
+    targetSound: "short e (/ɛ/)",
+    storyLines: [
+      { sentence: "Ben went on a camping trip with Dad.", wordCount: 7 },
+      { sentence: "They set up the tent near the lake.", wordCount: 9 },
+      { sentence: "Ben helped gather wood for the fire.", wordCount: 8 },
+      { sentence: "They lit the fire and cooked their food.", wordCount: 9 },
+      { sentence: "Ben had a hot dog and some bread.", wordCount: 9 },
+      { sentence: "After dinner, they told fun stories.", wordCount: 7 },
+      { sentence: "Ben saw the stars light up the sky.", wordCount: 8 },
+      { sentence: "He heard crickets and a soft breeze.", wordCount: 8 },
+      { sentence: "In the morning, they packed up camp.", wordCount: 7 },
+      { sentence: "Ben was happy about the great trip.", wordCount: 7 }
+    ],
+    comprehension: [
+      {
+        question: "Where did Ben and his Dad set up the tent?",
+        options: ["by the river", "near the lake", "in the forest"]
+      },
+      {
+        question: "What did Ben and his Dad cook over the fire?",
+        options: ["pizza and cookies", "hot dogs and bread", "fish and rice"]
+      },
+      {
+        question: "How did Ben feel about the trip?",
+        options: ["tired and bored", "sad and cold", "happy and glad"]
+      }
+    ]
+  }];
+
+  let lessons = [], editingId = null, nextId = 1;
+  let searchQuery = '';
+
+  function loadData() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && Array.isArray(parsed.lessons)) {
+          lessons = parsed.lessons;
+          lessons.forEach(l => {
+            if (!l.storyLines) l.storyLines = [];
+            if (!l.comprehension) l.comprehension = [];
+            if (!l.grade) l.grade = "3";
+            if (!l.imageUrl) l.imageUrl = "";
+            l.storyLines.forEach(line => {
+              if (typeof line.wordCount !== 'number') {
+                line.wordCount = line.sentence.split(/\s+/).filter(w => w).length;
+              }
+            });
+          });
+          if (lessons.length) {
+            const nums = lessons.map(l => parseInt(l.id.replace('r','')) || 0);
+            nextId = Math.max(...nums) + 1;
+          } else nextId = 1;
+          return;
+        }
+      }
+    } catch(e) {}
+    lessons = JSON.parse(JSON.stringify(DEFAULT_LESSONS));
+    nextId = lessons.length + 1;
+    saveData();
+  }
+  function saveData() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ lessons })); }
+    catch(e) { showToast('Storage full – delete some lessons.', 'error'); }
+  }
+  function generateId() { return 'r' + (nextId++); }
+
+  function countWords(sentence) {
+    return sentence.trim().split(/\s+/).filter(w => w).length;
+  }
+
+  // ----- VIEW BUILDERS -----
+  function getCampingSVG() {
+    return `<svg viewBox="0 0 800 350" xmlns="http://www.w3.org/2000/svg" style="background:#1a365d;">
+      <circle cx="700" cy="60" r="30" fill="#f5d76e" />
+      <circle cx="695" cy="55" r="6" fill="#f1c40f" />
+      <rect x="0" y="200" width="800" height="150" fill="#2d5016" />
+      <rect x="0" y="220" width="800" height="130" fill="#1a3b0f" />
+      <polygon points="200,200 80,40 320,40" fill="#d35400" />
+      <polygon points="200,200 100,50 300,50" fill="#e67e22" />
+      <path d="M 130 180 L 130 60 L 140 60 L 140 180 Z" fill="#873600" />
+      <path d="M 260 180 L 260 60 L 270 60 L 270 180 Z" fill="#873600" />
+      <circle cx="200" cy="200" r="30" fill="#C62828" />
+      <circle cx="200" cy="200" r="20" fill="#f39c12" />
+      <circle cx="210" cy="195" r="8" fill="#f1c40f" />
+      <circle cx="190" cy="205" r="6" fill="#e67e22" />
+      <rect x="480" y="40" width="80" height="120" fill="#a0522d" rx="4" />
+      <polygon points="460,40 520,0 580,40" fill="#C62828" />
+      <rect x="520" y="40" width="80" height="120" fill="#a0522d" rx="4" />
+      <polygon points="500,40 560,0 620,40" fill="#C62828" />
+      <polygon points="300,40 320,20 340,40" fill="#e67e22" />
+      <polygon points="90,40 110,20 130,40" fill="#e67e22" />
+    </svg>`;
+  }
+
+  function buildPageOne(lesson, pageNum) {
+    const page = document.createElement('div'); page.className = 'page';
+    page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
+    const inner = document.createElement('div'); inner.className = 'inner-pad';
+    
+    let html = `
+      <div class="header-row">
+        <div class="header-lesson">LESSON <span>${escapeHtml(lesson.lessonNumber)}</span></div>
+        <div class="header-title">Reading Practice</div>
+        <div class="header-grade">Grade ${escapeHtml(lesson.grade)}</div>
+      </div>
+      <div class="title-image-row">
+        <div class="title-side">
+          <div class="story-title">${escapeHtml(lesson.title)}</div>
+          <div class="target-pill">Target Sound: ${escapeHtml(lesson.targetSound)}</div>
+        </div>
+        <div class="story-img-container">
+          ${lesson.imageUrl 
+            ? `<img src="${escapeHtml(lesson.imageUrl)}" alt="Story Image">` 
+            : `<div class="story-img-placeholder">${getCampingSVG()}</div>`}
+        </div>
+      </div>
+      <div class="story-lines-area">`;
+    
+    // Cumulative Word Count
+    let runningTotal = 0;
+    lesson.storyLines.forEach(line => {
+      const wc = typeof line.wordCount === 'number' ? line.wordCount : countWords(line.sentence);
+      runningTotal += wc;
+      html += `<div class="story-line"><span class="sentence">${escapeHtml(line.sentence)}</span><span class="wc">${runningTotal}</span></div>`;
+    });
+    
+    html += `</div>`;
+
+    // Parent Corner
+    html += `
+      <div class="parent-corner">
+        <div class="pc-header">PARENT CORNER</div>
+        <div class="pc-body">
+          <p>Parents are to listen to their child read aloud every day. Please kindly record your child's daily reading progress in the table below. Your consistent support plays a vital role in building their reading fluency and confidence.</p>
+          <table class="parent-table">
+            <thead><tr><th></th><th>Monday</th><th>Tuesday</th><th>Wednesday</th><th>Thursday</th><th>Friday</th></tr></thead>
+            <tbody>
+              <tr><td>Minutes Read</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+              <tr><td>Words Read</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+              <tr><td>Errors</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+              <tr><td>Parent Initials</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+    html += `<div class="page-footer">${pageNum}</div>`;
+    inner.innerHTML = html;
+    page.appendChild(inner);
+    return page;
+  }
+
+  function buildPageTwo(lesson, pageNum) {
+    const page = document.createElement('div'); page.className = 'page';
+    page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
+    const inner = document.createElement('div'); inner.className = 'inner-pad';
+    let html = `
+      <div class="header-row">
+        <div class="header-lesson">LESSON <span>${escapeHtml(lesson.lessonNumber)}</span></div>
+        <div class="header-title">Comprehension & Phonics</div>
+        <div class="header-grade">Grade ${escapeHtml(lesson.grade)}</div>
+      </div>
+    `;
+
+    // Section A
+    html += `<div class="comp-section"><div class="comp-header">A. Comprehension – Choose the best answer.</div>`;
+    lesson.comprehension.forEach((q, idx) => {
+      html += `<div class="comp-q"><div class="qtext">${idx+1}. ${escapeHtml(q.question)}</div>`;
+      q.options.forEach(opt => {
+        html += `<div class="opt"><span class="box-check"></span> ${escapeHtml(opt)}</div>`;
+      });
+      html += `</div>`;
+    });
+    html += `</div>`;
+
+    // Section B
+    html += `<div class="comp-section">
+      <div class="comp-header">B. Find the Target Sound</div>
+      <div class="comp-inst">Find and list all the words in the story with the ${escapeHtml(lesson.targetSound)} sound. Write them in the box below.</div>
+      <div class="activity-blank-large"></div>
+    </div>`;
+
+    // Section C
+    html += `<div class="comp-section">
+      <div class="comp-header">C. Write One Sentence from the Story</div>
+      <div class="comp-inst">Write any one sentence from the story.</div>
+      <div class="activity-blank-large with-lines"></div>
+    </div>`;
+
+    html += `<div class="page-footer">${pageNum}</div>`;
+    inner.innerHTML = html;
+    page.appendChild(inner);
+    return page;
+  }
+
+  function renderAllView() {
+    const container = document.getElementById('viewContainer');
+    container.innerHTML = '';
+    if (!lessons.length) {
+      container.innerHTML = '<div style="padding:60px;text-align:center;color:#6c757d;">No lessons yet. Create one in the Edit tab.</div>';
+      return;
+    }
+    lessons.forEach((l, idx) => {
+      const spread = document.createElement('div'); spread.className = 'lesson-spread';
+      const p1 = idx * 2 + 1;
+      const p2 = idx * 2 + 2;
+      spread.appendChild(buildPageOne(l, p1));
+      spread.appendChild(buildPageTwo(l, p2));
+      container.appendChild(spread);
+    });
+  }
+
+  window.exportSinglePage = function(pageEl) {
+    const clone = pageEl.cloneNode(true);
+    clone.querySelector('.page-actions')?.remove();
+    const win = window.open('', '_blank');
+    const styles = document.querySelector('style').outerHTML;
+    win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Export</title><style>${styles}</style></head><body style="padding:0;background:#fff;margin:0;"><div class="view-container" style="overflow:visible;">${clone.outerHTML}</div></body></html>`);
+    win.document.close(); win.focus();
+    setTimeout(() => win.print(), 400);
+  };
+  window.exportAllPages = function() {
+    if (!lessons.length) return showToast('No lessons.', 'warning');
+    const container = document.querySelector('.view-container').cloneNode(true);
+    container.querySelectorAll('.page-actions').forEach(el => el.remove());
+    const win = window.open('', '_blank');
+    const styles = document.querySelector('style').outerHTML;
+    win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>All Pages</title><style>${styles}</style></head><body style="padding:0;background:#fff;margin:0;"><div class="view-container" style="overflow:visible;">${container.outerHTML}</div></body></html>`);
+    win.document.close(); win.focus();
+    setTimeout(() => win.print(), 400);
+  };
+
+  // ----- EDIT -----
+  function getFormData() {
+    const storyRaw = document.getElementById('fStory').value;
+    const lines = storyRaw.split('\n').map(s => s.trim()).filter(Boolean);
+    const storyLines = lines.map(s => ({ sentence: s, wordCount: countWords(s) }));
+    const comp = [];
+    for (let i=1; i<=3; i++) {
+      const q = document.getElementById('fQ'+i).value.trim();
+      const o1 = document.getElementById('fQ'+i+'O1').value.trim();
+      const o2 = document.getElementById('fQ'+i+'O2').value.trim();
+      const o3 = document.getElementById('fQ'+i+'O3').value.trim();
+      if (q && o1 && o2 && o3) comp.push({ question: q, options: [o1, o2, o3] });
+    }
+    return {
+      title: document.getElementById('fTitle').value.trim(),
+      lessonNumber: parseInt(document.getElementById('fLessonNumber').value.trim()) || 1,
+      grade: document.getElementById('fGrade').value.trim(),
+      imageUrl: document.getElementById('fImageUrl').value.trim(),
+      targetSound: document.getElementById('fTargetSound').value.trim(),
+      storyLines,
+      comprehension: comp
+    };
+  }
+
+  function fillForm(lesson) {
+    document.getElementById('fTitle').value = lesson.title || '';
+    document.getElementById('fLessonNumber').value = lesson.lessonNumber || '';
+    document.getElementById('fGrade').value = lesson.grade || '3';
+    document.getElementById('fImageUrl').value = lesson.imageUrl || '';
+    document.getElementById('fTargetSound').value = lesson.targetSound || '';
+    document.getElementById('fStory').value = lesson.storyLines.map(l => l.sentence).join('\n');
+    for (let i=0; i<3; i++) {
+      const q = lesson.comprehension[i] || { question: '', options: ['','',''] };
+      document.getElementById('fQ'+(i+1)).value = q.question || '';
+      document.getElementById('fQ'+(i+1)+'O1').value = q.options[0] || '';
+      document.getElementById('fQ'+(i+1)+'O2').value = q.options[1] || '';
+      document.getElementById('fQ'+(i+1)+'O3').value = q.options[2] || '';
+    }
+  }
+
+  function resetForm() {
+    editingId = null;
+    document.getElementById('formTitle').textContent = '➕ Add New Reader';
+    document.getElementById('fTitle').value = '';
+    document.getElementById('fLessonNumber').value = '';
+    document.getElementById('fGrade').value = '3';
+    document.getElementById('fImageUrl').value = '';
+    document.getElementById('fTargetSound').value = '';
+    document.getElementById('fStory').value = '';
+    for (let i=1; i<=3; i++) {
+      document.getElementById('fQ'+i).value = '';
+      document.getElementById('fQ'+i+'O1').value = '';
+      document.getElementById('fQ'+i+'O2').value = '';
+      document.getElementById('fQ'+i+'O3').value = '';
+    }
+    document.getElementById('saveBtn').textContent = '💾 Save Lesson';
+    document.getElementById('cancelBtn').style.display = 'none';
+  }
+
+  window.editLesson = function(id) {
+    const lesson = lessons.find(l => l.id === id);
+    if (!lesson) return showToast('Not found.', 'error');
+    editingId = id;
+    document.getElementById('formTitle').textContent = '✏️ Edit Reader';
+    fillForm(lesson);
+    document.getElementById('saveBtn').textContent = '💾 Update Lesson';
+    document.getElementById('cancelBtn').style.display = 'inline-block';
+    document.querySelector('.form-section').scrollIntoView({behavior:'smooth'});
+  };
+  window.cancelEdit = function() { resetForm(); showToast('Cancelled.', 'info'); };
+
+  window.saveLesson = function() {
+    const data = getFormData();
+    if (!data.title || !data.lessonNumber || !data.targetSound || data.storyLines.length < 5 || data.comprehension.length < 3) {
+      return showToast('Fill all fields: Title, Lesson No, Target Sound, at least 5 story lines, and 3 comp questions.', 'error');
+    }
+    if (editingId) {
+      const idx = lessons.findIndex(l => l.id === editingId);
+      if (idx === -1) return showToast('Not found.', 'error');
+      lessons[idx] = { ...lessons[idx], ...data, id: editingId };
+    } else {
+      lessons.push({ ...data, id: generateId() });
+    }
+    saveData(); resetForm(); refreshUI();
+    showToast('Lesson saved.', 'success');
+  };
+  window.deleteLesson = function(id) {
+    const l = lessons.find(l => l.id === id);
+    if (!l) return;
+    confirmDialog(`Delete "${l.title}"?`, () => {
+      lessons = lessons.filter(l => l.id !== id);
+      if (editingId === id) resetForm();
+      saveData(); refreshUI();
+    });
+  };
+  window.duplicateLesson = function(id) {
+    const l = lessons.find(l => l.id === id);
+    if (!l) return;
+    const copy = JSON.parse(JSON.stringify(l));
+    delete copy.id;
+    copy.id = generateId();
+    lessons.push(copy);
+    saveData(); refreshUI();
+    showToast('Duplicated.', 'success');
+  };
+  window.exportJSON = function() {
+    const blob = new Blob([JSON.stringify({ lessons }, null, 2)], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'readers.json';
+    a.click();
+  };
+  window.importJSON = function(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        const data = JSON.parse(e.target.result);
+        if (!data || !Array.isArray(data.lessons)) throw new Error('Invalid');
+        confirmDialog('Replace all data with imported file?', () => {
+          lessons = data.lessons.map(l => {
+            if (!l.id) l.id = generateId();
+            if (!l.storyLines) l.storyLines = [];
+            if (!l.comprehension) l.comprehension = [];
+            if (!l.grade) l.grade = "3";
+            if (!l.imageUrl) l.imageUrl = "";
+            l.storyLines.forEach(line => {
+              if (typeof line.wordCount !== 'number') line.wordCount = countWords(line.sentence);
+            });
+            return l;
+          });
+          saveData(); resetForm(); refreshUI();
+          showToast('Imported.', 'success');
+        });
+      } catch(err) { showToast('Invalid JSON.', 'error'); }
+    };
+    reader.readAsText(file);
+  };
+
+  function renderEditList() {
+    const container = document.getElementById('lessonList');
+    const q = searchQuery.toLowerCase();
+    const filtered = lessons.filter(l =>
+      !q || l.title.toLowerCase().includes(q) || l.targetSound.toLowerCase().includes(q) ||
+      l.storyLines.some(line => line.sentence.toLowerCase().includes(q)) ||
+      l.comprehension.some(c => c.question.toLowerCase().includes(q) || c.options.some(o => o.toLowerCase().includes(q)))
+    );
+    container.innerHTML = filtered.length ? filtered.map(l => `
+      <div class="lesson-item" draggable="true" data-id="${l.id}">
+        <span class="drag-handle">⠿</span>
+        <div class="info">
+          <div class="title">Lesson ${l.lessonNumber || '?'} — ${escapeHtml(l.title)}</div>
+          <div class="sub">${escapeHtml(l.targetSound)} · ${l.storyLines.length} lines · Grade ${l.grade||'3'}</div>
+        </div>
+        <div class="actions">
+          <button class="btn btn-primary btn-xs" onclick="editLesson('${l.id}')">✏️</button>
+          <button class="btn btn-warning btn-xs" onclick="duplicateLesson('${l.id}')">📋</button>
+          <button class="btn btn-danger btn-xs" onclick="deleteLesson('${l.id}')">🗑️</button>
+        </div>
+      </div>`).join('') : '<div class="empty-state">No lessons found.</div>';
+    document.getElementById('listCount').textContent = filtered.length + ' / ' + lessons.length;
+    updateCounts();
+  }
+
+  function updateCounts() {
+    document.getElementById('lessonCount').textContent = lessons.length + ' lessons';
+    document.getElementById('viewInfo').textContent = `📄 ${lessons.length} lessons · ${lessons.length * 2} pages`;
+  }
+
+  function refreshUI() { renderEditList(); renderAllView(); updateCounts(); }
+
+  window.switchTab = function(tab) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === tab + 'Panel'));
+    if (tab === 'edit') renderEditList();
+    if (tab === 'view') renderAllView();
+    updateCounts();
+  };
+
+  // ----- Init -----
+  loadData();
+
+  document.getElementById('app').innerHTML = `
+    <div class="app-header"><h1>📖 Decodable Reader Publisher</h1><span class="badge" id="lessonCount">0</span></div>
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="edit" onclick="switchTab('edit')">✏️ Edit</button>
+      <button class="tab-btn" data-tab="view" onclick="switchTab('view')">👁️ View</button>
+    </div>
+    <div class="tab-panel active" id="editPanel">
+      <div class="edit-layout">
+        <div class="form-section">
+          <h2 id="formTitle">➕ Add New Reader</h2>
+          
+          <div class="form-row">
+            <div class="form-group"><label>Title <span class="req">*</span></label><input id="fTitle" placeholder="e.g. Ben's Camping Trip"></div>
+            <div class="form-group"><label>Lesson Number <span class="req">*</span></label><input id="fLessonNumber" type="number" placeholder="e.g. 12"></div>
+            <div class="form-group"><label>Grade <span class="req">*</span></label><input id="fGrade" placeholder="e.g. 3"></div>
+            <div class="form-group"><label>Image URL</label><input id="fImageUrl" placeholder="Paste image link (optional)"></div>
+          </div>
+          
+          <div class="form-group"><label>Target Sound <span class="req">*</span></label><input id="fTargetSound" placeholder="e.g. short e (/ɛ/)"></div>
+          <div class="form-group"><label>Story Text <span class="req">*</span> (one sentence per line – word counts auto‑calculated)</label><textarea id="fStory" rows="8" placeholder="Ben went on a camping trip with Dad.&#10;They set up the tent near the lake."></textarea></div>
+          <hr style="margin:16px 0;border-color:#dee2e6;">
+          <h4 style="margin-bottom:12px;">Comprehension Questions (3 required)</h4>
+          ${[1,2,3].map(i => `
+            <div style="background:#fff;padding:12px;border-radius:10px;border:1px solid #dee2e6;margin-bottom:12px;">
+              <div class="form-group"><label>Question ${i} <span class="req">*</span></label><input id="fQ${i}" placeholder="e.g. Where did Ben set up the tent?"></div>
+              <div class="form-row">
+                <div class="form-group"><label>Option A</label><input id="fQ${i}O1" placeholder="by the river"></div>
+                <div class="form-group"><label>Option B</label><input id="fQ${i}O2" placeholder="near the lake"></div>
+                <div class="form-group"><label>Option C</label><input id="fQ${i}O3" placeholder="in the forest"></div>
+              </div>
+            </div>
+          `).join('')}
+          <div class="form-actions">
+            <button class="btn btn-primary" id="saveBtn" onclick="saveLesson()">💾 Save Lesson</button>
+            <button class="btn btn-outline" id="cancelBtn" onclick="cancelEdit()" style="display:none">Cancel</button>
+          </div>
+        </div>
+        <div class="list-section">
+          <h2>📖 All Readers</h2>
+          <div class="list-toolbar">
+            <input class="search-box" id="searchInput" placeholder="🔍 Search..." oninput="searchQuery=this.value;renderEditList()">
+            <span class="count" id="listCount">0/0</span>
+            <button class="btn btn-success btn-sm" onclick="exportJSON()">📤 Export JSON</button>
+            <button class="btn btn-outline btn-sm" onclick="document.getElementById('importFile').click()">📥 Import</button>
+            <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(this)">
+          </div>
+          <div class="lesson-list" id="lessonList"></div>
+        </div>
+      </div>
+    </div>
+    <div class="tab-panel" id="viewPanel">
+      <div class="view-toolbar">
+        <span class="info" id="viewInfo">0 lessons · 0 pages</span>
+        <button class="btn btn-success" onclick="exportAllPages()">⬇ Export All</button>
+      </div>
+      <div class="view-container" id="viewContainer"></div>
+    </div>
+  `;
+
+  resetForm();
+  if (lessons.length) fillForm(lessons[0]);
+
+  renderEditList();
+  renderAllView();
+  updateCounts();
+
+  // Drag & drop
+  const list = document.getElementById('lessonList');
+  list.addEventListener('dragstart', e => {
+    const item = e.target.closest('.lesson-item');
+    if (item) e.dataTransfer.setData('text/plain', item.dataset.id);
+  });
+  list.addEventListener('dragover', e => e.preventDefault());
+  list.addEventListener('drop', e => {
+    e.preventDefault();
+    const id = e.dataTransfer.getData('text/plain');
+    const target = e.target.closest('.lesson-item');
+    if (id && target) {
+      const fromIdx = lessons.findIndex(l => l.id === id);
+      const toIdx = lessons.findIndex(l => l.id === target.dataset.id);
+      if (fromIdx !== -1 && toIdx !== -1 && fromIdx !== toIdx) {
+        const [moved] = lessons.splice(fromIdx, 1);
+        lessons.splice(toIdx, 0, moved);
+        saveData();
+        refreshUI();
+      }
+    }
+  });
+
+  window.searchQuery = '';
+  window.renderEditList = renderEditList;
+})();
+</script>
+</body>
+</html>
