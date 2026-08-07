@@ -171,16 +171,16 @@
         .story-title { font-size: 26px; font-weight: 800; color: #b91c1c; margin: 0 0 8px 0; line-height: 1.15; letter-spacing: -0.01em; }
         .target-pill { display: inline-block; background: #fef9e7; border: 2px solid #f59e0b; border-radius: 26px; padding: 5px 16px; font-weight: 700; font-size: 15px; width: fit-content; align-self: flex-start; flex-shrink: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 
-        /* SQUARE IMAGE CONTAINER */
+        /* RECTANGULAR IMAGE CONTAINER 420×140px with light border */
         .story-img-container { 
-            flex: 0 0 140px; 
-            width: 140px; 
-            height: 140px; 
+            flex: 0 0 420px;   /* fixed width 420px */
+            width: 420px;
+            height: 140px;     /* height 140px */
             border-radius: 12px; 
             overflow: hidden; 
             background: #e2e8f0; 
             position: relative; 
-            border: 1px solid #cbd5e1; /* LIGHT BORDER */
+            border: 1px solid #cbd5e1;  /* light border */
             -webkit-print-color-adjust: exact; 
             print-color-adjust: exact; 
             flex-shrink: 0;
@@ -218,7 +218,7 @@
         .view-toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
         .view-toolbar .info { font-weight: 600; color: var(--text-secondary); font-size: 13px; margin-right: auto; background: var(--surface-alt); padding: 6px 12px; border-radius: 20px; border: 1px solid var(--border); }
 
-        /* ========== PRINT STYLES – MATCHING SCREEN ========== */
+        /* ========== PRINT STYLES ========== */
         @media print {
             @page { size: 850px 1100px; margin: 0; }
             body { padding: 0 !important; background: #fff !important; margin: 0 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
@@ -231,9 +231,8 @@
             .view-container .card { border-radius: 0 !important; min-height: 1010px !important; height: 1010px !important; border: 3px solid #f59e0b !important; overflow: hidden !important; }
             .inner-pad { padding: 20px 28px 0 28px !important; }
             .page-footer-red { border-radius: 0 !important; height: 26px !important; }
-            .story-img-container { border: 1px solid #cbd5e1 !important; } /* light border */
+            .story-img-container { border: 1px solid #cbd5e1 !important; width: 420px !important; height: 140px !important; }
             .parent-corner { margin-top: 25px !important; }
-            /* force colors */
             .view-container .card, .view-container .header-lesson, .view-container .header-title, .view-container .header-grade, .view-container .pc-header, .view-container .comp-header, .view-container .page-footer-red, .view-container .parent-table th, .view-container .target-pill, .view-container .story-total-pill, .view-container .story-img-placeholder, .view-container .parent-corner, .view-container .pc-body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
         }
 
@@ -355,6 +354,7 @@
             function countWords(sentence) { return sentence.trim().split(/\s+/).filter(w => w).length; }
 
             function getCampingSVG() {
+                // SVG will scale to fit 420x140 container via object-fit: cover
                 return `<svg viewBox="0 0 800 350" xmlns="http://www.w3.org/2000/svg" style="background:#1e3a5f;">
           <circle cx="700" cy="55" r="28" fill="#f5d76e" /><circle cx="695" cy="50" r="5" fill="#f1c40f" />
           <rect x="0" y="200" width="800" height="150" fill="#2d5a1e" /><rect x="0" y="220" width="800" height="130" fill="#1e4410" />
