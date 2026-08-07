@@ -79,7 +79,7 @@
     .modal-overlay .modal .actions { display: flex; gap: 10px; justify-content: flex-end; }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-    /* ----- VIEW TAB - 850x1080 LOCK, 20px SAFETY MARGIN ----- */
+    /* ----- VIEW TAB - PERFECT LOCK 850x1080 LAYOUT ----- */
     .view-container { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 8px; }
     .lesson-spread { display: flex; flex-wrap: wrap; justify-content: center; gap: 30px; margin-bottom: 40px; }
     @media print { .lesson-spread { gap: 0; margin-bottom: 0; page-break-after: always; } }
@@ -87,7 +87,8 @@
     .view-container .page { 
       width: 850px; 
       min-width: 850px; 
-      min-height: 1080px; /* 20px shorter than @page margin */
+      min-height: 1080px; 
+      height: 1080px; 
       padding: 20px 25px; 
       position: relative; 
       page-break-after: always; 
@@ -95,73 +96,102 @@
       background: #fff; 
       border-radius: 12px; 
       box-shadow: 0 4px 12px rgba(0,0,0,0.06); 
-      overflow: hidden; /* Cuts off texts that are *too* long */
+      box-sizing: border-box;
     }
+
+    /* CARD WITH FLEXBOX TO FORCE FOOTER TO BOTTOM AND CUT OFF OVERFLOW */
+    .view-container .card { 
+      border: 3px solid #F5A623; 
+      border-radius: 28px; 
+      min-height: 1030px; 
+      height: 1030px; 
+      padding: 0; 
+      position: relative; 
+      display: flex; 
+      flex-direction: column; 
+      overflow: hidden; /* CRITICAL: STOPS ALL BLEEDING */
+      -webkit-print-color-adjust: exact; 
+      print-color-adjust: exact; 
+    }
+
     .view-container .page .page-actions { text-align: right; padding: 8px 12px; background: #f1f3f5; border-bottom: 1px solid #e9ecef; }
     .view-container .export-btn { background: #C62828; color: #fff; border: none; border-radius: 8px; padding: 8px 16px; font-weight: 700; font-size: 13px; font-family: inherit; cursor: pointer; }
 
-    /* INNER-PAD - 1020px FITS SAFELY INSIDE 1040px PAGE AREA */
+    /* INNER CONTENT PAD - MATHEMATICALLY 1025px TALL */
     .inner-pad { 
+      flex: 1; 
+      padding: 15px 25px 0 25px; 
       display: flex; 
       flex-direction: column; 
-      justify-content: space-between;
-      min-height: 1020px; /* 20px slack before page bottom */
-      max-height: 1020px;
-      position: relative; 
-      overflow: hidden; 
     }
-    
-    /* Page Numbers - LOCKED */
-    .page-footer { position: absolute; bottom: 5px; right: 25px; color: #1a1a1a; font-weight: 800; font-size: 18px; }
 
-    /* Header Blocks - SQUEEZED */
-    .header-row { display: flex; align-items: stretch; gap: 0; margin-bottom: 10px; font-weight: 800; height: 40px; flex-shrink: 0; }
+    /* EXACT RED FOOTER - MARGIN: AUTO LOCKS IT TO THE BOTTOM */
+    .page-footer-red { 
+      margin-top: auto; 
+      height: 25px; 
+      width: 100%; 
+      background: #C62828; 
+      border-radius: 0 0 25px 25px; 
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+      color: #fff; 
+      font-weight: 800; 
+      font-size: 18px; 
+      flex-shrink: 0; 
+      -webkit-print-color-adjust: exact; 
+      print-color-adjust: exact; 
+    }
+
+    /* Header Blocks */
+    .header-row { display: flex; align-items: stretch; gap: 0; margin-bottom: 10px; font-weight: 800; height: 45px; flex-shrink: 0; }
     .header-lesson { background: #F5A623; color: #1a1a1a; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 2px 15px; border-radius: 12px 0 0 12px; line-height: 1.1; font-size: 12px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .header-lesson span { font-size: 18px; }
+    .header-lesson span { font-size: 20px; }
     .header-title { background: #C62828; color: #fff; flex: 1; display: flex; justify-content: center; align-items: center; font-size: 22px; letter-spacing: 1px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .header-grade { background: #F5A623; color: #1a1a1a; display: flex; justify-content: center; align-items: center; padding: 2px 15px; border-radius: 0 12px 12px 0; font-size: 15px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 
     /* TITLE & IMAGE ROW */
     .title-image-row { display: flex; gap: 15px; align-items: flex-start; margin-bottom: 10px; flex-shrink: 0; }
     .title-side { flex: 2; display: flex; flex-direction: column; justify-content: flex-start; } 
-    .story-title { font-size: 24px; font-weight: 800; color: #1a1a1a; margin: 0 0 4px 0; line-height: 1.1; }
+    .story-title { font-size: 26px; font-weight: 800; color: #C62828; margin: 0 0 4px 0; line-height: 1.1; }
     
-    .target-pill { display: inline-block; background: #FFF8E1; border: 2px solid #F5A623; border-radius: 30px; padding: 3px 12px; font-weight: 700; font-size: 15px; width: fit-content; align-self: flex-start; flex-shrink: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .target-pill { display: inline-block; background: #FFF8E1; border: 2px solid #F5A623; border-radius: 30px; padding: 4px 14px; font-weight: 700; font-size: 16px; width: fit-content; align-self: flex-start; flex-shrink: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 
-    .story-img-container { flex: 1; width: 100%; max-width: 100%; height: auto; max-height: 90px; aspect-ratio: 800 / 350; flex-shrink: 0; border-radius: 12px; overflow: hidden; background: #e9ecef; position: relative; }
+    .story-img-container { flex: 1; width: 100%; max-width: 100%; height: auto; max-height: 120px; aspect-ratio: 800 / 350; flex-shrink: 0; border-radius: 12px; overflow: hidden; background: #e9ecef; position: relative; }
     .story-img-container img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .story-img-placeholder { width: 100%; height: 100%; background: linear-gradient(135deg, #1a365d 0%, #2a4365 100%); display: flex; align-items: center; justify-content: center; position: relative; }
     .story-img-placeholder svg { width: 100%; height: 100%; }
 
-    /* Story Text */
-    .story-lines-area { flex: 0 0 auto; position: relative; }
-    .story-line { display: flex; justify-content: space-between; align-items: baseline; padding: 2px 0; font-size: 18px; font-weight: 600; line-height: 1.5; }
+    /* Story Text - FLEX TO FILL SPACE */
+    .story-lines-area { flex: 1; position: relative; padding-bottom: 10px; min-height: 80px; }
+    .story-line { display: flex; justify-content: space-between; align-items: baseline; padding: 3px 0; font-size: 18px; font-weight: 600; line-height: 1.5; }
     .story-line .sentence { flex: 1; }
     .story-line .wc { font-weight: 700; color: #C62828; min-width: 30px; text-align: right; font-size: 16px; }
+    .story-total-pill { position: absolute; bottom: 0; right: 0; background: #FDEBD0; border: 2px solid #E67E22; color: #D35400; border-radius: 30px; padding: 4px 14px; font-weight: 700; font-size: 15px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 
-    /* SQUEEZED PARENT CORNER */
-    .parent-corner { margin-top: 8px; border: 3px solid #A0522D; border-radius: 12px; overflow: hidden; flex-shrink: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .pc-header { background: #C62828; color: #fff; font-weight: 800; font-size: 14px; text-align: center; padding: 3px; letter-spacing: 2px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .pc-body { padding: 6px 8px; }
-    .pc-body p { font-size: 11px; margin-bottom: 4px; line-height: 1.4; font-weight: 800; color: #C62828; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .parent-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 10px; }
-    .parent-table th, .parent-table td { padding: 3px 2px; text-align: center; border: 2px solid #A0522D; }
-    .parent-table th { background: #F5A623; color: #1a1a1a; font-weight: 800; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    /* PARENT CORNER */
+    .parent-corner { margin-top: 10px; border: 3px solid #A0522D; border-radius: 12px; overflow: hidden; flex-shrink: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .pc-header { background: #F5A623; color: #1a1a1a; font-weight: 800; font-size: 15px; text-align: center; padding: 4px; letter-spacing: 2px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .pc-body { padding: 6px 10px; background: #fffaf0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .pc-body p { font-size: 12px; margin-bottom: 6px; line-height: 1.4; font-weight: 800; color: #C62828; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .parent-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 12px; }
+    .parent-table th, .parent-table td { padding: 6px 4px; text-align: center; border: 2px solid #A0522D; }
+    .parent-table th:first-child { background: #fdfdfd; color: #1a1a1a; }
+    .parent-table th { background: #C62828; color: #fff; font-weight: 800; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .parent-table td:first-child { font-weight: 700; text-align: left; background: #fdfdfd; }
 
     /* Comprehension & Phonics */
     .comp-section { margin: 12px 0; flex-shrink: 0; }
-    .comp-header { background: #C62828; color: #fff; border-radius: 12px; padding: 8px 16px; font-size: 18px; font-weight: 700; display: inline-block; margin-bottom: 8px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .comp-header { background: #C62828; color: #fff; border-radius: 12px; padding: 6px 16px; font-size: 16px; font-weight: 700; display: inline-block; margin-bottom: 8px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .comp-q { margin-bottom: 16px; }
-    .comp-q .qtext { font-weight: 700; font-size: 17px; margin-bottom: 6px; }
-    .comp-q .opt { display: flex; align-items: center; gap: 10px; font-size: 16px; padding: 3px 0; }
-    .comp-q .box-check { display: inline-block; width: 20px; height: 20px; border: 2px solid #C62828; border-radius: 4px; background: #fff; flex-shrink: 0; }
+    .comp-q .qtext { font-weight: 700; font-size: 16px; margin-bottom: 4px; }
+    .comp-q .opt { display: flex; align-items: center; gap: 10px; font-size: 15px; padding: 2px 0; }
+    .comp-q .box-check { display: inline-block; width: 18px; height: 18px; border: 2px solid #C62828; border-radius: 4px; background: #fff; flex-shrink: 0; }
     
-    /* ACTIVITY BOX (Section B) & WRITING LINE (Section C) */
-    .activity-blank-large { min-height: 130px; border: 3px solid #A0522D; border-radius: 16px; margin: 12px 0 16px 0; background: #fff; width: 100%; overflow: hidden; }
+    .activity-blank-large { flex: 1; min-height: 120px; border: 3px solid #A0522D; border-radius: 16px; margin: 8px 0 16px 0; background: #fff; width: 100%; overflow: hidden; }
     .writing-line { border-bottom: 2px dashed #A0522D; height: 40px; margin: 8px 0 12px 0; width: 100%; }
     
-    .comp-inst { font-size: 15px; color: #2c3e50; margin-bottom: 4px; line-height: 1.5; }
+    .comp-inst { font-size: 14px; color: #2c3e50; margin-bottom: 4px; line-height: 1.5; }
 
     .view-toolbar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 2px solid #e9ecef; }
     .view-toolbar .info { font-weight: 700; color: #6c757d; font-size: 14px; margin-right: auto; }
@@ -179,16 +209,15 @@
       body { padding: 0; background: #fff; }
       .app, .app-header, .tabs, .tab-panel, .view-toolbar, .no-print, .page-actions { display: none !important; }
       .view-container { overflow-x: visible !important; }
-      /* ENSURE PRINT USES EXACT SAME PIXEL DIMENSIONS */
       .view-container .page { 
         box-shadow: none !important; 
         border-radius: 0 !important; 
         margin: 0 auto !important; 
-        padding: 20px 25px !important; 
+        padding: 0 !important; 
         width: 850px !important; 
         min-width: 850px !important; 
         min-height: 1080px !important; 
-        max-height: 1080px !important;
+        height: 1080px !important;
         page-break-after: always; 
         background: #fff !important; 
         transform: scale(1) !important; 
@@ -196,9 +225,13 @@
       .view-container .page:last-child { page-break-after: auto; }
       .lesson-spread { page-break-after: always !important; gap: 0 !important; }
       .lesson-spread:last-child { page-break-after: auto !important; }
-      .inner-pad { padding: 0 !important; min-height: 1020px !important; max-height: 1020px !important; }
-      .view-container .card { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-      .parent-table th, .header-lesson, .header-title, .header-grade, .pc-header, .comp-header, .page-footer { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      .view-container .card { border-radius: 0 !important; min-height: 1080px !important; height: 1080px !important; }
+      .view-container .card, .view-container .lesson-badge, .view-container .hero-tile,
+      .view-container .word-grid .pill, .view-container .intro-box, .view-container .section-header .circle,
+      .view-container .reading-box, .view-container .lesson-badge .arrow, .toc-card,
+      .view-container .parent-table th, .view-container .header-lesson, .view-container .header-title, 
+      .view-container .header-grade, .view-container .pc-header, .view-container .comp-header, 
+      .view-container .page-footer-red { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
     }
   </style>
 </head>
@@ -336,6 +369,7 @@
   function buildPageOne(lesson, pageNum) {
     const page = document.createElement('div'); page.className = 'page';
     page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
+    const card = document.createElement('div'); card.className = 'card';
     const inner = document.createElement('div'); inner.className = 'inner-pad';
     
     let html = `
@@ -365,7 +399,8 @@
       html += `<div class="story-line"><span class="sentence">${escapeHtml(line.sentence)}</span><span class="wc">${runningTotal}</span></div>`;
     });
     
-    html += `</div>`;
+    // Word Count Pill
+    html += `<div class="story-total-pill">Word Count: ${runningTotal}</div></div>`;
 
     // Parent Corner
     html += `
@@ -385,15 +420,22 @@
         </div>
       </div>
     `;
-    html += `<div class="page-footer">${pageNum}</div>`;
     inner.innerHTML = html;
-    page.appendChild(inner);
+    card.appendChild(inner);
+
+    // Bottom Red Footer
+    const footer = document.createElement('div'); footer.className = 'page-footer-red';
+    footer.textContent = pageNum;
+    card.appendChild(footer);
+    
+    page.appendChild(card);
     return page;
   }
 
   function buildPageTwo(lesson, pageNum) {
     const page = document.createElement('div'); page.className = 'page';
     page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
+    const card = document.createElement('div'); card.className = 'card';
     const inner = document.createElement('div'); inner.className = 'inner-pad';
     let html = `
       <div class="header-row">
@@ -421,16 +463,22 @@
       <div class="activity-blank-large"></div>
     </div>`;
 
-    // Section C - WRITING LINES (REPLACED RECTANGLE)
+    // Section C - WRITING LINES
     html += `<div class="comp-section">
       <div class="comp-header">C. Write One Sentence from the Story</div>
       <div class="comp-inst">Write any one sentence from the story.</div>
       <div class="writing-line" style="height:60px;"></div>
     </div>`;
 
-    html += `<div class="page-footer">${pageNum}</div>`;
     inner.innerHTML = html;
-    page.appendChild(inner);
+    card.appendChild(inner);
+
+    // Bottom Red Footer
+    const footer = document.createElement('div'); footer.className = 'page-footer-red';
+    footer.textContent = pageNum;
+    card.appendChild(footer);
+
+    page.appendChild(card);
     return page;
   }
 
