@@ -79,7 +79,7 @@
     .modal-overlay .modal .actions { display: flex; gap: 10px; justify-content: flex-end; }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-    /* ----- VIEW TAB - STRICTLY LOCKED ----- */
+    /* ----- VIEW TAB - STRICTLY LOCKED & PADDING FIXED ----- */
     .view-container { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 8px; }
     .lesson-spread { display: flex; flex-wrap: wrap; justify-content: center; gap: 30px; margin-bottom: 40px; }
     @media print { .lesson-spread { gap: 0; margin-bottom: 0; page-break-after: always; } }
@@ -96,12 +96,22 @@
       background: #fff; 
       border-radius: 12px; 
       box-shadow: 0 4px 12px rgba(0,0,0,0.06); 
+      overflow: hidden; 
     }
     .view-container .page .page-actions { text-align: right; padding: 8px 12px; background: #f1f3f5; border-bottom: 1px solid #e9ecef; }
     .view-container .export-btn { background: #C62828; color: #fff; border: none; border-radius: 8px; padding: 8px 16px; font-weight: 700; font-size: 13px; font-family: inherit; cursor: pointer; }
 
-    /* Page Common Styles - Padding bottom 40px moves card up */
-    .inner-pad { display: flex; flex-direction: column; padding: 20px 25px 40px; height: auto; min-height: 1063px; position: relative; }
+    /* INNER-PAD - LOCKED HEIGHT & HIDDEN OVERFLOW TO PREVENT BLEEDING */
+    .inner-pad { 
+      display: flex; 
+      flex-direction: column; 
+      padding: 20px 25px 40px; 
+      height: 1063px; /* STRICT HEIGHT LOCK */
+      min-height: 1063px; 
+      max-height: 1063px; 
+      position: relative; 
+      overflow: hidden; /* STOPS ANY BLEEDING */
+    }
     
     /* Page Numbers - LOCKED IDENTICAL POSITION */
     .page-footer { position: absolute; bottom: 15px; right: 25px; color: #1a1a1a; font-weight: 800; font-size: 18px; }
@@ -121,14 +131,14 @@
     /* FIX: PILL DOES NOT STRETCH */
     .target-pill { display: inline-block; background: #FFF8E1; border: 2px solid #F5A623; border-radius: 30px; padding: 6px 18px; font-weight: 700; font-size: 18px; width: fit-content; align-self: flex-start; flex-shrink: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 
-    /* Story Image - 1/3 of row (Exactly half the width of the text column) */
+    /* Story Image - 1/3 of row */
     .story-img-container { flex: 1; width: 100%; max-width: 100%; height: auto; aspect-ratio: 800 / 350; flex-shrink: 0; border-radius: 12px; overflow: hidden; background: #e9ecef; position: relative; }
     .story-img-container img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .story-img-placeholder { width: 100%; height: 100%; background: linear-gradient(135deg, #1a365d 0%, #2a4365 100%); display: flex; align-items: center; justify-content: center; position: relative; }
     .story-img-placeholder svg { width: 100%; height: 100%; }
 
-    /* Story Text - CLEANED UP, PILL REMOVED */
-    .story-lines-area { flex: 1; position: relative; padding-bottom: 0px; }
+    /* Story Text - FLEX: 0 0 auto CLOSES THE GAP */
+    .story-lines-area { flex: 0 0 auto; position: relative; padding-bottom: 0px; }
     .story-line { display: flex; justify-content: space-between; align-items: baseline; padding: 4px 0; font-size: 20px; font-weight: 600; line-height: 1.8; }
     .story-line .sentence { flex: 1; }
     .story-line .wc { font-weight: 700; color: #C62828; min-width: 30px; text-align: right; font-size: 16px; }
@@ -189,7 +199,7 @@
       .view-container .page:last-child { page-break-after: auto; }
       .lesson-spread { page-break-after: always !important; gap: 0 !important; }
       .lesson-spread:last-child { page-break-after: auto !important; }
-      .inner-pad { padding: 15px 20px 35px !important; height: 1063px !important; min-height: 1063px !important; }
+      .inner-pad { padding: 15px 20px 35px !important; height: 1063px !important; min-height: 1063px !important; max-height: 1063px !important; }
       .view-container .card { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
       .parent-table th, .header-lesson, .header-title, .header-grade, .pc-header, .comp-header, .page-footer { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
     }
@@ -741,4 +751,4 @@
 })();
 </script>
 </body>
-</html>
+</html> 
