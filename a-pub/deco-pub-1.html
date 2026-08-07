@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>📖 Decodable Reader Publisher</title>
   <style>
-    /* EXACT A4 DIMENSIONS */
-    @page { size: A4; margin: 0; }
+    /* EXACT REFERENCE DIMENSIONS */
+    @page { size: 850px 1100px; margin: 0; }
     
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f5f7fa; color: #1a1a1a; padding: 20px; }
@@ -79,66 +79,61 @@
     .modal-overlay .modal .actions { display: flex; gap: 10px; justify-content: flex-end; }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-    /* ----- VIEW TAB - MAXIMIZED & SQUEEZED LAYOUT ----- */
+    /* ----- VIEW TAB - 850x1080 LOCK, 20px SAFETY MARGIN ----- */
     .view-container { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 8px; }
     .lesson-spread { display: flex; flex-wrap: wrap; justify-content: center; gap: 30px; margin-bottom: 40px; }
     @media print { .lesson-spread { gap: 0; margin-bottom: 0; page-break-after: always; } }
 
     .view-container .page { 
-      width: 793px; 
-      min-width: 793px; 
-      height: 1123px; 
-      min-height: 1123px; 
-      padding: 0; 
+      width: 850px; 
+      min-width: 850px; 
+      min-height: 1080px; /* 20px shorter than @page margin */
+      padding: 20px 25px; 
       position: relative; 
       page-break-after: always; 
       margin: 0 auto; 
       background: #fff; 
       border-radius: 12px; 
       box-shadow: 0 4px 12px rgba(0,0,0,0.06); 
-      overflow: hidden;
+      overflow: hidden; /* Cuts off texts that are *too* long */
     }
     .view-container .page .page-actions { text-align: right; padding: 8px 12px; background: #f1f3f5; border-bottom: 1px solid #e9ecef; }
     .view-container .export-btn { background: #C62828; color: #fff; border: none; border-radius: 8px; padding: 8px 16px; font-weight: 700; font-size: 13px; font-family: inherit; cursor: pointer; }
 
-    /* INNER-PAD - STRICT HEIGHT LOCK */
+    /* INNER-PAD - 1020px FITS SAFELY INSIDE 1040px PAGE AREA */
     .inner-pad { 
       display: flex; 
       flex-direction: column; 
       justify-content: space-between;
-      padding: 15px 25px 30px; 
-      height: 1063px; 
-      min-height: 1063px; 
-      max-height: 1063px; 
+      min-height: 1020px; /* 20px slack before page bottom */
+      max-height: 1020px;
       position: relative; 
-      overflow: hidden;
+      overflow: hidden; 
     }
     
-    /* Page Numbers - LOCKED IDENTICAL POSITION */
-    .page-footer { position: absolute; bottom: 15px; right: 25px; color: #1a1a1a; font-weight: 800; font-size: 18px; }
+    /* Page Numbers - LOCKED */
+    .page-footer { position: absolute; bottom: 5px; right: 25px; color: #1a1a1a; font-weight: 800; font-size: 18px; }
 
     /* Header Blocks - SQUEEZED */
-    .header-row { display: flex; align-items: stretch; gap: 0; margin-bottom: 8px; font-weight: 800; height: 40px; flex-shrink: 0; }
+    .header-row { display: flex; align-items: stretch; gap: 0; margin-bottom: 10px; font-weight: 800; height: 40px; flex-shrink: 0; }
     .header-lesson { background: #F5A623; color: #1a1a1a; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 2px 15px; border-radius: 12px 0 0 12px; line-height: 1.1; font-size: 12px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .header-lesson span { font-size: 18px; }
     .header-title { background: #C62828; color: #fff; flex: 1; display: flex; justify-content: center; align-items: center; font-size: 22px; letter-spacing: 1px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .header-grade { background: #F5A623; color: #1a1a1a; display: flex; justify-content: center; align-items: center; padding: 2px 15px; border-radius: 0 12px 12px 0; font-size: 15px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 
-    /* TITLE & IMAGE ROW - SQUEEZED */
-    .title-image-row { display: flex; gap: 15px; align-items: flex-start; margin-bottom: 8px; flex-shrink: 0; }
-    .title-side { flex: 2; display: flex; flex-direction: column; justify-content: flex-start; } /* Text area = 66% */
+    /* TITLE & IMAGE ROW */
+    .title-image-row { display: flex; gap: 15px; align-items: flex-start; margin-bottom: 10px; flex-shrink: 0; }
+    .title-side { flex: 2; display: flex; flex-direction: column; justify-content: flex-start; } 
     .story-title { font-size: 24px; font-weight: 800; color: #1a1a1a; margin: 0 0 4px 0; line-height: 1.1; }
     
-    /* SQUEEZED PILL */
     .target-pill { display: inline-block; background: #FFF8E1; border: 2px solid #F5A623; border-radius: 30px; padding: 3px 12px; font-weight: 700; font-size: 15px; width: fit-content; align-self: flex-start; flex-shrink: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 
-    /* SQUEEZED IMAGE */
     .story-img-container { flex: 1; width: 100%; max-width: 100%; height: auto; max-height: 90px; aspect-ratio: 800 / 350; flex-shrink: 0; border-radius: 12px; overflow: hidden; background: #e9ecef; position: relative; }
     .story-img-container img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .story-img-placeholder { width: 100%; height: 100%; background: linear-gradient(135deg, #1a365d 0%, #2a4365 100%); display: flex; align-items: center; justify-content: center; position: relative; }
     .story-img-placeholder svg { width: 100%; height: 100%; }
 
-    /* Story Text - TIGHT LINE HEIGHT */
+    /* Story Text */
     .story-lines-area { flex: 0 0 auto; position: relative; }
     .story-line { display: flex; justify-content: space-between; align-items: baseline; padding: 2px 0; font-size: 18px; font-weight: 600; line-height: 1.5; }
     .story-line .sentence { flex: 1; }
@@ -163,7 +158,7 @@
     .comp-q .box-check { display: inline-block; width: 20px; height: 20px; border: 2px solid #C62828; border-radius: 4px; background: #fff; flex-shrink: 0; }
     
     /* ACTIVITY BOX (Section B) & WRITING LINE (Section C) */
-    .activity-blank-large { min-height: 150px; border: 3px solid #A0522D; border-radius: 16px; margin: 12px 0 16px 0; background: #fff; width: 100%; overflow: hidden; }
+    .activity-blank-large { min-height: 130px; border: 3px solid #A0522D; border-radius: 16px; margin: 12px 0 16px 0; background: #fff; width: 100%; overflow: hidden; }
     .writing-line { border-bottom: 2px dashed #A0522D; height: 40px; margin: 8px 0 12px 0; width: 100%; }
     
     .comp-inst { font-size: 15px; color: #2c3e50; margin-bottom: 4px; line-height: 1.5; }
@@ -172,7 +167,7 @@
     .view-toolbar .info { font-weight: 700; color: #6c757d; font-size: 14px; margin-right: auto; }
 
     @media (max-width: 900px) {
-      .view-container .page { width: 793px; min-width: 793px; transform: scale(0.8); transform-origin: top center; margin-bottom: -150px; }
+      .view-container .page { transform: scale(0.8); transform-origin: top center; margin-bottom: -150px; }
       .edit-layout { grid-template-columns: 1fr; }
       .form-section { position: static; max-height: none; }
       .app-header h1 { font-size: 20px; }
@@ -184,19 +179,16 @@
       body { padding: 0; background: #fff; }
       .app, .app-header, .tabs, .tab-panel, .view-toolbar, .no-print, .page-actions { display: none !important; }
       .view-container { overflow-x: visible !important; }
-      
-      /* UPDATED PRINT LAYOUT - USES 100vh INSTEAD OF 1123px TO PREVENT BLEEDING */
+      /* ENSURE PRINT USES EXACT SAME PIXEL DIMENSIONS */
       .view-container .page { 
         box-shadow: none !important; 
         border-radius: 0 !important; 
         margin: 0 auto !important; 
-        padding: 0 !important; 
-        width: 100% !important; 
-        min-width: 100% !important; 
-        height: 100vh !important; 
-        min-height: 100vh !important; 
-        max-height: 100vh !important;
-        overflow: hidden !important;
+        padding: 20px 25px !important; 
+        width: 850px !important; 
+        min-width: 850px !important; 
+        min-height: 1080px !important; 
+        max-height: 1080px !important;
         page-break-after: always; 
         background: #fff !important; 
         transform: scale(1) !important; 
@@ -204,18 +196,7 @@
       .view-container .page:last-child { page-break-after: auto; }
       .lesson-spread { page-break-after: always !important; gap: 0 !important; }
       .lesson-spread:last-child { page-break-after: auto !important; }
-      
-      .inner-pad { 
-        padding: 15px 20px 30px !important; 
-        height: 100vh !important; 
-        min-height: 100vh !important; 
-        max-height: 100vh !important;
-        overflow: hidden !important;
-      }
-      
-      /* MOVE PAGE NUMBER SLIGHTLY UP TO ENSURE IT STAYS ON PAGE */
-      .page-footer { bottom: 10px !important; }
-      
+      .inner-pad { padding: 0 !important; min-height: 1020px !important; max-height: 1020px !important; }
       .view-container .card { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
       .parent-table th, .header-lesson, .header-title, .header-grade, .pc-header, .comp-header, .page-footer { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
     }
@@ -433,14 +414,14 @@
     });
     html += `</div>`;
 
-    // Section B - RECTANGLE (RESTORED)
+    // Section B - RECTANGLE
     html += `<div class="comp-section">
       <div class="comp-header">B. Find the Target Sound</div>
       <div class="comp-inst">Find and list all the words in the story with the ${escapeHtml(lesson.targetSound)} sound. Write them in the box below.</div>
       <div class="activity-blank-large"></div>
     </div>`;
 
-    // Section C - WRITING LINE (REPLACED RECTANGLE)
+    // Section C - WRITING LINES (REPLACED RECTANGLE)
     html += `<div class="comp-section">
       <div class="comp-header">C. Write One Sentence from the Story</div>
       <div class="comp-inst">Write any one sentence from the story.</div>
