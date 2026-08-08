@@ -102,7 +102,13 @@
         .view-container .hero-image img { max-height: 140px; max-width: 90%; object-fit: contain; }
         .view-container .hero-image .placeholder { width: 120px; height: 80px; border: 2px dashed #ccc; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #999; font-size: 12px; }
         .view-container .hero-image .caption { font-weight: 800; font-size: 16px; color: #1a1a1a; }
-        .view-container .hero-letter { flex: 1; background: #F5A623; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 72px; font-weight: 800; font-style: italic; -webkit-print-color-adjust: exact; print-color-adjust: exact; min-width: 0; }
+        .view-container .hero-letter {
+            flex: 1; background: #F5A623; display: flex; align-items: center; justify-content: center;
+            color: #fff; font-size: 72px; font-weight: 800; font-style: italic;
+            text-align: center; line-height: 1.15;
+            padding: 8px 12px; word-break: break-word;
+            -webkit-print-color-adjust: exact; print-color-adjust: exact; min-width: 0;
+        }
         .view-container .hero-row.page23-hero .hero-letter { flex: 1; font-size: 80px; }
 
         /* Writing practice lines (red-blue-blue-red) */
@@ -295,6 +301,7 @@
                     clone: false,
                     introText: '',
                     letterTile: '',
+                    letterTileSize: '',
                     targetLetter: '',
                     imageCaption: '',
                     imagePath: '',
@@ -455,7 +462,7 @@
                             ${pageData.imagePath ? `<img src="${escapeHtml(pageData.imagePath)}" alt="${escapeHtml(pageData.imageCaption||'')}" />` : '<div class="placeholder">🖼️</div>'}
                             <div class="caption">${escapeHtml(pageData.imageCaption||'')}</div>
                         </div>
-                        <div class="hero-letter">${escapeHtml(pageData.letterTile||'')}</div>
+                        <div class="hero-letter"${pageData.letterTileSize ? ` style="font-size:${escapeHtml(String(pageData.letterTileSize))}px"` : ''}>${escapeHtml(pageData.letterTile||'')}</div>
                     </div>
                     <div class="section-header"><div class="circle">${variant}</div><div class="label-box">${escapeHtml(pageData.sectionLabel || 'Trace and write the letter')}</div></div>`;
                 card.appendChild(createWritingSets(pageData.targetLetter, {
@@ -631,6 +638,7 @@
                     clone: cloneToggle ? cloneToggle.checked : false,
                     introText: (document.getElementById('fIntro' + n)?.value || '').trim(),
                     letterTile: (document.getElementById('fLetterTile' + n)?.value || '').trim(),
+                    letterTileSize: (document.getElementById('fLetterTileSize' + n)?.value || '').trim(),
                     targetLetter: (document.getElementById('fTargetLetter' + n)?.value || '').trim(),
                     imageCaption: (document.getElementById('fImageCaption' + n)?.value || '').trim(),
                     imagePath: document.getElementById('fImagePath' + n)?.value || '',
@@ -659,6 +667,7 @@
                 }
                 document.getElementById('fIntro' + n).value = p.introText || '';
                 document.getElementById('fLetterTile' + n).value = p.letterTile || '';
+                document.getElementById('fLetterTileSize' + n).value = p.letterTileSize || '';
                 document.getElementById('fTargetLetter' + n).value = p.targetLetter || '';
                 document.getElementById('fImageCaption' + n).value = p.imageCaption || '';
                 document.getElementById('fImagePath' + n).value = p.imagePath || '';
@@ -965,6 +974,7 @@
                                         <div class="form-group"><label>Letter Tile <span class="req">*</span></label><input id="fLetterTile1" placeholder="e.g. Short a"></div>
                                         <div class="form-group"><label>Target Letter <span class="req">*</span></label><input id="fTargetLetter1" placeholder="e.g. a, be, sit"></div>
                                     </div>
+                                    <div class="form-group"><label>Letter Tile Font Size (px)</label><input type="number" id="fLetterTileSize1" placeholder="Leave blank for default (72)" min="1"></div>
                                     <div class="form-group"><label>Image Caption <span class="req">*</span></label><input id="fImageCaption1" placeholder="e.g. bag"></div>
                                     <div class="form-group">
                                         <label>Image</label>
@@ -999,6 +1009,7 @@
                                         <div class="form-group"><label>Letter Tile <span class="req">*</span></label><input id="fLetterTile2" placeholder="e.g. Short a"></div>
                                         <div class="form-group"><label>Target Letter <span class="req">*</span></label><input id="fTargetLetter2" placeholder="e.g. a, be, sit"></div>
                                     </div>
+                                    <div class="form-group"><label>Letter Tile Font Size (px)</label><input type="number" id="fLetterTileSize2" placeholder="Leave blank for default (72)" min="1"></div>
                                     <div class="form-group"><label>Image Caption <span class="req">*</span></label><input id="fImageCaption2" placeholder="e.g. bag"></div>
                                     <div class="form-group">
                                         <label>Image</label>
@@ -1033,6 +1044,7 @@
                                         <div class="form-group"><label>Letter Tile <span class="req">*</span></label><input id="fLetterTile3" placeholder="e.g. Short a"></div>
                                         <div class="form-group"><label>Target Letter <span class="req">*</span></label><input id="fTargetLetter3" placeholder="e.g. a, be, sit"></div>
                                     </div>
+                                    <div class="form-group"><label>Letter Tile Font Size (px)</label><input type="number" id="fLetterTileSize3" placeholder="Leave blank for default (72)" min="1"></div>
                                     <div class="form-group"><label>Image Caption <span class="req">*</span></label><input id="fImageCaption3" placeholder="e.g. bag"></div>
                                     <div class="form-group">
                                         <label>Image</label>
