@@ -259,7 +259,7 @@
 
     <script>
         (function() {
-            const STORAGE_KEY = 'phonics_lessons_v3';
+            const STORAGE_KEY = 'phonics_lessons_v4';
             const MAX_TOC_PER_PAGE = 18;
             const MAX_SIGHT_WORDS_PER_PAGE = 28;
 
@@ -306,25 +306,25 @@
                 {
                     id: 'l1', mainTitle: 'SHORT VOWEL CVC WORDS', lessonNumber: 1,
                     pages: [
-                        makeDefaultPage({ letterTile: 'Short a', targetLetter: 'a', imageCaption: 'bag', introText: 'Say each picture word out loud. Listen for the sound of "Short a".', sectionLabel: 'Trace and write the letter' }),
-                        makeDefaultPage({ letterTile: 'Short a', targetLetter: 'a', imageCaption: 'bag', introText: 'Trace the letter carefully. Say the sound of "Short a".', sectionLabel: 'Trace and write the letter' }),
-                        makeDefaultPage({ letterTile: 'Short a', targetLetter: 'a', imageCaption: 'bag', introText: 'Write the letter on your own. Listen for "Short a".', sectionLabel: 'Trace and write the letter' })
+                        makeDefaultPage({ active: true, clone: false, letterTile: 'Aa', targetLetter: 'a', imageCaption: 'bag', introText: 'Say each picture word out loud. Listen for the sound of "Short a".', sectionLabel: 'Trace and write the letter' }),
+                        makeDefaultPage({ active: false, clone: false, letterTile: 'Short a', targetLetter: 'b', imageCaption: 'bag', introText: 'Trace the letter carefully. Say the sound of "Short a".', sectionLabel: 'Trace and write the letter' }),
+                        makeDefaultPage({ active: false, clone: false, letterTile: 'Short a', targetLetter: 'c', imageCaption: 'bag', introText: 'Write the letter on your own. Listen for "Short a".', sectionLabel: 'Trace and write the letter' })
                     ]
                 },
                 {
                     id: 'l2', mainTitle: 'SHORT VOWEL CVC WORDS', lessonNumber: 2,
                     pages: [
-                        makeDefaultPage({ letterTile: 'Short e', targetLetter: 'e', imageCaption: 'bed', introText: 'Listen for the sound of "Short e" in each word.', sectionLabel: 'Trace and write the letter' }),
-                        makeDefaultPage({ letterTile: 'Short e', targetLetter: 'e', imageCaption: 'bed', introText: 'Trace the letter carefully. Say the sound of "Short e".', sectionLabel: 'Trace and write the letter' }),
-                        makeDefaultPage({ letterTile: 'Short e', targetLetter: 'e', imageCaption: 'bed', introText: 'Write the letter on your own. Listen for "Short e".', sectionLabel: 'Trace and write the letter' })
+                        makeDefaultPage({ active: false, clone: false, letterTile: 'Short e', targetLetter: 'e', imageCaption: 'bed', introText: 'Listen for the sound of "Short e" in each word.', sectionLabel: 'Trace and write the letter' }),
+                        makeDefaultPage({ active: true, clone: false, letterTile: 'b + e = be', targetLetter: 'be', imageCaption: 'bed', introText: 'Trace the letter carefully. Say the sound of "Short e".', sectionLabel: 'Trace and write the letter' }),
+                        makeDefaultPage({ active: false, clone: false, letterTile: 'Short e', targetLetter: 'e', imageCaption: 'bed', introText: 'Write the letter on your own. Listen for "Short e".', sectionLabel: 'Trace and write the letter' })
                     ]
                 },
                 {
                     id: 'l3', mainTitle: 'SHORT VOWEL CVC WORDS', lessonNumber: 3,
                     pages: [
-                        makeDefaultPage({ letterTile: 'Short i', targetLetter: 'i', imageCaption: 'pig', introText: 'Listen for the sound of "Short i" in each word.', sectionLabel: 'Trace and write the letter' }),
-                        makeDefaultPage({ letterTile: 'Short i', targetLetter: 'i', imageCaption: 'pig', introText: 'Trace the letter carefully. Say the sound of "Short i".', sectionLabel: 'Trace and write the letter' }),
-                        makeDefaultPage({ letterTile: 'Short i', targetLetter: 'i', imageCaption: 'pig', introText: 'Write the letter on your own. Listen for "Short i".', sectionLabel: 'Trace and write the letter' })
+                        makeDefaultPage({ active: false, clone: false, letterTile: 'Short i', targetLetter: 'i', imageCaption: 'pig', introText: 'Listen for the sound of "Short i" in each word.', sectionLabel: 'Trace and write the letter' }),
+                        makeDefaultPage({ active: false, clone: false, letterTile: 'Short i', targetLetter: 'i', imageCaption: 'pig', introText: 'Trace the letter carefully. Say the sound of "Short i".', sectionLabel: 'Trace and write the letter' }),
+                        makeDefaultPage({ active: true, clone: false, letterTile: 's + i + t = sit', targetLetter: 'si', imageCaption: 'pig', introText: 'Write the letter on your own. Listen for "Short i".', sectionLabel: 'Trace and write the letter' })
                     ]
                 }
             ];
@@ -963,7 +963,7 @@
                                     <div class="form-group"><label>Intro Text <span class="req">*</span></label><textarea id="fIntro1" rows="2"></textarea></div>
                                     <div class="form-row">
                                         <div class="form-group"><label>Letter Tile <span class="req">*</span></label><input id="fLetterTile1" placeholder="e.g. Short a"></div>
-                                        <div class="form-group"><label>Target Letter <span class="req">*</span></label><input id="fTargetLetter1" placeholder="e.g. a" maxlength="2"></div>
+                                        <div class="form-group"><label>Target Letter <span class="req">*</span></label><input id="fTargetLetter1" placeholder="e.g. a, be, sit"></div>
                                     </div>
                                     <div class="form-group"><label>Image Caption <span class="req">*</span></label><input id="fImageCaption1" placeholder="e.g. bag"></div>
                                     <div class="form-group">
@@ -997,7 +997,7 @@
                                     <div class="form-group"><label>Intro Text <span class="req">*</span></label><textarea id="fIntro2" rows="2"></textarea></div>
                                     <div class="form-row">
                                         <div class="form-group"><label>Letter Tile <span class="req">*</span></label><input id="fLetterTile2" placeholder="e.g. Short a"></div>
-                                        <div class="form-group"><label>Target Letter <span class="req">*</span></label><input id="fTargetLetter2" placeholder="e.g. a" maxlength="2"></div>
+                                        <div class="form-group"><label>Target Letter <span class="req">*</span></label><input id="fTargetLetter2" placeholder="e.g. a, be, sit"></div>
                                     </div>
                                     <div class="form-group"><label>Image Caption <span class="req">*</span></label><input id="fImageCaption2" placeholder="e.g. bag"></div>
                                     <div class="form-group">
@@ -1031,7 +1031,7 @@
                                     <div class="form-group"><label>Intro Text <span class="req">*</span></label><textarea id="fIntro3" rows="2"></textarea></div>
                                     <div class="form-row">
                                         <div class="form-group"><label>Letter Tile <span class="req">*</span></label><input id="fLetterTile3" placeholder="e.g. Short a"></div>
-                                        <div class="form-group"><label>Target Letter <span class="req">*</span></label><input id="fTargetLetter3" placeholder="e.g. a" maxlength="2"></div>
+                                        <div class="form-group"><label>Target Letter <span class="req">*</span></label><input id="fTargetLetter3" placeholder="e.g. a, be, sit"></div>
                                     </div>
                                     <div class="form-group"><label>Image Caption <span class="req">*</span></label><input id="fImageCaption3" placeholder="e.g. bag"></div>
                                     <div class="form-group">
