@@ -269,6 +269,7 @@
             // ---------- Default data (3 lessons + sight words + cover) ----------
             function makeDefaultPage(overrides = {}) {
                 return {
+                    active: true,
                     introText: '',
                     letterTile: '',
                     targetLetter: '',
@@ -501,6 +502,11 @@
                 setTimeout(() => win.print(), 400);
             };
 
+            function countActivePages(lesson) {
+                if (!lesson.pages) return 0;
+                return lesson.pages.filter(p => p.active !== false).length;
+            }
+
             function renderAllView() {
                 const container = document.getElementById('viewContainer');
                 container.innerHTML = '';
@@ -512,11 +518,20 @@
                 const sightWordsPages = Math.ceil(sightWords.length / MAX_SIGHT_WORDS_PER_PAGE);
                 const lessonStartPage = tocPages + sightWordsPages + 1;
 
-                const tocEntries = lessons.map((l, i) => ({
-                    lessonNumber: l.lessonNumber, mainTitle: l.mainTitle,
-                    imageCaption: (l.pages && l.pages[0] && l.pages[0].imageCaption) || '',
-                    firstPage: lessonStartPage + i * 3
-                }));
+                // Build TOC with sequential first-page numbers based on active pages only
+                let runningPage = lessonStartPage;
+                const tocEntries = lessons.map(l => {
+                    const activeCount = countActivePages(l);
+                    const firstActive = (l.pages || []).find(p => p.active !== false);
+                    const entry = {
+                        lessonNumber: l.lessonNumber,
+                        mainTitle: l.mainTitle,
+                        imageCaption: (firstActive && firstActive.imageCaption) || '',
+                        firstPage: runningPage
+                    };
+                    runningPage += activeCount;
+                    return entry;
+                });
                 for (let p = 0; p < tocPages; p++) {
                     container.appendChild(buildTocPage(p + 1, tocEntries.slice(p * MAX_TOC_PER_PAGE, (p + 1) * MAX_TOC_PER_PAGE)));
                 }
@@ -530,16 +545,20 @@
 
                 pageNum = lessonStartPage;
                 lessons.forEach(l => {
-                    container.appendChild(buildLessonPage(l, pageNum++, 1));
-                    container.appendChild(buildLessonPage(l, pageNum++, 2));
-                    container.appendChild(buildLessonPage(l, pageNum++, 3));
+                    (l.pages || []).forEach((pageData, idx) => {
+                        if (pageData.active === false) return;
+                        // variant = original slot 1/2/3 so hero layout still follows page identity
+                        container.appendChild(buildLessonPage(l, pageNum++, idx + 1));
+                    });
                 });
             }
 
             // ---------- EDIT TAB ----------
             function getPageFormData(idx) {
                 const n = idx + 1;
+                const toggle = document.getElementById('pageActive' + n);
                 return {
+                    active: toggle ? toggle.checked : true,
                     introText: (document.getElementById('fIntro' + n)?.value || '').trim(),
                     letterTile: (document.getElementById('fLetterTile' + n)?.value || '').trim(),
                     targetLetter: (document.getElementById('fTargetLetter' + n)?.value || '').trim(),
@@ -558,6 +577,11 @@
             function fillPageForm(idx, pageData) {
                 const n = idx + 1;
                 const p = pageData || makeDefaultPage();
+                const toggle = document.getElementById('pageActive' + n);
+                if (toggle) {
+                    toggle.checked = p.active !== false;
+                    applyPageToggleUI(n, toggle.checked);
+                }
                 document.getElementById('fIntro' + n).value = p.introText || '';
                 document.getElementById('fLetterTile' + n).value = p.letterTile || '';
                 document.getElementById('fTargetLetter' + n).value = p.targetLetter || '';
@@ -574,6 +598,35 @@
                     img.src = ''; img.style.display = 'none'; placeholder.style.display = 'flex';
                 }
             }
+
+            function applyPageToggleUI(n, isActive) {
+                const body = document.getElementById('pageBody' + n);
+                const label = document.getElementById('pageToggleLabel' + n);
+                if (body) body.style.display = isActive ? 'block' : 'none';
+                if (label) {
+                    label.textContent = isActive ? 'ON' : 'OFF';
+                    label.style.background = isActive ? '#2d7d46' : '#6c757d';
+                }
+            }
+
+            window.togglePageActive = function(n) {
+                const toggle = document.getElementById('pageActive' + n);
+                if (!toggle) return;
+                // Prevent turning off the last active page
+                if (!toggle.checked) {
+                    let activeCount = 0;
+                    for (let i = 1; i <= 3; i++) {
+                        const t = document.getElementById('pageActive' + i);
+                        if (t && t.checked) activeCount++;
+                    }
+                    if (activeCount === 0) {
+                        toggle.checked = true;
+                        showToast('At least one page must stay active.', 'warning');
+                        return;
+                    }
+                }
+                applyPageToggleUI(n, toggle.checked);
+            };
             function fillForm(lesson) {
                 document.getElementById('fMainTitle').value = lesson.mainTitle || '';
                 document.getElementById('fLessonNumber').value = lesson.lessonNumber || '';
@@ -605,8 +658,12 @@
                 const data = getFormData();
                 if (!data.mainTitle || !data.lessonNumber)
                     return showToast('Main Title and Lesson Number are required.', 'error');
+                const activePages = data.pages.filter(p => p.active !== false);
+                if (activePages.length === 0)
+                    return showToast('At least one page must be active.', 'error');
                 for (let i = 0; i < 3; i++) {
                     const p = data.pages[i];
+                    if (p.active === false) continue;
                     if (!p.letterTile || !p.targetLetter || !p.imageCaption || !p.introText)
                         return showToast(`Page ${i + 1}: fill Letter Tile, Target Letter, Image Caption and Intro Text.`, 'error');
                 }
@@ -771,7 +828,8 @@
                 document.getElementById('lessonCount').textContent = lessons.length + ' lessons, ' + sightWords.length + ' sight words';
                 const tocPages = lessons.length ? Math.ceil(lessons.length / MAX_TOC_PER_PAGE) : 0;
                 const sightWordsPages = Math.ceil(sightWords.length / MAX_SIGHT_WORDS_PER_PAGE);
-                const totalPages = 1 + tocPages + sightWordsPages + lessons.length * 3;
+                const lessonPageCount = lessons.reduce((sum, l) => sum + countActivePages(l), 0);
+                const totalPages = 1 + tocPages + sightWordsPages + lessonPageCount;
                 document.getElementById('viewInfo').textContent = `📄 ${lessons.length} lessons · ${totalPages} pages (incl. cover, TOC & sight words)`;
             }
 
@@ -799,63 +857,87 @@
                             <div class="form-group"><label>Lesson Number <span class="req">*</span></label><input type="number" id="fLessonNumber"></div>
 
                             <div class="page-edit-block" style="margin-top:20px;padding:16px;background:#fff;border:2px solid #F5A623;border-radius:12px;">
-                                <h3 style="margin-bottom:12px;color:#E2571C;">📄 Page 1</h3>
-                                <div class="form-group"><label>Intro Text <span class="req">*</span></label><textarea id="fIntro1" rows="2"></textarea></div>
-                                <div class="form-row">
-                                    <div class="form-group"><label>Letter Tile <span class="req">*</span></label><input id="fLetterTile1" placeholder="e.g. Short a"></div>
-                                    <div class="form-group"><label>Target Letter <span class="req">*</span></label><input id="fTargetLetter1" placeholder="e.g. a" maxlength="2"></div>
+                                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+                                    <h3 style="margin:0;color:#E2571C;">📄 Page 1</h3>
+                                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;">
+                                        <input type="checkbox" id="pageActive1" checked onchange="togglePageActive(1)" style="width:18px;height:18px;accent-color:#2d7d46;">
+                                        <span id="pageToggleLabel1" style="font-size:12px;font-weight:700;color:#fff;background:#2d7d46;padding:3px 10px;border-radius:12px;">ON</span>
+                                    </label>
                                 </div>
-                                <div class="form-group"><label>Image Caption <span class="req">*</span></label><input id="fImageCaption1" placeholder="e.g. bag"></div>
-                                <div class="form-group">
-                                    <label>Image</label>
-                                    <div class="image-upload-wrap">
-                                        <img id="imagePreview1" class="preview" src="" alt="" style="display:none;" />
-                                        <div id="imagePreviewPlaceholder1" class="preview-placeholder">🖼️</div>
-                                        <input type="file" id="fImageFile1" accept="image/*" onchange="handleImageUpload(event, 1)" />
-                                        <input type="hidden" id="fImagePath1" />
+                                <div id="pageBody1">
+                                    <div class="form-group"><label>Intro Text <span class="req">*</span></label><textarea id="fIntro1" rows="2"></textarea></div>
+                                    <div class="form-row">
+                                        <div class="form-group"><label>Letter Tile <span class="req">*</span></label><input id="fLetterTile1" placeholder="e.g. Short a"></div>
+                                        <div class="form-group"><label>Target Letter <span class="req">*</span></label><input id="fTargetLetter1" placeholder="e.g. a" maxlength="2"></div>
                                     </div>
+                                    <div class="form-group"><label>Image Caption <span class="req">*</span></label><input id="fImageCaption1" placeholder="e.g. bag"></div>
+                                    <div class="form-group">
+                                        <label>Image</label>
+                                        <div class="image-upload-wrap">
+                                            <img id="imagePreview1" class="preview" src="" alt="" style="display:none;" />
+                                            <div id="imagePreviewPlaceholder1" class="preview-placeholder">🖼️</div>
+                                            <input type="file" id="fImageFile1" accept="image/*" onchange="handleImageUpload(event, 1)" />
+                                            <input type="hidden" id="fImagePath1" />
+                                        </div>
+                                    </div>
+                                    <div class="form-group"><label>Section Header</label><input id="fSectionLabel1" placeholder="Trace and write the letter"></div>
                                 </div>
-                                <div class="form-group"><label>Section Header</label><input id="fSectionLabel1" placeholder="Trace and write the letter"></div>
                             </div>
 
                             <div class="page-edit-block" style="margin-top:16px;padding:16px;background:#fff;border:2px solid #F5A623;border-radius:12px;">
-                                <h3 style="margin-bottom:12px;color:#E2571C;">📄 Page 2</h3>
-                                <div class="form-group"><label>Intro Text <span class="req">*</span></label><textarea id="fIntro2" rows="2"></textarea></div>
-                                <div class="form-row">
-                                    <div class="form-group"><label>Letter Tile <span class="req">*</span></label><input id="fLetterTile2" placeholder="e.g. Short a"></div>
-                                    <div class="form-group"><label>Target Letter <span class="req">*</span></label><input id="fTargetLetter2" placeholder="e.g. a" maxlength="2"></div>
+                                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+                                    <h3 style="margin:0;color:#E2571C;">📄 Page 2</h3>
+                                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;">
+                                        <input type="checkbox" id="pageActive2" checked onchange="togglePageActive(2)" style="width:18px;height:18px;accent-color:#2d7d46;">
+                                        <span id="pageToggleLabel2" style="font-size:12px;font-weight:700;color:#fff;background:#2d7d46;padding:3px 10px;border-radius:12px;">ON</span>
+                                    </label>
                                 </div>
-                                <div class="form-group"><label>Image Caption <span class="req">*</span></label><input id="fImageCaption2" placeholder="e.g. bag"></div>
-                                <div class="form-group">
-                                    <label>Image</label>
-                                    <div class="image-upload-wrap">
-                                        <img id="imagePreview2" class="preview" src="" alt="" style="display:none;" />
-                                        <div id="imagePreviewPlaceholder2" class="preview-placeholder">🖼️</div>
-                                        <input type="file" id="fImageFile2" accept="image/*" onchange="handleImageUpload(event, 2)" />
-                                        <input type="hidden" id="fImagePath2" />
+                                <div id="pageBody2">
+                                    <div class="form-group"><label>Intro Text <span class="req">*</span></label><textarea id="fIntro2" rows="2"></textarea></div>
+                                    <div class="form-row">
+                                        <div class="form-group"><label>Letter Tile <span class="req">*</span></label><input id="fLetterTile2" placeholder="e.g. Short a"></div>
+                                        <div class="form-group"><label>Target Letter <span class="req">*</span></label><input id="fTargetLetter2" placeholder="e.g. a" maxlength="2"></div>
                                     </div>
+                                    <div class="form-group"><label>Image Caption <span class="req">*</span></label><input id="fImageCaption2" placeholder="e.g. bag"></div>
+                                    <div class="form-group">
+                                        <label>Image</label>
+                                        <div class="image-upload-wrap">
+                                            <img id="imagePreview2" class="preview" src="" alt="" style="display:none;" />
+                                            <div id="imagePreviewPlaceholder2" class="preview-placeholder">🖼️</div>
+                                            <input type="file" id="fImageFile2" accept="image/*" onchange="handleImageUpload(event, 2)" />
+                                            <input type="hidden" id="fImagePath2" />
+                                        </div>
+                                    </div>
+                                    <div class="form-group"><label>Section Header</label><input id="fSectionLabel2" placeholder="Trace and write the letter"></div>
                                 </div>
-                                <div class="form-group"><label>Section Header</label><input id="fSectionLabel2" placeholder="Trace and write the letter"></div>
                             </div>
 
                             <div class="page-edit-block" style="margin-top:16px;padding:16px;background:#fff;border:2px solid #F5A623;border-radius:12px;">
-                                <h3 style="margin-bottom:12px;color:#E2571C;">📄 Page 3</h3>
-                                <div class="form-group"><label>Intro Text <span class="req">*</span></label><textarea id="fIntro3" rows="2"></textarea></div>
-                                <div class="form-row">
-                                    <div class="form-group"><label>Letter Tile <span class="req">*</span></label><input id="fLetterTile3" placeholder="e.g. Short a"></div>
-                                    <div class="form-group"><label>Target Letter <span class="req">*</span></label><input id="fTargetLetter3" placeholder="e.g. a" maxlength="2"></div>
+                                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+                                    <h3 style="margin:0;color:#E2571C;">📄 Page 3</h3>
+                                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;">
+                                        <input type="checkbox" id="pageActive3" checked onchange="togglePageActive(3)" style="width:18px;height:18px;accent-color:#2d7d46;">
+                                        <span id="pageToggleLabel3" style="font-size:12px;font-weight:700;color:#fff;background:#2d7d46;padding:3px 10px;border-radius:12px;">ON</span>
+                                    </label>
                                 </div>
-                                <div class="form-group"><label>Image Caption <span class="req">*</span></label><input id="fImageCaption3" placeholder="e.g. bag"></div>
-                                <div class="form-group">
-                                    <label>Image</label>
-                                    <div class="image-upload-wrap">
-                                        <img id="imagePreview3" class="preview" src="" alt="" style="display:none;" />
-                                        <div id="imagePreviewPlaceholder3" class="preview-placeholder">🖼️</div>
-                                        <input type="file" id="fImageFile3" accept="image/*" onchange="handleImageUpload(event, 3)" />
-                                        <input type="hidden" id="fImagePath3" />
+                                <div id="pageBody3">
+                                    <div class="form-group"><label>Intro Text <span class="req">*</span></label><textarea id="fIntro3" rows="2"></textarea></div>
+                                    <div class="form-row">
+                                        <div class="form-group"><label>Letter Tile <span class="req">*</span></label><input id="fLetterTile3" placeholder="e.g. Short a"></div>
+                                        <div class="form-group"><label>Target Letter <span class="req">*</span></label><input id="fTargetLetter3" placeholder="e.g. a" maxlength="2"></div>
                                     </div>
+                                    <div class="form-group"><label>Image Caption <span class="req">*</span></label><input id="fImageCaption3" placeholder="e.g. bag"></div>
+                                    <div class="form-group">
+                                        <label>Image</label>
+                                        <div class="image-upload-wrap">
+                                            <img id="imagePreview3" class="preview" src="" alt="" style="display:none;" />
+                                            <div id="imagePreviewPlaceholder3" class="preview-placeholder">🖼️</div>
+                                            <input type="file" id="fImageFile3" accept="image/*" onchange="handleImageUpload(event, 3)" />
+                                            <input type="hidden" id="fImagePath3" />
+                                        </div>
+                                    </div>
+                                    <div class="form-group"><label>Section Header</label><input id="fSectionLabel3" placeholder="Trace and write the letter"></div>
                                 </div>
-                                <div class="form-group"><label>Section Header</label><input id="fSectionLabel3" placeholder="Trace and write the letter"></div>
                             </div>
 
                             <div class="form-actions">
