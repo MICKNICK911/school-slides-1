@@ -96,14 +96,13 @@
         .view-container .lesson-badge .num { font-size: 34px; font-weight: 800; line-height: 1.1; }
         .view-container .intro-box { flex: 1; border: 3px dashed #E2571C; border-radius: 16px; display: flex; align-items: center; padding: 14px 20px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         .view-container .intro-box p { margin: 0; color: #E2571C; font-weight: 700; font-size: 14px; line-height: 1.5; }
-        .view-container .hero-row { display: flex; border-radius: 20px; overflow: hidden; border: 3px solid #F5A623; height: 200px; margin-bottom: 22px; }
-        .view-container .hero-row.page1-hero { width: 353px; margin-left: auto; margin-right: auto; }
-        .view-container .hero-image { flex: 1; background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+        .view-container .hero-row { display: flex; border-radius: 20px; overflow: hidden; border: 3px solid #F5A623; height: 200px; margin-bottom: 22px; width: 100%; }
+        .view-container .hero-image { flex: 1; background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-width: 0; }
         .view-container .hero-row.page23-hero .hero-image { flex: 0 0 33.333%; max-width: 33.333%; }
         .view-container .hero-image img { max-height: 140px; max-width: 90%; object-fit: contain; }
         .view-container .hero-image .placeholder { width: 120px; height: 80px; border: 2px dashed #ccc; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #999; font-size: 12px; }
         .view-container .hero-image .caption { font-weight: 800; font-size: 16px; color: #1a1a1a; }
-        .view-container .hero-letter { flex: 1; background: #F5A623; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 72px; font-weight: 800; font-style: italic; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .view-container .hero-letter { flex: 1; background: #F5A623; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 72px; font-weight: 800; font-style: italic; -webkit-print-color-adjust: exact; print-color-adjust: exact; min-width: 0; }
         .view-container .hero-row.page23-hero .hero-letter { flex: 1; font-size: 80px; }
 
         /* Writing practice lines (red-blue-blue-red) */
@@ -128,25 +127,30 @@
         .view-container .writing-set .line.l2 { top: 22px; }
         .view-container .writing-set .line.l3 { top: 44px; }
         .view-container .writing-set .line.l4 { top: 66px; }
+        /* Letters centred exactly in the blue-to-blue band (midpoint = 33px) */
         .view-container .writing-set .trace-letters {
             position: absolute;
             left: 0; right: 0;
-            top: 0; bottom: 0;
+            top: 22px;
+            height: 22px;
             display: flex;
             align-items: center;
             justify-content: space-evenly;
             padding: 0 40px;
             pointer-events: none;
+            overflow: visible;
         }
         .view-container .writing-set .trace-letters span {
             font-family: 'Comic Sans MS', 'Segoe Print', 'Bradley Hand', cursive, sans-serif;
-            font-size: 48px;
+            font-size: 42px;
             font-weight: 700;
             color: #1a1a1a;
             line-height: 1;
-            /* Body sits between the two blue lines (l2–l3 ≈ 22px),
-               ascenders can reach red above, descenders reach red below */
-            transform: translateY(2px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 22px;
+            /* Ascenders/descenders naturally extend above/below the blue band */
         }
         .view-container .section-header { display: flex; align-items: center; margin-bottom: 10px; margin-top: 12px; }
         .view-container .section-header .circle { background: #F5A623; color: #fff; width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px; margin-right: 14px; flex-shrink: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -233,7 +237,7 @@
 
     <script>
         (function() {
-            const STORAGE_KEY = 'phonics_lessons_v2';
+            const STORAGE_KEY = 'phonics_lessons_v3';
             const MAX_TOC_PER_PAGE = 18;
             const MAX_SIGHT_WORDS_PER_PAGE = 28;
 
@@ -263,30 +267,41 @@
             }
 
             // ---------- Default data (3 lessons + sight words + cover) ----------
+            function makeDefaultPage(overrides = {}) {
+                return {
+                    introText: '',
+                    letterTile: '',
+                    targetLetter: '',
+                    imageCaption: '',
+                    imagePath: '',
+                    sectionLabel: 'Trace and write the letter',
+                    ...overrides
+                };
+            }
             const DEFAULT_LESSONS = [
                 {
                     id: 'l1', mainTitle: 'SHORT VOWEL CVC WORDS', lessonNumber: 1,
-                    letterTile: 'Short a', targetLetter: 'a', imageCaption: 'bag', imagePath: '',
-                    introText: 'Say each picture word out loud. Listen for the sound of "Short a".',
-                    words: [['bag','cat','mat','hat'],['rat','bat','sat','pat'],['fat','man']],
-                    sentences: ['I can say the word bag and the word cat.','Look at the mat. Now look at the hat.'],
-                    fillBlanks: ['b_g','c_t','m_t','h_t','r_t']
+                    pages: [
+                        makeDefaultPage({ letterTile: 'Short a', targetLetter: 'a', imageCaption: 'bag', introText: 'Say each picture word out loud. Listen for the sound of "Short a".', sectionLabel: 'Trace and write the letter' }),
+                        makeDefaultPage({ letterTile: 'Short a', targetLetter: 'a', imageCaption: 'bag', introText: 'Trace the letter carefully. Say the sound of "Short a".', sectionLabel: 'Trace and write the letter' }),
+                        makeDefaultPage({ letterTile: 'Short a', targetLetter: 'a', imageCaption: 'bag', introText: 'Write the letter on your own. Listen for "Short a".', sectionLabel: 'Trace and write the letter' })
+                    ]
                 },
                 {
                     id: 'l2', mainTitle: 'SHORT VOWEL CVC WORDS', lessonNumber: 2,
-                    letterTile: 'Short e', targetLetter: 'e', imageCaption: 'bed', imagePath: '',
-                    introText: 'Listen for the sound of "Short e" in each word.',
-                    words: [['bed','red','fed','led'],['men','pen','hen','ten'],['get','pet']],
-                    sentences: ['The red bed is soft.','Ten men sat on the bed.'],
-                    fillBlanks: ['b_d','r_d','f_d','l_d','m_n']
+                    pages: [
+                        makeDefaultPage({ letterTile: 'Short e', targetLetter: 'e', imageCaption: 'bed', introText: 'Listen for the sound of "Short e" in each word.', sectionLabel: 'Trace and write the letter' }),
+                        makeDefaultPage({ letterTile: 'Short e', targetLetter: 'e', imageCaption: 'bed', introText: 'Trace the letter carefully. Say the sound of "Short e".', sectionLabel: 'Trace and write the letter' }),
+                        makeDefaultPage({ letterTile: 'Short e', targetLetter: 'e', imageCaption: 'bed', introText: 'Write the letter on your own. Listen for "Short e".', sectionLabel: 'Trace and write the letter' })
+                    ]
                 },
                 {
                     id: 'l3', mainTitle: 'SHORT VOWEL CVC WORDS', lessonNumber: 3,
-                    letterTile: 'Short i', targetLetter: 'i', imageCaption: 'pig', imagePath: '',
-                    introText: 'Listen for the sound of "Short i" in each word.',
-                    words: [['pig','big','dig','wig'],['sit','bit','hit','kit'],['fin','pin']],
-                    sentences: ['The big pig can dig.','Sit on the kit.'],
-                    fillBlanks: ['p_g','b_g','d_g','w_g','s_t']
+                    pages: [
+                        makeDefaultPage({ letterTile: 'Short i', targetLetter: 'i', imageCaption: 'pig', introText: 'Listen for the sound of "Short i" in each word.', sectionLabel: 'Trace and write the letter' }),
+                        makeDefaultPage({ letterTile: 'Short i', targetLetter: 'i', imageCaption: 'pig', introText: 'Trace the letter carefully. Say the sound of "Short i".', sectionLabel: 'Trace and write the letter' }),
+                        makeDefaultPage({ letterTile: 'Short i', targetLetter: 'i', imageCaption: 'pig', introText: 'Write the letter on your own. Listen for "Short i".', sectionLabel: 'Trace and write the letter' })
+                    ]
                 }
             ];
             const DEFAULT_SIGHT_WORDS = [
@@ -319,14 +334,24 @@
                             lessons.forEach(l => {
                                 if (!l.id) l.id = 'l' + Date.now() + Math.random().toString(36).slice(2,6);
                                 if (!l.mainTitle) l.mainTitle = 'SHORT VOWEL CVC WORDS';
-                                if (!l.targetLetter) l.targetLetter = (l.letterTile || 'a').replace(/short\s*/i,'').trim().charAt(0).toLowerCase() || 'a';
-                                if (l.words && l.words.length && !Array.isArray(l.words[0])) {
-                                    const flat = l.words;
-                                    const chunked = [];
-                                    for (let i=0;i<flat.length;i+=4) chunked.push(flat.slice(i,i+4));
-                                    l.words = chunked;
+                                // Migrate old single-page shape → 3 pages
+                                if (!Array.isArray(l.pages) || l.pages.length < 3) {
+                                    const base = {
+                                        introText: l.introText || '',
+                                        letterTile: l.letterTile || '',
+                                        targetLetter: l.targetLetter || (l.letterTile || 'a').replace(/short\s*/i,'').trim().charAt(0).toLowerCase() || 'a',
+                                        imageCaption: l.imageCaption || '',
+                                        imagePath: l.imagePath || '',
+                                        sectionLabel: 'Trace and write the letter'
+                                    };
+                                    l.pages = [ { ...base }, { ...base }, { ...base } ];
+                                    delete l.introText; delete l.letterTile; delete l.targetLetter;
+                                    delete l.imageCaption; delete l.imagePath; delete l.words;
+                                    delete l.sentences; delete l.fillBlanks;
                                 }
-                                const num = parseInt(l.id.replace('l','')) || 0;
+                                while (l.pages.length < 3) l.pages.push(makeDefaultPage());
+                                l.pages = l.pages.slice(0, 3).map(p => makeDefaultPage(p));
+                                const num = parseInt(String(l.id).replace('l','')) || 0;
                                 if (num > maxId) maxId = num;
                             });
                             nextId = maxId + 1;
@@ -376,26 +401,27 @@
             }
 
             function buildLessonPage(lesson, pageNum, variant) {
-                // variant 1 = page1 (narrow hero), 2 or 3 = image takes 1/3 of hero-row
+                // variant 1 = 50/50 hero, 2 or 3 = image takes 1/3 of hero-row
+                const pageData = (lesson.pages && lesson.pages[variant - 1]) || makeDefaultPage();
                 const page = document.createElement('div'); page.className = 'page';
                 page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
                 const card = document.createElement('div'); card.className = 'card';
-                const heroClass = variant === 1 ? 'hero-row page1-hero' : 'hero-row page23-hero';
+                const heroClass = variant === 1 ? 'hero-row' : 'hero-row page23-hero';
                 card.innerHTML = `
                     <div class="title">${escapeHtml(lesson.mainTitle)}</div>
                     <div class="header-row">
                         <div class="lesson-badge"><div class="arrow"></div><div class="label">Lesson</div><div class="num">${lesson.lessonNumber}</div></div>
-                        <div class="intro-box"><p>${escapeHtml(lesson.introText)}</p></div>
+                        <div class="intro-box"><p>${escapeHtml(pageData.introText || '')}</p></div>
                     </div>
                     <div class="${heroClass}">
                         <div class="hero-image">
-                            ${lesson.imagePath ? `<img src="${escapeHtml(lesson.imagePath)}" alt="${escapeHtml(lesson.imageCaption||'')}" />` : '<div class="placeholder">🖼️</div>'}
-                            <div class="caption">${escapeHtml(lesson.imageCaption||'')}</div>
+                            ${pageData.imagePath ? `<img src="${escapeHtml(pageData.imagePath)}" alt="${escapeHtml(pageData.imageCaption||'')}" />` : '<div class="placeholder">🖼️</div>'}
+                            <div class="caption">${escapeHtml(pageData.imageCaption||'')}</div>
                         </div>
-                        <div class="hero-letter">${escapeHtml(lesson.letterTile||'')}</div>
+                        <div class="hero-letter">${escapeHtml(pageData.letterTile||'')}</div>
                     </div>
-                    <div class="section-header"><div class="circle">${variant}</div><div class="label-box">Trace and write the letter</div></div>`;
-                card.appendChild(createWritingSets(lesson.targetLetter));
+                    <div class="section-header"><div class="circle">${variant}</div><div class="label-box">${escapeHtml(pageData.sectionLabel || 'Trace and write the letter')}</div></div>`;
+                card.appendChild(createWritingSets(pageData.targetLetter));
                 const pageNumEl = document.createElement('div');
                 pageNumEl.className = 'page-number';
                 pageNumEl.textContent = pageNum;
@@ -487,7 +513,8 @@
                 const lessonStartPage = tocPages + sightWordsPages + 1;
 
                 const tocEntries = lessons.map((l, i) => ({
-                    lessonNumber: l.lessonNumber, mainTitle: l.mainTitle, imageCaption: l.imageCaption,
+                    lessonNumber: l.lessonNumber, mainTitle: l.mainTitle,
+                    imageCaption: (l.pages && l.pages[0] && l.pages[0].imageCaption) || '',
                     firstPage: lessonStartPage + i * 3
                 }));
                 for (let p = 0; p < tocPages; p++) {
@@ -510,63 +537,57 @@
             }
 
             // ---------- EDIT TAB ----------
+            function getPageFormData(idx) {
+                const n = idx + 1;
+                return {
+                    introText: (document.getElementById('fIntro' + n)?.value || '').trim(),
+                    letterTile: (document.getElementById('fLetterTile' + n)?.value || '').trim(),
+                    targetLetter: (document.getElementById('fTargetLetter' + n)?.value || '').trim(),
+                    imageCaption: (document.getElementById('fImageCaption' + n)?.value || '').trim(),
+                    imagePath: document.getElementById('fImagePath' + n)?.value || '',
+                    sectionLabel: (document.getElementById('fSectionLabel' + n)?.value || '').trim() || 'Trace and write the letter'
+                };
+            }
             function getFormData() {
-                const wordsRaw = document.getElementById('fWords').value;
-                const words = wordsRaw.split(',').map(s=>s.trim()).filter(Boolean);
-                const chunked = [];
-                for (let i=0;i<words.length;i+=4) chunked.push(words.slice(i,i+4));
-                if (chunked.length === 0) chunked.push([]);
                 return {
                     mainTitle: document.getElementById('fMainTitle').value.trim(),
                     lessonNumber: parseInt(document.getElementById('fLessonNumber').value) || 0,
-                    letterTile: document.getElementById('fLetterTile').value.trim(),
-                    targetLetter: document.getElementById('fTargetLetter').value.trim(),
-                    imageCaption: document.getElementById('fImageCaption').value.trim(),
-                    imagePath: document.getElementById('fImagePath').value || '',
-                    introText: document.getElementById('fIntroText').value.trim(),
-                    words: chunked,
-                    sentences: document.getElementById('fSentences').value.split(',').map(s=>s.trim()).filter(Boolean),
-                    fillBlanks: document.getElementById('fFillBlanks').value.split(',').map(s=>s.trim()).filter(Boolean)
+                    pages: [getPageFormData(0), getPageFormData(1), getPageFormData(2)]
                 };
+            }
+            function fillPageForm(idx, pageData) {
+                const n = idx + 1;
+                const p = pageData || makeDefaultPage();
+                document.getElementById('fIntro' + n).value = p.introText || '';
+                document.getElementById('fLetterTile' + n).value = p.letterTile || '';
+                document.getElementById('fTargetLetter' + n).value = p.targetLetter || '';
+                document.getElementById('fImageCaption' + n).value = p.imageCaption || '';
+                document.getElementById('fImagePath' + n).value = p.imagePath || '';
+                document.getElementById('fSectionLabel' + n).value = p.sectionLabel || 'Trace and write the letter';
+                const img = document.getElementById('imagePreview' + n);
+                const placeholder = document.getElementById('imagePreviewPlaceholder' + n);
+                const fileInput = document.getElementById('fImageFile' + n);
+                if (fileInput) fileInput.value = '';
+                if (p.imagePath) {
+                    img.src = p.imagePath; img.style.display = 'block'; placeholder.style.display = 'none';
+                } else {
+                    img.src = ''; img.style.display = 'none'; placeholder.style.display = 'flex';
+                }
             }
             function fillForm(lesson) {
                 document.getElementById('fMainTitle').value = lesson.mainTitle || '';
                 document.getElementById('fLessonNumber').value = lesson.lessonNumber || '';
-                document.getElementById('fLetterTile').value = lesson.letterTile || '';
-                document.getElementById('fTargetLetter').value = lesson.targetLetter || '';
-                document.getElementById('fImageCaption').value = lesson.imageCaption || '';
-                document.getElementById('fImagePath').value = lesson.imagePath || '';
-                document.getElementById('fIntroText').value = lesson.introText || '';
-                document.getElementById('fWords').value = flattenWords(lesson.words||[]).join(', ');
-                document.getElementById('fSentences').value = (lesson.sentences||[]).join(', ');
-                document.getElementById('fFillBlanks').value = (lesson.fillBlanks||[]).join(', ');
-                const img = document.getElementById('imagePreview');
-                const placeholder = document.getElementById('imagePreviewPlaceholder');
-                if (lesson.imagePath) {
-                    img.src = lesson.imagePath; img.style.display = 'block'; placeholder.style.display = 'none';
-                } else {
-                    img.src = ''; img.style.display = 'none'; placeholder.style.display = 'flex';
-                }
+                const pages = lesson.pages || [];
+                for (let i = 0; i < 3; i++) fillPageForm(i, pages[i]);
             }
             function resetForm() {
                 editingId = null;
                 document.getElementById('formTitle').textContent = '➕ Add New Lesson';
                 document.getElementById('fMainTitle').value = '';
                 document.getElementById('fLessonNumber').value = lessons.length + 1;
-                document.getElementById('fLetterTile').value = '';
-                document.getElementById('fTargetLetter').value = '';
-                document.getElementById('fImageCaption').value = '';
-                document.getElementById('fImagePath').value = '';
-                document.getElementById('fIntroText').value = '';
-                document.getElementById('fWords').value = '';
-                document.getElementById('fSentences').value = '';
-                document.getElementById('fFillBlanks').value = '';
-                const img = document.getElementById('imagePreview');
-                const placeholder = document.getElementById('imagePreviewPlaceholder');
-                img.src = ''; img.style.display = 'none'; placeholder.style.display = 'flex';
+                for (let i = 0; i < 3; i++) fillPageForm(i, makeDefaultPage());
                 document.getElementById('saveBtn').textContent = '💾 Save Lesson';
                 document.getElementById('cancelBtn').style.display = 'none';
-                document.getElementById('fImageFile').value = '';
             }
 
             window.editLesson = function(id) {
@@ -582,9 +603,13 @@
             window.cancelEdit = function() { resetForm(); showToast('Edit cancelled.', 'info'); };
             window.saveLesson = function() {
                 const data = getFormData();
-                if (!data.mainTitle || !data.lessonNumber || !data.letterTile || !data.targetLetter || !data.imageCaption || !data.introText ||
-                    flattenWords(data.words).length<6 || data.sentences.length<2 || data.fillBlanks.length<4)
-                    return showToast('Fill all required fields (incl. Target Letter, ≥6 words, 2 sentences, 4 blanks).', 'error');
+                if (!data.mainTitle || !data.lessonNumber)
+                    return showToast('Main Title and Lesson Number are required.', 'error');
+                for (let i = 0; i < 3; i++) {
+                    const p = data.pages[i];
+                    if (!p.letterTile || !p.targetLetter || !p.imageCaption || !p.introText)
+                        return showToast(`Page ${i + 1}: fill Letter Tile, Target Letter, Image Caption and Intro Text.`, 'error');
+                }
                 if (lessons.find(l => l.lessonNumber === data.lessonNumber && l.id !== editingId))
                     return showToast('Lesson number already exists.', 'error');
                 if (editingId) {
@@ -611,8 +636,12 @@
                 if (!lesson) return;
                 const copy = JSON.parse(JSON.stringify(lesson));
                 delete copy.id;
-                copy.lessonNumber = Math.max(...lessons.map(l=>l.lessonNumber), 0) + 1;
-                copy.imageCaption = copy.imageCaption + ' (copy)';
+                copy.lessonNumber = Math.max(...lessons.map(l => l.lessonNumber), 0) + 1;
+                if (Array.isArray(copy.pages)) {
+                    copy.pages.forEach(p => {
+                        if (p.imageCaption) p.imageCaption = p.imageCaption + ' (copy)';
+                    });
+                }
                 copy.id = generateId();
                 lessons.push(copy);
                 saveData(); refreshUI();
@@ -638,13 +667,19 @@
                                 lessons = data.lessons.map(l => {
                                     if (!l.id) l.id = generateId();
                                     if (!l.mainTitle) l.mainTitle = 'SHORT VOWEL CVC WORDS';
-                                    if (!l.targetLetter) l.targetLetter = (l.letterTile || 'a').replace(/short\s*/i,'').trim().charAt(0).toLowerCase() || 'a';
-                                    if (l.words && l.words.length && !Array.isArray(l.words[0])) {
-                                        const flat = l.words;
-                                        const chunked = [];
-                                        for (let i=0;i<flat.length;i+=4) chunked.push(flat.slice(i,i+4));
-                                        l.words = chunked;
+                                    if (!Array.isArray(l.pages) || l.pages.length < 3) {
+                                        const base = {
+                                            introText: l.introText || '',
+                                            letterTile: l.letterTile || '',
+                                            targetLetter: l.targetLetter || (l.letterTile || 'a').replace(/short\s*/i,'').trim().charAt(0).toLowerCase() || 'a',
+                                            imageCaption: l.imageCaption || '',
+                                            imagePath: l.imagePath || '',
+                                            sectionLabel: 'Trace and write the letter'
+                                        };
+                                        l.pages = [{ ...base }, { ...base }, { ...base }];
                                     }
+                                    while (l.pages.length < 3) l.pages.push(makeDefaultPage());
+                                    l.pages = l.pages.slice(0, 3).map(p => makeDefaultPage(p));
                                     return l;
                                 });
                             } else { lessons = JSON.parse(JSON.stringify(DEFAULT_LESSONS)); }
@@ -658,7 +693,7 @@
                 reader.readAsText(file);
             };
 
-            window.handleImageUpload = function(event) {
+            window.handleImageUpload = function(event, pageNum) {
                 const file = event.target.files[0];
                 if (!file) return;
                 if (file.size > 2*1024*1024) { showToast('Image must be <2MB.', 'error'); return; }
@@ -666,11 +701,11 @@
                 const reader = new FileReader();
                 reader.onload = e => {
                     const dataUrl = e.target.result;
-                    document.getElementById('fImagePath').value = dataUrl;
-                    const img = document.getElementById('imagePreview');
-                    const placeholder = document.getElementById('imagePreviewPlaceholder');
+                    document.getElementById('fImagePath' + pageNum).value = dataUrl;
+                    const img = document.getElementById('imagePreview' + pageNum);
+                    const placeholder = document.getElementById('imagePreviewPlaceholder' + pageNum);
                     img.src = dataUrl; img.style.display = 'block'; placeholder.style.display = 'none';
-                    showToast('Image uploaded.', 'success');
+                    showToast('Page ' + pageNum + ' image uploaded.', 'success');
                 };
                 reader.onerror = () => showToast('Failed to read file.', 'error');
                 reader.readAsDataURL(file);
@@ -695,28 +730,35 @@
             function renderEditList() {
                 const container = document.getElementById('lessonList');
                 const q = searchQuery.toLowerCase();
-                const filtered = lessons.filter(l =>
-                    !q || String(l.lessonNumber).includes(q) || (l.mainTitle||'').toLowerCase().includes(q) ||
-                    (l.letterTile||'').toLowerCase().includes(q) || (l.imageCaption||'').toLowerCase().includes(q) ||
-                    (l.introText||'').toLowerCase().includes(q) ||
-                    flattenWords(l.words||[]).join(' ').toLowerCase().includes(q) ||
-                    (l.sentences||[]).join(' ').toLowerCase().includes(q) ||
-                    (l.fillBlanks||[]).join(' ').toLowerCase().includes(q)
-                );
-                container.innerHTML = filtered.length ? filtered.map(l => `
+                const filtered = lessons.filter(l => {
+                    if (!q) return true;
+                    if (String(l.lessonNumber).includes(q) || (l.mainTitle||'').toLowerCase().includes(q)) return true;
+                    const pages = l.pages || [];
+                    return pages.some(p =>
+                        (p.letterTile||'').toLowerCase().includes(q) ||
+                        (p.imageCaption||'').toLowerCase().includes(q) ||
+                        (p.introText||'').toLowerCase().includes(q) ||
+                        (p.targetLetter||'').toLowerCase().includes(q) ||
+                        (p.sectionLabel||'').toLowerCase().includes(q)
+                    );
+                });
+                container.innerHTML = filtered.length ? filtered.map(l => {
+                    const p0 = (l.pages && l.pages[0]) || {};
+                    return `
                     <div class="lesson-item" draggable="true" data-id="${l.id}">
                         <span class="drag-handle">⠿</span>
-                        ${l.imagePath ? `<img class="thumb" src="${escapeHtml(l.imagePath)}" alt="" />` : '<div class="thumb placeholder">📄</div>'}
+                        ${p0.imagePath ? `<img class="thumb" src="${escapeHtml(p0.imagePath)}" alt="" />` : '<div class="thumb placeholder">📄</div>'}
                         <div class="info">
-                            <div class="title">Lesson ${l.lessonNumber} — ${escapeHtml(l.mainTitle)} ${l.imageCaption ? '· ' + escapeHtml(l.imageCaption) : ''}</div>
-                            <div class="sub">${escapeHtml((l.introText||'').slice(0,80))}${(l.introText||'').length>80?'…':''}</div>
+                            <div class="title">Lesson ${l.lessonNumber} — ${escapeHtml(l.mainTitle)} ${p0.imageCaption ? '· ' + escapeHtml(p0.imageCaption) : ''}</div>
+                            <div class="sub">${escapeHtml((p0.introText||'').slice(0,80))}${(p0.introText||'').length>80?'…':''}</div>
                         </div>
                         <div class="actions">
                             <button class="btn btn-primary btn-xs" onclick="editLesson('${l.id}')">✏️</button>
                             <button class="btn btn-warning btn-xs" onclick="duplicateLesson('${l.id}')">📋</button>
                             <button class="btn btn-danger btn-xs" onclick="deleteLesson('${l.id}')">🗑️</button>
                         </div>
-                    </div>`).join('') : '<div class="empty-state">No lessons found.</div>';
+                    </div>`;
+                }).join('') : '<div class="empty-state">No lessons found.</div>';
                 document.getElementById('listCount').textContent = filtered.length + ' / ' + lessons.length;
                 const sightPreview = document.getElementById('sightWordsPreview');
                 if (sightPreview) {
@@ -755,24 +797,67 @@
                             <h2 id="formTitle">➕ Add New Lesson</h2>
                             <div class="form-group"><label>Main Title <span class="req">*</span></label><input id="fMainTitle" placeholder="e.g. SHORT VOWEL CVC WORDS"></div>
                             <div class="form-group"><label>Lesson Number <span class="req">*</span></label><input type="number" id="fLessonNumber"></div>
-                            <div class="form-row">
-                                <div class="form-group"><label>Letter Tile <span class="req">*</span></label><input id="fLetterTile" placeholder="e.g. Short a / Aa"></div>
-                                <div class="form-group"><label>Target Letter (for tracing) <span class="req">*</span></label><input id="fTargetLetter" placeholder="e.g. a" maxlength="2"></div>
-                            </div>
-                            <div class="form-group"><label>Image Caption <span class="req">*</span></label><input id="fImageCaption" placeholder="e.g. Apple"></div>
-                            <div class="form-group">
-                                <label>Image (upload from device)</label>
-                                <div class="image-upload-wrap">
-                                    <img id="imagePreview" class="preview" src="" alt="Preview" style="display:none;" />
-                                    <div id="imagePreviewPlaceholder" class="preview-placeholder">🖼️</div>
-                                    <input type="file" id="fImageFile" accept="image/*" onchange="handleImageUpload(event)" />
-                                    <input type="hidden" id="fImagePath" />
+
+                            <div class="page-edit-block" style="margin-top:20px;padding:16px;background:#fff;border:2px solid #F5A623;border-radius:12px;">
+                                <h3 style="margin-bottom:12px;color:#E2571C;">📄 Page 1</h3>
+                                <div class="form-group"><label>Intro Text <span class="req">*</span></label><textarea id="fIntro1" rows="2"></textarea></div>
+                                <div class="form-row">
+                                    <div class="form-group"><label>Letter Tile <span class="req">*</span></label><input id="fLetterTile1" placeholder="e.g. Short a"></div>
+                                    <div class="form-group"><label>Target Letter <span class="req">*</span></label><input id="fTargetLetter1" placeholder="e.g. a" maxlength="2"></div>
                                 </div>
+                                <div class="form-group"><label>Image Caption <span class="req">*</span></label><input id="fImageCaption1" placeholder="e.g. bag"></div>
+                                <div class="form-group">
+                                    <label>Image</label>
+                                    <div class="image-upload-wrap">
+                                        <img id="imagePreview1" class="preview" src="" alt="" style="display:none;" />
+                                        <div id="imagePreviewPlaceholder1" class="preview-placeholder">🖼️</div>
+                                        <input type="file" id="fImageFile1" accept="image/*" onchange="handleImageUpload(event, 1)" />
+                                        <input type="hidden" id="fImagePath1" />
+                                    </div>
+                                </div>
+                                <div class="form-group"><label>Section Header</label><input id="fSectionLabel1" placeholder="Trace and write the letter"></div>
                             </div>
-                            <div class="form-group"><label>Intro Text <span class="req">*</span></label><textarea id="fIntroText" rows="2"></textarea></div>
-                            <div class="form-group"><label>Words (comma separated) <span class="req">*</span></label><textarea id="fWords" rows="2" placeholder="cat, bat, hat..."></textarea></div>
-                            <div class="form-group"><label>Sentences (comma separated) <span class="req">*</span></label><textarea id="fSentences" rows="2"></textarea></div>
-                            <div class="form-group"><label>Fill Blanks (comma separated) <span class="req">*</span></label><textarea id="fFillBlanks" rows="2"></textarea></div>
+
+                            <div class="page-edit-block" style="margin-top:16px;padding:16px;background:#fff;border:2px solid #F5A623;border-radius:12px;">
+                                <h3 style="margin-bottom:12px;color:#E2571C;">📄 Page 2</h3>
+                                <div class="form-group"><label>Intro Text <span class="req">*</span></label><textarea id="fIntro2" rows="2"></textarea></div>
+                                <div class="form-row">
+                                    <div class="form-group"><label>Letter Tile <span class="req">*</span></label><input id="fLetterTile2" placeholder="e.g. Short a"></div>
+                                    <div class="form-group"><label>Target Letter <span class="req">*</span></label><input id="fTargetLetter2" placeholder="e.g. a" maxlength="2"></div>
+                                </div>
+                                <div class="form-group"><label>Image Caption <span class="req">*</span></label><input id="fImageCaption2" placeholder="e.g. bag"></div>
+                                <div class="form-group">
+                                    <label>Image</label>
+                                    <div class="image-upload-wrap">
+                                        <img id="imagePreview2" class="preview" src="" alt="" style="display:none;" />
+                                        <div id="imagePreviewPlaceholder2" class="preview-placeholder">🖼️</div>
+                                        <input type="file" id="fImageFile2" accept="image/*" onchange="handleImageUpload(event, 2)" />
+                                        <input type="hidden" id="fImagePath2" />
+                                    </div>
+                                </div>
+                                <div class="form-group"><label>Section Header</label><input id="fSectionLabel2" placeholder="Trace and write the letter"></div>
+                            </div>
+
+                            <div class="page-edit-block" style="margin-top:16px;padding:16px;background:#fff;border:2px solid #F5A623;border-radius:12px;">
+                                <h3 style="margin-bottom:12px;color:#E2571C;">📄 Page 3</h3>
+                                <div class="form-group"><label>Intro Text <span class="req">*</span></label><textarea id="fIntro3" rows="2"></textarea></div>
+                                <div class="form-row">
+                                    <div class="form-group"><label>Letter Tile <span class="req">*</span></label><input id="fLetterTile3" placeholder="e.g. Short a"></div>
+                                    <div class="form-group"><label>Target Letter <span class="req">*</span></label><input id="fTargetLetter3" placeholder="e.g. a" maxlength="2"></div>
+                                </div>
+                                <div class="form-group"><label>Image Caption <span class="req">*</span></label><input id="fImageCaption3" placeholder="e.g. bag"></div>
+                                <div class="form-group">
+                                    <label>Image</label>
+                                    <div class="image-upload-wrap">
+                                        <img id="imagePreview3" class="preview" src="" alt="" style="display:none;" />
+                                        <div id="imagePreviewPlaceholder3" class="preview-placeholder">🖼️</div>
+                                        <input type="file" id="fImageFile3" accept="image/*" onchange="handleImageUpload(event, 3)" />
+                                        <input type="hidden" id="fImagePath3" />
+                                    </div>
+                                </div>
+                                <div class="form-group"><label>Section Header</label><input id="fSectionLabel3" placeholder="Trace and write the letter"></div>
+                            </div>
+
                             <div class="form-actions">
                                 <button class="btn btn-primary" id="saveBtn" onclick="saveLesson()">💾 Save Lesson</button>
                                 <button class="btn btn-outline" id="cancelBtn" onclick="cancelEdit()" style="display:none">Cancel</button>
