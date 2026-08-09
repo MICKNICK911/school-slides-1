@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>📚 Phonics Lesson Publisher v7 (tweaks)</title>
+    <title>📚 Phonics Lesson Publisher v7 (final tweaks)</title>
     <style>
         @page { size: 850px 1100px; margin: 0; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -149,7 +149,7 @@
         .view-container .sentence-line { border-bottom: 1px solid #999; padding: 14px 0 22px 0; font-size: 15px; color: #E2571C; font-weight: 800; }
         .view-container .card .page-number { position: absolute; bottom: 18px; right: 28px; font-weight: 800; font-size: 15px; }
 
-        /* Writing lines – BLANK PRACTICE tweak: letter exactly between blue lines */
+        /* Writing lines – same for both trace and blank practice */
         .writing-practice { margin-top: 6px; }
         .writing-set { position: relative; height: 62px; margin-bottom: 12px; width: 100%; }
         .writing-set .line { position: absolute; left: 0; right: 0; height: 0; border-top-width: 2px; border-top-style: solid; }
@@ -167,15 +167,8 @@
             -webkit-text-stroke: 0 !important;
             text-stroke: 0 !important;
         }
-        /* Blank practice page: lane between blue lines is 30px, letters centered */
-        .writing-practice.blank-practice .writing-set { height: 52px; margin-bottom: 8px; }
-        .writing-practice.blank-practice .writing-set .line.l2 { top: 12px; }
-        .writing-practice.blank-practice .writing-set .line.l3 { top: 42px; }
-        .writing-practice.blank-practice .writing-set .line.l4 { top: 52px; }
-        .writing-practice.blank-practice .writing-set .trace-letters { top: 12px; height: 30px; }
-        .writing-practice.blank-practice .writing-set .trace-letters span { font-size: 28px; line-height: 30px; height: 30px; display: inline-flex; align-items: center; }
 
-        /* Word Sort – now supports 4 columns */
+        /* Word Sort – supports 2-4 columns */
         .sort-grid { display: grid; gap: 16px; margin-top: 8px; }
         .sort-grid.cols-2 { grid-template-columns: 1fr 1fr; }
         .sort-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
@@ -186,17 +179,16 @@
         .sort-col .word-bank span, .sort-words span { background: #E2571C; color: #fff; padding: 6px 12px; border-radius: 10px; font-weight: 600; font-size: 18px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         .sort-words { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 14px; padding: 12px; border: 2px dashed #ccc; border-radius: 12px; }
 
-        /* Match Picture – square boxes, wide gap */
+        /* Match Picture – no labels, bigger squares, wide gap */
         .match-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; margin-top: 12px; }
         .match-side { display: flex; flex-direction: column; gap: 14px; }
-        .match-item { display: flex; align-items: center; gap: 10px; }
-        .match-square { width: 90px; height: 90px; border: 2px solid #dee2e6; border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #fff; }
+        .match-item { display: flex; justify-content: center; } /* center the square */
+        .match-square { width: 110px; height: 110px; border: 2px solid #dee2e6; border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #fff; }
         .match-square img { max-width: 80%; max-height: 80%; object-fit: contain; }
-        .match-square .word { font-size: 22px; font-weight: 700; color: #E2571C; text-align: center; }
-        .match-number { font-weight: 700; color: #6c757d; min-width: 24px; text-align: center; }
+        .match-square .word { font-size: 24px; font-weight: 700; color: #E2571C; text-align: center; line-height: 1.2; }
 
-        /* Sentence / Draw */
-        .draw-box { border: 2px dashed #F5A623; border-radius: 14px; height: 180px; margin: 12px 0; display: flex; align-items: center; justify-content: center; color: #adb5bd; font-size: 16px; font-weight: 700; }
+        /* Sentence / Draw – label bottom-left, black */
+        .draw-box { border: 2px dashed #F5A623; border-radius: 14px; height: 180px; margin: 12px 0; display: flex; align-items: flex-end; justify-content: flex-start; padding: 10px; color: #000; font-size: 16px; font-weight: 700; }
 
         /* Cover & TOC */
         .view-container .card.cover-card { display: flex; flex-direction: column; justify-content: center; align-items: center; font-family: 'Times New Roman', Times, serif; }
@@ -445,7 +437,7 @@
                 return grid;
             }
             function createWritingSets(target, setCount, opts = {}) {
-                const { outlined = true, onlyFirstFilled = false, blankClass = false } = opts;
+                const { outlined = true, onlyFirstFilled = false } = opts;
                 const letter = escapeHtml(target || 'a');
                 let html = '';
                 for (let i = 0; i < setCount; i++) {
@@ -461,7 +453,7 @@
                     </div>`;
                 }
                 const el = document.createElement('div');
-                el.className = 'writing-practice' + (blankClass ? ' blank-practice' : '');
+                el.className = 'writing-practice';
                 el.innerHTML = html;
                 return el;
             }
@@ -560,11 +552,8 @@
                 page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
                 const card = document.createElement('div');
                 card.className = 'card';
-                card.appendChild(createWritingSets(target || 'a', 12, {
-                    outlined: false,
-                    onlyFirstFilled: true,
-                    blankClass: true
-                }));
+                // 10 sets, first set solid, rest blank – same layout as trace page
+                card.appendChild(createWritingSets(target || 'a', 10, { outlined: false, onlyFirstFilled: true }));
                 const pn = document.createElement('div');
                 pn.className = 'page-number';
                 pn.textContent = pageNum;
@@ -640,14 +629,12 @@
                 const words = validPairs.map(p => p.word.trim());
                 const scrambled = [...words].sort(() => Math.random() - 0.5);
 
-                let leftHtml = validPairs.map((p, i) => `
+                let leftHtml = validPairs.map((p) => `
                     <div class="match-item">
-                        <span class="match-number">${i + 1}.</span>
                         <div class="match-square">${p.imagePath ? `<img src="${escapeHtml(p.imagePath)}" alt="" />` : '🖼️'}</div>
                     </div>`).join('');
-                let rightHtml = scrambled.map((w, i) => `
+                let rightHtml = scrambled.map((w) => `
                     <div class="match-item">
-                        <span class="match-number">${String.fromCharCode(65 + i)}.</span>
                         <div class="match-square"><span class="word">${escapeHtml(w)}</span></div>
                     </div>`).join('');
 
@@ -1229,7 +1216,6 @@
                                 </div>
                             </div>
 
-                            <!-- Activity 1: Look & Say -->
                             <div class="activity-card open" id="card-look">
                                 <div class="activity-header" onclick="document.getElementById('actLook').click()">
                                     <div class="left"><span class="num">1</span> Look & Say</div>
@@ -1244,7 +1230,6 @@
                                 </div>
                             </div>
 
-                            <!-- Activity 2: Decodable -->
                             <div class="activity-card open" id="card-decodable">
                                 <div class="activity-header" onclick="document.getElementById('actDecodable').click()">
                                     <div class="left"><span class="num">2</span> Decodable Reading + Activities</div>
@@ -1260,7 +1245,6 @@
                                 </div>
                             </div>
 
-                            <!-- Activity 3: Trace & Write -->
                             <div class="activity-card" id="card-trace">
                                 <div class="activity-header" onclick="document.getElementById('actTrace').click()">
                                     <div class="left"><span class="num">3</span> Trace & Write</div>
@@ -1277,12 +1261,11 @@
                                     </div>
                                     <label style="display:flex;align-items:center;gap:8px;margin-top:8px;cursor:pointer;">
                                         <input type="checkbox" id="fTraceClone" style="width:18px;height:18px;accent-color:#2c7be5;">
-                                        <span style="font-weight:700;font-size:13px;">Clone — add blank practice page (12 sets)</span>
+                                        <span style="font-weight:700;font-size:13px;">Clone — add blank practice page (10 sets)</span>
                                     </label>
                                 </div>
                             </div>
 
-                            <!-- Activity 4: Word Sort (now 2–4 columns) -->
                             <div class="activity-card" id="card-sort">
                                 <div class="activity-header" onclick="document.getElementById('actSort').click()">
                                     <div class="left"><span class="num">4</span> Word Sort</div>
@@ -1308,7 +1291,6 @@
                                 </div>
                             </div>
 
-                            <!-- Activity 5: Sentence Writing (with drawPrompt) -->
                             <div class="activity-card" id="card-sentence">
                                 <div class="activity-header" onclick="document.getElementById('actSentence').click()">
                                     <div class="left"><span class="num">5</span> Sentence Writing / Read & Draw</div>
@@ -1332,7 +1314,6 @@
                                 </div>
                             </div>
 
-                            <!-- Activity 6: Match the Picture (square boxes) -->
                             <div class="activity-card" id="card-match">
                                 <div class="activity-header" onclick="document.getElementById('actMatch').click()">
                                     <div class="left"><span class="num">6</span> Match the Picture</div>
@@ -1409,7 +1390,6 @@
             renderAllView();
             updateCounts();
 
-            // Drag-drop
             const list = document.getElementById('lessonList');
             list.addEventListener('dragstart', e => {
                 const item = e.target.closest('.lesson-item');
