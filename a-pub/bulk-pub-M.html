@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>📚 Phonics Lesson Publisher v7 (fixed + all activities)</title>
+    <title>📚 Phonics Lesson Publisher v7 (tweaks)</title>
     <style>
         @page { size: 850px 1100px; margin: 0; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -83,7 +83,7 @@
         .activity-body { display: none; padding: 16px; border-top: 2px solid #e9ecef; }
         .activity-card.open .activity-body { display: block; }
 
-        /* Match pairs */
+        /* Match pairs (form) */
         .pair-row { display: grid; grid-template-columns: 80px 1fr auto; gap: 10px; align-items: center; margin-bottom: 10px; padding: 10px; background: #f8f9fa; border-radius: 10px; }
         .pair-row img, .pair-row .ph { width: 64px; height: 64px; border-radius: 8px; object-fit: cover; border: 2px solid #dee2e6; }
         .pair-row .ph { display: flex; align-items: center; justify-content: center; font-size: 24px; color: #adb5bd; background: #fff; border-style: dashed; }
@@ -149,7 +149,7 @@
         .view-container .sentence-line { border-bottom: 1px solid #999; padding: 14px 0 22px 0; font-size: 15px; color: #E2571C; font-weight: 800; }
         .view-container .card .page-number { position: absolute; bottom: 18px; right: 28px; font-weight: 800; font-size: 15px; }
 
-        /* Writing lines */
+        /* Writing lines – BLANK PRACTICE tweak: letter exactly between blue lines */
         .writing-practice { margin-top: 6px; }
         .writing-set { position: relative; height: 62px; margin-bottom: 12px; width: 100%; }
         .writing-set .line { position: absolute; left: 0; right: 0; height: 0; border-top-width: 2px; border-top-style: solid; }
@@ -167,35 +167,36 @@
             -webkit-text-stroke: 0 !important;
             text-stroke: 0 !important;
         }
-        /* Tighter sets for blank practice page (12 sets) */
+        /* Blank practice page: lane between blue lines is 30px, letters centered */
         .writing-practice.blank-practice .writing-set { height: 52px; margin-bottom: 8px; }
-        .writing-practice.blank-practice .writing-set .line.l2 { top: 17px; }
-        .writing-practice.blank-practice .writing-set .line.l3 { top: 34px; }
-        .writing-practice.blank-practice .writing-set .line.l4 { top: 50px; }
-        .writing-practice.blank-practice .writing-set .trace-letters { top: 17px; height: 17px; }
-        .writing-practice.blank-practice .writing-set .trace-letters span { font-size: 32px; height: 17px; }
+        .writing-practice.blank-practice .writing-set .line.l2 { top: 12px; }
+        .writing-practice.blank-practice .writing-set .line.l3 { top: 42px; }
+        .writing-practice.blank-practice .writing-set .line.l4 { top: 52px; }
+        .writing-practice.blank-practice .writing-set .trace-letters { top: 12px; height: 30px; }
+        .writing-practice.blank-practice .writing-set .trace-letters span { font-size: 28px; line-height: 30px; height: 30px; display: inline-flex; align-items: center; }
 
-        /* Word Sort */
+        /* Word Sort – now supports 4 columns */
         .sort-grid { display: grid; gap: 16px; margin-top: 8px; }
         .sort-grid.cols-2 { grid-template-columns: 1fr 1fr; }
         .sort-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+        .sort-grid.cols-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
         .sort-col { border: 2px solid #F5A623; border-radius: 14px; padding: 12px; min-height: 220px; }
         .sort-col .col-label { background: #F5A623; color: #fff; text-align: center; font-weight: 800; font-size: 16px; padding: 6px; border-radius: 8px; margin-bottom: 10px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         .sort-col .word-bank { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 12px; }
         .sort-col .word-bank span, .sort-words span { background: #E2571C; color: #fff; padding: 6px 12px; border-radius: 10px; font-weight: 600; font-size: 18px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         .sort-words { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 14px; padding: 12px; border: 2px dashed #ccc; border-radius: 12px; }
 
-        /* Match Picture */
-        .match-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 12px; }
-        .match-side { display: flex; flex-direction: column; gap: 12px; }
-        .match-item { display: flex; align-items: center; gap: 12px; padding: 8px; border: 2px solid #dee2e6; border-radius: 12px; min-height: 70px; }
-        .match-item img { width: 64px; height: 64px; object-fit: contain; border-radius: 8px; }
-        .match-item .ph { width: 64px; height: 64px; border: 2px dashed #ccc; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #999; }
-        .match-item .word { font-size: 22px; font-weight: 700; color: #E2571C; }
-        .match-lines { text-align: center; color: #adb5bd; font-size: 13px; margin: 8px 0; }
+        /* Match Picture – square boxes, wide gap */
+        .match-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; margin-top: 12px; }
+        .match-side { display: flex; flex-direction: column; gap: 14px; }
+        .match-item { display: flex; align-items: center; gap: 10px; }
+        .match-square { width: 90px; height: 90px; border: 2px solid #dee2e6; border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #fff; }
+        .match-square img { max-width: 80%; max-height: 80%; object-fit: contain; }
+        .match-square .word { font-size: 22px; font-weight: 700; color: #E2571C; text-align: center; }
+        .match-number { font-weight: 700; color: #6c757d; min-width: 24px; text-align: center; }
 
         /* Sentence / Draw */
-        .draw-box { border: 2px dashed #F5A623; border-radius: 14px; height: 180px; margin: 12px 0; display: flex; align-items: center; justify-content: center; color: #adb5bd; font-size: 14px; }
+        .draw-box { border: 2px dashed #F5A623; border-radius: 14px; height: 180px; margin: 12px 0; display: flex; align-items: center; justify-content: center; color: #adb5bd; font-size: 16px; font-weight: 700; }
 
         /* Cover & TOC */
         .view-container .card.cover-card { display: flex; flex-direction: column; justify-content: center; align-items: center; font-family: 'Times New Roman', Times, serif; }
@@ -274,19 +275,18 @@
                     decodable: { active: true, sentences: [], fillBlanks: [] },
                     traceWrite: { active: false, target: '', setCount: 5, clone: false },
                     wordSort: { active: false, columnCount: 2, columnLabels: ['Column 1', 'Column 2'], words: [] },
-                    sentenceWrite: { active: false, prompt: 'Write sentences using the target words.', lineCount: 4, showDrawBox: false },
+                    sentenceWrite: { active: false, prompt: 'Write sentences using the target words.', lineCount: 4, showDrawBox: false, drawPrompt: '' },
                     matchPicture: { active: false, pairCount: 4, pairs: [] }
                 };
             }
 
-            // ===== DEFAULT LESSONS – ALL ACTIVITIES ACTIVE =====
             const DEFAULT_LESSONS = [
                 {
                     id: 'l1',
                     mainTitle: 'SHORT VOWEL CVC WORDS',
                     lessonNumber: 1,
                     letterTile: 'Aa',
-                    introText: 'Short a says /a/ like in apple — when a single vowel is boxed in between two consonants, it usually keeps this quick, clipped sound. Say each word out loud and listen for this pattern.',
+                    introText: 'Short a says /a/ like in apple — when a single vowel is boxed in between two consonants, it usually keeps this quick, clipped sound.',
                     showImage: false,
                     imagePath: '',
                     imageCaption: '',
@@ -303,11 +303,11 @@
                         traceWrite: { active: true, target: 'a', setCount: 6, clone: true },
                         wordSort: {
                             active: true,
-                            columnCount: 2,
-                            columnLabels: ['Short a', 'Not short a'],
+                            columnCount: 3,
+                            columnLabels: ['Short a', 'Not short a', '?'],
                             words: ['bag', 'cat', 'mat', 'hat', 'rat', 'bat', 'sat', 'pat', 'fat', 'man', 'van', 'map']
                         },
-                        sentenceWrite: { active: true, prompt: 'Write 2 sentences using the words above.', lineCount: 4, showDrawBox: true },
+                        sentenceWrite: { active: true, prompt: 'Write 2 sentences using the words above.', lineCount: 4, showDrawBox: true, drawPrompt: 'cat' },
                         matchPicture: {
                             active: true,
                             pairCount: 4,
@@ -325,7 +325,7 @@
                     mainTitle: 'SHORT VOWEL CVC WORDS',
                     lessonNumber: 2,
                     letterTile: 'Ee',
-                    introText: 'Short e says /e/ like in egg — in a closed CVC word, a lone e squeezed between consonants stays short and fast. Say each word out loud and listen for this pattern.',
+                    introText: 'Short e says /e/ like in egg — in a closed CVC word, a lone e squeezed between consonants stays short and fast.',
                     showImage: false,
                     imagePath: '',
                     imageCaption: '',
@@ -346,7 +346,7 @@
                             columnLabels: ['Short e', 'Other'],
                             words: ['get', 'wet', 'net', 'let', 'pen', 'ten', 'hen', 'men', 'bed', 'red', 'led', 'fed']
                         },
-                        sentenceWrite: { active: true, prompt: 'Write 2 sentences using the words above.', lineCount: 4, showDrawBox: true },
+                        sentenceWrite: { active: true, prompt: 'Write 2 sentences using the words above.', lineCount: 4, showDrawBox: true, drawPrompt: 'bed' },
                         matchPicture: {
                             active: true,
                             pairCount: 4,
@@ -611,11 +611,13 @@
                 for (let i = 0; i < (act.lineCount || 4); i++) {
                     lines += `<div class="sentence-line">${i + 1}.</div>`;
                 }
+                const drawPrompt = act.drawPrompt || '';
+                const drawText = drawPrompt ? `Draw: ${escapeHtml(drawPrompt)}` : 'Draw a picture here';
                 card.innerHTML = `
                     <div class="title">${escapeHtml(lesson.mainTitle)}</div>
                     <div class="section-header"><div class="circle">✍</div><div class="label-box">Sentence Writing</div></div>
                     <div class="instructions">${escapeHtml(act.prompt || 'Write sentences using the target words.')}</div>
-                    ${act.showDrawBox ? '<div class="draw-box">Draw a picture here</div>' : ''}
+                    ${act.showDrawBox ? `<div class="draw-box">${drawText}</div>` : ''}
                     ${lines}`;
                 const pn = document.createElement('div');
                 pn.className = 'page-number';
@@ -634,20 +636,19 @@
                 card.className = 'card';
                 const pairCount = act.pairCount || 4;
                 const pairs = (act.pairs || []).slice(0, pairCount);
-                // Filter out empty words to avoid layout break
                 const validPairs = pairs.filter(p => p.word && p.word.trim() !== '');
                 const words = validPairs.map(p => p.word.trim());
                 const scrambled = [...words].sort(() => Math.random() - 0.5);
 
                 let leftHtml = validPairs.map((p, i) => `
                     <div class="match-item">
-                        ${p.imagePath ? `<img src="${escapeHtml(p.imagePath)}" alt="" />` : '<div class="ph">🖼️</div>'}
-                        <span style="font-weight:700;color:#6c757d;">${i + 1}.</span>
+                        <span class="match-number">${i + 1}.</span>
+                        <div class="match-square">${p.imagePath ? `<img src="${escapeHtml(p.imagePath)}" alt="" />` : '🖼️'}</div>
                     </div>`).join('');
                 let rightHtml = scrambled.map((w, i) => `
                     <div class="match-item">
-                        <span style="font-weight:700;color:#6c757d;">${String.fromCharCode(65 + i)}.</span>
-                        <span class="word">${escapeHtml(w)}</span>
+                        <span class="match-number">${String.fromCharCode(65 + i)}.</span>
+                        <div class="match-square"><span class="word">${escapeHtml(w)}</span></div>
                     </div>`).join('');
 
                 card.innerHTML = `
@@ -736,10 +737,7 @@
                 let n = 0;
                 if (a.lookAndSay?.active) n++;
                 if (a.decodable?.active) n++;
-                if (a.traceWrite?.active) {
-                    n += 1;
-                    if (a.traceWrite.clone) n += 1;
-                }
+                if (a.traceWrite?.active) { n += 1; if (a.traceWrite.clone) n += 1; }
                 if (a.wordSort?.active) n++;
                 if (a.sentenceWrite?.active) n++;
                 if (a.matchPicture?.active) n++;
@@ -777,9 +775,7 @@
                     if (a.decodable?.active) container.appendChild(buildDecodablePage(l, pageNum++));
                     if (a.traceWrite?.active) {
                         container.appendChild(buildTraceWritePage(l, pageNum++));
-                        if (a.traceWrite.clone) {
-                            container.appendChild(buildBlankPracticePage(a.traceWrite.target || l.letterTile || 'a', pageNum++));
-                        }
+                        if (a.traceWrite.clone) container.appendChild(buildBlankPracticePage(a.traceWrite.target || l.letterTile || 'a', pageNum++));
                     }
                     if (a.wordSort?.active) container.appendChild(buildWordSortPage(l, pageNum++));
                     if (a.sentenceWrite?.active) container.appendChild(buildSentenceWritePage(l, pageNum++));
@@ -796,7 +792,6 @@
 
                 const showImage = document.getElementById('fShowImage').checked;
                 const pairCount = parseInt(document.getElementById('fPairCount')?.value) || 4;
-
                 const pairs = [];
                 for (let i = 0; i < 5; i++) {
                     const img = document.getElementById('fPairImg' + i)?.value || '';
@@ -806,7 +801,7 @@
 
                 const colCount = parseInt(document.getElementById('fSortCols')?.value) || 2;
                 const labels = [];
-                for (let i = 0; i < 3; i++) labels.push(document.getElementById('fSortLabel' + i)?.value?.trim() || ('Column ' + (i + 1)));
+                for (let i = 0; i < 4; i++) labels.push(document.getElementById('fSortLabel' + i)?.value?.trim() || ('Column ' + (i + 1)));
 
                 return {
                     mainTitle: document.getElementById('fMainTitle').value.trim(),
@@ -830,7 +825,7 @@
                             active: document.getElementById('actTrace').checked,
                             target: document.getElementById('fTraceTarget').value.trim(),
                             setCount: parseInt(document.getElementById('fTraceSets').value) || 5,
-                            clone: document.getElementById('fTraceClone') ? document.getElementById('fTraceClone').checked : false
+                            clone: document.getElementById('fTraceClone')?.checked || false
                         },
                         wordSort: {
                             active: document.getElementById('actSort').checked,
@@ -842,7 +837,8 @@
                             active: document.getElementById('actSentence').checked,
                             prompt: document.getElementById('fSentencePrompt').value.trim(),
                             lineCount: parseInt(document.getElementById('fSentenceLines').value) || 4,
-                            showDrawBox: document.getElementById('fShowDraw').checked
+                            showDrawBox: document.getElementById('fShowDraw').checked,
+                            drawPrompt: document.getElementById('fDrawPrompt')?.value?.trim() || ''
                         },
                         matchPicture: {
                             active: document.getElementById('actMatch').checked,
@@ -882,26 +878,19 @@
                 document.getElementById('fImagePath').value = lesson.imagePath || '';
                 const img = document.getElementById('imagePreview');
                 const ph = document.getElementById('imagePreviewPlaceholder');
-                if (lesson.imagePath) {
-                    img.src = lesson.imagePath; img.style.display = 'block'; ph.style.display = 'none';
-                } else {
-                    img.src = ''; img.style.display = 'none'; ph.style.display = 'flex';
-                }
+                if (lesson.imagePath) { img.src = lesson.imagePath; img.style.display = 'block'; ph.style.display = 'none'; }
+                else { img.src = ''; img.style.display = 'none'; ph.style.display = 'flex'; }
 
                 const a = lesson.activities || makeDefaultActivities();
-
-                // Look & Say
                 document.getElementById('actLook').checked = !!a.lookAndSay?.active;
                 setActivityOpen('look', !!a.lookAndSay?.active);
                 document.getElementById('fWords').value = flattenWords(a.lookAndSay?.words || []).join(', ');
 
-                // Decodable
                 document.getElementById('actDecodable').checked = !!a.decodable?.active;
                 setActivityOpen('decodable', !!a.decodable?.active);
                 document.getElementById('fSentences').value = (a.decodable?.sentences || []).join(', ');
                 document.getElementById('fFillBlanks').value = (a.decodable?.fillBlanks || []).join(', ');
 
-                // Trace
                 document.getElementById('actTrace').checked = !!a.traceWrite?.active;
                 setActivityOpen('trace', !!a.traceWrite?.active);
                 document.getElementById('fTraceTarget').value = a.traceWrite?.target || '';
@@ -909,26 +898,24 @@
                 const cloneEl = document.getElementById('fTraceClone');
                 if (cloneEl) cloneEl.checked = !!a.traceWrite?.clone;
 
-                // Word Sort
                 document.getElementById('actSort').checked = !!a.wordSort?.active;
                 setActivityOpen('sort', !!a.wordSort?.active);
                 document.getElementById('fSortCols').value = a.wordSort?.columnCount || 2;
                 document.getElementById('fSortWords').value = (a.wordSort?.words || []).join(', ');
                 const labels = a.wordSort?.columnLabels || [];
-                for (let i = 0; i < 3; i++) {
+                for (let i = 0; i < 4; i++) {
                     const el = document.getElementById('fSortLabel' + i);
                     if (el) el.value = labels[i] || '';
                 }
                 updateSortLabels();
 
-                // Sentence
                 document.getElementById('actSentence').checked = !!a.sentenceWrite?.active;
                 setActivityOpen('sentence', !!a.sentenceWrite?.active);
                 document.getElementById('fSentencePrompt').value = a.sentenceWrite?.prompt || '';
                 document.getElementById('fSentenceLines').value = a.sentenceWrite?.lineCount || 4;
                 document.getElementById('fShowDraw').checked = !!a.sentenceWrite?.showDrawBox;
+                if (document.getElementById('fDrawPrompt')) document.getElementById('fDrawPrompt').value = a.sentenceWrite?.drawPrompt || '';
 
-                // Match
                 document.getElementById('actMatch').checked = !!a.matchPicture?.active;
                 setActivityOpen('match', !!a.matchPicture?.active);
                 const pc = a.matchPicture?.pairCount || 4;
@@ -940,11 +927,8 @@
                     document.getElementById('fPairImg' + i).value = p.imagePath || '';
                     const pimg = document.getElementById('pairPreview' + i);
                     const pph = document.getElementById('pairPh' + i);
-                    if (p.imagePath) {
-                        pimg.src = p.imagePath; pimg.style.display = 'block'; pph.style.display = 'none';
-                    } else {
-                        pimg.src = ''; pimg.style.display = 'none'; pph.style.display = 'flex';
-                    }
+                    if (p.imagePath) { pimg.src = p.imagePath; pimg.style.display = 'block'; pph.style.display = 'none'; }
+                    else { pimg.src = ''; pimg.style.display = 'none'; pph.style.display = 'flex'; }
                 }
                 updatePairVisibility();
             }
@@ -962,41 +946,33 @@
                 document.getElementById('fImagePath').value = '';
                 document.getElementById('imagePreview').style.display = 'none';
                 document.getElementById('imagePreviewPlaceholder').style.display = 'flex';
-                // clear main file input correctly
                 const mainFileInput = document.getElementById('mainImageFile');
                 if (mainFileInput) mainFileInput.value = '';
 
-                document.getElementById('actLook').checked = true;
-                setActivityOpen('look', true);
+                document.getElementById('actLook').checked = true; setActivityOpen('look', true);
                 document.getElementById('fWords').value = '';
-
-                document.getElementById('actDecodable').checked = true;
-                setActivityOpen('decodable', true);
+                document.getElementById('actDecodable').checked = true; setActivityOpen('decodable', true);
                 document.getElementById('fSentences').value = '';
                 document.getElementById('fFillBlanks').value = '';
 
-                document.getElementById('actTrace').checked = false;
-                setActivityOpen('trace', false);
+                document.getElementById('actTrace').checked = false; setActivityOpen('trace', false);
                 document.getElementById('fTraceTarget').value = '';
                 document.getElementById('fTraceSets').value = 5;
-                const cloneReset = document.getElementById('fTraceClone');
-                if (cloneReset) cloneReset.checked = false;
+                const cloneReset = document.getElementById('fTraceClone'); if (cloneReset) cloneReset.checked = false;
 
-                document.getElementById('actSort').checked = false;
-                setActivityOpen('sort', false);
+                document.getElementById('actSort').checked = false; setActivityOpen('sort', false);
                 document.getElementById('fSortCols').value = 2;
                 document.getElementById('fSortWords').value = '';
-                for (let i = 0; i < 3; i++) document.getElementById('fSortLabel' + i).value = '';
+                for (let i = 0; i < 4; i++) document.getElementById('fSortLabel' + i).value = '';
                 updateSortLabels();
 
-                document.getElementById('actSentence').checked = false;
-                setActivityOpen('sentence', false);
+                document.getElementById('actSentence').checked = false; setActivityOpen('sentence', false);
                 document.getElementById('fSentencePrompt').value = 'Write sentences using the target words.';
                 document.getElementById('fSentenceLines').value = 4;
                 document.getElementById('fShowDraw').checked = false;
+                if (document.getElementById('fDrawPrompt')) document.getElementById('fDrawPrompt').value = '';
 
-                document.getElementById('actMatch').checked = false;
-                setActivityOpen('match', false);
+                document.getElementById('actMatch').checked = false; setActivityOpen('match', false);
                 document.getElementById('fPairCount').value = 4;
                 for (let i = 0; i < 5; i++) {
                     document.getElementById('fPairWord' + i).value = '';
@@ -1010,10 +986,7 @@
                 document.getElementById('cancelBtn').style.display = 'none';
             }
 
-            window.toggleShowImage = function () {
-                const on = document.getElementById('fShowImage').checked;
-                document.getElementById('imageFields').style.display = on ? 'block' : 'none';
-            };
+            window.toggleShowImage = function () { document.getElementById('imageFields').style.display = document.getElementById('fShowImage').checked ? 'block' : 'none'; };
             window.updatePairVisibility = function () {
                 const n = parseInt(document.getElementById('fPairCount').value) || 4;
                 for (let i = 0; i < 5; i++) {
@@ -1023,7 +996,7 @@
             };
             window.updateSortLabels = function () {
                 const n = parseInt(document.getElementById('fSortCols').value) || 2;
-                for (let i = 0; i < 3; i++) {
+                for (let i = 0; i < 4; i++) {
                     const g = document.getElementById('sortLabelGroup' + i);
                     if (g) g.style.display = i < n ? 'block' : 'none';
                 }
@@ -1039,14 +1012,12 @@
                     const dataUrl = e.target.result;
                     if (targetId === 'main') {
                         document.getElementById('fImagePath').value = dataUrl;
-                        const img = document.getElementById('imagePreview');
-                        const ph = document.getElementById('imagePreviewPlaceholder');
+                        const img = document.getElementById('imagePreview'), ph = document.getElementById('imagePreviewPlaceholder');
                         img.src = dataUrl; img.style.display = 'block'; ph.style.display = 'none';
                     } else {
                         const idx = targetId;
                         document.getElementById('fPairImg' + idx).value = dataUrl;
-                        const img = document.getElementById('pairPreview' + idx);
-                        const ph = document.getElementById('pairPh' + idx);
+                        const img = document.getElementById('pairPreview' + idx), ph = document.getElementById('pairPh' + idx);
                         img.src = dataUrl; img.style.display = 'block'; ph.style.display = 'none';
                     }
                     showToast('Image uploaded.', 'success');
@@ -1149,9 +1120,7 @@
                             refreshUI();
                             showToast('Data imported.', 'success');
                         });
-                    } catch (err) {
-                        showToast('Invalid JSON file.', 'error');
-                    }
+                    } catch (err) { showToast('Invalid JSON file.', 'error'); }
                 };
                 reader.readAsText(file);
                 input.value = '';
@@ -1313,7 +1282,7 @@
                                 </div>
                             </div>
 
-                            <!-- Activity 4: Word Sort -->
+                            <!-- Activity 4: Word Sort (now 2–4 columns) -->
                             <div class="activity-card" id="card-sort">
                                 <div class="activity-header" onclick="document.getElementById('actSort').click()">
                                     <div class="left"><span class="num">4</span> Word Sort</div>
@@ -1328,16 +1297,18 @@
                                         <select id="fSortCols" onchange="updateSortLabels()">
                                             <option value="2">2 columns</option>
                                             <option value="3">3 columns</option>
+                                            <option value="4">4 columns</option>
                                         </select>
                                     </div>
                                     <div id="sortLabelGroup0" class="form-group"><label>Column 1 label</label><input id="fSortLabel0" placeholder="Short a"></div>
                                     <div id="sortLabelGroup1" class="form-group"><label>Column 2 label</label><input id="fSortLabel1" placeholder="Short e"></div>
                                     <div id="sortLabelGroup2" class="form-group" style="display:none;"><label>Column 3 label</label><input id="fSortLabel2" placeholder="Other"></div>
+                                    <div id="sortLabelGroup3" class="form-group" style="display:none;"><label>Column 4 label</label><input id="fSortLabel3" placeholder="Extra"></div>
                                     <div class="form-group"><label>Words to sort (comma separated)</label><textarea id="fSortWords" rows="2"></textarea></div>
                                 </div>
                             </div>
 
-                            <!-- Activity 5: Sentence Writing -->
+                            <!-- Activity 5: Sentence Writing (with drawPrompt) -->
                             <div class="activity-card" id="card-sentence">
                                 <div class="activity-header" onclick="document.getElementById('actSentence').click()">
                                     <div class="left"><span class="num">5</span> Sentence Writing / Read & Draw</div>
@@ -1357,10 +1328,11 @@
                                             </label>
                                         </div>
                                     </div>
+                                    <div class="form-group"><label>Drawing Target (word to draw)</label><input id="fDrawPrompt" placeholder="e.g. cat (leave empty for generic)"></div>
                                 </div>
                             </div>
 
-                            <!-- Activity 6: Match the Picture -->
+                            <!-- Activity 6: Match the Picture (square boxes) -->
                             <div class="activity-card" id="card-match">
                                 <div class="activity-header" onclick="document.getElementById('actMatch').click()">
                                     <div class="left"><span class="num">6</span> Match the Picture</div>
