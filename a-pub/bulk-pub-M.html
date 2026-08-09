@@ -118,7 +118,29 @@
         .view-container .section-header .label-box { flex: 1; border: 3px dashed #E2571C; border-radius: 12px; padding: 7px 16px; font-weight: 800; font-size: 17px; color: #1a1a1a; }
         .view-container .word-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
         .view-container .word-grid .pill { background: #E2571C; color: #fff; border-radius: 12px; text-align: center; padding: 8px 6px; font-weight: 600; font-size: 26px; min-height: 54px; display: flex; align-items: center; justify-content: center; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        .view-container .word-grid.blanks .pill { background: #fff; color: #E2571C; border: 2px solid #F5A623; }
+        .view-container .word-grid.blanks .pill {
+            background: #fff;
+            color: #E2571C;
+            border: 2px solid #F5A623;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            font-size: 26px;
+            font-weight: 700;
+            min-height: 58px;
+            padding: 6px 8px;
+        }
+        .view-container .word-grid.blanks .pill .blank-box {
+            display: inline-block;
+            width: 32px;
+            height: 36px;
+            background: #fff;
+            border: 2px solid #1a1a1a;
+            border-radius: 4px;
+            vertical-align: middle;
+            flex-shrink: 0;
+        }
         .view-container .word-grid.empty .pill { background: #fff; border: 2px solid #F5A623; }
         .view-container .instructions { font-weight: 700; font-size: 13px; margin: 6px 0 8px 0; }
         .view-container .reading-box { border: 2px solid #F5A623; border-radius: 14px; padding: 12px 20px; }
@@ -136,6 +158,13 @@
         .writing-set .line.l1 { top: 0; } .writing-set .line.l2 { top: 20px; } .writing-set .line.l3 { top: 40px; } .writing-set .line.l4 { top: 60px; }
         .writing-set .trace-letters { position: absolute; left: 0; right: 0; top: 20px; height: 20px; display: flex; align-items: center; justify-content: space-evenly; padding: 0 30px; pointer-events: none; }
         .writing-set .trace-letters span { font-family: 'Segoe UI', 'Arial Rounded MT Bold', Arial, sans-serif; font-size: 38px; font-weight: 600; color: transparent; -webkit-text-stroke: 2px #1a1a1a; line-height: 1; }
+        /* Tighter sets for blank practice page (12 sets) */
+        .writing-practice.blank-practice .writing-set { height: 52px; margin-bottom: 8px; }
+        .writing-practice.blank-practice .writing-set .line.l2 { top: 17px; }
+        .writing-practice.blank-practice .writing-set .line.l3 { top: 34px; }
+        .writing-practice.blank-practice .writing-set .line.l4 { top: 50px; }
+        .writing-practice.blank-practice .writing-set .trace-letters { top: 17px; height: 17px; }
+        .writing-practice.blank-practice .writing-set .trace-letters span { font-size: 32px; height: 17px; }
 
         /* Word Sort */
         .sort-grid { display: grid; gap: 16px; margin-top: 8px; }
@@ -234,7 +263,7 @@
                 return {
                     lookAndSay: { active: true, words: [] },
                     decodable: { active: true, sentences: [], fillBlanks: [] },
-                    traceWrite: { active: false, target: '', setCount: 5 },
+                    traceWrite: { active: false, target: '', setCount: 5, clone: false },
                     wordSort: { active: false, columnCount: 2, columnLabels: ['Column 1', 'Column 2'], words: [] },
                     sentenceWrite: { active: false, prompt: 'Write sentences using the target words.', lineCount: 4, showDrawBox: false },
                     matchPicture: { active: false, pairCount: 4, pairs: [] }
@@ -261,7 +290,7 @@
                             sentences: ['I see a bag.', 'Look at the cat and the mat.', 'Is this a hat?', 'I like my rat.', 'We have a bat.'],
                             fillBlanks: ['b_g', 'c_t', 'm_t', 'h_t', 'r_t', 'b_t', 's_t', 'p_t', 'f_t', 'm_n', 'v_n', 'm_p']
                         },
-                        traceWrite: { active: false, target: 'a', setCount: 5 },
+                        traceWrite: { active: false, target: 'a', setCount: 5, clone: false },
                         wordSort: { active: false, columnCount: 2, columnLabels: ['Short a', 'Other'], words: [] },
                         sentenceWrite: { active: false, prompt: 'Write 2 sentences using the words above.', lineCount: 4, showDrawBox: false },
                         matchPicture: { active: false, pairCount: 4, pairs: [] }
@@ -286,7 +315,7 @@
                             sentences: ['They will get wet.', 'Here is a little net.', 'I have a big pen.', 'Go get the hen for me.', 'The red bed is soft.'],
                             fillBlanks: ['g_t', 'w_t', 'n_t', 'l_t', 'p_n', 't_n', 'h_n', 'm_n', 'b_d', 'r_d', 'l_d', 'f_d']
                         },
-                        traceWrite: { active: false, target: 'e', setCount: 5 },
+                        traceWrite: { active: false, target: 'e', setCount: 5, clone: false },
                         wordSort: { active: false, columnCount: 2, columnLabels: ['Short e', 'Other'], words: [] },
                         sentenceWrite: { active: false, prompt: 'Write 2 sentences using the words above.', lineCount: 4, showDrawBox: false },
                         matchPicture: { active: false, pairCount: 4, pairs: [] }
@@ -362,23 +391,43 @@
                 words.forEach(w => {
                     const d = document.createElement('div');
                     d.className = 'pill';
-                    d.textContent = w;
+                    if (cls === 'blanks') {
+                        // Convert underscores into white writing boxes
+                        // e.g. "b_g" → b □ g ,  "__t" → □ □ t
+                        let html = '';
+                        for (const ch of String(w)) {
+                            if (ch === '_') {
+                                html += '<span class="blank-box"></span>';
+                            } else {
+                                html += `<span>${escapeHtml(ch)}</span>`;
+                            }
+                        }
+                        d.innerHTML = html;
+                    } else {
+                        d.textContent = w;
+                    }
                     grid.appendChild(d);
                 });
                 return grid;
             }
-            function createWritingSets(target, setCount) {
+            function createWritingSets(target, setCount, opts = {}) {
+                const { outlined = true, onlyFirstFilled = false, blankClass = false } = opts;
                 const letter = escapeHtml(target || 'a');
+                const spanClass = outlined ? '' : ''; // outlined via CSS text-stroke by default
                 let html = '';
                 for (let i = 0; i < setCount; i++) {
+                    const fill = onlyFirstFilled ? (i === 0) : true;
+                    const lettersHtml = fill
+                        ? Array(4).fill(`<span${outlined ? '' : ' style="color:#1a1a1a;-webkit-text-stroke:0;"}">${letter}</span>`).join('')
+                        : '';
                     html += `<div class="writing-set">
                         <div class="line red l1"></div><div class="line blue l2"></div>
                         <div class="line blue l3"></div><div class="line red l4"></div>
-                        <div class="trace-letters">${Array(4).fill(`<span>${letter}</span>`).join('')}</div>
+                        <div class="trace-letters">${lettersHtml}</div>
                     </div>`;
                 }
                 const el = document.createElement('div');
-                el.className = 'writing-practice';
+                el.className = 'writing-practice' + (blankClass ? ' blank-practice' : '');
                 el.innerHTML = html;
                 return el;
             }
@@ -462,7 +511,27 @@
                     <div class="title">${escapeHtml(lesson.mainTitle)}</div>
                     <div class="section-header"><div class="circle">✎</div><div class="label-box">Trace and write</div></div>
                     <div class="instructions">Trace the outlined letters, then write them on your own.</div>`;
-                card.appendChild(createWritingSets(act.target || lesson.letterTile || 'a', act.setCount || 5));
+                card.appendChild(createWritingSets(act.target || lesson.letterTile || 'a', act.setCount || 5, { outlined: true }));
+                const pn = document.createElement('div');
+                pn.className = 'page-number';
+                pn.textContent = pageNum;
+                card.appendChild(pn);
+                page.appendChild(card);
+                return page;
+            }
+
+            function buildBlankPracticePage(target, pageNum) {
+                const page = document.createElement('div');
+                page.className = 'page';
+                page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
+                const card = document.createElement('div');
+                card.className = 'card';
+                // Completely bare – only 12 writing sets + page number
+                card.appendChild(createWritingSets(target || 'a', 12, {
+                    outlined: false,
+                    onlyFirstFilled: true,
+                    blankClass: true
+                }));
                 const pn = document.createElement('div');
                 pn.className = 'page-number';
                 pn.textContent = pageNum;
@@ -633,7 +702,10 @@
                 let n = 0;
                 if (a.lookAndSay?.active) n++;
                 if (a.decodable?.active) n++;
-                if (a.traceWrite?.active) n++;
+                if (a.traceWrite?.active) {
+                    n += 1;
+                    if (a.traceWrite.clone) n += 1; // blank practice page
+                }
                 if (a.wordSort?.active) n++;
                 if (a.sentenceWrite?.active) n++;
                 if (a.matchPicture?.active) n++;
@@ -669,7 +741,12 @@
                     const a = l.activities || {};
                     if (a.lookAndSay?.active) container.appendChild(buildLookAndSayPage(l, pageNum++));
                     if (a.decodable?.active) container.appendChild(buildDecodablePage(l, pageNum++));
-                    if (a.traceWrite?.active) container.appendChild(buildTraceWritePage(l, pageNum++));
+                    if (a.traceWrite?.active) {
+                        container.appendChild(buildTraceWritePage(l, pageNum++));
+                        if (a.traceWrite.clone) {
+                            container.appendChild(buildBlankPracticePage(a.traceWrite.target || l.letterTile || 'a', pageNum++));
+                        }
+                    }
                     if (a.wordSort?.active) container.appendChild(buildWordSortPage(l, pageNum++));
                     if (a.sentenceWrite?.active) container.appendChild(buildSentenceWritePage(l, pageNum++));
                     if (a.matchPicture?.active) container.appendChild(buildMatchPicturePage(l, pageNum++));
@@ -719,7 +796,8 @@
                         traceWrite: {
                             active: document.getElementById('actTrace').checked,
                             target: document.getElementById('fTraceTarget').value.trim(),
-                            setCount: parseInt(document.getElementById('fTraceSets').value) || 5
+                            setCount: parseInt(document.getElementById('fTraceSets').value) || 5,
+                            clone: document.getElementById('fTraceClone') ? document.getElementById('fTraceClone').checked : false
                         },
                         wordSort: {
                             active: document.getElementById('actSort').checked,
@@ -797,6 +875,8 @@
                 setActivityOpen('trace', !!a.traceWrite?.active);
                 document.getElementById('fTraceTarget').value = a.traceWrite?.target || '';
                 document.getElementById('fTraceSets').value = a.traceWrite?.setCount || 5;
+                const cloneEl = document.getElementById('fTraceClone');
+                if (cloneEl) cloneEl.checked = !!a.traceWrite?.clone;
 
                 // Word Sort
                 document.getElementById('actSort').checked = !!a.wordSort?.active;
@@ -867,6 +947,8 @@
                 setActivityOpen('trace', false);
                 document.getElementById('fTraceTarget').value = '';
                 document.getElementById('fTraceSets').value = 5;
+                const cloneReset = document.getElementById('fTraceClone');
+                if (cloneReset) cloneReset.checked = false;
 
                 document.getElementById('actSort').checked = false;
                 setActivityOpen('sort', false);
@@ -1194,6 +1276,10 @@
                                         <div class="form-group"><label>Target letter/word</label><input id="fTraceTarget" placeholder="a or bag"></div>
                                         <div class="form-group"><label>Number of sets</label><input type="number" id="fTraceSets" value="5" min="3" max="12"></div>
                                     </div>
+                                    <label style="display:flex;align-items:center;gap:8px;margin-top:8px;cursor:pointer;">
+                                        <input type="checkbox" id="fTraceClone" style="width:18px;height:18px;accent-color:#2c7be5;">
+                                        <span style="font-weight:700;font-size:13px;">Clone — add blank practice page (12 sets)</span>
+                                    </label>
                                 </div>
                             </div>
 
