@@ -265,7 +265,7 @@
 
     <script>
         (function() {
-            const STORAGE_KEY = 'phonics_lessons_v4';
+            const STORAGE_KEY = 'phonics_lessons_v5';
             const MAX_TOC_PER_PAGE = 18;
             const MAX_SIGHT_WORDS_PER_PAGE = 28;
 
@@ -309,32 +309,99 @@
                     ...overrides
                 };
             }
-            const DEFAULT_LESSONS = [
-                {
-                    id: 'l1', mainTitle: 'SHORT VOWEL CVC WORDS', lessonNumber: 1,
-                    pages: [
-                        makeDefaultPage({ active: true, clone: false, letterTile: 'Aa', targetLetter: 'a', imageCaption: 'bag', introText: 'Say each picture word out loud. Listen for the sound of "Short a".', sectionLabel: 'Trace and write the letter' }),
-                        makeDefaultPage({ active: false, clone: false, letterTile: 'Short a', targetLetter: 'b', imageCaption: 'bag', introText: 'Trace the letter carefully. Say the sound of "Short a".', sectionLabel: 'Trace and write the letter' }),
-                        makeDefaultPage({ active: false, clone: false, letterTile: 'Short a', targetLetter: 'c', imageCaption: 'bag', introText: 'Write the letter on your own. Listen for "Short a".', sectionLabel: 'Trace and write the letter' })
-                    ]
-                },
-                {
-                    id: 'l2', mainTitle: 'SHORT VOWEL CVC WORDS', lessonNumber: 2,
-                    pages: [
-                        makeDefaultPage({ active: false, clone: false, letterTile: 'Short e', targetLetter: 'e', imageCaption: 'bed', introText: 'Listen for the sound of "Short e" in each word.', sectionLabel: 'Trace and write the letter' }),
-                        makeDefaultPage({ active: true, clone: false, letterTile: 'b + e = be', targetLetter: 'be', imageCaption: 'bed', introText: 'Trace the letter carefully. Say the sound of "Short e".', sectionLabel: 'Trace and write the letter' }),
-                        makeDefaultPage({ active: false, clone: false, letterTile: 'Short e', targetLetter: 'e', imageCaption: 'bed', introText: 'Write the letter on your own. Listen for "Short e".', sectionLabel: 'Trace and write the letter' })
-                    ]
-                },
-                {
-                    id: 'l3', mainTitle: 'SHORT VOWEL CVC WORDS', lessonNumber: 3,
-                    pages: [
-                        makeDefaultPage({ active: false, clone: false, letterTile: 'Short i', targetLetter: 'i', imageCaption: 'pig', introText: 'Listen for the sound of "Short i" in each word.', sectionLabel: 'Trace and write the letter' }),
-                        makeDefaultPage({ active: false, clone: false, letterTile: 'Short i', targetLetter: 'i', imageCaption: 'pig', introText: 'Trace the letter carefully. Say the sound of "Short i".', sectionLabel: 'Trace and write the letter' }),
-                        makeDefaultPage({ active: true, clone: false, letterTile: 's + i + t = sit', targetLetter: 'si', imageCaption: 'pig', introText: 'Write the letter on your own. Listen for "Short i".', sectionLabel: 'Trace and write the letter' })
-                    ]
+            function buildDefaultLessons() {
+                const VOWELS = ['a', 'e', 'i', 'o', 'u'];
+                const CONSONANTS = ['b','c','d','f','g','h','j','k','l','m','n','p','q','r','s','t','v','w','x','y','z'];
+                const CVC_WORDS = ['bag','bed','pig','dog','sun','cat','hen','cup','mop','fin'];
+                const lessons = [];
+                let num = 1;
+
+                function inactivePage() {
+                    return makeDefaultPage({ active: false, clone: false });
                 }
-            ];
+
+                // Stage 1: Single letters (5 vowels + 21 consonants = 26)
+                const allLetters = VOWELS.concat(CONSONANTS);
+                allLetters.forEach(ch => {
+                    const upper = ch.toUpperCase();
+                    const isVowel = VOWELS.includes(ch);
+                    lessons.push({
+                        id: 'l' + num,
+                        mainTitle: isVowel ? 'SHORT VOWEL LETTERS' : 'CONSONANT LETTERS',
+                        lessonNumber: num,
+                        pages: [
+                            makeDefaultPage({
+                                active: true,
+                                clone: true,
+                                letterTile: upper + ch,
+                                targetLetter: ch,
+                                imageCaption: ch,
+                                introText: isVowel
+                                    ? `Say the letter out loud. Listen for the sound of short "${ch}".`
+                                    : `Say the letter out loud. Listen for the sound of "${ch}".`,
+                                sectionLabel: 'Trace and write the letter'
+                            }),
+                            inactivePage(),
+                            inactivePage()
+                        ]
+                    });
+                    num++;
+                });
+
+                // Stage 2: Consonant + vowel pairs (21 × 5 = 105)
+                CONSONANTS.forEach(c => {
+                    VOWELS.forEach(v => {
+                        const pair = c + v;
+                        lessons.push({
+                            id: 'l' + num,
+                            mainTitle: 'CONSONANT + VOWEL PAIRS',
+                            lessonNumber: num,
+                            pages: [
+                                makeDefaultPage({
+                                    active: true,
+                                    clone: true,
+                                    letterTile: c + ' + ' + v + ' = ' + pair,
+                                    targetLetter: pair,
+                                    imageCaption: pair,
+                                    introText: `Blend the sounds. Say "${c}" + "${v}" = "${pair}".`,
+                                    sectionLabel: 'Trace and write the pair'
+                                }),
+                                inactivePage(),
+                                inactivePage()
+                            ]
+                        });
+                        num++;
+                    });
+                });
+
+                // Stage 3: CVC words (10)
+                CVC_WORDS.forEach(word => {
+                    const chars = word.split('');
+                    const tile = chars.join(' + ') + ' = ' + word;
+                    lessons.push({
+                        id: 'l' + num,
+                        mainTitle: 'CVC WORDS',
+                        lessonNumber: num,
+                        pages: [
+                            makeDefaultPage({
+                                active: true,
+                                clone: true,
+                                letterTile: tile,
+                                targetLetter: word,
+                                imageCaption: word,
+                                introText: `Sound out each letter, then blend: ${tile}.`,
+                                sectionLabel: 'Trace and write the word'
+                            }),
+                            inactivePage(),
+                            inactivePage()
+                        ]
+                    });
+                    num++;
+                });
+
+                return lessons;
+            }
+            const DEFAULT_LESSONS = buildDefaultLessons();
             const DEFAULT_SIGHT_WORDS = [
                 'the','and','is','in','it','you','that','he','she','we','they','but'
             ];
