@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>📚 Phonics Lesson Publisher v7 (final tweaks)</title>
+    <title>📚 Phonics Lesson Publisher v7 (final)</title>
     <style>
         @page { size: 850px 1100px; margin: 0; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -149,7 +149,7 @@
         .view-container .sentence-line { border-bottom: 1px solid #999; padding: 14px 0 22px 0; font-size: 15px; color: #E2571C; font-weight: 800; }
         .view-container .card .page-number { position: absolute; bottom: 18px; right: 28px; font-weight: 800; font-size: 15px; }
 
-        /* Writing lines – same for both trace and blank practice */
+        /* Writing lines – same for trace and blank practice */
         .writing-practice { margin-top: 6px; }
         .writing-set { position: relative; height: 62px; margin-bottom: 12px; width: 100%; }
         .writing-set .line { position: absolute; left: 0; right: 0; height: 0; border-top-width: 2px; border-top-style: solid; }
@@ -168,7 +168,7 @@
             text-stroke: 0 !important;
         }
 
-        /* Word Sort – supports 2-4 columns */
+        /* Word Sort – 2-4 columns */
         .sort-grid { display: grid; gap: 16px; margin-top: 8px; }
         .sort-grid.cols-2 { grid-template-columns: 1fr 1fr; }
         .sort-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
@@ -179,15 +179,15 @@
         .sort-col .word-bank span, .sort-words span { background: #E2571C; color: #fff; padding: 6px 12px; border-radius: 10px; font-weight: 600; font-size: 18px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         .sort-words { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 14px; padding: 12px; border: 2px dashed #ccc; border-radius: 12px; }
 
-        /* Match Picture – no labels, bigger squares, wide gap */
+        /* Match Picture – no labels, 110px squares, wide gap */
         .match-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; margin-top: 12px; }
         .match-side { display: flex; flex-direction: column; gap: 14px; }
-        .match-item { display: flex; justify-content: center; } /* center the square */
+        .match-item { display: flex; justify-content: center; }
         .match-square { width: 110px; height: 110px; border: 2px solid #dee2e6; border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #fff; }
         .match-square img { max-width: 80%; max-height: 80%; object-fit: contain; }
         .match-square .word { font-size: 24px; font-weight: 700; color: #E2571C; text-align: center; line-height: 1.2; }
 
-        /* Sentence / Draw – label bottom-left, black */
+        /* Draw box – label bottom-left, black */
         .draw-box { border: 2px dashed #F5A623; border-radius: 14px; height: 180px; margin: 12px 0; display: flex; align-items: flex-end; justify-content: flex-start; padding: 10px; color: #000; font-size: 16px; font-weight: 700; }
 
         /* Cover & TOC */
@@ -360,7 +360,7 @@
             let coverData = { ...DEFAULT_COVER };
             let editingId = null;
             let nextId = 1;
-            let searchQuery = '';
+            window.searchQuery = '';
 
             function loadData() {
                 try {
@@ -1135,7 +1135,7 @@
             }
             function renderEditList() {
                 const container = document.getElementById('lessonList');
-                const q = (searchQuery || '').toLowerCase();
+                const q = (window.searchQuery || '').toLowerCase();
                 const filtered = lessons.filter(l => {
                     if (!q) return true;
                     if (String(l.lessonNumber).includes(q) || (l.mainTitle || '').toLowerCase().includes(q)) return true;
@@ -1360,7 +1360,7 @@
                             </div>
                             <h2>📖 All Lessons</h2>
                             <div class="list-toolbar">
-                                <input class="search-box" placeholder="🔍 Search..." oninput="searchQuery=this.value;renderEditList()">
+                                <input class="search-box" placeholder="🔍 Search..." oninput="window.searchQuery=this.value;window.renderEditList()">
                                 <span class="count" id="listCount">0/0</span>
                                 <button class="btn btn-success btn-sm" onclick="exportJSON()">📤 Export</button>
                                 <button class="btn btn-outline btn-sm" onclick="document.getElementById('importFile').click()">📥 Import</button>
@@ -1411,7 +1411,6 @@
                     }
                 }
             });
-            window.searchQuery = searchQuery;
             window.renderEditList = renderEditList;
         })();
     </script>
