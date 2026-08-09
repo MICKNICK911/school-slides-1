@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>📚 Phonics Lesson Publisher v7 (fixed)</title>
+    <title>📚 Phonics Lesson Publisher v7 (fixed + all activities)</title>
     <style>
         @page { size: 850px 1100px; margin: 0; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -279,6 +279,7 @@
                 };
             }
 
+            // ===== DEFAULT LESSONS – ALL ACTIVITIES ACTIVE =====
             const DEFAULT_LESSONS = [
                 {
                     id: 'l1',
@@ -299,10 +300,24 @@
                             sentences: ['I see a bag.', 'Look at the cat and the mat.', 'Is this a hat?', 'I like my rat.', 'We have a bat.'],
                             fillBlanks: ['b_g', 'c_t', 'm_t', 'h_t', 'r_t', 'b_t', 's_t', 'p_t', 'f_t', 'm_n', 'v_n', 'm_p']
                         },
-                        traceWrite: { active: false, target: 'a', setCount: 5, clone: false },
-                        wordSort: { active: false, columnCount: 2, columnLabels: ['Short a', 'Other'], words: [] },
-                        sentenceWrite: { active: false, prompt: 'Write 2 sentences using the words above.', lineCount: 4, showDrawBox: false },
-                        matchPicture: { active: false, pairCount: 4, pairs: [] }
+                        traceWrite: { active: true, target: 'a', setCount: 6, clone: true },
+                        wordSort: {
+                            active: true,
+                            columnCount: 2,
+                            columnLabels: ['Short a', 'Not short a'],
+                            words: ['bag', 'cat', 'mat', 'hat', 'rat', 'bat', 'sat', 'pat', 'fat', 'man', 'van', 'map']
+                        },
+                        sentenceWrite: { active: true, prompt: 'Write 2 sentences using the words above.', lineCount: 4, showDrawBox: true },
+                        matchPicture: {
+                            active: true,
+                            pairCount: 4,
+                            pairs: [
+                                { word: 'bag', imagePath: '' },
+                                { word: 'cat', imagePath: '' },
+                                { word: 'hat', imagePath: '' },
+                                { word: 'rat', imagePath: '' }
+                            ]
+                        }
                     }
                 },
                 {
@@ -324,10 +339,24 @@
                             sentences: ['They will get wet.', 'Here is a little net.', 'I have a big pen.', 'Go get the hen for me.', 'The red bed is soft.'],
                             fillBlanks: ['g_t', 'w_t', 'n_t', 'l_t', 'p_n', 't_n', 'h_n', 'm_n', 'b_d', 'r_d', 'l_d', 'f_d']
                         },
-                        traceWrite: { active: false, target: 'e', setCount: 5, clone: false },
-                        wordSort: { active: false, columnCount: 2, columnLabels: ['Short e', 'Other'], words: [] },
-                        sentenceWrite: { active: false, prompt: 'Write 2 sentences using the words above.', lineCount: 4, showDrawBox: false },
-                        matchPicture: { active: false, pairCount: 4, pairs: [] }
+                        traceWrite: { active: true, target: 'e', setCount: 6, clone: true },
+                        wordSort: {
+                            active: true,
+                            columnCount: 2,
+                            columnLabels: ['Short e', 'Other'],
+                            words: ['get', 'wet', 'net', 'let', 'pen', 'ten', 'hen', 'men', 'bed', 'red', 'led', 'fed']
+                        },
+                        sentenceWrite: { active: true, prompt: 'Write 2 sentences using the words above.', lineCount: 4, showDrawBox: true },
+                        matchPicture: {
+                            active: true,
+                            pairCount: 4,
+                            pairs: [
+                                { word: 'net', imagePath: '' },
+                                { word: 'pen', imagePath: '' },
+                                { word: 'hen', imagePath: '' },
+                                { word: 'bed', imagePath: '' }
+                            ]
+                        }
                     }
                 }
             ];
@@ -339,7 +368,7 @@
             let coverData = { ...DEFAULT_COVER };
             let editingId = null;
             let nextId = 1;
-            let searchQuery = '';  // will be accessible as window.searchQuery
+            let searchQuery = '';
 
             function loadData() {
                 try {
@@ -1430,7 +1459,7 @@
                     }
                 }
             });
-            window.searchQuery = searchQuery;  // expose global
+            window.searchQuery = searchQuery;
             window.renderEditList = renderEditList;
         })();
     </script>
