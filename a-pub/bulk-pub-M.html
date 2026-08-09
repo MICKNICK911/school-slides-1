@@ -268,8 +268,28 @@
                     traceWrite: { active: false, target: '', setCount: 5, clone: false },
                     wordSort: { active: false, columnCount: 2, columnLabels: ['Column 1', 'Column 2'], words: [] },
                     sentenceWrite: { active: false, prompt: 'Write sentences using the target words.', lineCount: 4, showDrawBox: false, drawPrompt: '' },
-                    matchPicture: { active: false, pairCount: 4, pairs: [] }
+                    matchPicture: { active: false, pairCount: 4, pairs: [], scrambledWords: [] }
                 };
+            }
+            function shuffleArray(arr) {
+                const a = [...arr];
+                for (let i = a.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [a[i], a[j]] = [a[j], a[i]];
+                }
+                return a;
+            }
+            // Ensures a lesson's Match-the-Picture scramble order is fixed at save/load time
+            // rather than re-randomized on every render (fixes preview/export mismatch).
+            function ensureScramble(lesson) {
+                const act = lesson?.activities?.matchPicture;
+                if (!act || !act.active) return;
+                const words = (act.pairs || []).slice(0, act.pairCount || 4)
+                    .filter(p => p.word && p.word.trim() !== '')
+                    .map(p => p.word.trim());
+                const cur = act.scrambledWords || [];
+                const sameSet = cur.length === words.length && words.every(w => cur.includes(w));
+                if (!sameSet) act.scrambledWords = shuffleArray(words);
             }
 
             const DEFAULT_LESSONS = [
@@ -386,18 +406,21 @@
                                 Object.keys(def).forEach(k => {
                                     if (!l.activities[k]) l.activities[k] = def[k];
                                 });
+                                ensureScramble(l);
                                 const num = parseInt(String(l.id).replace('l', '')) || 0;
                                 if (num > maxId) maxId = num;
                             });
                             nextId = maxId + 1;
                         } else {
                             lessons = JSON.parse(JSON.stringify(DEFAULT_LESSONS));
+                            lessons.forEach(ensureScramble);
                             nextId = lessons.length + 1;
                         }
                         return;
                     }
                 } catch (e) {}
                 lessons = JSON.parse(JSON.stringify(DEFAULT_LESSONS));
+                lessons.forEach(ensureScramble);
                 sightWords = [...DEFAULT_SIGHT_WORDS];
                 coverData = { ...DEFAULT_COVER };
                 nextId = lessons.length + 1;
@@ -411,6 +434,16 @@
                 }
             }
             function generateId() { return 'l' + (nextId++); }
+            // Recomputes nextId from whatever lessons are currently loaded (used after import,
+            // since imported files may contain ids at or beyond the current counter).
+            function resyncNextId() {
+                let maxId = 0;
+                lessons.forEach(l => {
+                    const num = parseInt(String(l.id).replace('l', '')) || 0;
+                    if (num > maxId) maxId = num;
+                });
+                nextId = maxId + 1;
+            }
 
             // ---------- VIEW HELPERS ----------
             function createWordGrid(words, cls = '') {
@@ -627,7 +660,12 @@
                 const pairs = (act.pairs || []).slice(0, pairCount);
                 const validPairs = pairs.filter(p => p.word && p.word.trim() !== '');
                 const words = validPairs.map(p => p.word.trim());
-                const scrambled = [...words].sort(() => Math.random() - 0.5);
+                // Use the scramble order fixed at save time so the arrangement stays stable
+                // across re-renders (tab switches, exports) instead of reshuffling each time.
+                const stored = act.scrambledWords || [];
+                const scrambled = (stored.length === words.length && words.every(w => stored.includes(w)))
+                    ? stored
+                    : shuffleArray(words);
 
                 let leftHtml = validPairs.map((p) => `
                     <div class="match-item">
@@ -737,15 +775,24 @@
                 container.appendChild(buildCoverPage());
                 if (!lessons.length && !sightWords.length) return;
 
-                const tocPages = lessons.length ? Math.ceil(lessons.length / MAX_TOC_PER_PAGE) : 0;
+                // Lessons with every activity toggled off produce zero pages, so they'd point
+                // the TOC at a page number that actually belongs to the next lesson. Build the
+                // TOC entry list first (skipping those), then size the TOC section from it —
+                // everything downstream (sight words, lesson pages) is numbered off that.
                 const swPages = Math.ceil(sightWords.length / MAX_SIGHT_WORDS_PER_PAGE);
+                const activityCounts = lessons.map(countActiveActivities);
+                const lessonsWithPages = lessons.filter((l, i) => activityCounts[i] > 0).length;
+                const tocPages = lessonsWithPages ? Math.ceil(lessonsWithPages / MAX_TOC_PER_PAGE) : 0;
                 const lessonStart = tocPages + swPages + 1;
 
                 let running = lessonStart;
-                const tocEntries = lessons.map(l => {
-                    const e = { lessonNumber: l.lessonNumber, mainTitle: l.mainTitle, letterTile: l.letterTile, firstPage: running };
-                    running += countActiveActivities(l);
-                    return e;
+                const tocEntries = [];
+                lessons.forEach((l, i) => {
+                    const activityCount = activityCounts[i];
+                    if (activityCount > 0) {
+                        tocEntries.push({ lessonNumber: l.lessonNumber, mainTitle: l.mainTitle, letterTile: l.letterTile, firstPage: running });
+                    }
+                    running += activityCount;
                 });
                 for (let p = 0; p < tocPages; p++) {
                     container.appendChild(buildTocPage(p + 1, tocEntries.slice(p * MAX_TOC_PER_PAGE, (p + 1) * MAX_TOC_PER_PAGE)));
@@ -924,7 +971,7 @@
                 editingId = null;
                 document.getElementById('formTitle').textContent = '➕ Add New Lesson';
                 document.getElementById('fMainTitle').value = '';
-                document.getElementById('fLessonNumber').value = lessons.length + 1;
+                document.getElementById('fLessonNumber').value = Math.max(0, ...lessons.map(l => l.lessonNumber || 0)) + 1;
                 document.getElementById('fLetterTile').value = '';
                 document.getElementById('fIntroText').value = '';
                 document.getElementById('fShowImage').checked = false;
@@ -1035,8 +1082,32 @@
                     if (data.activities.decodable.sentences.length < 2) return showToast('Decodable needs at least 2 sentences.', 'error');
                     if (data.activities.decodable.fillBlanks.length < 4) return showToast('Decodable needs at least 4 fill-blanks.', 'error');
                 }
+                if (data.activities.wordSort.active && data.activities.wordSort.words.length < 2) {
+                    return showToast('Word Sort needs at least 2 words.', 'error');
+                }
+                if (data.activities.matchPicture.active) {
+                    const validPairCount = data.activities.matchPicture.pairs.filter(p => p.word).length;
+                    if (validPairCount < 2) return showToast('Match the Picture needs at least 2 word pairs filled in.', 'error');
+                }
+                const hasAnyActivity = ['lookAndSay', 'decodable', 'traceWrite', 'wordSort', 'sentenceWrite', 'matchPicture']
+                    .some(k => data.activities[k].active);
+                if (!hasAnyActivity) {
+                    return showToast('Turn on at least one activity for this lesson.', 'error');
+                }
                 if (lessons.find(l => l.lessonNumber === data.lessonNumber && l.id !== editingId)) {
                     return showToast('Lesson number already exists.', 'error');
+                }
+                // Fix the Match-the-Picture scramble order now, at save time, so it stays
+                // stable across re-renders instead of reshuffling on every view. Keep the
+                // previous scramble if the word set didn't actually change on this edit.
+                if (data.activities.matchPicture.active) {
+                    const words = data.activities.matchPicture.pairs.filter(p => p.word).map(p => p.word);
+                    const prevLesson = editingId ? lessons.find(l => l.id === editingId) : null;
+                    const prevScramble = prevLesson?.activities?.matchPicture?.scrambledWords || [];
+                    const sameSet = prevScramble.length === words.length && words.every(w => prevScramble.includes(w));
+                    data.activities.matchPicture.scrambledWords = sameSet ? prevScramble : shuffleArray(words);
+                } else {
+                    data.activities.matchPicture.scrambledWords = [];
                 }
                 if (editingId) {
                     const idx = lessons.findIndex(l => l.id === editingId);
@@ -1089,17 +1160,34 @@
                         if (!data || typeof data !== 'object') throw new Error('Invalid');
                         confirmDialog('Replace all data with imported file?', () => {
                             if (Array.isArray(data.lessons)) {
-                                lessons = data.lessons.map(l => {
-                                    if (!l.id) l.id = generateId();
+                                // Assign temporary placeholder ids first so generateId() (used below,
+                                // via resyncNextId) can't hand out an id that collides with one already
+                                // present in the imported file.
+                                lessons = data.lessons.map((l, i) => {
+                                    if (!l.id) l.id = '__import' + i;
                                     if (!l.activities) {
                                         l.activities = makeDefaultActivities();
                                         if (l.words) l.activities.lookAndSay.words = l.words;
                                         if (l.sentences) l.activities.decodable.sentences = l.sentences;
                                         if (l.fillBlanks) l.activities.decodable.fillBlanks = l.fillBlanks;
                                     }
+                                    const def = makeDefaultActivities();
+                                    Object.keys(def).forEach(k => {
+                                        if (!l.activities[k]) l.activities[k] = def[k];
+                                    });
                                     return l;
                                 });
-                            } else lessons = JSON.parse(JSON.stringify(DEFAULT_LESSONS));
+                                resyncNextId();
+                                lessons.forEach(l => {
+                                    if (String(l.id).startsWith('__import')) l.id = generateId();
+                                    ensureScramble(l);
+                                });
+                                resyncNextId();
+                            } else {
+                                lessons = JSON.parse(JSON.stringify(DEFAULT_LESSONS));
+                                lessons.forEach(ensureScramble);
+                                resyncNextId();
+                            }
                             sightWords = Array.isArray(data.sightWords) ? [...data.sightWords] : [...DEFAULT_SIGHT_WORDS];
                             coverData = data.coverData || { ...DEFAULT_COVER };
                             saveData();
@@ -1168,9 +1256,11 @@
             }
             function updateCounts() {
                 document.getElementById('lessonCount').textContent = lessons.length + ' lessons, ' + sightWords.length + ' sight words';
-                const tocPages = lessons.length ? Math.ceil(lessons.length / MAX_TOC_PER_PAGE) : 0;
+                const activityCounts = lessons.map(countActiveActivities);
+                const lessonsWithPages = lessons.filter((l, i) => activityCounts[i] > 0).length;
+                const tocPages = lessonsWithPages ? Math.ceil(lessonsWithPages / MAX_TOC_PER_PAGE) : 0;
                 const swPages = Math.ceil(sightWords.length / MAX_SIGHT_WORDS_PER_PAGE);
-                const lessonPages = lessons.reduce((s, l) => s + countActiveActivities(l), 0);
+                const lessonPages = activityCounts.reduce((s, n) => s + n, 0);
                 document.getElementById('viewInfo').textContent = `📄 ${lessons.length} lessons · ${1 + tocPages + swPages + lessonPages} pages`;
             }
             window.switchTab = function (tab) {
@@ -1406,6 +1496,10 @@
                     if (from !== -1 && to !== -1 && from !== to) {
                         const [m] = lessons.splice(from, 1);
                         lessons.splice(to, 0, m);
+                        // Reordering the list changes the order lessons print in (the view
+                        // follows array order), so renumber sequentially to match — otherwise
+                        // the printed "Lesson N" label and the TOC page order fall out of sync.
+                        lessons.forEach((l, idx) => { l.lessonNumber = idx + 1; });
                         saveData();
                         refreshUI();
                     }
