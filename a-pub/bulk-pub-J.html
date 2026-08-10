@@ -1,0 +1,1574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>📚 Phonics Lesson Publisher v8</title>
+    <style>
+        @page { size: 850px 1100px; margin: 0; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f5f7fa; color: #1a1a1a; padding: 20px; }
+        .app { max-width: 1500px; margin: 0 auto; background: #fff; border-radius: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.08); overflow: hidden; }
+        .app-header { background: #1a1a2e; color: #fff; padding: 20px 32px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+        .app-header h1 { font-size: 24px; font-weight: 800; }
+        .app-header .badge { background: #F5A623; color: #1a1a1a; padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 700; }
+        .tabs { display: flex; border-bottom: 2px solid #e9ecef; background: #fafbfc; padding: 0 32px; gap: 4px; }
+        .tab-btn { padding: 16px 28px; border: none; background: transparent; font-size: 15px; font-weight: 700; color: #6c757d; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.2s; font-family: inherit; touch-action: manipulation; }
+        .tab-btn.active { color: #1a1a2e; border-bottom-color: #F5A623; }
+        .tab-panel { display: none; padding: 24px 32px 32px; }
+        .tab-panel.active { display: block; }
+        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; max-width: 420px; width: 100%; pointer-events: none; }
+        .toast { padding: 14px 20px; border-radius: 12px; color: #fff; font-weight: 600; font-size: 14px; box-shadow: 0 8px 30px rgba(0,0,0,0.15); animation: slideIn 0.3s ease; display: flex; align-items: center; gap: 10px; pointer-events: auto; }
+        .toast.success { background: #2d7d46; } .toast.error { background: #dc3545; } .toast.warning { background: #e67e22; } .toast.info { background: #2c7be5; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        .edit-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+        @media (max-width: 1200px) { .edit-layout { grid-template-columns: 1fr; } }
+        .form-section { background: #f8f9fa; border-radius: 16px; padding: 24px; border: 2px solid #e9ecef; position: sticky; top: 20px; max-height: calc(100vh - 160px); overflow-y: auto; }
+        .form-section h2 { font-size: 18px; margin-bottom: 16px; }
+        .form-group { margin-bottom: 14px; }
+        .form-group label { display: block; font-weight: 700; font-size: 13px; color: #495057; margin-bottom: 4px; }
+        .form-group label .req { color: #dc3545; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px 14px; border: 2px solid #dee2e6; border-radius: 10px; font-size: 14px; font-family: inherit; transition: border 0.2s; background: #fff; }
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus { outline: none; border-color: #F5A623; box-shadow: 0 0 0 3px rgba(245,166,35,0.15); }
+        .form-group textarea { resize: vertical; min-height: 50px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .form-actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+        .btn { padding: 10px 22px; border: none; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; transition: background 0.2s, transform 0.15s; font-family: inherit; display: inline-flex; align-items: center; gap: 6px; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn:active:not(:disabled) { transform: scale(0.97); }
+        .btn-primary { background: #F5A623; color: #1a1a1a; }
+        .btn-success { background: #2d7d46; color: #fff; }
+        .btn-danger { background: #dc3545; color: #fff; }
+        .btn-outline { background: transparent; border: 2px solid #dee2e6; color: #495057; }
+        .btn-sm { padding: 6px 14px; font-size: 12px; }
+        .btn-xs { padding: 4px 10px; font-size: 11px; border-radius: 6px; }
+        .btn-warning { background: #e67e22; color: #fff; }
+        .image-upload-wrap { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .image-upload-wrap .preview { width: 56px; height: 56px; border-radius: 8px; object-fit: cover; border: 2px solid #dee2e6; background: #f1f3f5; }
+        .image-upload-wrap .preview-placeholder { width: 56px; height: 56px; border-radius: 8px; border: 2px dashed #dee2e6; display: flex; align-items: center; justify-content: center; font-size: 22px; color: #adb5bd; background: #f8f9fa; }
+        .list-section { min-height: 400px; }
+        .list-toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 2px solid #e9ecef; }
+        .search-box { flex: 1; min-width: 180px; padding: 10px 16px; border: 2px solid #dee2e6; border-radius: 10px; font-size: 14px; font-family: inherit; }
+        .search-box:focus { outline: none; border-color: #F5A623; }
+        .list-toolbar .count { font-weight: 700; color: #6c757d; font-size: 14px; white-space: nowrap; }
+        .lesson-list { display: flex; flex-direction: column; gap: 8px; }
+        .lesson-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #f8f9fa; border-radius: 12px; border: 2px solid transparent; transition: background 0.2s, border-color 0.2s; }
+        .lesson-item:active { border-color: #F5A623; background: #fff; }
+        .lesson-item .thumb { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; background: #e9ecef; border: 1px solid #dee2e6; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+        .lesson-item .info { flex: 1; min-width: 0; }
+        .lesson-item .info .title { font-weight: 700; font-size: 15px; }
+        .lesson-item .info .sub { font-size: 12px; color: #6c757d; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .lesson-item .actions { display: flex; gap: 4px; flex-shrink: 0; }
+        .lesson-item .actions button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 9998; }
+        .modal-overlay .modal { background: #fff; border-radius: 20px; padding: 32px; max-width: 440px; width: 90%; box-shadow: 0 30px 60px rgba(0,0,0,0.2); }
+        .modal-overlay .modal h3 { margin-bottom: 8px; }
+        .modal-overlay .modal p { color: #6c757d; margin-bottom: 20px; font-size: 15px; }
+        .modal-overlay .modal .actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+        /* Activity cards */
+        .activity-card { background: #fff; border: 2px solid #e9ecef; border-radius: 14px; margin-bottom: 14px; overflow: hidden; }
+        .activity-card.open { border-color: #F5A623; }
+        .activity-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; cursor: pointer; background: #fafbfc; gap: 10px; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+        .activity-header:active { background: #f1f3f5; }
+        .activity-header .left { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 14px; }
+        .activity-header .num { background: #F5A623; color: #fff; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; }
+        .toggle-badge { font-size: 11px; font-weight: 700; color: #fff; padding: 3px 10px; border-radius: 12px; }
+        .toggle-badge.on { background: #2d7d46; }
+        .toggle-badge.off { background: #6c757d; }
+        .activity-body { display: none; padding: 16px; border-top: 2px solid #e9ecef; }
+        .activity-card.open .activity-body { display: block; }
+
+        /* Hover effects only on devices that support true hover (mouse/trackpad).
+           Prevents sticky hover + floating transform on touch devices. */
+        @media (hover: hover) {
+            .tab-btn:hover { color: #1a1a2e; }
+            .btn-primary:hover:not(:disabled) { background: #e0950f; transform: translateY(-1px); }
+            .btn-success:hover:not(:disabled) { background: #1f5f34; }
+            .btn-danger:hover:not(:disabled) { background: #b02a37; }
+            .btn-outline:hover:not(:disabled) { background: #f1f3f5; }
+            .btn-warning:hover:not(:disabled) { background: #d35400; }
+            .lesson-item:hover { border-color: #F5A623; background: #fff; }
+            .activity-header:hover { background: #f1f3f5; }
+        }
+
+        /* Match pairs (form) */
+        .pair-row { display: grid; grid-template-columns: 80px 1fr auto; gap: 10px; align-items: center; margin-bottom: 10px; padding: 10px; background: #f8f9fa; border-radius: 10px; }
+        .pair-row img, .pair-row .ph { width: 64px; height: 64px; border-radius: 8px; object-fit: cover; border: 2px solid #dee2e6; }
+        .pair-row .ph { display: flex; align-items: center; justify-content: center; font-size: 24px; color: #adb5bd; background: #fff; border-style: dashed; }
+
+        /* ----- VIEW ----- */
+        .view-container { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 8px; }
+        .view-container .page { width: 850px; min-width: 850px; min-height: 1080px; padding: 30px 40px; position: relative; page-break-after: always; margin: 0 auto 30px; background: #fff; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+        .view-container .page:last-child { margin-bottom: 0; }
+        .view-container .card { border: 3px solid #F5A623; border-radius: 28px; min-height: 1000px; padding: 24px 32px; position: relative; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .view-container .title { font-size: 28px; font-weight: 800; color: #1a1a1a; letter-spacing: 0.5px; margin: 4px 0 16px 0; }
+        .view-container .header-row { display: flex; align-items: stretch; gap: 0; margin-bottom: 18px; }
+        .view-container .lesson-badge { background: #F5A623; border-radius: 16px; color: #fff; width: 120px; min-width: 120px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 6px; position: relative; margin-right: 16px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .view-container .lesson-badge .arrow { position: absolute; top: -20px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent; border-bottom: 24px solid #F5A623; }
+        .view-container .lesson-badge .label { font-size: 12px; font-weight: 600; opacity: 0.95; }
+        .view-container .lesson-badge .num { font-size: 32px; font-weight: 800; line-height: 1.1; }
+        .view-container .intro-box { flex: 1; border: 3px dashed #E2571C; border-radius: 16px; display: flex; align-items: center; padding: 12px 18px; }
+        .view-container .intro-box p { margin: 0; color: #E2571C; font-weight: 700; font-size: 13px; line-height: 1.45; }
+
+        .view-container .hero-row { display: flex; border-radius: 18px; overflow: hidden; border: 3px solid #F5A623; height: 200px; margin-bottom: 18px; }
+        .view-container .hero-image { flex: 1; background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+        .view-container .hero-image img { max-height: 140px; max-width: 90%; object-fit: contain; }
+        .view-container .hero-image .placeholder { width: 120px; height: 80px; border: 2px dashed #ccc; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #999; font-size: 12px; }
+        .view-container .hero-image .caption { font-weight: 800; font-size: 15px; }
+        .view-container .hero-letter { flex: 1; background: #F5A623; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 64px; font-weight: 800; font-style: italic; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .view-container .hero-tile { background: #F5A623; color: #fff; border-radius: 20px; padding: 24px 36px; text-align: center; margin-bottom: 18px; min-height: 180px; display: flex; flex-direction: column; align-items: center; justify-content: center; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .view-container .hero-tile .sound-label { font-size: 16px; font-weight: 700; opacity: 0.95; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 6px; }
+        .view-container .hero-tile .letter-display { font-size: 80px; font-weight: 800; line-height: 1.1; text-shadow: 3px 3px 6px rgba(0,0,0,0.2); }
+        .view-container .hero-tile .decoration { font-size: 20px; opacity: 0.7; margin-top: 6px; }
+
+        .view-container .section-header { display: flex; align-items: center; margin-bottom: 10px; margin-top: 10px; }
+        .view-container .section-header .circle { background: #F5A623; color: #fff; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 16px; margin-right: 12px; flex-shrink: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .view-container .section-header .label-box { flex: 1; border: 3px dashed #E2571C; border-radius: 12px; padding: 7px 16px; font-weight: 800; font-size: 17px; color: #1a1a1a; }
+        .view-container .word-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+        .view-container .word-grid .pill { background: #E2571C; color: #fff; border-radius: 12px; text-align: center; padding: 8px 6px; font-weight: 600; font-size: 26px; min-height: 54px; display: flex; align-items: center; justify-content: center; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .view-container .word-grid.blanks .pill {
+            background: #fff;
+            color: #E2571C;
+            border: 2px solid #F5A623;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            font-size: 26px;
+            font-weight: 700;
+            min-height: 58px;
+            padding: 6px 8px;
+        }
+        .view-container .word-grid.blanks .pill .blank-box {
+            display: inline-block;
+            width: 32px;
+            height: 36px;
+            background: #fff;
+            border: 2px solid #1a1a1a;
+            border-radius: 4px;
+            vertical-align: middle;
+            flex-shrink: 0;
+        }
+        .view-container .word-grid.empty .pill { background: #fff; border: 2px solid #F5A623; }
+        .view-container .instructions { font-weight: 700; font-size: 13px; margin: 6px 0 8px 0; }
+        .view-container .reading-box { border: 2px solid #F5A623; border-radius: 14px; padding: 12px 20px; }
+        .view-container .reading-box p { margin: 0 0 4px 0; color: #E2571C; font-weight: 700; font-size: 17px; }
+        .view-container .activity-label { font-weight: 700; font-size: 13px; margin: 10px 0 6px 0; }
+        .view-container .sentence-line { border-bottom: 1px solid #999; padding: 14px 0 22px 0; font-size: 15px; color: #E2571C; font-weight: 800; }
+        .view-container .card .page-number { position: absolute; bottom: 18px; right: 28px; font-weight: 800; font-size: 15px; }
+
+        /* Writing lines – same for trace and blank practice */
+        .writing-practice { margin-top: 6px; }
+        .writing-set { position: relative; height: 62px; margin-bottom: 12px; width: 100%; }
+        .writing-set .line { position: absolute; left: 0; right: 0; height: 0; border-top-width: 2px; border-top-style: solid; }
+        .writing-set .line.red { border-top-color: #E2571C; }
+        .writing-set .line.blue { border-top-color: #2c7be5; }
+        .writing-set .line.l1 { top: 0; } .writing-set .line.l2 { top: 20px; } .writing-set .line.l3 { top: 40px; } .writing-set .line.l4 { top: 60px; }
+        .writing-set .trace-letters { position: absolute; left: 0; right: 0; top: 20px; height: 20px; display: flex; align-items: center; justify-content: space-evenly; padding: 0 30px; pointer-events: none; }
+        .writing-set .trace-letters span {
+            font-family: 'Segoe UI', 'Arial Rounded MT Bold', Arial, sans-serif;
+            font-size: 38px; font-weight: 600; line-height: 1;
+            color: transparent; -webkit-text-stroke: 2px #1a1a1a;
+        }
+        .writing-set .trace-letters span.solid {
+            color: #1a1a1a !important;
+            -webkit-text-stroke: 0 !important;
+        }
+
+        
+        /* ===== Word Sort – smart 2-9 grid (centered incomplete rows) ===== */
+        .sort-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 10px;
+            width: 100%;
+        }
+        .sort-col {
+            border: 2px solid #F5A623;
+            border-radius: 14px;
+            padding: 10px;
+            min-height: 160px;
+            display: flex;
+            flex-direction: column;
+            /* default: 3 per row */
+            flex: 0 0 calc(33.333% - 8px);
+            max-width: calc(33.333% - 8px);
+            box-sizing: border-box;
+        }
+        /* 2 boxes → each takes half */
+        .sort-grid.count-2 .sort-col {
+            flex: 0 0 calc(50% - 6px);
+            max-width: calc(50% - 6px);
+            min-height: 280px;
+        }
+        /* 1 box on a row (or single) → full width centered feel */
+        .sort-grid.count-1 .sort-col,
+        .sort-col.full-width {
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
+        .sort-col .col-label {
+            background: #F5A623;
+            color: #fff;
+            text-align: center;
+            font-weight: 800;
+            font-size: 15px;
+            padding: 6px 8px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        .sort-words {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 14px;
+            padding: 12px;
+            border: 2px dashed #ccc;
+            border-radius: 12px;
+        }
+        .sort-words span {
+            background: #E2571C;
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 18px;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        /* ===== Match Picture – image only (centered incomplete rows) ===== */
+        .match-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 16px;
+            margin-top: 12px;
+            width: 100%;
+        }
+        .match-item {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex: 0 0 calc(33.333% - 11px);
+            max-width: calc(33.333% - 11px);
+            box-sizing: border-box;
+        }
+        .match-grid.count-1 .match-item {
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
+        .match-grid.count-2 .match-item {
+            flex: 0 0 calc(50% - 8px);
+            max-width: calc(50% - 8px);
+        }
+        .match-item.full-width {
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
+        .match-square {
+            width: 100%;
+            max-width: 220px;
+            aspect-ratio: 1;
+            border: 2px solid #dee2e6;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: #fff;
+        }
+        .match-square.large {
+            max-width: 420px;
+            height: 380px;
+            aspect-ratio: auto;
+        }
+        .match-square img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+        }
+        .match-square .ph {
+            font-size: 48px;
+            color: #adb5bd;
+        }
+
+        /* ===== Words & Meaning ===== */
+        .wm-word-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 18px;
+            padding: 12px;
+            border: 2px dashed #ccc;
+            border-radius: 12px;
+        }
+        .wm-word-grid span {
+            background: #E2571C;
+            color: #fff;
+            padding: 7px 14px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 18px;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        .wm-sentence-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .wm-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .wm-num {
+            font-weight: 800;
+            font-size: 16px;
+            color: #E2571C;
+            min-width: 28px;
+            flex-shrink: 0;
+        }
+        .wm-sentence {
+            flex: 1;
+            font-size: 15px;
+            font-weight: 600;
+            color: #1a1a1a;
+            line-height: 1.35;
+        }
+        .wm-write-box {
+            width: 140px;
+            height: 36px;
+            border: 2px solid #F5A623;
+            border-radius: 8px;
+            background: #fff;
+            flex-shrink: 0;
+        }
+
+        /* Draw box – label bottom-left, black */
+        .draw-box { border: 2px dashed #F5A623; border-radius: 14px; height: 180px; margin: 12px 0; display: flex; align-items: flex-end; justify-content: flex-start; padding: 10px; color: #000; font-size: 16px; font-weight: 700; }
+
+        /* Cover & TOC */
+        .view-container .card.cover-card { display: flex; flex-direction: column; justify-content: center; align-items: center; font-family: 'Times New Roman', Times, serif; }
+        .cover-text-block { text-align: center; padding: 0 40px; }
+        .cover-line { width: 120px; height: 4px; background-color: #F5A623; margin: 30px auto; border-radius: 2px; }
+        .cover-title { font-size: 60px; font-weight: 800; color: #1a1a2e; letter-spacing: 2px; margin: 0; }
+        .cover-subtitle { font-size: 32px; font-weight: 400; color: #E2571C; margin-top: 14px; letter-spacing: 1px; font-style: italic; }
+        .toc-card { border: 3px solid #F5A623; border-radius: 28px; min-height: 1000px; padding: 40px 48px; position: relative; font-family: 'Times New Roman', Times, serif; }
+        .toc-title { font-size: 30px; font-weight: 800; color: #1a1a2e; text-align: center; margin-bottom: 28px; border-bottom: 4px solid #F5A623; padding-bottom: 14px; }
+        .toc-list { list-style: none; padding: 0; margin: 0; }
+        .toc-item { display: flex; justify-content: space-between; align-items: baseline; padding: 11px 8px; border-bottom: 1px dashed #dee2e6; font-size: 15px; font-weight: 600; }
+        .toc-item .toc-page-num { font-weight: 800; color: #E2571C; min-width: 70px; text-align: right; }
+        .toc-card .page-number { position: absolute; bottom: 18px; right: 28px; font-weight: 800; font-size: 15px; font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; }
+
+        .view-toolbar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 2px solid #e9ecef; }
+        .view-toolbar .info { font-weight: 700; color: #6c757d; font-size: 14px; margin-right: auto; }
+        .page-actions { text-align: right; margin-bottom: 8px; }
+        .export-btn { background: #E2571C; color: #fff; border: none; border-radius: 8px; padding: 8px 16px; font-weight: 700; font-size: 13px; font-family: inherit; cursor: pointer; }
+
+        @media (pointer: fine) {
+            .view-container .writing-set .trace-letters {
+                top: 17px; /* 1px up */
+            }
+            .view-container .writing-practice.blank-practice .writing-set .trace-letters {
+                top: 13px; /* 1px up */
+            }
+        }
+
+        @media print {
+            body { padding: 0; background: #fff; }
+            .app, .app-header, .tabs, .tab-panel, .view-toolbar, .no-print { display: none !important; }
+            .view-container { overflow-x: visible !important; }
+            .view-container .page { box-shadow: none !important; border-radius: 0 !important; margin: 0 auto !important; padding: 28px !important; width: 850px !important; min-width: 850px !important; min-height: 1080px !important; page-break-after: always; background: #fff !important; }
+            .view-container .page .page-actions { display: none !important; }
+            .view-container .page:last-child { page-break-after: auto; }
+            .view-container .card, .view-container .lesson-badge, .view-container .hero-letter, .view-container .hero-tile,
+            .view-container .word-grid .pill, .view-container .intro-box, .view-container .section-header .circle,
+            .view-container .reading-box, .view-container .lesson-badge .arrow, .toc-card, .sort-col .col-label, .sort-col .word-bank span, .sort-words span {
+                -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app"></div>
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        (function () {
+            const STORAGE_KEY = 'phonics_lessons_v8';
+            const MAX_TOC_PER_PAGE = 18;
+            const MAX_SIGHT_WORDS_PER_PAGE = 28;
+
+            function flattenWords(arr) {
+                if (!Array.isArray(arr)) return [];
+                let r = [];
+                for (let row of arr) {
+                    if (Array.isArray(row)) r = r.concat(row);
+                    else r.push(row);
+                }
+                return r;
+            }
+            function escapeHtml(str) {
+                return String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+            }
+            function showToast(msg, type = 'info') {
+                const t = document.createElement('div');
+                t.className = 'toast ' + type;
+                t.innerHTML = `<span>${type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️'}</span> ${escapeHtml(msg)}`;
+                document.getElementById('toastContainer').appendChild(t);
+                setTimeout(() => t.remove(), 3500);
+            }
+            function confirmDialog(msg, cb) {
+                const o = document.createElement('div');
+                o.className = 'modal-overlay';
+                o.innerHTML = `<div class="modal"><h3>⚠️ Confirm</h3><p>${msg}</p><div class="actions"><button class="btn btn-outline cancel">Cancel</button><button class="btn btn-danger confirm">Yes</button></div></div>`;
+                document.body.appendChild(o);
+                o.querySelector('.cancel').onclick = () => o.remove();
+                o.querySelector('.confirm').onclick = () => { o.remove(); cb(); };
+            }
+
+            function makeDefaultActivities() {
+                return {
+                    lookAndSay: { active: true, words: [] },
+                    wordSort: { active: false, columnCount: 2, columnLabels: Array(9).fill('').map((_,i) => 'Column ' + (i+1)), words: [] },
+                    matchPicture: { active: false, imageCount: 4, images: [] },
+                    wordsMeaning: { active: false, words: [], sentences: [] }
+                };
+            }
+            function shuffleArray(arr) {
+                const a = [...arr];
+                for (let i = a.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [a[i], a[j]] = [a[j], a[i]];
+                }
+                return a;
+            }
+            // Ensures a lesson's Match-the-Picture scramble order is fixed at save/load time
+            // rather than re-randomized on every render (fixes preview/export mismatch).
+            function ensureScramble(lesson) {
+                // no-op: Match Picture is now images-only
+            }
+
+            const DEFAULT_LESSONS = [
+                {
+                    id: 'l1',
+                    mainTitle: 'SHORT VOWEL CVC WORDS',
+                    lessonNumber: 1,
+                    letterTile: 'Aa',
+                    introText: 'Short a says /a/ like in apple — when a single vowel is boxed in between two consonants, it usually keeps this quick, clipped sound.',
+                    showImage: false,
+                    imagePath: '',
+                    imageCaption: '',
+                    activities: {
+                        lookAndSay: {
+                            active: true,
+                            words: [['bag', 'cat', 'mat', 'hat'], ['rat', 'bat', 'sat', 'pat'], ['fat', 'man', 'van', 'map']]
+                        },
+                        wordSort: {
+                            active: true,
+                            columnCount: 3,
+                            columnLabels: ['Short a', 'Not short a', '?', '', '', '', '', '', ''],
+                            words: ['bag', 'cat', 'mat', 'hat', 'rat', 'bat', 'sat', 'pat', 'fat', 'man', 'van', 'map']
+                        },
+                        matchPicture: {
+                            active: true,
+                            imageCount: 4,
+                            images: ['', '', '', '']
+                        },
+                        wordsMeaning: {
+                            active: true,
+                            words: ['bag', 'cat', 'hat', 'rat'],
+                            sentences: [
+                                'Something you carry things in.',
+                                'A soft pet that says meow.',
+                                'You wear this on your head.',
+                                'A small animal with a long tail.'
+                            ]
+                        }
+                    }
+                },
+                {
+                    id: 'l2',
+                    mainTitle: 'SHORT VOWEL CVC WORDS',
+                    lessonNumber: 2,
+                    letterTile: 'Ee',
+                    introText: 'Short e says /e/ like in egg — in a closed CVC word, a lone e squeezed between consonants stays short and fast.',
+                    showImage: false,
+                    imagePath: '',
+                    imageCaption: '',
+                    activities: {
+                        lookAndSay: {
+                            active: true,
+                            words: [['get', 'wet', 'net', 'let'], ['pen', 'ten', 'hen', 'men'], ['bed', 'red', 'led', 'fed']]
+                        },
+                        wordSort: {
+                            active: true,
+                            columnCount: 2,
+                            columnLabels: ['Short e', 'Other', '', '', '', '', '', '', ''],
+                            words: ['get', 'wet', 'net', 'let', 'pen', 'ten', 'hen', 'men', 'bed', 'red', 'led', 'fed']
+                        },
+                        matchPicture: {
+                            active: true,
+                            imageCount: 4,
+                            images: ['', '', '', '']
+                        },
+                        wordsMeaning: {
+                            active: true,
+                            words: ['net', 'pen', 'hen', 'bed'],
+                            sentences: [
+                                'You use this to catch fish or butterflies.',
+                                'You write with this.',
+                                'A bird that lays eggs.',
+                                'You sleep on this.'
+                            ]
+                        }
+                    }
+                }
+            ];
+            const DEFAULT_SIGHT_WORDS = ['the','of','and','a','to','in','is','you','that','it','he','was','for','on','are','as','with','his','they','I','at','be','this','have','from','or','one','had','by','but','not','what','all','were','we','when','your','can','said','there','use','an','each','which','she','do','how','their','if','will','up','other','about','out','many','then','them','these','so','some','her','would','make','like','him','into','time','has','look','two','more','write','go','see','no','way','could','people','my','than','first','water','been','called','who','am','its','now','find','long','down','day','did','get','come','made','may','part'];
+            const DEFAULT_COVER = { title: 'Crystal Phonics', subtitle: 'Grade 1' };
+
+            let lessons = [];
+            let sightWords = [];
+            let coverData = { ...DEFAULT_COVER };
+            let includeSightWords = true;
+            let editingId = null;
+            let nextId = 1;
+            window.searchQuery = '';
+
+            function loadData() {
+                try {
+                    const raw = localStorage.getItem(STORAGE_KEY);
+                    if (raw) {
+                        const parsed = JSON.parse(raw);
+                        if (parsed && typeof parsed === 'object') {
+                            lessons = parsed.lessons || [];
+                            sightWords = parsed.sightWords || [...DEFAULT_SIGHT_WORDS];
+                            coverData = parsed.coverData || { ...DEFAULT_COVER };
+                            includeSightWords = parsed.includeSightWords !== false;
+                        }
+                        if (lessons.length) {
+                            let maxId = 0;
+                            lessons.forEach(l => {
+                                if (!l.id) l.id = 'l' + Date.now() + Math.random().toString(36).slice(2, 6);
+                                if (!l.activities) {
+                                    l.activities = makeDefaultActivities();
+                                    if (l.words) l.activities.lookAndSay.words = l.words;
+                                    if (l.sentences) l.activities.decodable.sentences = l.sentences;
+                                    if (l.fillBlanks) l.activities.decodable.fillBlanks = l.fillBlanks;
+                                }
+                                const def = makeDefaultActivities();
+                                Object.keys(def).forEach(k => {
+                                    if (!l.activities[k]) l.activities[k] = def[k];
+                                });
+                                ensureScramble(l);
+                                const num = parseInt(String(l.id).replace('l', '')) || 0;
+                                if (num > maxId) maxId = num;
+                            });
+                            nextId = maxId + 1;
+                        } else {
+                            lessons = JSON.parse(JSON.stringify(DEFAULT_LESSONS));
+                            lessons.forEach(ensureScramble);
+                            nextId = lessons.length + 1;
+                        }
+                        return;
+                    }
+                } catch (e) {}
+                lessons = JSON.parse(JSON.stringify(DEFAULT_LESSONS));
+                lessons.forEach(ensureScramble);
+                sightWords = [...DEFAULT_SIGHT_WORDS];
+                coverData = { ...DEFAULT_COVER };
+                nextId = lessons.length + 1;
+                saveData();
+            }
+            function saveData() {
+                try {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify({ lessons, sightWords, coverData, includeSightWords }));
+                } catch (e) {
+                    showToast('Storage full – delete some lessons.', 'error');
+                }
+            }
+            function generateId() { return 'l' + (nextId++); }
+            // Recomputes nextId from whatever lessons are currently loaded (used after import,
+            // since imported files may contain ids at or beyond the current counter).
+            function resyncNextId() {
+                let maxId = 0;
+                lessons.forEach(l => {
+                    const num = parseInt(String(l.id).replace('l', '')) || 0;
+                    if (num > maxId) maxId = num;
+                });
+                nextId = maxId + 1;
+            }
+
+            // ---------- VIEW HELPERS ----------
+            function createWordGrid(words, cls = '') {
+                const grid = document.createElement('div');
+                grid.className = 'word-grid ' + cls;
+                words.forEach(w => {
+                    const d = document.createElement('div');
+                    d.className = 'pill';
+                    if (cls === 'blanks') {
+                        let html = '';
+                        for (const ch of String(w)) {
+                            if (ch === '_') {
+                                html += '<span class="blank-box"></span>';
+                            } else {
+                                html += `<span>${escapeHtml(ch)}</span>`;
+                            }
+                        }
+                        d.innerHTML = html;
+                    } else {
+                        d.textContent = w;
+                    }
+                    grid.appendChild(d);
+                });
+                return grid;
+            }
+            function createWritingSets(target, setCount, opts = {}) {
+                const { outlined = true, onlyFirstFilled = false } = opts;
+                const letter = escapeHtml(target || 'a');
+                let html = '';
+                for (let i = 0; i < setCount; i++) {
+                    const fill = onlyFirstFilled ? (i === 0) : true;
+                    const cls = outlined ? '' : ' class="solid"';
+                    const lettersHtml = fill
+                        ? Array(4).fill(`<span${cls}>${letter}</span>`).join('')
+                        : '';
+                    html += `<div class="writing-set">
+                        <div class="line red l1"></div><div class="line blue l2"></div>
+                        <div class="line blue l3"></div><div class="line red l4"></div>
+                        <div class="trace-letters">${lettersHtml}</div>
+                    </div>`;
+                }
+                const el = document.createElement('div');
+                el.className = 'writing-practice';
+                el.innerHTML = html;
+                return el;
+            }
+
+            function buildLookAndSayPage(lesson, pageNum) {
+                const act = lesson.activities.lookAndSay;
+                const page = document.createElement('div');
+                page.className = 'page';
+                page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
+                const card = document.createElement('div');
+                card.className = 'card';
+
+                let hero = '';
+                if (lesson.showImage) {
+                    hero = `<div class="hero-row">
+                        <div class="hero-image">
+                            ${lesson.imagePath ? `<img src="${escapeHtml(lesson.imagePath)}" alt="" />` : '<div class="placeholder">🖼️</div>'}
+                            <div class="caption">${escapeHtml(lesson.imageCaption || '')}</div>
+                        </div>
+                        <div class="hero-letter">${escapeHtml(lesson.letterTile || '')}</div>
+                    </div>`;
+                } else {
+                    hero = `<div class="hero-tile">
+                        <div class="sound-label">Today's Sound</div>
+                        <div class="letter-display">${escapeHtml(lesson.letterTile || '')}</div>
+                        <div class="decoration">✦ ✦ ✦</div>
+                    </div>`;
+                }
+
+                card.innerHTML = `
+                    <div class="title">${escapeHtml(lesson.mainTitle)}</div>
+                    <div class="header-row">
+                        <div class="lesson-badge"><div class="arrow"></div><div class="label">Lesson</div><div class="num">${lesson.lessonNumber}</div></div>
+                        <div class="intro-box"><p>${escapeHtml(lesson.introText || '')}</p></div>
+                    </div>
+                    ${hero}
+                    <div class="section-header"><div class="circle">1</div><div class="label-box">Look and say aloud</div></div>`;
+                card.appendChild(createWordGrid(flattenWords(act.words || [])));
+                const pn = document.createElement('div');
+                pn.className = 'page-number';
+                pn.textContent = pageNum;
+                card.appendChild(pn);
+                page.appendChild(card);
+                return page;
+            }
+
+            /* buildDecodablePage removed */
+
+
+            /* buildTraceWritePage removed */
+
+
+            /* buildBlankPracticePage removed */
+
+
+            function buildWordSortPage(lesson, pageNum) {
+                const act = lesson.activities.wordSort;
+                const page = document.createElement('div');
+                page.className = 'page';
+                page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
+                const card = document.createElement('div');
+                card.className = 'card';
+                const n = Math.min(9, Math.max(2, act.columnCount || 2));
+                const labels = act.columnLabels || [];
+
+                // count-1 / count-2 special sizing; otherwise default 3-per-row flex
+                // Incomplete last rows center automatically via justify-content: center
+                let gridClass = 'count-' + n;
+                if (n >= 3) gridClass = 'count-3'; // base 3-per-row; last partial row centers
+
+                // For exact 2 we want half-width boxes; for 1 full; for 3+ use 33%
+                // When n is 4,5,6,7,8,9 the last row (1 or 2 items) will center as a group
+                if (n === 2) gridClass = 'count-2';
+                else if (n === 1) gridClass = 'count-1';
+                else gridClass = ''; // default 3-per-row flex
+
+                let colsHtml = '';
+                for (let i = 0; i < n; i++) {
+                    // Only force full-width when a single item sits alone on the last row
+                    // (e.g. n=4 → last item, n=7 → last item). With flex + center this
+                    // still looks good, but full-width makes a single leftover box larger.
+                    const rem = n % 3;
+                    const isLastRowSingle = (rem === 1) && (i === n - 1) && n > 3;
+                    const fullClass = isLastRowSingle ? ' full-width' : '';
+                    colsHtml += `<div class="sort-col${fullClass}"><div class="col-label">${escapeHtml(labels[i] || ('Column ' + (i + 1)))}</div></div>`;
+                }
+
+                card.innerHTML = `
+                    <div class="title">${escapeHtml(lesson.mainTitle)}</div>
+                    <div class="section-header"><div class="circle">↕</div><div class="label-box">Word Sort</div></div>
+                    <div class="instructions">Sort the words into the correct columns.</div>
+                    <div class="sort-words">${(act.words || []).map(w => `<span>${escapeHtml(w)}</span>`).join('')}</div>
+                    <div class="sort-grid ${gridClass}">${colsHtml}</div>`;
+                const pn = document.createElement('div');
+                pn.className = 'page-number';
+                pn.textContent = pageNum;
+                card.appendChild(pn);
+                page.appendChild(card);
+                return page;
+            }
+
+            /* buildSentenceWritePage removed */
+
+
+            function buildMatchPicturePage(lesson, pageNum) {
+                const act = lesson.activities.matchPicture;
+                const page = document.createElement('div');
+                page.className = 'page';
+                page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
+                const card = document.createElement('div');
+                card.className = 'card';
+                const count = Math.min(15, Math.max(1, act.imageCount || 4));
+                const images = (act.images || []).slice(0, count);
+                while (images.length < count) images.push('');
+
+                let gridClass = '';
+                if (count === 1) gridClass = 'count-1';
+                else if (count === 2) gridClass = 'count-2';
+                // 3+ → default 3-per-row, incomplete last row centers via flex
+
+                let itemsHtml = '';
+                for (let i = 0; i < count; i++) {
+                    const rem = count % 3;
+                    const isLastRowSingle = (rem === 1) && (i === count - 1) && count > 3;
+                    const fullClass = isLastRowSingle ? ' full-width' : '';
+                    const largeClass = (count === 1) ? ' large' : '';
+                    const img = images[i];
+                    const inner = img
+                        ? `<img src="${escapeHtml(img)}" alt="" />`
+                        : `<div class="ph">🖼️</div>`;
+                    itemsHtml += `<div class="match-item${fullClass}"><div class="match-square${largeClass}">${inner}</div></div>`;
+                }
+
+                card.innerHTML = `
+                    <div class="title">${escapeHtml(lesson.mainTitle)}</div>
+                    <div class="section-header"><div class="circle">🔗</div><div class="label-box">Match the Picture</div></div>
+                    <div class="instructions">Look at each picture carefully.</div>
+                    <div class="match-grid ${gridClass}">${itemsHtml}</div>`;
+                const pn = document.createElement('div');
+                pn.className = 'page-number';
+                pn.textContent = pageNum;
+                card.appendChild(pn);
+                page.appendChild(card);
+                return page;
+            }
+            function buildWordsMeaningPage(lesson, pageNum) {
+                const act = lesson.activities.wordsMeaning;
+                const page = document.createElement('div');
+                page.className = 'page';
+                page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
+                const card = document.createElement('div');
+                card.className = 'card';
+                const words = act.words || [];
+                const sentences = (act.sentences || []).slice(0, 12);
+
+                let rowsHtml = sentences.map((s, i) => `
+                    <div class="wm-row">
+                        <div class="wm-num">${i + 1}.</div>
+                        <div class="wm-sentence">${escapeHtml(s)}</div>
+                        <div class="wm-write-box"></div>
+                    </div>`).join('');
+
+                card.innerHTML = `
+                    <div class="title">${escapeHtml(lesson.mainTitle)}</div>
+                    <div class="section-header"><div class="circle">📖</div><div class="label-box">Words & Meaning</div></div>
+                    <div class="instructions">Read each description and write the matching word from the list above.</div>
+                    <div class="wm-word-grid">${words.map(w => `<span>${escapeHtml(w)}</span>`).join('')}</div>
+                    <div class="wm-sentence-list">${rowsHtml}</div>`;
+                const pn = document.createElement('div');
+                pn.className = 'page-number';
+                pn.textContent = pageNum;
+                card.appendChild(pn);
+                page.appendChild(card);
+                return page;
+            }
+
+
+            function buildTocPage(pageNum, entries) {
+                const page = document.createElement('div');
+                page.className = 'page';
+                page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
+                const card = document.createElement('div');
+                card.className = 'toc-card';
+                card.innerHTML = `<div class="toc-title">Table of Contents</div><ul class="toc-list">` +
+                    entries.map(e => `<li class="toc-item"><span class="toc-lesson-title">Lesson ${e.lessonNumber}: ${escapeHtml(e.mainTitle)}${e.letterTile ? ' — ' + escapeHtml(e.letterTile) : ''}</span><span class="toc-page-num">Page ${e.firstPage}</span></li>`).join('') +
+                    `</ul><div class="page-number">${pageNum}</div>`;
+                page.appendChild(card);
+                return page;
+            }
+            function buildSightWordsPage(pageNum, words) {
+                const page = document.createElement('div');
+                page.className = 'page';
+                page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `<div class="title">Sight Words Practice</div>
+                    <div class="section-header"><div class="circle">★</div><div class="label-box">Read and say each word</div></div>`;
+                card.appendChild(createWordGrid(words));
+                card.innerHTML += `<div class="page-number">${pageNum}</div>`;
+                page.appendChild(card);
+                return page;
+            }
+            function buildCoverPage() {
+                const page = document.createElement('div');
+                page.className = 'page';
+                page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
+                const card = document.createElement('div');
+                card.className = 'card cover-card';
+                card.innerHTML = `<div class="cover-text-block">
+                    <div class="cover-line"></div>
+                    <div class="cover-title">${escapeHtml(coverData.title)}</div>
+                    <div class="cover-subtitle">${escapeHtml(coverData.subtitle)}</div>
+                    <div class="cover-line"></div>
+                </div>`;
+                page.appendChild(card);
+                return page;
+            }
+
+            window.exportSinglePage = function (pageEl) {
+                const clone = pageEl.cloneNode(true);
+                clone.querySelector('.page-actions')?.remove();
+                const win = window.open('', '_blank');
+                const styles = document.querySelector('style').outerHTML;
+                win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Export</title><style>${styles}</style></head>
+                    <body style="padding:0;background:#fff;margin:0;"><div class="view-container" style="overflow:visible;">${clone.outerHTML}</div></body></html>`);
+                win.document.close();
+                win.focus();
+                setTimeout(() => win.print(), 400);
+            };
+            window.exportAllPages = function () {
+                if (!lessons.length && !sightWords.length) return showToast('No lessons or sight words.', 'warning');
+                const container = document.querySelector('.view-container').cloneNode(true);
+                container.querySelectorAll('.page-actions').forEach(el => el.remove());
+                const win = window.open('', '_blank');
+                const styles = document.querySelector('style').outerHTML;
+                win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>All Pages</title><style>${styles}</style></head>
+                    <body style="padding:0;background:#fff;margin:0;"><div class="view-container" style="overflow:visible;">${container.outerHTML}</div></body></html>`);
+                win.document.close();
+                win.focus();
+                setTimeout(() => win.print(), 400);
+            };
+
+            function countActiveActivities(lesson) {
+                const a = lesson.activities || {};
+                let n = 0;
+                if (a.lookAndSay?.active) n++;
+                if (a.wordSort?.active) n++;
+                if (a.matchPicture?.active) n++;
+                if (a.wordsMeaning?.active) n++;
+                return Math.max(n, 0);
+            }
+
+            function renderAllView() {
+                const container = document.getElementById('viewContainer');
+                container.innerHTML = '';
+                container.appendChild(buildCoverPage());
+                if (!lessons.length && !sightWords.length) return;
+
+                // Lessons with every activity toggled off produce zero pages, so they'd point
+                // the TOC at a page number that actually belongs to the next lesson. Build the
+                // TOC entry list first (skipping those), then size the TOC section from it —
+                // everything downstream (sight words, lesson pages) is numbered off that.
+                const swPages = (includeSightWords && sightWords.length) ? Math.ceil(sightWords.length / MAX_SIGHT_WORDS_PER_PAGE) : 0;
+                const activityCounts = lessons.map(countActiveActivities);
+                const lessonsWithPages = lessons.filter((l, i) => activityCounts[i] > 0).length;
+                const tocPages = lessonsWithPages ? Math.ceil(lessonsWithPages / MAX_TOC_PER_PAGE) : 0;
+                const lessonStart = tocPages + swPages + 1;
+
+                let running = lessonStart;
+                const tocEntries = [];
+                lessons.forEach((l, i) => {
+                    const activityCount = activityCounts[i];
+                    if (activityCount > 0) {
+                        tocEntries.push({ lessonNumber: l.lessonNumber, mainTitle: l.mainTitle, letterTile: l.letterTile, firstPage: running });
+                    }
+                    running += activityCount;
+                });
+                for (let p = 0; p < tocPages; p++) {
+                    container.appendChild(buildTocPage(p + 1, tocEntries.slice(p * MAX_TOC_PER_PAGE, (p + 1) * MAX_TOC_PER_PAGE)));
+                }
+                let pageNum = tocPages + 1;
+                for (let p = 0; p < swPages; p++) {
+                    const slice = sightWords.slice(p * MAX_SIGHT_WORDS_PER_PAGE, (p + 1) * MAX_SIGHT_WORDS_PER_PAGE);
+                    container.appendChild(buildSightWordsPage(pageNum++, slice));
+                }
+                pageNum = lessonStart;
+                lessons.forEach(l => {
+                    const a = l.activities || {};
+                    if (a.lookAndSay?.active) container.appendChild(buildLookAndSayPage(l, pageNum++));
+                    if (a.wordSort?.active) container.appendChild(buildWordSortPage(l, pageNum++));
+                    if (a.matchPicture?.active) container.appendChild(buildMatchPicturePage(l, pageNum++));
+                    if (a.wordsMeaning?.active) container.appendChild(buildWordsMeaningPage(l, pageNum++));
+                });
+            }
+
+            // ---------- EDIT ----------
+            function getFormData() {
+                const wordsRaw = document.getElementById('fWords').value;
+                const wordsArr = wordsRaw.split(',').map(s => s.trim()).filter(Boolean);
+                const chunked = [];
+                for (let i = 0; i < wordsArr.length; i += 4) chunked.push(wordsArr.slice(i, i + 4));
+
+                const showImage = document.getElementById('fShowImage').checked;
+
+                // Word Sort
+                const colCount = parseInt(document.getElementById('fSortCols')?.value) || 2;
+                const labels = [];
+                for (let i = 0; i < 9; i++) {
+                    labels.push(document.getElementById('fSortLabel' + i)?.value?.trim() || ('Column ' + (i + 1)));
+                }
+
+                // Match Picture – images only
+                const imageCount = parseInt(document.getElementById('fImageCount')?.value) || 4;
+                const images = [];
+                for (let i = 0; i < 15; i++) {
+                    images.push(document.getElementById('fMatchImg' + i)?.value || '');
+                }
+
+                // Words & Meaning
+                const wmWords = (document.getElementById('fWmWords')?.value || '').split(',').map(s => s.trim()).filter(Boolean);
+                const wmSentences = (document.getElementById('fWmSentences')?.value || '').split('\n').map(s => s.trim()).filter(Boolean).slice(0, 12);
+
+                return {
+                    mainTitle: document.getElementById('fMainTitle').value.trim(),
+                    lessonNumber: parseInt(document.getElementById('fLessonNumber').value) || 0,
+                    letterTile: document.getElementById('fLetterTile').value.trim(),
+                    introText: document.getElementById('fIntroText').value.trim(),
+                    showImage,
+                    imagePath: showImage ? (document.getElementById('fImagePath').value || '') : '',
+                    imageCaption: showImage ? document.getElementById('fImageCaption').value.trim() : '',
+                    activities: {
+                        lookAndSay: {
+                            active: document.getElementById('actLook').checked,
+                            words: chunked
+                        },
+                        wordSort: {
+                            active: document.getElementById('actSort').checked,
+                            columnCount: colCount,
+                            columnLabels: labels.slice(0, colCount),
+                            words: document.getElementById('fSortWords').value.split(',').map(s => s.trim()).filter(Boolean)
+                        },
+                        matchPicture: {
+                            active: document.getElementById('actMatch').checked,
+                            imageCount,
+                            images: images.slice(0, imageCount)
+                        },
+                        wordsMeaning: {
+                            active: document.getElementById('actWm').checked,
+                            words: wmWords,
+                            sentences: wmSentences
+                        }
+                    }
+                };
+            }
+
+            function setActivityOpen(id, isOn) {
+                const card = document.getElementById('card-' + id);
+                const badge = document.getElementById('badge-' + id);
+                if (card) card.classList.toggle('open', isOn);
+                if (badge) {
+                    badge.textContent = isOn ? 'ON' : 'OFF';
+                    badge.className = 'toggle-badge ' + (isOn ? 'on' : 'off');
+                }
+            }
+
+            window.toggleActivity = function (id) {
+                const map = { look: 'Look', sort: 'Sort', match: 'Match', wm: 'Wm' };
+                const el = document.getElementById('act' + (map[id] || id));
+                if (!el) return;
+                setActivityOpen(id, el.checked);
+            };
+
+            function fillForm(lesson) {
+                document.getElementById('fMainTitle').value = lesson.mainTitle || '';
+                document.getElementById('fLessonNumber').value = lesson.lessonNumber || '';
+                document.getElementById('fLetterTile').value = lesson.letterTile || '';
+                document.getElementById('fIntroText').value = lesson.introText || '';
+
+                document.getElementById('fShowImage').checked = !!lesson.showImage;
+                document.getElementById('imageFields').style.display = lesson.showImage ? 'block' : 'none';
+                document.getElementById('fImageCaption').value = lesson.imageCaption || '';
+                document.getElementById('fImagePath').value = lesson.imagePath || '';
+                const img = document.getElementById('imagePreview');
+                const ph = document.getElementById('imagePreviewPlaceholder');
+                if (lesson.imagePath) { img.src = lesson.imagePath; img.style.display = 'block'; ph.style.display = 'none'; }
+                else { img.src = ''; img.style.display = 'none'; ph.style.display = 'flex'; }
+
+                const a = lesson.activities || makeDefaultActivities();
+
+                // Look & Say
+                document.getElementById('actLook').checked = !!a.lookAndSay?.active;
+                setActivityOpen('look', !!a.lookAndSay?.active);
+                document.getElementById('fWords').value = flattenWords(a.lookAndSay?.words || []).join(', ');
+
+                // Word Sort
+                document.getElementById('actSort').checked = !!a.wordSort?.active;
+                setActivityOpen('sort', !!a.wordSort?.active);
+                document.getElementById('fSortCols').value = a.wordSort?.columnCount || 2;
+                document.getElementById('fSortWords').value = (a.wordSort?.words || []).join(', ');
+                const labels = a.wordSort?.columnLabels || [];
+                for (let i = 0; i < 9; i++) {
+                    const el = document.getElementById('fSortLabel' + i);
+                    if (el) el.value = labels[i] || '';
+                }
+                updateSortLabels();
+
+                // Match Picture
+                document.getElementById('actMatch').checked = !!a.matchPicture?.active;
+                setActivityOpen('match', !!a.matchPicture?.active);
+                const ic = a.matchPicture?.imageCount || 4;
+                document.getElementById('fImageCount').value = ic;
+                const images = a.matchPicture?.images || [];
+                for (let i = 0; i < 15; i++) {
+                    const path = images[i] || '';
+                    const hidden = document.getElementById('fMatchImg' + i);
+                    if (hidden) hidden.value = path;
+                    const pimg = document.getElementById('matchPreview' + i);
+                    const pph = document.getElementById('matchPh' + i);
+                    if (pimg && pph) {
+                        if (path) { pimg.src = path; pimg.style.display = 'block'; pph.style.display = 'none'; }
+                        else { pimg.src = ''; pimg.style.display = 'none'; pph.style.display = 'flex'; }
+                    }
+                }
+                updateMatchVisibility();
+
+                // Words & Meaning
+                document.getElementById('actWm').checked = !!a.wordsMeaning?.active;
+                setActivityOpen('wm', !!a.wordsMeaning?.active);
+                document.getElementById('fWmWords').value = (a.wordsMeaning?.words || []).join(', ');
+                document.getElementById('fWmSentences').value = (a.wordsMeaning?.sentences || []).join('\n');
+            }
+
+            function resetForm() {
+                editingId = null;
+                document.getElementById('formTitle').textContent = '➕ Add New Lesson';
+                document.getElementById('fMainTitle').value = '';
+                document.getElementById('fLessonNumber').value = Math.max(0, ...lessons.map(l => l.lessonNumber || 0)) + 1;
+                document.getElementById('fLetterTile').value = '';
+                document.getElementById('fIntroText').value = '';
+                document.getElementById('fShowImage').checked = false;
+                document.getElementById('imageFields').style.display = 'none';
+                document.getElementById('fImageCaption').value = '';
+                document.getElementById('fImagePath').value = '';
+                document.getElementById('imagePreview').style.display = 'none';
+                document.getElementById('imagePreviewPlaceholder').style.display = 'flex';
+                const mainFileInput = document.getElementById('mainImageFile');
+                if (mainFileInput) mainFileInput.value = '';
+
+                // Look & Say
+                document.getElementById('actLook').checked = true; setActivityOpen('look', true);
+                document.getElementById('fWords').value = '';
+
+                // Word Sort
+                document.getElementById('actSort').checked = false; setActivityOpen('sort', false);
+                document.getElementById('fSortCols').value = 2;
+                document.getElementById('fSortWords').value = '';
+                for (let i = 0; i < 9; i++) {
+                    const el = document.getElementById('fSortLabel' + i);
+                    if (el) el.value = '';
+                }
+                updateSortLabels();
+
+                // Match Picture
+                document.getElementById('actMatch').checked = false; setActivityOpen('match', false);
+                document.getElementById('fImageCount').value = 4;
+                for (let i = 0; i < 15; i++) {
+                    const hidden = document.getElementById('fMatchImg' + i);
+                    if (hidden) hidden.value = '';
+                    const pimg = document.getElementById('matchPreview' + i);
+                    const pph = document.getElementById('matchPh' + i);
+                    if (pimg) { pimg.src = ''; pimg.style.display = 'none'; }
+                    if (pph) pph.style.display = 'flex';
+                }
+                updateMatchVisibility();
+
+                // Words & Meaning
+                document.getElementById('actWm').checked = false; setActivityOpen('wm', false);
+                document.getElementById('fWmWords').value = '';
+                document.getElementById('fWmSentences').value = '';
+
+                document.getElementById('saveBtn').textContent = '💾 Save Lesson';
+                document.getElementById('cancelBtn').style.display = 'none';
+            }
+
+            window.toggleShowImage = function () { document.getElementById('imageFields').style.display = document.getElementById('fShowImage').checked ? 'block' : 'none'; };
+            /* updatePairVisibility removed */
+            window.updateSortLabels = function () {
+                const n = parseInt(document.getElementById('fSortCols').value) || 2;
+                for (let i = 0; i < 9; i++) {
+                    const g = document.getElementById('sortLabelGroup' + i);
+                    if (g) g.style.display = i < n ? 'block' : 'none';
+                }
+            };
+            window.updateMatchVisibility = function () {
+                const n = parseInt(document.getElementById('fImageCount').value) || 4;
+                for (let i = 0; i < 15; i++) {
+                    const row = document.getElementById('matchRow' + i);
+                    if (row) row.style.display = i < n ? 'grid' : 'none';
+                }
+            };
+
+
+            window.handleImageUpload = function (event, targetId) {
+                const file = event.target.files[0];
+                if (!file) return;
+                if (file.size > 2 * 1024 * 1024) return showToast('Image must be < 2MB.', 'error');
+                if (!file.type.startsWith('image/')) return showToast('Please select an image.', 'error');
+                const reader = new FileReader();
+                reader.onload = e => {
+                    const dataUrl = e.target.result;
+                    if (targetId === 'main') {
+                        document.getElementById('fImagePath').value = dataUrl;
+                        const img = document.getElementById('imagePreview'), ph = document.getElementById('imagePreviewPlaceholder');
+                        img.src = dataUrl; img.style.display = 'block'; ph.style.display = 'none';
+                    } else if (String(targetId).startsWith('match')) {
+                        const idx = parseInt(String(targetId).replace('match', ''));
+                        document.getElementById('fMatchImg' + idx).value = dataUrl;
+                        const img = document.getElementById('matchPreview' + idx), ph = document.getElementById('matchPh' + idx);
+                        img.src = dataUrl; img.style.display = 'block'; ph.style.display = 'none';
+                    } else {
+                        // legacy pair support (no longer used)
+                        const idx = targetId;
+                        const el = document.getElementById('fPairImg' + idx);
+                        if (el) el.value = dataUrl;
+                    }
+                    showToast('Image uploaded.', 'success');
+                };
+                reader.readAsDataURL(file);
+            };
+
+            window.editLesson = function (id) {
+                const lesson = lessons.find(l => l.id === id);
+                if (!lesson) return showToast('Lesson not found.', 'error');
+                editingId = id;
+                document.getElementById('formTitle').textContent = '✏️ Edit Lesson';
+                fillForm(lesson);
+                document.getElementById('saveBtn').textContent = '💾 Update Lesson';
+                document.getElementById('cancelBtn').style.display = 'inline-block';
+                document.querySelector('.form-section').scrollIntoView({ behavior: 'smooth' });
+            };
+            window.cancelEdit = function () { resetForm(); showToast('Edit cancelled.', 'info'); };
+            window.saveLesson = function () {
+                const data = getFormData();
+                if (!data.mainTitle || !data.lessonNumber || !data.letterTile || !data.introText) {
+                    return showToast('Main Title, Lesson Number, Letter Tile and Intro Text are required.', 'error');
+                }
+                if (data.activities.lookAndSay.active && flattenWords(data.activities.lookAndSay.words).length < 4) {
+                    return showToast('Look & Say needs at least 4 words.', 'error');
+                }
+                if (data.activities.wordSort.active && data.activities.wordSort.words.length < 2) {
+                    return showToast('Word Sort needs at least 2 words.', 'error');
+                }
+                if (data.activities.matchPicture.active && data.activities.matchPicture.imageCount < 1) {
+                    return showToast('Match the Picture needs at least 1 image slot.', 'error');
+                }
+                if (data.activities.wordsMeaning.active) {
+                    if ((data.activities.wordsMeaning.words || []).length < 1) return showToast('Words & Meaning needs at least 1 word.', 'error');
+                    if ((data.activities.wordsMeaning.sentences || []).length < 1) return showToast('Words & Meaning needs at least 1 sentence.', 'error');
+                }
+                const hasAnyActivity = ['lookAndSay', 'wordSort', 'matchPicture', 'wordsMeaning']
+                    .some(k => data.activities[k].active);
+                if (!hasAnyActivity) {
+                    return showToast('Turn on at least one activity for this lesson.', 'error');
+                }
+                if (lessons.find(l => l.lessonNumber === data.lessonNumber && l.id !== editingId)) {
+                    return showToast('Lesson number already exists.', 'error');
+                }
+                // (scramble no longer used – images only)
+
+                if (editingId) {
+                    const idx = lessons.findIndex(l => l.id === editingId);
+                    if (idx === -1) return showToast('Lesson not found.', 'error');
+                    lessons[idx] = { ...lessons[idx], ...data, id: editingId };
+                } else {
+                    lessons.push({ ...data, id: generateId() });
+                }
+                saveData();
+                resetForm();
+                refreshUI();
+                showToast('Lesson saved.', 'success');
+            };
+            window.deleteLesson = function (id) {
+                const lesson = lessons.find(l => l.id === id);
+                if (!lesson) return;
+                confirmDialog(`Delete Lesson ${lesson.lessonNumber}?`, () => {
+                    lessons = lessons.filter(l => l.id !== id);
+                    if (editingId === id) resetForm();
+                    saveData();
+                    refreshUI();
+                });
+            };
+            window.duplicateLesson = function (id) {
+                const lesson = lessons.find(l => l.id === id);
+                if (!lesson) return;
+                const copy = JSON.parse(JSON.stringify(lesson));
+                delete copy.id;
+                copy.lessonNumber = Math.max(...lessons.map(l => l.lessonNumber), 0) + 1;
+                copy.id = generateId();
+                lessons.push(copy);
+                saveData();
+                refreshUI();
+                showToast('Lesson duplicated.', 'success');
+            };
+            window.exportJSON = function () {
+                const blob = new Blob([JSON.stringify({ lessons, sightWords, coverData, includeSightWords }, null, 2)], { type: 'application/json' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = 'lessons.json';
+                a.click();
+            };
+            window.importJSON = function (input) {
+                const file = input.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = e => {
+                    try {
+                        const data = JSON.parse(e.target.result);
+                        if (!data || typeof data !== 'object') throw new Error('Invalid');
+                        confirmDialog('Replace all data with imported file?', () => {
+                            if (Array.isArray(data.lessons)) {
+                                // Assign temporary placeholder ids first so generateId() (used below,
+                                // via resyncNextId) can't hand out an id that collides with one already
+                                // present in the imported file.
+                                lessons = data.lessons.map((l, i) => {
+                                    if (!l.id) l.id = '__import' + i;
+                                    if (!l.activities) {
+                                        l.activities = makeDefaultActivities();
+                                        if (l.words) l.activities.lookAndSay.words = l.words;
+                                        if (l.sentences) l.activities.decodable.sentences = l.sentences;
+                                        if (l.fillBlanks) l.activities.decodable.fillBlanks = l.fillBlanks;
+                                    }
+                                    const def = makeDefaultActivities();
+                                    Object.keys(def).forEach(k => {
+                                        if (!l.activities[k]) l.activities[k] = def[k];
+                                    });
+                                    return l;
+                                });
+                                resyncNextId();
+                                lessons.forEach(l => {
+                                    if (String(l.id).startsWith('__import')) l.id = generateId();
+                                    ensureScramble(l);
+                                });
+                                resyncNextId();
+                            } else {
+                                lessons = JSON.parse(JSON.stringify(DEFAULT_LESSONS));
+                                lessons.forEach(ensureScramble);
+                                resyncNextId();
+                            }
+                            sightWords = Array.isArray(data.sightWords) ? [...data.sightWords] : [...DEFAULT_SIGHT_WORDS];
+                            coverData = data.coverData || { ...DEFAULT_COVER };
+                            includeSightWords = data.includeSightWords !== false;
+                            saveData();
+                            resetForm();
+                            const swToggle = document.getElementById('fIncludeSightWords');
+                            if (swToggle) swToggle.checked = includeSightWords;
+                            document.getElementById('fSightWords').value = sightWords.join(', ');
+                            refreshUI();
+                            showToast('Data imported.', 'success');
+                        });
+                    } catch (err) { showToast('Invalid JSON file.', 'error'); }
+                };
+                reader.readAsText(file);
+                input.value = '';
+            };
+            window.saveSightWords = function () {
+                sightWords = document.getElementById('fSightWords').value.split(',').map(s => s.trim()).filter(Boolean);
+                includeSightWords = document.getElementById('fIncludeSightWords').checked;
+                saveData();
+                refreshUI();
+                showToast('Sight words saved.', 'success');
+            };
+            window.toggleSightWords = function () {
+                includeSightWords = document.getElementById('fIncludeSightWords').checked;
+                saveData();
+                renderAllView();
+                updateCounts();
+                showToast(includeSightWords ? 'Sight Words pages enabled.' : 'Sight Words pages hidden.', 'info');
+            };
+            window.saveCover = function () {
+                coverData = {
+                    title: document.getElementById('coverTitleInput').value.trim() || DEFAULT_COVER.title,
+                    subtitle: document.getElementById('coverSubtitleInput').value.trim() || DEFAULT_COVER.subtitle
+                };
+                saveData();
+                renderAllView();
+                showToast('Cover updated.', 'success');
+            };
+
+            function refreshUI() {
+                renderEditList();
+                renderAllView();
+                updateCounts();
+            }
+            function renderEditList() {
+                const container = document.getElementById('lessonList');
+                const q = (window.searchQuery || '').toLowerCase();
+                const filtered = lessons.filter(l => {
+                    if (!q) return true;
+                    if (String(l.lessonNumber).includes(q) || (l.mainTitle || '').toLowerCase().includes(q)) return true;
+                    if ((l.letterTile || '').toLowerCase().includes(q) || (l.introText || '').toLowerCase().includes(q)) return true;
+                    return false;
+                });
+                container.innerHTML = filtered.length ? filtered.map(l => {
+                    const actCount = countActiveActivities(l);
+                    return `<div class="lesson-item" data-id="${l.id}">
+                        <div class="thumb">${l.showImage && l.imagePath ? `<img src="${escapeHtml(l.imagePath)}" style="width:100%;height:100%;object-fit:cover;border-radius:6px;" />` : '📄'}</div>
+                        <div class="info">
+                            <div class="title">Lesson ${l.lessonNumber} — ${escapeHtml(l.mainTitle)} ${l.letterTile ? '· ' + escapeHtml(l.letterTile) : ''}</div>
+                            <div class="sub">${actCount} activit${actCount === 1 ? 'y' : 'ies'} · ${escapeHtml((l.introText || '').slice(0, 60))}${(l.introText || '').length > 60 ? '…' : ''}</div>
+                        </div>
+                        <div class="actions">
+                            <button class="btn btn-primary btn-xs" onclick="editLesson('${l.id}')">✏️</button>
+                            <button class="btn btn-warning btn-xs" onclick="duplicateLesson('${l.id}')">📋</button>
+                            <button class="btn btn-danger btn-xs" onclick="deleteLesson('${l.id}')">🗑️</button>
+                        </div>
+                    </div>`;
+                }).join('') : '<div style="text-align:center;padding:40px;color:#6c757d;">No lessons found.</div>';
+                document.getElementById('listCount').textContent = filtered.length + ' / ' + lessons.length;
+                const sp = document.getElementById('sightWordsPreview');
+                if (sp) {
+                    sp.innerHTML = sightWords.length
+                        ? sightWords.map(w => `<span style="display:inline-block;margin:3px;padding:5px 10px;background:#E2571C;color:#fff;border-radius:8px;font-weight:600;font-size:13px;">${escapeHtml(w)}</span>`).join('')
+                        : '<span style="color:#6c757d;">No sight words yet.</span>';
+                }
+            }
+            function updateCounts() {
+                document.getElementById('lessonCount').textContent = lessons.length + ' lessons, ' + sightWords.length + ' sight words';
+                const activityCounts = lessons.map(countActiveActivities);
+                const lessonsWithPages = lessons.filter((l, i) => activityCounts[i] > 0).length;
+                const tocPages = lessonsWithPages ? Math.ceil(lessonsWithPages / MAX_TOC_PER_PAGE) : 0;
+                const swPages = (includeSightWords && sightWords.length) ? Math.ceil(sightWords.length / MAX_SIGHT_WORDS_PER_PAGE) : 0;
+                const lessonPages = activityCounts.reduce((s, n) => s + n, 0);
+                document.getElementById('viewInfo').textContent = `📄 ${lessons.length} lessons · ${1 + tocPages + swPages + lessonPages} pages`;
+            }
+            window.switchTab = function (tab) {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+                document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === tab + 'Panel'));
+                if (tab === 'edit') renderEditList();
+                if (tab === 'view') renderAllView();
+                updateCounts();
+            };
+
+            // Init UI
+            loadData();
+            document.getElementById('app').innerHTML = `
+                <div class="app-header"><h1>📚 Phonics Lesson Publisher</h1><span class="badge" id="lessonCount">0</span></div>
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="edit" onclick="switchTab('edit')">✏️ Edit</button>
+                    <button class="tab-btn" data-tab="view" onclick="switchTab('view')">👁️ View</button>
+                </div>
+                <div class="tab-panel active" id="editPanel">
+                    <div class="edit-layout">
+                        <div class="form-section">
+                            <h2 id="formTitle">➕ Add New Lesson</h2>
+                            <div class="form-group"><label>Main Title <span class="req">*</span></label><input id="fMainTitle" placeholder="e.g. SHORT VOWEL CVC WORDS"></div>
+                            <div class="form-group"><label>Lesson Number <span class="req">*</span></label><input type="number" id="fLessonNumber"></div>
+                            <div class="form-group"><label>Letter Tile <span class="req">*</span></label><input id="fLetterTile" placeholder="e.g. Aa"></div>
+                            <div class="form-group"><label>Intro Text <span class="req">*</span></label><textarea id="fIntroText" rows="3"></textarea></div>
+
+                            <div class="form-group" style="display:flex;align-items:center;gap:10px;">
+                                <label style="margin:0;display:flex;align-items:center;gap:8px;cursor:pointer;">
+                                    <input type="checkbox" id="fShowImage" onchange="toggleShowImage()" style="width:18px;height:18px;">
+                                    Show Image in Hero
+                                </label>
+                            </div>
+                            <div id="imageFields" style="display:none;padding:12px;background:#fff;border:2px solid #F5A623;border-radius:12px;margin-bottom:14px;">
+                                <div class="form-group"><label>Image Caption</label><input id="fImageCaption"></div>
+                                <div class="form-group"><label>Image</label>
+                                    <div class="image-upload-wrap">
+                                        <img id="imagePreview" class="preview" style="display:none;">
+                                        <div id="imagePreviewPlaceholder" class="preview-placeholder">🖼️</div>
+                                        <input type="file" id="mainImageFile" accept="image/*" onchange="handleImageUpload(event,'main')">
+                                        <input type="hidden" id="fImagePath">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="activity-card open" id="card-look">
+                                <div class="activity-header" onclick="document.getElementById('actLook').click()">
+                                    <div class="left"><span class="num">1</span> Look & Say</div>
+                                    <span id="badge-look" class="toggle-badge on">ON</span>
+                                </div>
+                                <div class="activity-body">
+                                    <label style="display:flex;align-items:center;gap:8px;margin-bottom:10px;cursor:pointer;">
+                                        <input type="checkbox" id="actLook" checked onchange="toggleActivity('look')" style="width:18px;height:18px;">
+                                        Include this activity
+                                    </label>
+                                    <div class="form-group"><label>Words (comma separated)</label><textarea id="fWords" rows="2" placeholder="bag, cat, mat, hat..."></textarea></div>
+                                </div>
+                            </div>
+
+                            <div class="activity-card" id="card-sort">
+                                <div class="activity-header" onclick="document.getElementById('actSort').click()">
+                                    <div class="left"><span class="num">2</span> Word Sort</div>
+                                    <span id="badge-sort" class="toggle-badge off">OFF</span>
+                                </div>
+                                <div class="activity-body">
+                                    <label style="display:flex;align-items:center;gap:8px;margin-bottom:10px;cursor:pointer;">
+                                        <input type="checkbox" id="actSort" onchange="toggleActivity('sort')" style="width:18px;height:18px;">
+                                        Include this activity
+                                    </label>
+                                    <div class="form-group"><label>Number of boxes (2–9)</label>
+                                        <select id="fSortCols" onchange="updateSortLabels()">
+                                            <option value="2">2 boxes</option>
+                                            <option value="3">3 boxes</option>
+                                            <option value="4">4 boxes</option>
+                                            <option value="5">5 boxes</option>
+                                            <option value="6">6 boxes</option>
+                                            <option value="7">7 boxes</option>
+                                            <option value="8">8 boxes</option>
+                                            <option value="9">9 boxes</option>
+                                        </select>
+                                    </div>
+                                    ${[0,1,2,3,4,5,6,7,8].map(i => `
+                                    <div id="sortLabelGroup${i}" class="form-group" style="${i < 2 ? '' : 'display:none;'}">
+                                        <label>Box ${i+1} label</label>
+                                        <input id="fSortLabel${i}" placeholder="Column ${i+1}">
+                                    </div>`).join('')}
+                                    <div class="form-group"><label>Words to sort (comma separated)</label><textarea id="fSortWords" rows="2"></textarea></div>
+                                </div>
+                            </div>
+
+                            <div class="activity-card" id="card-match">
+                                <div class="activity-header" onclick="document.getElementById('actMatch').click()">
+                                    <div class="left"><span class="num">3</span> Match the Picture</div>
+                                    <span id="badge-match" class="toggle-badge off">OFF</span>
+                                </div>
+                                <div class="activity-body">
+                                    <label style="display:flex;align-items:center;gap:8px;margin-bottom:10px;cursor:pointer;">
+                                        <input type="checkbox" id="actMatch" onchange="toggleActivity('match')" style="width:18px;height:18px;">
+                                        Include this activity
+                                    </label>
+                                    <div class="form-group"><label>Number of images (1–15)</label>
+                                        <select id="fImageCount" onchange="updateMatchVisibility()">
+                                            ${[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15].map(n => `<option value="${n}" ${n===4?'selected':''}>${n}</option>`).join('')}
+                                        </select>
+                                    </div>
+                                    ${[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14].map(i => `
+                                    <div class="pair-row" id="matchRow${i}" style="${i < 4 ? '' : 'display:none;'}">
+                                        <div>
+                                            <img id="matchPreview${i}" class="preview" style="display:none;width:64px;height:64px;">
+                                            <div id="matchPh${i}" class="ph">🖼️</div>
+                                        </div>
+                                        <div>
+                                            <input type="file" accept="image/*" onchange="handleImageUpload(event,'match${i}')" style="font-size:12px;">
+                                            <input type="hidden" id="fMatchImg${i}">
+                                        </div>
+                                    </div>`).join('')}
+                                </div>
+                            </div>
+
+                            <div class="activity-card" id="card-wm">
+                                <div class="activity-header" onclick="document.getElementById('actWm').click()">
+                                    <div class="left"><span class="num">4</span> Words & Meaning</div>
+                                    <span id="badge-wm" class="toggle-badge off">OFF</span>
+                                </div>
+                                <div class="activity-body">
+                                    <label style="display:flex;align-items:center;gap:8px;margin-bottom:10px;cursor:pointer;">
+                                        <input type="checkbox" id="actWm" onchange="toggleActivity('wm')" style="width:18px;height:18px;">
+                                        Include this activity
+                                    </label>
+                                    <div class="form-group"><label>Word list (comma separated)</label><textarea id="fWmWords" rows="2" placeholder="bag, cat, hat, rat..."></textarea></div>
+                                    <div class="form-group"><label>Descriptive sentences (one per line, max 12)</label><textarea id="fWmSentences" rows="6" placeholder="Something you carry things in.\nA soft pet that says meow.\n..."></textarea></div>
+                                </div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button class="btn btn-primary" id="saveBtn" onclick="saveLesson()">💾 Save Lesson</button>
+                                <button class="btn btn-outline" id="cancelBtn" onclick="cancelEdit()" style="display:none">Cancel</button>
+                            </div>
+                        </div>
+
+                        <div class="list-section">
+                            <div style="margin-bottom:20px;border-bottom:2px solid #e9ecef;padding-bottom:20px;">
+                                <h3>📘 Cover Page</h3>
+                                <div class="form-group"><label>Cover Title</label><input id="coverTitleInput" value="${escapeHtml(coverData.title)}"></div>
+                                <div class="form-group"><label>Cover Subtitle</label><input id="coverSubtitleInput" value="${escapeHtml(coverData.subtitle)}"></div>
+                                <button class="btn btn-success btn-sm" onclick="saveCover()">💾 Save Cover</button>
+                            </div>
+                            <h2>📖 All Lessons</h2>
+                            <div class="list-toolbar">
+                                <input class="search-box" placeholder="🔍 Search..." oninput="window.searchQuery=this.value;window.renderEditList()">
+                                <span class="count" id="listCount">0/0</span>
+                                <button class="btn btn-success btn-sm" onclick="exportJSON()">📤 Export</button>
+                                <button class="btn btn-outline btn-sm" onclick="document.getElementById('importFile').click()">📥 Import</button>
+                                <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(this)">
+                            </div>
+                            <div class="lesson-list" id="lessonList"></div>
+                            <div style="margin-top:28px;border-top:2px solid #e9ecef;padding-top:20px;">
+                                <h3>📝 Sight Words</h3>
+                                <label style="display:flex;align-items:center;gap:8px;margin-bottom:12px;cursor:pointer;">
+                                    <input type="checkbox" id="fIncludeSightWords" checked onchange="toggleSightWords()" style="width:18px;height:18px;">
+                                    <span style="font-weight:700;font-size:14px;">Include Sight Words pages</span>
+                                </label>
+                                <div class="form-group"><textarea id="fSightWords" rows="3"></textarea></div>
+                                <button class="btn btn-success btn-sm" onclick="saveSightWords()">💾 Save Sight Words</button>
+                                <div style="margin-top:10px;"><strong>Preview:</strong><div id="sightWordsPreview" style="margin-top:6px;"></div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-panel" id="viewPanel">
+                    <div class="view-toolbar">
+                        <span class="info" id="viewInfo">0 lessons · 0 pages</span>
+                        <button class="btn btn-success" onclick="exportAllPages()">⬇ Export All</button>
+                    </div>
+                    <div class="view-container" id="viewContainer"></div>
+                </div>`;
+
+            document.getElementById('fSightWords').value = sightWords.join(', ');
+            const swToggle = document.getElementById('fIncludeSightWords');
+            if (swToggle) swToggle.checked = includeSightWords;
+            resetForm();
+            renderEditList();
+            renderAllView();
+            updateCounts();
+            window.renderEditList = renderEditList;
+        })();
+    </script>
+</body>
+</html>
