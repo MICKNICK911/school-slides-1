@@ -508,6 +508,7 @@
             let lessons = [];
             let sightWords = [];
             let coverData = { ...DEFAULT_COVER };
+            let includeSightWords = true;
             let editingId = null;
             let nextId = 1;
             window.searchQuery = '';
@@ -521,6 +522,7 @@
                             lessons = parsed.lessons || [];
                             sightWords = parsed.sightWords || [...DEFAULT_SIGHT_WORDS];
                             coverData = parsed.coverData || { ...DEFAULT_COVER };
+                            includeSightWords = parsed.includeSightWords !== false;
                         }
                         if (lessons.length) {
                             let maxId = 0;
@@ -558,7 +560,7 @@
             }
             function saveData() {
                 try {
-                    localStorage.setItem(STORAGE_KEY, JSON.stringify({ lessons, sightWords, coverData }));
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify({ lessons, sightWords, coverData, includeSightWords }));
                 } catch (e) {
                     showToast('Storage full – delete some lessons.', 'error');
                 }
@@ -873,7 +875,7 @@
                 // the TOC at a page number that actually belongs to the next lesson. Build the
                 // TOC entry list first (skipping those), then size the TOC section from it —
                 // everything downstream (sight words, lesson pages) is numbered off that.
-                const swPages = Math.ceil(sightWords.length / MAX_SIGHT_WORDS_PER_PAGE);
+                const swPages = (includeSightWords && sightWords.length) ? Math.ceil(sightWords.length / MAX_SIGHT_WORDS_PER_PAGE) : 0;
                 const activityCounts = lessons.map(countActiveActivities);
                 const lessonsWithPages = lessons.filter((l, i) => activityCounts[i] > 0).length;
                 const tocPages = lessonsWithPages ? Math.ceil(lessonsWithPages / MAX_TOC_PER_PAGE) : 0;
@@ -1215,7 +1217,7 @@
                 showToast('Lesson duplicated.', 'success');
             };
             window.exportJSON = function () {
-                const blob = new Blob([JSON.stringify({ lessons, sightWords, coverData }, null, 2)], { type: 'application/json' });
+                const blob = new Blob([JSON.stringify({ lessons, sightWords, coverData, includeSightWords }, null, 2)], { type: 'application/json' });
                 const a = document.createElement('a');
                 a.href = URL.createObjectURL(blob);
                 a.download = 'lessons.json';
@@ -1261,8 +1263,12 @@
                             }
                             sightWords = Array.isArray(data.sightWords) ? [...data.sightWords] : [...DEFAULT_SIGHT_WORDS];
                             coverData = data.coverData || { ...DEFAULT_COVER };
+                            includeSightWords = data.includeSightWords !== false;
                             saveData();
                             resetForm();
+                            const swToggle = document.getElementById('fIncludeSightWords');
+                            if (swToggle) swToggle.checked = includeSightWords;
+                            document.getElementById('fSightWords').value = sightWords.join(', ');
                             refreshUI();
                             showToast('Data imported.', 'success');
                         });
@@ -1273,9 +1279,17 @@
             };
             window.saveSightWords = function () {
                 sightWords = document.getElementById('fSightWords').value.split(',').map(s => s.trim()).filter(Boolean);
+                includeSightWords = document.getElementById('fIncludeSightWords').checked;
                 saveData();
                 refreshUI();
                 showToast('Sight words saved.', 'success');
+            };
+            window.toggleSightWords = function () {
+                includeSightWords = document.getElementById('fIncludeSightWords').checked;
+                saveData();
+                renderAllView();
+                updateCounts();
+                showToast(includeSightWords ? 'Sight Words pages enabled.' : 'Sight Words pages hidden.', 'info');
             };
             window.saveCover = function () {
                 coverData = {
@@ -1329,7 +1343,7 @@
                 const activityCounts = lessons.map(countActiveActivities);
                 const lessonsWithPages = lessons.filter((l, i) => activityCounts[i] > 0).length;
                 const tocPages = lessonsWithPages ? Math.ceil(lessonsWithPages / MAX_TOC_PER_PAGE) : 0;
-                const swPages = Math.ceil(sightWords.length / MAX_SIGHT_WORDS_PER_PAGE);
+                const swPages = (includeSightWords && sightWords.length) ? Math.ceil(sightWords.length / MAX_SIGHT_WORDS_PER_PAGE) : 0;
                 const lessonPages = activityCounts.reduce((s, n) => s + n, 0);
                 document.getElementById('viewInfo').textContent = `📄 ${lessons.length} lessons · ${1 + tocPages + swPages + lessonPages} pages`;
             }
@@ -1489,6 +1503,10 @@
                             <div class="lesson-list" id="lessonList"></div>
                             <div style="margin-top:28px;border-top:2px solid #e9ecef;padding-top:20px;">
                                 <h3>📝 Sight Words</h3>
+                                <label style="display:flex;align-items:center;gap:8px;margin-bottom:12px;cursor:pointer;">
+                                    <input type="checkbox" id="fIncludeSightWords" checked onchange="toggleSightWords()" style="width:18px;height:18px;">
+                                    <span style="font-weight:700;font-size:14px;">Include Sight Words pages</span>
+                                </label>
                                 <div class="form-group"><textarea id="fSightWords" rows="3"></textarea></div>
                                 <button class="btn btn-success btn-sm" onclick="saveSightWords()">💾 Save Sight Words</button>
                                 <div style="margin-top:10px;"><strong>Preview:</strong><div id="sightWordsPreview" style="margin-top:6px;"></div></div>
@@ -1505,6 +1523,8 @@
                 </div>`;
 
             document.getElementById('fSightWords').value = sightWords.join(', ');
+            const swToggle = document.getElementById('fIncludeSightWords');
+            if (swToggle) swToggle.checked = includeSightWords;
             resetForm();
             renderEditList();
             renderAllView();
