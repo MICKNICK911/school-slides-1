@@ -10,7 +10,6 @@
             --surface: #ffffff;
             --surface-alt: #f8fafc;
             --border: #e2e8f0;
-            --border-light: #f1f5f9;
             --text: #1e293b;
             --text-secondary: #64748b;
             --text-muted: #94a3b8;
@@ -18,8 +17,6 @@
             --accent-hover: #d97706;
             --accent-soft: #fef3c7;
             --accent-ring: rgba(245, 158, 11, 0.25);
-            --primary: #1e293b;
-            --primary-light: #334155;
             --red: #dc2626;
             --red-hover: #b91c1c;
             --red-soft: #fef2f2;
@@ -35,12 +32,12 @@
             --radius-lg: 16px;
             --radius-xl: 20px;
             --radius-2xl: 24px;
-            --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
-            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
-            --shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 2px 4px rgba(0, 0, 0, 0.04);
-            --shadow-md: 0 10px 25px rgba(0, 0, 0, 0.07), 0 4px 10px rgba(0, 0, 0, 0.04);
-            --shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.10), 0 8px 20px rgba(0, 0, 0, 0.05);
-            --shadow-xl: 0 30px 70px rgba(0, 0, 0, 0.12), 0 12px 30px rgba(0, 0, 0, 0.06);
+            --shadow-xs: 0 1px 2px rgba(0,0,0,0.04);
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+            --shadow: 0 4px 6px rgba(0,0,0,0.05), 0 2px 4px rgba(0,0,0,0.04);
+            --shadow-md: 0 10px 25px rgba(0,0,0,0.07), 0 4px 10px rgba(0,0,0,0.04);
+            --shadow-lg: 0 20px 50px rgba(0,0,0,0.10), 0 8px 20px rgba(0,0,0,0.05);
+            --shadow-xl: 0 30px 70px rgba(0,0,0,0.12), 0 12px 30px rgba(0,0,0,0.06);
             --font: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
             --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
@@ -273,7 +270,7 @@
         (function() {
             const STORAGE_KEY = 'decodable_readers_v3';
             const MAX_IMAGE_SIZE = 2 * 1024 * 1024;
-            const MAX_TOC_PER_PAGE = 22;
+            const MAX_TOC_PER_PAGE = 20; // reduced from 22 to 20
 
             function escapeHtml(str) { return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
             function showToast(msg, type='info') {
@@ -319,7 +316,7 @@
             }];
 
             let lessons = [], editingId = null, nextId = 1;
-            let bookMeta = { title: 'Decodable Readers', subtitle: 'Grade 1' };
+            let bookMeta = { title: 'Decodable Readers', subtitle: 'Grade 1', showToc: true };
             window.searchQuery = '';
 
             function loadData() {
@@ -338,7 +335,8 @@
                             comprehension: (Array.isArray(l.comprehension) ? l.comprehension : []).map(q => ({ question: String(q.question || ''), options: Array.isArray(q.options) ? q.options.slice(0,3).map(String) : ['','',''] })).filter(q => q.question.trim() !== '')
                         })).filter(l => l.id) : [];
                         if (lessons.length === 0) lessons = JSON.parse(JSON.stringify(DEFAULT_LESSONS));
-                        bookMeta = parsed.bookMeta || { title: 'Decodable Readers', subtitle: 'Grade 1' };
+                        bookMeta = parsed.bookMeta || { title: 'Decodable Readers', subtitle: 'Grade 1', showToc: true };
+                        bookMeta.showToc = (typeof bookMeta.showToc === 'boolean') ? bookMeta.showToc : true;
                         renumberByOrder(lessons);
                         nextId = Math.max(...lessons.map(l => parseInt(l.id.replace('r','')) || 0), 0) + 1;
                         saveData();
@@ -346,7 +344,7 @@
                     }
                 } catch(e) {}
                 lessons = JSON.parse(JSON.stringify(DEFAULT_LESSONS));
-                bookMeta = { title: 'Decodable Readers', subtitle: 'Grade 1' };
+                bookMeta = { title: 'Decodable Readers', subtitle: 'Grade 1', showToc: true };
                 nextId = lessons.length + 1;
                 renumberByOrder(lessons);
                 saveData();
@@ -436,17 +434,20 @@
                 if (!lessons.length) return;
                 const activeLessons = lessons.filter(l => l.title.trim());
                 const lessonPagesEach = 2;
-                const tocPageCount = activeLessons.length ? Math.ceil(activeLessons.length / MAX_TOC_PER_PAGE) : 0;
-                const firstLessonPage = 1 + tocPageCount + 1; // cover(1) + toc pages
+                // TOC pages only if bookMeta.showToc is true and there are active lessons
+                const tocPageCount = (bookMeta.showToc && activeLessons.length) ? Math.ceil(activeLessons.length / MAX_TOC_PER_PAGE) : 0;
+                const firstLessonPage = 1 + tocPageCount + 1; // cover page (1) + toc pages
                 const tocEntries = [];
                 let runningPage = firstLessonPage;
                 activeLessons.forEach((l, idx) => {
                     tocEntries.push({ lessonNumber: l.lessonNumber, title: l.title, firstPage: runningPage });
                     runningPage += lessonPagesEach;
                 });
-                for (let p = 0; p < tocPageCount; p++) {
-                    const slice = tocEntries.slice(p * MAX_TOC_PER_PAGE, (p + 1) * MAX_TOC_PER_PAGE);
-                    container.appendChild(buildTocPage(p + 2, slice)); // pages start at 2
+                if (bookMeta.showToc) {
+                    for (let p = 0; p < tocPageCount; p++) {
+                        const slice = tocEntries.slice(p * MAX_TOC_PER_PAGE, (p + 1) * MAX_TOC_PER_PAGE);
+                        container.appendChild(buildTocPage(p + 2, slice)); // pages start at 2
+                    }
                 }
                 let pageNum = firstLessonPage;
                 activeLessons.forEach(l => {
@@ -624,7 +625,8 @@
                         if (validated.length === 0) throw new Error('No valid lessons');
                         confirmDialog('Replace all lessons with imported data?', () => {
                             lessons = validated;
-                            bookMeta = data.bookMeta || { title: 'Decodable Readers', subtitle: 'Grade 1' };
+                            bookMeta = data.bookMeta || { title: 'Decodable Readers', subtitle: 'Grade 1', showToc: true };
+                            bookMeta.showToc = (typeof bookMeta.showToc === 'boolean') ? bookMeta.showToc : true;
                             renumberByOrder(lessons);
                             nextId = Math.max(...lessons.map(l => parseInt(l.id.replace('r','')) || 0), 0) + 1;
                             saveData(); resetForm(); refreshUI(); showToast('Imported successfully.', 'success');
@@ -634,12 +636,16 @@
                 reader.readAsText(file);
                 input.value = '';
             };
+
             window.saveBookMeta = function() {
                 bookMeta.title = document.getElementById('coverTitleInput').value.trim() || 'Decodable Readers';
                 bookMeta.subtitle = document.getElementById('coverSubtitleInput').value.trim() || 'Grade 1';
+                bookMeta.showToc = document.getElementById('tocToggle').checked;
                 saveData();
                 renderAllView();
-                showToast('Cover saved.', 'success');
+                renderTocPreview();
+                updateCounts();
+                showToast('Cover & TOC settings saved.', 'success');
             };
 
             function renderEditList() {
@@ -665,12 +671,36 @@
             function updateCounts() {
                 document.getElementById('lessonCount').textContent = lessons.length + ' lessons';
                 const activeLessons = lessons.filter(l => l.title.trim());
-                const tocPages = activeLessons.length ? Math.ceil(activeLessons.length / MAX_TOC_PER_PAGE) : 0;
+                const tocPages = (bookMeta.showToc && activeLessons.length) ? Math.ceil(activeLessons.length / MAX_TOC_PER_PAGE) : 0;
                 const lessonPages = activeLessons.length * 2;
                 const totalPages = 1 + tocPages + lessonPages;
                 document.getElementById('viewInfo').textContent = `📄 ${lessons.length} lessons · ${totalPages} pages`;
             }
-            function refreshUI() { renderEditList(); renderAllView(); updateCounts(); }
+            function refreshUI() { renderEditList(); renderAllView(); updateCounts(); renderTocPreview(); }
+
+            function renderTocPreview() {
+                const tocPreview = document.getElementById('tocPreview');
+                if (!tocPreview) return;
+                if (!bookMeta.showToc) {
+                    tocPreview.innerHTML = '<p style="color:#64748b; font-style:italic;">Table of Contents is disabled.</p>';
+                    return;
+                }
+                const activeLessons = lessons.filter(l => l.title.trim());
+                if (!activeLessons.length) {
+                    tocPreview.innerHTML = '<p style="color:#64748b;">No active lessons.</p>';
+                    return;
+                }
+                const tocPageCount = Math.ceil(activeLessons.length / MAX_TOC_PER_PAGE);
+                const firstLessonPage = 1 + tocPageCount + 1;
+                let runningPage = firstLessonPage;
+                let html = '<ul style="list-style:none;padding:0;margin:0;">';
+                activeLessons.forEach(l => {
+                    html += `<li style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #e2e8f0;"><span>Lesson ${l.lessonNumber}: ${escapeHtml(l.title)}</span><span style="color:#b91c1c;font-weight:700;">Page ${runningPage}</span></li>`;
+                    runningPage += 2;
+                });
+                html += '</ul>';
+                tocPreview.innerHTML = html;
+            }
 
             window.switchTab = function(tab) {
                 document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
@@ -680,6 +710,8 @@
                 if (tab === 'book') {
                     document.getElementById('coverTitleInput').value = bookMeta.title;
                     document.getElementById('coverSubtitleInput').value = bookMeta.subtitle;
+                    document.getElementById('tocToggle').checked = bookMeta.showToc;
+                    renderTocPreview();
                 }
                 updateCounts();
             };
@@ -746,7 +778,12 @@
                         <div class="form-section" style="position:static;max-height:none;">
                             <div class="form-group"><label>Cover Title</label><input id="coverTitleInput" value="${escapeHtml(bookMeta.title)}"></div>
                             <div class="form-group"><label>Cover Subtitle</label><input id="coverSubtitleInput" value="${escapeHtml(bookMeta.subtitle)}"></div>
-                            <button class="btn btn-primary" onclick="saveBookMeta()">💾 Save Cover</button>
+                            <div class="form-group" style="display:flex;align-items:center;gap:12px;margin-top:16px;">
+                                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600;font-size:14px;">
+                                    <input type="checkbox" id="tocToggle" onchange="bookMeta.showToc=this.checked;saveBookMeta()" style="width:18px;height:18px;accent-color:#f59e0b;"> Include Table of Contents
+                                </label>
+                            </div>
+                            <button class="btn btn-primary" onclick="saveBookMeta()">💾 Save Cover & TOC Settings</button>
                         </div>
                         <div style="margin-top:24px;">
                             <h3 style="margin-bottom:12px;">📋 Table of Contents Preview</h3>
@@ -766,26 +803,8 @@
             renderEditList();
             renderAllView();
             updateCounts();
-            function renderTocPreview() {
-                const tocPreview = document.getElementById('tocPreview');
-                if (!tocPreview) return;
-                const activeLessons = lessons.filter(l => l.title.trim());
-                if (!activeLessons.length) {
-                    tocPreview.innerHTML = '<p style="color:#64748b;">No active lessons.</p>';
-                    return;
-                }
-                const tocPageCount = Math.ceil(activeLessons.length / MAX_TOC_PER_PAGE);
-                const firstLessonPage = 1 + tocPageCount + 1;
-                let runningPage = firstLessonPage;
-                let html = '<ul style="list-style:none;padding:0;margin:0;">';
-                activeLessons.forEach(l => {
-                    html += `<li style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #e2e8f0;"><span>Lesson ${l.lessonNumber}: ${escapeHtml(l.title)}</span><span style="color:#b91c1c;font-weight:700;">Page ${runningPage}</span></li>`;
-                    runningPage += 2;
-                });
-                html += '</ul>';
-                tocPreview.innerHTML = html;
-            }
             renderTocPreview();
+
             // Drag-and-drop reorder
             const list = document.getElementById('lessonList');
             list.addEventListener('dragstart', e => {
@@ -819,13 +838,14 @@
                         const [moved] = lessons.splice(fromIdx, 1);
                         lessons.splice(toIdx, 0, moved);
                         renumberByOrder(lessons);
-                        saveData(); refreshUI(); renderTocPreview(); showToast('Order updated.', 'info');
+                        saveData(); refreshUI(); showToast('Order updated.', 'info');
                     }
                 }
             });
             window.renderEditList = renderEditList;
             window.refreshUI = refreshUI;
             window.renderTocPreview = renderTocPreview;
+            window.updateCounts = updateCounts;
         })();
     </script>
 </body>
