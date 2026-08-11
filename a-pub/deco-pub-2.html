@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>📖 Decodable Reader Publisher</title>
+    <title>📖 Decodable Reader Publisher (with image upload)</title>
     <style>
         :root {
             --bg: #f1f5f9;
@@ -194,7 +194,6 @@
         .story-line .sentence { flex: 1; }
         .story-line .wc { font-weight: 700; color: #b91c1c; min-width: 30px; text-align: right; font-size: 15px; }
 
-        /* The total pill is removed, but we keep its CSS just in case it's used elsewhere (none) so we can delete it */
         .parent-corner { margin-top: 25px; margin-bottom: 12px; border: 3px solid #8B4513; border-radius: 12px; overflow: hidden; flex-shrink: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         .pc-header { background: #f59e0b; color: #0f172a; font-weight: 800; font-size: 15px; text-align: center; padding: 5px; letter-spacing: 0.08em; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         .pc-body { padding: 10px 14px; background: #fffdf7; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -217,6 +216,12 @@
 
         .view-toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
         .view-toolbar .info { font-weight: 600; color: var(--text-secondary); font-size: 13px; margin-right: auto; background: var(--surface-alt); padding: 6px 12px; border-radius: 20px; border: 1px solid var(--border); }
+
+        /* Image upload styles */
+        .image-upload-wrap { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .image-upload-wrap .preview { width: 80px; height: 50px; border-radius: 6px; object-fit: cover; border: 2px solid var(--border); background: #f1f5f9; flex-shrink: 0; }
+        .image-upload-wrap .preview-placeholder { width: 80px; height: 50px; border-radius: 6px; border: 2px dashed #cbd5e1; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #94a3b8; background: #f8fafc; flex-shrink: 0; }
+        .image-upload-wrap input[type="file"] { font-size: 12px; padding: 6px; border: none; background: none; color: var(--text); }
 
         /* ========== PRINT STYLES ========== */
         @media print {
@@ -263,6 +268,7 @@
     <script>
         (function() {
             const STORAGE_KEY = 'decodable_readers_v1';
+            const MAX_IMAGE_SIZE = 2 * 1024 * 1024; // 2 MB
 
             function escapeHtml(str) {
                 return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
@@ -288,10 +294,9 @@
                 ov.addEventListener('click', (e) => { if (e.target === ov) ov.remove(); });
             }
 
-            // Default data
             const DEFAULT_LESSONS = [{
                 id: 'r1',
-                lessonNumber: 12,
+                lessonNumber: 1,
                 grade: "3",
                 imageUrl: "",
                 title: "Ben's Camping Trip",
@@ -338,12 +343,15 @@
                                 const nums = lessons.map(l => parseInt(l.id.replace('r','')) || 0);
                                 nextId = Math.max(...nums) + 1;
                             } else nextId = 1;
+                            renumberByOrder(lessons);
+                            saveData();
                             return;
                         }
                     }
                 } catch(e) {}
                 lessons = JSON.parse(JSON.stringify(DEFAULT_LESSONS));
                 nextId = lessons.length + 1;
+                renumberByOrder(lessons);
                 saveData();
             }
             function saveData() {
@@ -352,6 +360,10 @@
             }
             function generateId() { return 'r' + (nextId++); }
             function countWords(sentence) { return sentence.trim().split(/\s+/).filter(w => w).length; }
+
+            function renumberByOrder(arr) {
+                arr.forEach((lesson, idx) => lesson.lessonNumber = idx + 1);
+            }
 
             function getCampingSVG() {
                 return `<svg viewBox="0 0 800 350" xmlns="http://www.w3.org/2000/svg" style="background:#1e3a5f;">
@@ -396,7 +408,6 @@
                     runningTotal += wc;
                     html += `<div class="story-line"><span class="sentence">${escapeHtml(line.sentence)}</span><span class="wc">${runningTotal}</span></div>`;
                 });
-                // Removed the Word Count pill
                 html += `</div>`;
                 html += `
           <div class="parent-corner">
@@ -506,6 +517,20 @@
                 };
             }
 
+            function updateImagePreview(src) {
+                const img = document.getElementById('imagePreview');
+                const placeholder = document.getElementById('imagePreviewPlaceholder');
+                if (src) {
+                    img.src = src;
+                    img.style.display = 'block';
+                    placeholder.style.display = 'none';
+                } else {
+                    img.src = '';
+                    img.style.display = 'none';
+                    placeholder.style.display = 'flex';
+                }
+            }
+
             function fillForm(lesson) {
                 document.getElementById('fTitle').value = lesson.title || '';
                 document.getElementById('fLessonNumber').value = lesson.lessonNumber || '';
@@ -513,6 +538,7 @@
                 document.getElementById('fImageUrl').value = lesson.imageUrl || '';
                 document.getElementById('fTargetSound').value = lesson.targetSound || '';
                 document.getElementById('fStory').value = lesson.storyLines.map(l => l.sentence).join('\n');
+                updateImagePreview(lesson.imageUrl || '');
                 for (let i=0; i<3; i++) {
                     const q = lesson.comprehension[i] || { question: '', options: ['','',''] };
                     document.getElementById('fQ'+(i+1)).value = q.question || '';
@@ -526,11 +552,12 @@
                 editingId = null;
                 document.getElementById('formTitle').innerHTML = '<span class="dot"></span> Add New Reader';
                 document.getElementById('fTitle').value = '';
-                document.getElementById('fLessonNumber').value = '';
+                document.getElementById('fLessonNumber').value = lessons.length + 1;
                 document.getElementById('fGrade').value = '3';
                 document.getElementById('fImageUrl').value = '';
                 document.getElementById('fTargetSound').value = '';
                 document.getElementById('fStory').value = '';
+                updateImagePreview('');
                 for (let i=1; i<=3; i++) {
                     document.getElementById('fQ'+i).value = '';
                     document.getElementById('fQ'+i+'O1').value = '';
@@ -540,6 +567,29 @@
                 document.getElementById('saveBtn').textContent = '💾 Save Lesson';
                 document.getElementById('cancelBtn').style.display = 'none';
             }
+
+            window.handleImageUpload = function(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+                if (file.size > MAX_IMAGE_SIZE) {
+                    showToast('Image must be less than 2 MB.', 'error');
+                    event.target.value = '';
+                    return;
+                }
+                if (!file.type.startsWith('image/')) {
+                    showToast('Please select a valid image file.', 'error');
+                    event.target.value = '';
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = e => {
+                    const dataUrl = e.target.result;
+                    document.getElementById('fImageUrl').value = dataUrl;
+                    updateImagePreview(dataUrl);
+                    showToast('Image uploaded and embedded!', 'success');
+                };
+                reader.readAsDataURL(file);
+            };
 
             window.editLesson = function(id) {
                 const lesson = lessons.find(l => l.id === id);
@@ -555,14 +605,16 @@
 
             window.saveLesson = function() {
                 const data = getFormData();
-                if (!data.title || !data.lessonNumber || !data.targetSound || data.storyLines.length < 5 || data.comprehension.length < 3) {
+                if (!data.title || !data.targetSound || data.storyLines.length < 5 || data.comprehension.length < 3) {
                     return showToast('Please fill all required fields.', 'error');
                 }
                 if (editingId) {
                     const idx = lessons.findIndex(l => l.id === editingId);
                     if (idx === -1) return showToast('Not found.', 'error');
+                    data.lessonNumber = idx + 1;
                     lessons[idx] = { ...lessons[idx], ...data, id: editingId };
                 } else {
+                    data.lessonNumber = lessons.length + 1;
                     lessons.push({ ...data, id: generateId() });
                 }
                 saveData(); resetForm(); refreshUI(); showToast('Lesson saved!', 'success');
@@ -573,6 +625,7 @@
                 confirmDialog(`Delete "<strong>${escapeHtml(l.title)}</strong>"?`, () => {
                     lessons = lessons.filter(l => l.id !== id);
                     if (editingId === id) resetForm();
+                    renumberByOrder(lessons);
                     saveData(); refreshUI();
                 });
             };
@@ -581,7 +634,9 @@
                 if (!l) return;
                 const copy = JSON.parse(JSON.stringify(l));
                 delete copy.id; copy.id = generateId();
-                lessons.push(copy); saveData(); refreshUI(); showToast('Duplicated.', 'success');
+                lessons.push(copy);
+                renumberByOrder(lessons);
+                saveData(); refreshUI(); showToast('Duplicated.', 'success');
             };
             window.exportJSON = function() {
                 const blob = new Blob([JSON.stringify({ lessons }, null, 2)], {type:'application/json'});
@@ -594,7 +649,7 @@
                     try {
                         const data = JSON.parse(e.target.result);
                         if (!data || !Array.isArray(data.lessons)) throw new Error('Invalid');
-                        confirmDialog('Replace all data with imported file?', () => {
+                        confirmDialog('Replace all data with imported file? Lesson numbers will be renumbered according to list order.', () => {
                             lessons = data.lessons.map(l => {
                                 if (!l.id) l.id = generateId();
                                 if (!l.storyLines) l.storyLines = [];
@@ -604,7 +659,8 @@
                                 l.storyLines.forEach(line => { if (typeof line.wordCount !== 'number') line.wordCount = countWords(line.sentence); });
                                 return l;
                             });
-                            saveData(); resetForm(); refreshUI(); showToast('Imported.', 'success');
+                            renumberByOrder(lessons);
+                            saveData(); resetForm(); refreshUI(); showToast('Imported and renumbered.', 'success');
                         });
                     } catch(err) { showToast('Invalid JSON.', 'error'); }
                 };
@@ -619,7 +675,7 @@
           <div class="lesson-item" draggable="true" data-id="${l.id}">
             <span class="drag-handle" title="Drag to reorder">⋮⋮</span>
             <div class="info">
-              <div class="title">Lesson ${l.lessonNumber || '?'} — ${escapeHtml(l.title)}</div>
+              <div class="title">Lesson ${l.lessonNumber} — ${escapeHtml(l.title)}</div>
               <div class="sub">🎯 ${escapeHtml(l.targetSound)} · 📝 ${l.storyLines.length} lines · 🏫 Grade ${l.grade||'3'}</div>
             </div>
             <div class="actions">
@@ -658,9 +714,16 @@
               <h2 id="formTitle"><span class="dot"></span> Add New Reader</h2>
               <div class="form-row">
                 <div class="form-group"><label>Title <span class="req">*</span></label><input id="fTitle" placeholder="e.g. Ben's Camping Trip"></div>
-                <div class="form-group"><label>Lesson Number <span class="req">*</span></label><input id="fLessonNumber" type="number" placeholder="12"></div>
+                <div class="form-group"><label>Lesson Number (auto)</label><input id="fLessonNumber" type="number" readonly style="background:#f0f0f0;"></div>
                 <div class="form-group"><label>Grade <span class="req">*</span></label><input id="fGrade" placeholder="3"></div>
-                <div class="form-group"><label>Image URL</label><input id="fImageUrl" placeholder="Paste link (optional)"></div>
+                <div class="form-group"><label>Image</label>
+                  <div class="image-upload-wrap">
+                    <img id="imagePreview" class="preview" style="display:none;">
+                    <div id="imagePreviewPlaceholder" class="preview-placeholder">🖼️</div>
+                    <input type="file" id="imageUploadFile" accept="image/*" onchange="handleImageUpload(event)">
+                    <input type="hidden" id="fImageUrl">
+                  </div>
+                </div>
               </div>
               <div class="form-group"><label>Target Sound <span class="req">*</span></label><input id="fTargetSound" placeholder="short e (/ɛ/)"></div>
               <div class="form-group"><label>Story Text <span class="req">*</span></label><textarea id="fStory" rows="8" placeholder="One sentence per line..."></textarea></div>
@@ -703,6 +766,7 @@
             if (lessons.length) fillForm(lessons[0]);
             renderEditList(); renderAllView(); updateCounts();
 
+            // Drag-and-drop with renumbering
             const list = document.getElementById('lessonList');
             list.addEventListener('dragstart', e => {
                 const item = e.target.closest('.lesson-item');
@@ -734,6 +798,7 @@
                     if (fromIdx !== -1 && toIdx !== -1) {
                         const [moved] = lessons.splice(fromIdx, 1);
                         lessons.splice(toIdx, 0, moved);
+                        renumberByOrder(lessons);
                         saveData(); refreshUI(); showToast('Order updated.', 'info');
                     }
                 }

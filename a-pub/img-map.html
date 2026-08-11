@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🖼️ JSON Image Placeholder Filler</title>
+    <style>
+        :root {
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --border: #e2e8f0;
+            --text: #1e293b;
+            --text-secondary: #64748b;
+            --accent: #f59e0b;
+            --accent-ring: rgba(245, 158, 11, 0.25);
+            --red: #dc2626;
+            --green: #16a34a;
+            --radius: 12px;
+            --shadow: 0 4px 6px rgba(0,0,0,0.05), 0 2px 4px rgba(0,0,0,0.04);
+            --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: var(--font); background: var(--bg); color: var(--text); padding: 24px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .app { max-width: 900px; width: 100%; background: var(--surface); border-radius: 24px; box-shadow: var(--shadow); padding: 28px; border: 1px solid var(--border); }
+        h1 { font-size: 24px; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+        .badge { background: var(--accent); color: #0f172a; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+        .upload-area { border: 2px dashed var(--border); border-radius: var(--radius); padding: 24px; text-align: center; background: #f9fafb; margin: 16px 0; cursor: pointer; transition: border-color 0.2s; }
+        .upload-area:hover { border-color: var(--accent); }
+        .upload-area input[type="file"] { display: none; }
+        .controls { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin: 16px 0; }
+        .controls label { font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 6px; }
+        .controls input[type="text"] { padding: 8px 12px; border: 2px solid var(--border); border-radius: 8px; font-size: 14px; width: 200px; }
+        .placeholder-list { display: flex; flex-direction: column; gap: 16px; margin: 16px 0; }
+        .placeholder-item { background: #f8fafc; border: 2px solid var(--border); border-radius: var(--radius); padding: 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; transition: border-color 0.2s; }
+        .placeholder-item:hover { border-color: var(--accent); }
+        .path-info { flex: 1; min-width: 200px; }
+        .path { font-weight: 700; font-size: 14px; font-family: 'Courier New', monospace; background: #e2e8f0; padding: 2px 6px; border-radius: 4px; }
+        .context { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+        .upload-box { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .preview { width: 72px; height: 48px; border-radius: 6px; object-fit: cover; border: 2px solid var(--border); background: #f1f5f9; display: none; }
+        .preview.visible { display: block; }
+        .preview-placeholder { width: 72px; height: 48px; border: 2px dashed #cbd5e1; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #94a3b8; background: #f8fafc; }
+        .btn { padding: 10px 20px; border: none; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; }
+        .btn-primary { background: var(--accent); color: #0f172a; box-shadow: 0 2px 8px rgba(245,158,11,0.3); }
+        .btn-primary:hover { background: #d97706; }
+        .btn-success { background: var(--green); color: #fff; }
+        .btn-success:hover { background: #15803d; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .status-msg { font-size: 14px; font-weight: 600; color: var(--text-secondary); text-align: center; padding: 12px; background: #f1f5f9; border-radius: 8px; }
+        .error { color: var(--red); }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <h1>🖼️ JSON Image Placeholder Filler <span class="badge">Any JSON</span></h1>
+        <div class="upload-area" id="jsonDropArea">
+            <p style="font-weight:600; margin-bottom:4px;">📂 Drop your JSON file here or click to upload</p>
+            <p style="font-size:13px; color:#64748b;">(.json only)</p>
+            <input type="file" id="jsonFileInput" accept=".json">
+        </div>
+
+        <div class="controls">
+            <label>
+                <input type="checkbox" id="showAllEmpty"> Show all empty fields (not just image keys)
+            </label>
+            <label style="margin-left: auto; gap: 4px;">
+                Custom key name:
+                <input type="text" id="customKeyInput" placeholder="e.g., photoURL">
+            </label>
+        </div>
+
+        <div id="placeholderContainer"></div>
+
+        <div style="display: flex; justify-content: center; margin-top: 20px;">
+            <button class="btn btn-success" id="generateBtn" disabled>🔄 Generate Updated JSON</button>
+        </div>
+        <div id="status" class="status-msg" style="margin-top: 16px;"></div>
+    </div>
+
+    <script>
+        (() => {
+            const MAX_IMAGE_SIZE = 2 * 1024 * 1024; // 2 MB
+            const DEFAULT_IMAGE_KEYS = ['image', 'img', 'url', 'photo', 'picture'];
+
+            let jsonData = null;
+            let placeholders = []; // { path, context, key, dataUrl }
+            let imageDataMap = new Map(); // path -> dataUrl (survives re-scans)
+            let scanTimeout;
+
+            // DOM elements
+            const dropArea = document.getElementById('jsonDropArea');
+            const fileInput = document.getElementById('jsonFileInput');
+            const showAllEmptyCheck = document.getElementById('showAllEmpty');
+            const customKeyInput = document.getElementById('customKeyInput');
+            const placeholderContainer = document.getElementById('placeholderContainer');
+            const generateBtn = document.getElementById('generateBtn');
+            const statusDiv = document.getElementById('status');
+
+            // Click to upload
+            dropArea.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length) loadJSON(e.target.files[0]);
+            });
+
+            // Drag and drop
+            dropArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropArea.style.borderColor = '#f59e0b';
+            });
+            dropArea.addEventListener('dragleave', () => {
+                dropArea.style.borderColor = '#e2e8f0';
+            });
+            dropArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropArea.style.borderColor = '#e2e8f0';
+                const file = e.dataTransfer.files[0];
+                if (file && file.name.endsWith('.json')) {
+                    loadJSON(file);
+                } else {
+                    showStatus('Please drop a .json file', 'error');
+                }
+            });
+
+            function loadJSON(file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        jsonData = JSON.parse(e.target.result);
+                        imageDataMap.clear(); // fresh file, clear old images
+                        showStatus('JSON loaded. Scanning for empty placeholders...', 'info');
+                        scanAndRender();
+                    } catch (err) {
+                        showStatus('Invalid JSON file.', 'error');
+                        jsonData = null;
+                        placeholderContainer.innerHTML = '';
+                        generateBtn.disabled = true;
+                    }
+                };
+                reader.readAsText(file);
+            }
+
+            function isImageKey(key) {
+                key = key.toLowerCase();
+                if (DEFAULT_IMAGE_KEYS.some(k => key.includes(k))) return true;
+                const custom = customKeyInput.value.trim().toLowerCase();
+                if (custom && key === custom) return true;
+                return false;
+            }
+
+            function scanForPlaceholders(obj, path = '') {
+                if (typeof obj !== 'object' || obj === null) return [];
+
+                let results = [];
+                if (Array.isArray(obj)) {
+                    obj.forEach((item, index) => {
+                        results = results.concat(scanForPlaceholders(item, path + '[' + index + ']'));
+                    });
+                } else {
+                    Object.entries(obj).forEach(([key, value]) => {
+                        const currentPath = path ? path + '.' + key : key;
+                        if (typeof value === 'object' && value !== null) {
+                            results = results.concat(scanForPlaceholders(value, currentPath));
+                        } else if (value === '' && typeof value === 'string') {
+                            if (showAllEmptyCheck.checked || isImageKey(key)) {
+                                // try to get context (title/name) from parent object
+                                let context = '';
+                                if (typeof obj === 'object' && !Array.isArray(obj)) {
+                                    context = obj.title || obj.name || obj.label || '';
+                                }
+                                // attach previously stored dataUrl if any
+                                const storedDataUrl = imageDataMap.get(currentPath) || null;
+                                results.push({ path: currentPath, context, key, dataUrl: storedDataUrl });
+                            }
+                        }
+                    });
+                }
+                return results;
+            }
+
+            function scanAndRender() {
+                if (!jsonData) return;
+                placeholders = scanForPlaceholders(jsonData);
+                renderPlaceholders();
+                generateBtn.disabled = placeholders.length === 0;
+                if (placeholders.length === 0) {
+                    showStatus('No empty image fields found. Your JSON is already complete.', 'info');
+                    placeholderContainer.innerHTML = '';
+                } else {
+                    showStatus(`Found ${placeholders.length} empty image placeholder(s).`, 'info');
+                }
+            }
+
+            function renderPlaceholders() {
+                if (placeholders.length === 0) {
+                    placeholderContainer.innerHTML = '';
+                    return;
+                }
+                let html = '<h3 style="margin-bottom:12px;">📸 Empty Image Fields</h3><div class="placeholder-list">';
+                placeholders.forEach((p, index) => {
+                    html += `
+                        <div class="placeholder-item">
+                            <div class="path-info">
+                                <span class="path">${escapeHtml(p.path)}</span>
+                                ${p.context ? `<div class="context">Context: ${escapeHtml(p.context)}</div>` : ''}
+                            </div>
+                            <div class="upload-box">
+                                <img class="preview" id="preview-${index}" src="${p.dataUrl || ''}" style="${p.dataUrl ? 'display:block;' : 'display:none;'}" />
+                                <div class="preview-placeholder" id="ph-${index}" style="${p.dataUrl ? 'display:none;' : 'display:flex;'}">🖼️</div>
+                                <input type="file" accept="image/*" id="file-${index}" onchange="handleImageSelect(${index}, this)" style="font-size:13px;">
+                            </div>
+                        </div>`;
+                });
+                html += '</div>';
+                placeholderContainer.innerHTML = html;
+            }
+
+            window.handleImageSelect = function(index, input) {
+                const file = input.files[0];
+                if (!file) return;
+                if (file.size > MAX_IMAGE_SIZE) {
+                    alert('Image must be less than 2 MB.');
+                    input.value = '';
+                    return;
+                }
+                if (!file.type.startsWith('image/')) {
+                    alert('Please select a valid image file.');
+                    input.value = '';
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const dataUrl = e.target.result;
+                    const path = placeholders[index].path;
+                    // store in persistent map
+                    imageDataMap.set(path, dataUrl);
+                    placeholders[index].dataUrl = dataUrl;
+
+                    // update preview immediately
+                    const preview = document.getElementById('preview-' + index);
+                    const ph = document.getElementById('ph-' + index);
+                    if (preview) { preview.src = dataUrl; preview.style.display = 'block'; }
+                    if (ph) ph.style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            };
+
+            // Debounced re-scan on settings change
+            function debounceScan() {
+                clearTimeout(scanTimeout);
+                scanTimeout = setTimeout(scanAndRender, 300);
+            }
+
+            showAllEmptyCheck.addEventListener('change', debounceScan);
+            customKeyInput.addEventListener('input', debounceScan);
+
+            // Set value by path (handles nested objects and arrays)
+            function setByPath(obj, path, value) {
+                const parts = path.split(/\.|\[|\]/).filter(p => p !== '');
+                let current = obj;
+                for (let i = 0; i < parts.length - 1; i++) {
+                    let key = parts[i];
+                    if (!isNaN(parts[i + 1])) {
+                        // next part is numeric -> array index
+                        if (!Array.isArray(current[key])) current[key] = [];
+                        current = current[key];
+                    } else {
+                        if (current[key] === undefined) current[key] = {};
+                        current = current[key];
+                    }
+                }
+                const lastPart = parts[parts.length - 1];
+                current[lastPart] = value;
+            }
+
+            generateBtn.addEventListener('click', () => {
+                if (!jsonData || placeholders.length === 0) return;
+                const unfilled = placeholders.filter(p => !p.dataUrl);
+                if (unfilled.length > 0) {
+                    if (!confirm(`${unfilled.length} image(s) are still empty. Leave them blank?`)) {
+                        return;
+                    }
+                }
+                // deep clone to avoid mutating original during generation
+                const updatedData = JSON.parse(JSON.stringify(jsonData));
+                placeholders.forEach(p => {
+                    if (p.dataUrl) {
+                        setByPath(updatedData, p.path, p.dataUrl);
+                    }
+                });
+                const blob = new Blob([JSON.stringify(updatedData, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'updated.json';
+                a.click();
+                URL.revokeObjectURL(url);
+                showStatus('Updated JSON generated and downloaded.', 'success');
+            });
+
+            function showStatus(msg, type = 'info') {
+                statusDiv.textContent = msg;
+                statusDiv.className = 'status-msg';
+                if (type === 'error') statusDiv.classList.add('error');
+            }
+
+            function escapeHtml(str) {
+                return String(str).replace(/[&<>"']/g, m => ({
+                    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+                }[m]));
+            }
+        })();
+    </script>
+</body>
+</html>
