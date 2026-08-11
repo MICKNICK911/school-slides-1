@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>📚 Phonics Lesson Publisher v7</title>
+    <title>📚 Phonics Lesson Publisher v7 (TOC 20 · Sight Words no blanks)</title>
     <style>
         @page { size: 850px 1100px; margin: 0; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -178,14 +178,16 @@
         .cover-line { width: 120px; height: 4px; background-color: #F5A623; margin: 30px auto; border-radius: 2px; }
         .cover-title { font-size: 60px; font-weight: 800; color: #1a1a2e; letter-spacing: 2px; margin: 0; }
         .cover-subtitle { font-size: 32px; font-weight: 400; color: #E2571C; margin-top: 14px; letter-spacing: 1px; font-style: italic; }
-        .toc-card { border: 3px solid #F5A623; border-radius: 28px; min-height: 1000px; padding: 40px 48px; position: relative; font-family: 'Times New Roman', Times, serif; }
-        .toc-title { font-size: 30px; font-weight: 800; color: #1a1a2e; text-align: center; margin-bottom: 28px; border-bottom: 4px solid #F5A623; padding-bottom: 14px; }
-        .toc-list { list-style: none; padding: 0; margin: 0; }
-        .toc-item { display: flex; justify-content: space-between; align-items: baseline; padding: 11px 8px; border-bottom: 1px dashed #dee2e6; font-size: 15px; font-weight: 600; }
-        .toc-item .toc-page-num { font-weight: 800; color: #E2571C; min-width: 70px; text-align: right; }
-        .toc-card .page-number { position: absolute; bottom: 18px; right: 28px; font-weight: 800; font-size: 15px; font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; }
 
-        /* ---------- SIGHT WORDS GRID (5x10, gold pill, scarlet) ---------- */
+        /* TOC – 20 per page, no bleed */
+        .toc-card { border: 3px solid #F5A623; border-radius: 28px; min-height: 1000px; padding: 30px 40px; position: relative; font-family: 'Times New Roman', Times, serif; }
+        .toc-title { font-size: 28px; font-weight: 800; color: #1a1a2e; text-align: center; margin-bottom: 20px; border-bottom: 4px solid #F5A623; padding-bottom: 10px; }
+        .toc-list { list-style: none; padding: 0; margin: 0; }
+        .toc-item { display: flex; justify-content: space-between; align-items: baseline; padding: 7px 6px; border-bottom: 1px dashed #dee2e6; font-size: 14px; font-weight: 600; line-height: 1.3; }
+        .toc-item .toc-page-num { font-weight: 800; color: #E2571C; min-width: 60px; text-align: right; }
+        .toc-card .page-number { position: absolute; bottom: 16px; right: 24px; font-weight: 800; font-size: 14px; font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; }
+
+        /* SIGHT WORDS – gold pills, scarlet font, no empty slots */
         .sight-words-grid {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
@@ -199,9 +201,9 @@
             justify-content: center;
             font-size: 22px;
             font-weight: 800;
-            color: #E2571C;           /* scarlet */
+            color: #E2571C;
             background: #fff;
-            border: 3px solid #F5A623; /* gold border */
+            border: 3px solid #F5A623;
             border-radius: 14px;
             padding: 16px 6px;
             min-height: 76px;
@@ -237,8 +239,8 @@
     <script>
         (function () {
             const STORAGE_KEY = 'phonics_lessons_v7';
-            const MAX_TOC_PER_PAGE = 18;
-            const MAX_SIGHT_WORDS_PER_PAGE = 50;   // 5 columns × 10 rows
+            const MAX_TOC_PER_PAGE = 20;
+            const MAX_SIGHT_WORDS_PER_PAGE = 50;   // used to slice the word list, but grid only shows existing words
 
             function flattenWords(arr) {
                 if (!Array.isArray(arr)) return [];
@@ -571,6 +573,8 @@
                     `</ul><div class="page-number">${pageNum}</div>`;
                 page.appendChild(card); return page;
             }
+
+            // ========== CORRECTED SIGHT WORDS PAGE (no empty pills) ==========
             function buildSightWordsPage(pageNum, words) {
                 const page = document.createElement('div'); page.className = 'page';
                 page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
@@ -579,9 +583,9 @@
                     <div class="section-header"><div class="circle">★</div><div class="label-box">Read and say each word</div></div>`;
                 const grid = document.createElement('div');
                 grid.className = 'sight-words-grid';
-                const paddedWords = words.slice(0, MAX_SIGHT_WORDS_PER_PAGE);
-                for (let i = 0; i < MAX_SIGHT_WORDS_PER_PAGE; i++) {
-                    const word = paddedWords[i] || '';
+                // Only create cells for non-empty words – no empty slots
+                for (const word of words) {
+                    if (!word) continue;
                     const cell = document.createElement('div');
                     cell.className = 'sight-word-pill';
                     cell.textContent = word;
@@ -592,6 +596,7 @@
                 page.appendChild(card);
                 return page;
             }
+
             function buildCoverPage() {
                 const page = document.createElement('div'); page.className = 'page';
                 page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
@@ -635,7 +640,7 @@
                 container.innerHTML = '';
                 container.appendChild(buildCoverPage());
                 if (!lessons.length && !sightWords.length) return;
-                const swPages = Math.ceil(sightWords.length/MAX_SIGHT_WORDS_PER_PAGE);
+                const swPages = Math.ceil(sightWords.length / MAX_SIGHT_WORDS_PER_PAGE);
                 const activityCounts = lessons.map(countActiveActivities);
                 const lessonsWithPages = lessons.filter((l,i)=>activityCounts[i]>0).length;
                 const tocPages = lessonsWithPages ? Math.ceil(lessonsWithPages/MAX_TOC_PER_PAGE) : 0;
@@ -643,9 +648,10 @@
                 let running = lessonStart;
                 const tocEntries = [];
                 lessons.forEach((l,i)=>{
-                    const activityCount = activityCounts[i];
-                    if (activityCount>0) tocEntries.push({lessonNumber:l.lessonNumber, mainTitle:l.mainTitle, letterTile:l.letterTile, firstPage:running});
-                    running += activityCount;
+                    if (activityCounts[i] > 0) {
+                        tocEntries.push({lessonNumber:l.lessonNumber, mainTitle:l.mainTitle, letterTile:l.letterTile, firstPage:running});
+                        running += activityCounts[i];
+                    }
                 });
                 for (let p=0; p<tocPages; p++) container.appendChild(buildTocPage(p+1, tocEntries.slice(p*MAX_TOC_PER_PAGE,(p+1)*MAX_TOC_PER_PAGE)));
                 let pageNum = tocPages+1;
