@@ -1,0 +1,1271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>📚 Phonics Lesson Publisher v7 (Sight Words Grid)</title>
+    <style>
+        @page { size: 850px 1100px; margin: 0; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f5f7fa; color: #1a1a1a; padding: 20px; }
+        .app { max-width: 1500px; margin: 0 auto; background: #fff; border-radius: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.08); overflow: hidden; }
+        .app-header { background: #1a1a2e; color: #fff; padding: 20px 32px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+        .app-header h1 { font-size: 24px; font-weight: 800; }
+        .app-header .badge { background: #F5A623; color: #1a1a1a; padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 700; }
+        .tabs { display: flex; border-bottom: 2px solid #e9ecef; background: #fafbfc; padding: 0 32px; gap: 4px; }
+        .tab-btn { padding: 16px 28px; border: none; background: transparent; font-size: 15px; font-weight: 700; color: #6c757d; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.2s; font-family: inherit; touch-action: manipulation; }
+        .tab-btn.active { color: #1a1a2e; border-bottom-color: #F5A623; }
+        .tab-panel { display: none; padding: 24px 32px 32px; }
+        .tab-panel.active { display: block; }
+        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; max-width: 420px; width: 100%; pointer-events: none; }
+        .toast { padding: 14px 20px; border-radius: 12px; color: #fff; font-weight: 600; font-size: 14px; box-shadow: 0 8px 30px rgba(0,0,0,0.15); animation: slideIn 0.3s ease; display: flex; align-items: center; gap: 10px; pointer-events: auto; }
+        .toast.success { background: #2d7d46; } .toast.error { background: #dc3545; } .toast.warning { background: #e67e22; } .toast.info { background: #2c7be5; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        .edit-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+        @media (max-width: 1200px) { .edit-layout { grid-template-columns: 1fr; } }
+        .form-section { background: #f8f9fa; border-radius: 16px; padding: 24px; border: 2px solid #e9ecef; position: sticky; top: 20px; max-height: calc(100vh - 160px); overflow-y: auto; }
+        .form-section h2 { font-size: 18px; margin-bottom: 16px; }
+        .form-group { margin-bottom: 14px; }
+        .form-group label { display: block; font-weight: 700; font-size: 13px; color: #495057; margin-bottom: 4px; }
+        .form-group label .req { color: #dc3545; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px 14px; border: 2px solid #dee2e6; border-radius: 10px; font-size: 14px; font-family: inherit; transition: border 0.2s; background: #fff; }
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus { outline: none; border-color: #F5A623; box-shadow: 0 0 0 3px rgba(245,166,35,0.15); }
+        .form-group textarea { resize: vertical; min-height: 50px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .form-actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+        .btn { padding: 10px 22px; border: none; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; transition: background 0.2s, transform 0.15s; font-family: inherit; display: inline-flex; align-items: center; gap: 6px; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn:active:not(:disabled) { transform: scale(0.97); }
+        .btn-primary { background: #F5A623; color: #1a1a1a; }
+        .btn-success { background: #2d7d46; color: #fff; }
+        .btn-danger { background: #dc3545; color: #fff; }
+        .btn-outline { background: transparent; border: 2px solid #dee2e6; color: #495057; }
+        .btn-sm { padding: 6px 14px; font-size: 12px; }
+        .btn-xs { padding: 4px 10px; font-size: 11px; border-radius: 6px; }
+        .btn-warning { background: #e67e22; color: #fff; }
+        .image-upload-wrap { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .image-upload-wrap .preview { width: 56px; height: 56px; border-radius: 8px; object-fit: cover; border: 2px solid #dee2e6; background: #f1f3f5; }
+        .image-upload-wrap .preview-placeholder { width: 56px; height: 56px; border-radius: 8px; border: 2px dashed #dee2e6; display: flex; align-items: center; justify-content: center; font-size: 22px; color: #adb5bd; background: #f8f9fa; }
+        .list-section { min-height: 400px; }
+        .list-toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 2px solid #e9ecef; }
+        .search-box { flex: 1; min-width: 180px; padding: 10px 16px; border: 2px solid #dee2e6; border-radius: 10px; font-size: 14px; font-family: inherit; }
+        .search-box:focus { outline: none; border-color: #F5A623; }
+        .list-toolbar .count { font-weight: 700; color: #6c757d; font-size: 14px; white-space: nowrap; }
+        .lesson-list { display: flex; flex-direction: column; gap: 8px; }
+        .lesson-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #f8f9fa; border-radius: 12px; border: 2px solid transparent; transition: background 0.2s, border-color 0.2s; }
+        .lesson-item:active { border-color: #F5A623; background: #fff; }
+        .lesson-item .thumb { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; background: #e9ecef; border: 1px solid #dee2e6; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+        .lesson-item .info { flex: 1; min-width: 0; }
+        .lesson-item .info .title { font-weight: 700; font-size: 15px; }
+        .lesson-item .info .sub { font-size: 12px; color: #6c757d; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .lesson-item .actions { display: flex; gap: 4px; flex-shrink: 0; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 9998; }
+        .modal-overlay .modal { background: #fff; border-radius: 20px; padding: 32px; max-width: 440px; width: 90%; box-shadow: 0 30px 60px rgba(0,0,0,0.2); }
+        .modal-overlay .modal h3 { margin-bottom: 8px; }
+        .modal-overlay .modal p { color: #6c757d; margin-bottom: 20px; font-size: 15px; }
+        .modal-overlay .modal .actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+        /* Activity cards */
+        .activity-card { background: #fff; border: 2px solid #e9ecef; border-radius: 14px; margin-bottom: 14px; overflow: hidden; }
+        .activity-card.open { border-color: #F5A623; }
+        .activity-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; cursor: pointer; background: #fafbfc; gap: 10px; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+        .activity-header .left { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 14px; }
+        .activity-header .num { background: #F5A623; color: #fff; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; }
+        .toggle-badge { font-size: 11px; font-weight: 700; color: #fff; padding: 3px 10px; border-radius: 12px; }
+        .toggle-badge.on { background: #2d7d46; }
+        .toggle-badge.off { background: #6c757d; }
+        .activity-body { display: none; padding: 16px; border-top: 2px solid #e9ecef; }
+        .activity-card.open .activity-body { display: block; }
+
+        @media (hover: hover) {
+            .tab-btn:hover { color: #1a1a2e; }
+            .btn-primary:hover:not(:disabled) { background: #e0950f; transform: translateY(-1px); }
+            .btn-success:hover:not(:disabled) { background: #1f5f34; }
+            .btn-danger:hover:not(:disabled) { background: #b02a37; }
+            .btn-outline:hover:not(:disabled) { background: #f1f3f5; }
+            .btn-warning:hover:not(:disabled) { background: #d35400; }
+            .lesson-item:hover { border-color: #F5A623; background: #fff; }
+            .activity-header:hover { background: #f1f3f5; }
+        }
+
+        .pair-row { display: grid; grid-template-columns: 80px 1fr auto; gap: 10px; align-items: center; margin-bottom: 10px; padding: 10px; background: #f8f9fa; border-radius: 10px; }
+        .pair-row img, .pair-row .ph { width: 64px; height: 64px; border-radius: 8px; object-fit: cover; border: 2px solid #dee2e6; }
+        .pair-row .ph { display: flex; align-items: center; justify-content: center; font-size: 24px; color: #adb5bd; background: #fff; border-style: dashed; }
+
+        /* ----- VIEW ----- */
+        .view-container { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 8px; }
+        .view-container .page { width: 850px; min-width: 850px; min-height: 1080px; padding: 30px 40px; position: relative; page-break-after: always; margin: 0 auto 30px; background: #fff; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+        .view-container .page:last-child { margin-bottom: 0; }
+        .view-container .card { border: 3px solid #F5A623; border-radius: 28px; min-height: 1000px; padding: 24px 32px; position: relative; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .view-container .title { font-size: 28px; font-weight: 800; color: #1a1a1a; letter-spacing: 0.5px; margin: 4px 0 16px 0; }
+        .view-container .header-row { display: flex; align-items: stretch; gap: 0; margin-bottom: 18px; }
+        .view-container .lesson-badge { background: #F5A623; border-radius: 16px; color: #fff; width: 120px; min-width: 120px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 6px; position: relative; margin-right: 16px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .view-container .lesson-badge .arrow { position: absolute; top: -20px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent; border-bottom: 24px solid #F5A623; }
+        .view-container .lesson-badge .label { font-size: 12px; font-weight: 600; opacity: 0.95; }
+        .view-container .lesson-badge .num { font-size: 32px; font-weight: 800; line-height: 1.1; }
+        .view-container .intro-box { flex: 1; border: 3px dashed #E2571C; border-radius: 16px; display: flex; align-items: center; padding: 12px 18px; }
+        .view-container .intro-box p { margin: 0; color: #E2571C; font-weight: 700; font-size: 13px; line-height: 1.45; }
+        .view-container .hero-row { display: flex; border-radius: 18px; overflow: hidden; border: 3px solid #F5A623; height: 200px; margin-bottom: 18px; }
+        .view-container .hero-image { flex: 1; background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+        .view-container .hero-image img { max-height: 140px; max-width: 90%; object-fit: contain; }
+        .view-container .hero-image .placeholder { width: 120px; height: 80px; border: 2px dashed #ccc; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #999; font-size: 12px; }
+        .view-container .hero-image .caption { font-weight: 800; font-size: 15px; }
+        .view-container .hero-letter { flex: 1; background: #F5A623; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 64px; font-weight: 800; font-style: italic; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .view-container .hero-tile { background: #F5A623; color: #fff; border-radius: 20px; padding: 24px 36px; text-align: center; margin-bottom: 18px; min-height: 180px; display: flex; flex-direction: column; align-items: center; justify-content: center; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .view-container .hero-tile .sound-label { font-size: 16px; font-weight: 700; opacity: 0.95; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 6px; }
+        .view-container .hero-tile .letter-display { font-size: 80px; font-weight: 800; line-height: 1.1; text-shadow: 3px 3px 6px rgba(0,0,0,0.2); }
+        .view-container .hero-tile .decoration { font-size: 20px; opacity: 0.7; margin-top: 6px; }
+
+        .view-container .section-header { display: flex; align-items: center; margin-bottom: 10px; margin-top: 10px; }
+        .view-container .section-header .circle { background: #F5A623; color: #fff; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 16px; margin-right: 12px; flex-shrink: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .view-container .section-header .label-box { flex: 1; border: 3px dashed #E2571C; border-radius: 12px; padding: 7px 16px; font-weight: 800; font-size: 17px; color: #1a1a1a; }
+        .view-container .word-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+        .view-container .word-grid .pill { background: #E2571C; color: #fff; border-radius: 12px; text-align: center; padding: 8px 6px; font-weight: 600; font-size: 26px; min-height: 54px; display: flex; align-items: center; justify-content: center; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+        .view-container .word-grid.blanks { grid-template-columns: repeat(3, 1fr); }
+        .view-container .word-grid.blanks .pill {
+            background: #fff; color: #E2571C; border: 2px solid #F5A623;
+            display: flex; align-items: center; justify-content: center; gap: 4px;
+            font-size: 26px; font-weight: 700; min-height: 58px; padding: 6px 8px;
+        }
+        .view-container .word-grid.blanks .pill .blank-box {
+            display: inline-block; width: 32px; height: 36px;
+            background: #fff; border: 2px solid #1a1a1a; border-radius: 4px;
+            vertical-align: middle; flex-shrink: 0;
+        }
+        .view-container .word-grid.empty .pill { background: #fff; border: 2px solid #F5A623; }
+        .view-container .instructions { font-weight: 700; font-size: 13px; margin: 6px 0 8px 0; }
+        .view-container .reading-box { border: 2px solid #F5A623; border-radius: 14px; padding: 12px 20px; }
+        .view-container .reading-box p { margin: 0 0 4px 0; color: #E2571C; font-weight: 700; font-size: 17px; }
+        .view-container .activity-label { font-weight: 700; font-size: 13px; margin: 10px 0 6px 0; }
+        .view-container .sentence-line { border-bottom: 1px solid #999; padding: 14px 0 22px 0; font-size: 15px; color: #E2571C; font-weight: 800; }
+        .view-container .card .page-number { position: absolute; bottom: 18px; right: 28px; font-weight: 800; font-size: 15px; }
+
+        .writing-practice { margin-top: 6px; }
+        .writing-set { position: relative; height: 62px; margin-bottom: 12px; width: 100%; }
+        .writing-set .line { position: absolute; left: 0; right: 0; height: 0; border-top-width: 2px; border-top-style: solid; }
+        .writing-set .line.red { border-top-color: #E2571C; }
+        .writing-set .line.blue { border-top-color: #2c7be5; }
+        .writing-set .line.l1 { top: 0; } .writing-set .line.l2 { top: 20px; } .writing-set .line.l3 { top: 40px; } .writing-set .line.l4 { top: 60px; }
+        .writing-set .trace-letters { position: absolute; left: 0; right: 0; top: 20px; height: 20px; display: flex; align-items: center; justify-content: space-evenly; padding: 0 30px; pointer-events: none; }
+        .writing-set .trace-letters span {
+            font-family: 'Segoe UI', 'Arial Rounded MT Bold', Arial, sans-serif;
+            font-size: 38px; font-weight: 600; line-height: 1;
+            color: transparent; -webkit-text-stroke: 2px #1a1a1a;
+        }
+        .writing-set .trace-letters span.solid { color: #1a1a1a !important; -webkit-text-stroke: 0 !important; }
+
+        .sort-grid { display: grid; gap: 16px; margin-top: 8px; }
+        .sort-grid.cols-2 { grid-template-columns: 1fr 1fr; }
+        .sort-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+        .sort-grid.cols-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+        .sort-col { border: 2px solid #F5A623; border-radius: 14px; padding: 12px; min-height: 220px; }
+        .sort-col .col-label { background: #F5A623; color: #fff; text-align: center; font-weight: 800; font-size: 16px; padding: 6px; border-radius: 8px; margin-bottom: 10px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .sort-words { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 14px; padding: 12px; border: 2px dashed #ccc; border-radius: 12px; }
+        .sort-words span { background: #E2571C; color: #fff; padding: 6px 12px; border-radius: 10px; font-weight: 600; font-size: 18px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+        .match-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; margin-top: 12px; }
+        .match-side { display: flex; flex-direction: column; gap: 14px; }
+        .match-item { display: flex; justify-content: center; }
+        .match-square { width: 110px; height: 110px; border: 2px solid #dee2e6; border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #fff; }
+        .match-square img { max-width: 80%; max-height: 80%; object-fit: contain; }
+        .match-square .word { font-size: 24px; font-weight: 700; color: #E2571C; text-align: center; line-height: 1.2; }
+
+        .draw-box { border: 2px dashed #F5A623; border-radius: 14px; height: 180px; margin: 12px 0; display: flex; align-items: flex-end; justify-content: flex-start; padding: 10px; color: #000; font-size: 16px; font-weight: 700; }
+
+        .cover-card { display: flex; flex-direction: column; justify-content: center; align-items: center; font-family: 'Times New Roman', Times, serif; }
+        .cover-text-block { text-align: center; padding: 0 40px; }
+        .cover-line { width: 120px; height: 4px; background-color: #F5A623; margin: 30px auto; border-radius: 2px; }
+        .cover-title { font-size: 60px; font-weight: 800; color: #1a1a2e; letter-spacing: 2px; margin: 0; }
+        .cover-subtitle { font-size: 32px; font-weight: 400; color: #E2571C; margin-top: 14px; letter-spacing: 1px; font-style: italic; }
+        .toc-card { border: 3px solid #F5A623; border-radius: 28px; min-height: 1000px; padding: 40px 48px; position: relative; font-family: 'Times New Roman', Times, serif; }
+        .toc-title { font-size: 30px; font-weight: 800; color: #1a1a2e; text-align: center; margin-bottom: 28px; border-bottom: 4px solid #F5A623; padding-bottom: 14px; }
+        .toc-list { list-style: none; padding: 0; margin: 0; }
+        .toc-item { display: flex; justify-content: space-between; align-items: baseline; padding: 11px 8px; border-bottom: 1px dashed #dee2e6; font-size: 15px; font-weight: 600; }
+        .toc-item .toc-page-num { font-weight: 800; color: #E2571C; min-width: 70px; text-align: right; }
+        .toc-card .page-number { position: absolute; bottom: 18px; right: 28px; font-weight: 800; font-size: 15px; font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; }
+
+        /* ---------- SIGHT WORDS GRID (NEW) ---------- */
+        .sight-words-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 0;
+            margin-top: 8px;
+        }
+        .sight-word-cell {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 700;
+            color: #1a1a1a;
+            background: #fff;
+            border-bottom: 1px solid #e0e0e0;
+            border-right: 1px solid #e0e0e0;
+            padding: 10px 4px;
+            min-height: 46px;
+        }
+        .sight-word-cell:nth-child(5n) {
+            border-right: none;
+        }
+
+        .view-toolbar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 2px solid #e9ecef; }
+        .view-toolbar .info { font-weight: 700; color: #6c757d; font-size: 14px; margin-right: auto; }
+        .page-actions { text-align: right; margin-bottom: 8px; }
+        .export-btn { background: #E2571C; color: #fff; border: none; border-radius: 8px; padding: 8px 16px; font-weight: 700; font-size: 13px; font-family: inherit; cursor: pointer; }
+
+        @media print {
+            body { padding: 0; background: #fff; }
+            .app, .app-header, .tabs, .tab-panel, .view-toolbar, .no-print { display: none !important; }
+            .view-container { overflow-x: visible !important; }
+            .view-container .page { box-shadow: none !important; border-radius: 0 !important; margin: 0 auto !important; padding: 28px !important; width: 850px !important; min-width: 850px !important; min-height: 1080px !important; page-break-after: always; background: #fff !important; }
+            .view-container .page .page-actions { display: none !important; }
+            .view-container .page:last-child { page-break-after: auto; }
+            .view-container .card, .view-container .lesson-badge, .view-container .hero-letter, .view-container .hero-tile,
+            .view-container .word-grid .pill, .view-container .intro-box, .view-container .section-header .circle,
+            .view-container .reading-box, .view-container .lesson-badge .arrow, .toc-card, .sort-col .col-label, .sort-words span,
+            .sight-word-cell { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        }
+    </style>
+</head>
+<body>
+    <div id="app"></div>
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        (function () {
+            const STORAGE_KEY = 'phonics_lessons_v7';
+            const MAX_TOC_PER_PAGE = 18;
+            const MAX_SIGHT_WORDS_PER_PAGE = 90;   // 5 columns × 18 rows
+
+            function flattenWords(arr) {
+                if (!Array.isArray(arr)) return [];
+                let r = [];
+                for (let row of arr) {
+                    if (Array.isArray(row)) r = r.concat(row);
+                    else r.push(row);
+                }
+                return r;
+            }
+            function escapeHtml(str) {
+                return String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+            }
+            function showToast(msg, type = 'info') {
+                const t = document.createElement('div');
+                t.className = 'toast ' + type;
+                t.innerHTML = `<span>${type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️'}</span> ${escapeHtml(msg)}`;
+                document.getElementById('toastContainer').appendChild(t);
+                setTimeout(() => t.remove(), 3500);
+            }
+            function confirmDialog(msg, cb) {
+                const o = document.createElement('div');
+                o.className = 'modal-overlay';
+                o.innerHTML = `<div class="modal"><h3>⚠️ Confirm</h3><p>${msg}</p><div class="actions"><button class="btn btn-outline cancel">Cancel</button><button class="btn btn-danger confirm">Yes</button></div></div>`;
+                document.body.appendChild(o);
+                o.querySelector('.cancel').onclick = () => o.remove();
+                o.querySelector('.confirm').onclick = () => { o.remove(); cb(); };
+            }
+
+            function makeDefaultActivities() {
+                return {
+                    lookAndSay: { active: true, words: [] },
+                    decodable: { active: true, sentences: [], fillBlanks: [] },
+                    traceWrite: { active: false, target: '', setCount: 5, clone: false },
+                    wordSort: { active: false, columnCount: 2, columnLabels: ['Column 1', 'Column 2'], words: [] },
+                    sentenceWrite: { active: false, prompt: 'Write sentences using the target words.', lineCount: 4, showDrawBox: false, drawPrompt: '' },
+                    matchPicture: { active: false, pairCount: 4, pairs: [], scrambledWords: [] }
+                };
+            }
+            function shuffleArray(arr) {
+                const a = [...arr];
+                for (let i = a.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [a[i], a[j]] = [a[j], a[i]];
+                }
+                return a;
+            }
+            function ensureScramble(lesson) {
+                const act = lesson?.activities?.matchPicture;
+                if (!act || !act.active) return;
+                const words = (act.pairs || []).slice(0, act.pairCount || 4)
+                    .filter(p => p.word && p.word.trim() !== '')
+                    .map(p => p.word.trim());
+                const cur = act.scrambledWords || [];
+                const sameSet = cur.length === words.length && words.every(w => cur.includes(w));
+                if (!sameSet) act.scrambledWords = shuffleArray(words);
+            }
+
+            const DEFAULT_LESSONS = [
+                {
+                    id: 'l1',
+                    mainTitle: 'SHORT VOWEL CVC WORDS',
+                    lessonNumber: 1,
+                    letterTile: 'Aa',
+                    introText: 'Short a says /a/ like in apple — when a single vowel is boxed in between two consonants, it usually keeps this quick, clipped sound.',
+                    showImage: false,
+                    imagePath: '',
+                    imageCaption: '',
+                    activities: {
+                        lookAndSay: { active: true, words: [['bag','cat','mat','hat'],['rat','bat','sat','pat'],['fat','man','van','map']] },
+                        decodable: {
+                            active: true,
+                            sentences: ['I see a bag.','Look at the cat and the mat.','Is this a hat?','I like my rat.','We have a bat.'],
+                            fillBlanks: ['b_g','c_t','m_t','h_t','r_t','b_t','s_t','p_t','f_t','m_n','v_n','m_p']
+                        },
+                        traceWrite: { active: true, target: 'a', setCount: 6, clone: true },
+                        wordSort: { active: true, columnCount: 3, columnLabels: ['Short a','Not short a','?'], words: ['bag','cat','mat','hat','rat','bat','sat','pat','fat','man','van','map'] },
+                        sentenceWrite: { active: true, prompt: 'Write 2 sentences using the words above.', lineCount: 4, showDrawBox: true, drawPrompt: 'cat' },
+                        matchPicture: { active: true, pairCount: 4, pairs: [{word:'bag',imagePath:''},{word:'cat',imagePath:''},{word:'hat',imagePath:''},{word:'rat',imagePath:''}] }
+                    }
+                },
+                {
+                    id: 'l2',
+                    mainTitle: 'SHORT VOWEL CVC WORDS',
+                    lessonNumber: 2,
+                    letterTile: 'Ee',
+                    introText: 'Short e says /e/ like in egg — in a closed CVC word, a lone e squeezed between consonants stays short and fast.',
+                    showImage: false,
+                    imagePath: '',
+                    imageCaption: '',
+                    activities: {
+                        lookAndSay: { active: true, words: [['get','wet','net','let'],['pen','ten','hen','men'],['bed','red','led','fed']] },
+                        decodable: {
+                            active: true,
+                            sentences: ['They will get wet.','Here is a little net.','I have a big pen.','Go get the hen for me.','The red bed is soft.'],
+                            fillBlanks: ['g_t','w_t','n_t','l_t','p_n','t_n','h_n','m_n','b_d','r_d','l_d','f_d']
+                        },
+                        traceWrite: { active: true, target: 'e', setCount: 6, clone: true },
+                        wordSort: { active: true, columnCount: 2, columnLabels: ['Short e','Other'], words: ['get','wet','net','let','pen','ten','hen','men','bed','red','led','fed'] },
+                        sentenceWrite: { active: true, prompt: 'Write 2 sentences using the words above.', lineCount: 4, showDrawBox: true, drawPrompt: 'bed' },
+                        matchPicture: { active: true, pairCount: 4, pairs: [{word:'net',imagePath:''},{word:'pen',imagePath:''},{word:'hen',imagePath:''},{word:'bed',imagePath:''}] }
+                    }
+                }
+            ];
+            const DEFAULT_SIGHT_WORDS = ['the','of','and','a','to','in','is','you','that','it','he','was','for','on','are','as','with','his','they','I','at','be','this','have','from','or','one','had','by','but','not','what','all','were','we','when','your','can','said','there','use','an','each','which','she','do','how','their','if','will','up','other','about','out','many','then','them','these','so','some','her','would','make','like','him','into','time','has','look','two','more','write','go','see','no','way','could','people','my','than','first','water','been','called','who','am','its','now','find','long','down','day','did','get','come','made','may','part'];
+            const DEFAULT_COVER = { title: 'Crystal Phonics', subtitle: 'Grade 1' };
+
+            let lessons = [];
+            let sightWords = [];
+            let coverData = { ...DEFAULT_COVER };
+            let editingId = null;
+            let nextId = 1;
+            window.searchQuery = '';
+
+            function loadData() {
+                try {
+                    const raw = localStorage.getItem(STORAGE_KEY);
+                    if (raw) {
+                        const parsed = JSON.parse(raw);
+                        lessons = parsed.lessons || [];
+                        sightWords = parsed.sightWords || [...DEFAULT_SIGHT_WORDS];
+                        coverData = parsed.coverData || { ...DEFAULT_COVER };
+                        if (lessons.length) {
+                            let maxId = 0;
+                            lessons.forEach(l => {
+                                if (!l.id) l.id = 'l' + Date.now() + Math.random().toString(36).slice(2, 6);
+                                if (!l.activities) {
+                                    l.activities = makeDefaultActivities();
+                                    if (l.words) l.activities.lookAndSay.words = l.words;
+                                    if (l.sentences) l.activities.decodable.sentences = l.sentences;
+                                    if (l.fillBlanks) l.activities.decodable.fillBlanks = l.fillBlanks;
+                                }
+                                const def = makeDefaultActivities();
+                                Object.keys(def).forEach(k => { if (!l.activities[k]) l.activities[k] = def[k]; });
+                                ensureScramble(l);
+                                const num = parseInt(String(l.id).replace('l', '')) || 0;
+                                if (num > maxId) maxId = num;
+                            });
+                            nextId = maxId + 1;
+                        } else {
+                            lessons = JSON.parse(JSON.stringify(DEFAULT_LESSONS));
+                            lessons.forEach(ensureScramble);
+                            nextId = lessons.length + 1;
+                        }
+                        renumberByOrder(lessons);
+                        saveData();
+                        return;
+                    }
+                } catch (e) {}
+                lessons = JSON.parse(JSON.stringify(DEFAULT_LESSONS));
+                lessons.forEach(ensureScramble);
+                sightWords = [...DEFAULT_SIGHT_WORDS];
+                coverData = { ...DEFAULT_COVER };
+                nextId = lessons.length + 1;
+                renumberByOrder(lessons);
+                saveData();
+            }
+            function saveData() {
+                try {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify({ lessons, sightWords, coverData }));
+                } catch (e) {
+                    showToast('Storage full – delete some lessons.', 'error');
+                }
+            }
+            function generateId() { return 'l' + (nextId++); }
+            function resyncNextId() {
+                let maxId = 0;
+                lessons.forEach(l => {
+                    const num = parseInt(String(l.id).replace('l', '')) || 0;
+                    if (num > maxId) maxId = num;
+                });
+                nextId = maxId + 1;
+            }
+            function renumberByOrder(arr) {
+                arr.forEach((lesson, idx) => lesson.lessonNumber = idx + 1);
+            }
+
+            // ---------- VIEW HELPERS ----------
+            function createWordGrid(words, cls = '') {
+                const grid = document.createElement('div');
+                grid.className = 'word-grid ' + cls;
+                words.forEach(w => {
+                    const d = document.createElement('div');
+                    d.className = 'pill';
+                    if (cls === 'blanks') {
+                        let html = '';
+                        for (const ch of String(w)) {
+                            if (ch === '_') html += '<span class="blank-box"></span>';
+                            else html += `<span>${escapeHtml(ch)}</span>`;
+                        }
+                        d.innerHTML = html;
+                    } else {
+                        d.textContent = w;
+                    }
+                    grid.appendChild(d);
+                });
+                return grid;
+            }
+            function createWritingSets(target, setCount, opts = {}) {
+                const { outlined = true, onlyFirstFilled = false } = opts;
+                const letter = escapeHtml(target || 'a');
+                let html = '';
+                for (let i = 0; i < setCount; i++) {
+                    const fill = onlyFirstFilled ? (i === 0) : true;
+                    const cls = outlined ? '' : ' class="solid"';
+                    const lettersHtml = fill ? Array(4).fill(`<span${cls}>${letter}</span>`).join('') : '';
+                    html += `<div class="writing-set"><div class="line red l1"></div><div class="line blue l2"></div><div class="line blue l3"></div><div class="line red l4"></div><div class="trace-letters">${lettersHtml}</div></div>`;
+                }
+                const el = document.createElement('div'); el.className = 'writing-practice'; el.innerHTML = html; return el;
+            }
+
+            function buildLookAndSayPage(lesson, pageNum) {
+                const act = lesson.activities.lookAndSay;
+                const page = document.createElement('div'); page.className = 'page';
+                page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
+                const card = document.createElement('div'); card.className = 'card';
+                let hero = lesson.showImage ?
+                    `<div class="hero-row"><div class="hero-image">${lesson.imagePath ? `<img src="${escapeHtml(lesson.imagePath)}" />` : '<div class="placeholder">🖼️</div>'}<div class="caption">${escapeHtml(lesson.imageCaption||'')}</div></div><div class="hero-letter">${escapeHtml(lesson.letterTile||'')}</div></div>` :
+                    `<div class="hero-tile"><div class="sound-label">Today's Sound</div><div class="letter-display">${escapeHtml(lesson.letterTile||'')}</div><div class="decoration">✦ ✦ ✦</div></div>`;
+                card.innerHTML = `<div class="title">${escapeHtml(lesson.mainTitle)}</div>
+                    <div class="header-row"><div class="lesson-badge"><div class="arrow"></div><div class="label">Lesson</div><div class="num">${lesson.lessonNumber}</div></div><div class="intro-box"><p>${escapeHtml(lesson.introText||'')}</p></div></div>
+                    ${hero}<div class="section-header"><div class="circle">1</div><div class="label-box">Look and say aloud</div></div>`;
+                card.appendChild(createWordGrid(flattenWords(act.words || [])));
+                const pn = document.createElement('div'); pn.className = 'page-number'; pn.textContent = pageNum;
+                card.appendChild(pn); page.appendChild(card); return page;
+            }
+
+            function buildDecodablePage(lesson, pageNum) {
+                const act = lesson.activities.decodable;
+                const page = document.createElement('div'); page.className = 'page';
+                page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
+                const card = document.createElement('div'); card.className = 'card';
+                card.innerHTML = `<div class="section-header"><div class="circle">2</div><div class="label-box">Decodable Reading</div></div>
+                    <div class="instructions">Read ALOUD and circle all words with the target sound</div>
+                    <div class="reading-box">${(act.sentences||[]).map((s,i)=>`<p>${i+1}. ${escapeHtml(s)}</p>`).join('')}</div>
+                    <div class="section-header"><div class="circle">3</div><div class="label-box">Activities</div></div>
+                    <div class="activity-label">A. Fill in the missing letters and say the word</div>`;
+                card.appendChild(createWordGrid(act.fillBlanks||[], 'blanks'));
+                card.innerHTML += `<div class="activity-label">B. Copy each word from above</div>`;
+                card.appendChild(createWordGrid((act.fillBlanks||[]).map(()=>'\u00A0'), 'empty'));
+                card.innerHTML += `<div class="activity-label">C. Choose any word and form 2 sentences</div>
+                    <div class="sentence-line">1.</div><div class="sentence-line">2.</div>`;
+                const pn = document.createElement('div'); pn.className = 'page-number'; pn.textContent = pageNum;
+                card.appendChild(pn); page.appendChild(card); return page;
+            }
+
+            function buildTraceWritePage(lesson, pageNum) {
+                const act = lesson.activities.traceWrite;
+                const page = document.createElement('div'); page.className = 'page';
+                page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
+                const card = document.createElement('div'); card.className = 'card';
+                card.innerHTML = `<div class="title">${escapeHtml(lesson.mainTitle)}</div>
+                    <div class="section-header"><div class="circle">✎</div><div class="label-box">Trace and write</div></div>
+                    <div class="instructions">Trace the outlined letters, then write them on your own.</div>`;
+                card.appendChild(createWritingSets(act.target||lesson.letterTile||'a', act.setCount||5, {outlined:true}));
+                const pn = document.createElement('div'); pn.className = 'page-number'; pn.textContent = pageNum;
+                card.appendChild(pn); page.appendChild(card); return page;
+            }
+
+            function buildBlankPracticePage(target, pageNum) {
+                const page = document.createElement('div'); page.className = 'page';
+                page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
+                const card = document.createElement('div'); card.className = 'card';
+                card.appendChild(createWritingSets(target||'a', 10, {outlined:false, onlyFirstFilled:true}));
+                const pn = document.createElement('div'); pn.className = 'page-number'; pn.textContent = pageNum;
+                card.appendChild(pn); page.appendChild(card); return page;
+            }
+
+            function buildWordSortPage(lesson, pageNum) {
+                const act = lesson.activities.wordSort;
+                const page = document.createElement('div'); page.className = 'page';
+                page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
+                const card = document.createElement('div'); card.className = 'card';
+                const cols = act.columnCount||2, labels = act.columnLabels||[];
+                let colsHtml = '';
+                for (let i=0; i<cols; i++) colsHtml += `<div class="sort-col"><div class="col-label">${escapeHtml(labels[i]||'Column '+(i+1))}</div></div>`;
+                card.innerHTML = `<div class="title">${escapeHtml(lesson.mainTitle)}</div>
+                    <div class="section-header"><div class="circle">↕</div><div class="label-box">Word Sort</div></div>
+                    <div class="instructions">Sort the words into the correct columns.</div>
+                    <div class="sort-grid cols-${cols}">${colsHtml}</div>
+                    <div class="sort-words">${(act.words||[]).map(w=>`<span>${escapeHtml(w)}</span>`).join('')}</div>`;
+                const pn = document.createElement('div'); pn.className = 'page-number'; pn.textContent = pageNum;
+                card.appendChild(pn); page.appendChild(card); return page;
+            }
+
+            function buildSentenceWritePage(lesson, pageNum) {
+                const act = lesson.activities.sentenceWrite;
+                const page = document.createElement('div'); page.className = 'page';
+                page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
+                const card = document.createElement('div'); card.className = 'card';
+                let lines = '';
+                for (let i=0; i<(act.lineCount||4); i++) lines += `<div class="sentence-line">${i+1}.</div>`;
+                const drawPrompt = act.drawPrompt||'';
+                const drawText = drawPrompt ? `Draw: ${escapeHtml(drawPrompt)}` : 'Draw a picture here';
+                card.innerHTML = `<div class="title">${escapeHtml(lesson.mainTitle)}</div>
+                    <div class="section-header"><div class="circle">✍</div><div class="label-box">Sentence Writing</div></div>
+                    <div class="instructions">${escapeHtml(act.prompt||'Write sentences using the target words.')}</div>
+                    ${act.showDrawBox ? `<div class="draw-box">${drawText}</div>` : ''}${lines}`;
+                const pn = document.createElement('div'); pn.className = 'page-number'; pn.textContent = pageNum;
+                card.appendChild(pn); page.appendChild(card); return page;
+            }
+
+            function buildMatchPicturePage(lesson, pageNum) {
+                const act = lesson.activities.matchPicture;
+                const page = document.createElement('div'); page.className = 'page';
+                page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
+                const card = document.createElement('div'); card.className = 'card';
+                const pairCount = act.pairCount||4;
+                const pairs = (act.pairs||[]).slice(0,pairCount);
+                const validPairs = pairs.filter(p=>p.word&&p.word.trim()!=='');
+                const words = validPairs.map(p=>p.word.trim());
+                const stored = act.scrambledWords||[];
+                const scrambled = (stored.length===words.length&&words.every(w=>stored.includes(w))) ? stored : shuffleArray(words);
+                let leftHtml = validPairs.map(p=>`<div class="match-item"><div class="match-square">${p.imagePath?`<img src="${escapeHtml(p.imagePath)}"/>`:'🖼️'}</div></div>`).join('');
+                let rightHtml = scrambled.map(w=>`<div class="match-item"><div class="match-square"><span class="word">${escapeHtml(w)}</span></div></div>`).join('');
+                card.innerHTML = `<div class="title">${escapeHtml(lesson.mainTitle)}</div>
+                    <div class="section-header"><div class="circle">🔗</div><div class="label-box">Match the Picture</div></div>
+                    <div class="instructions">Draw a line from each picture to the matching word.</div>
+                    <div class="match-grid"><div class="match-side">${leftHtml}</div><div class="match-side">${rightHtml}</div></div>`;
+                const pn = document.createElement('div'); pn.className = 'page-number'; pn.textContent = pageNum;
+                card.appendChild(pn); page.appendChild(card); return page;
+            }
+
+            function buildTocPage(pageNum, entries) {
+                const page = document.createElement('div'); page.className = 'page';
+                page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
+                const card = document.createElement('div'); card.className = 'toc-card';
+                card.innerHTML = `<div class="toc-title">Table of Contents</div><ul class="toc-list">` +
+                    entries.map(e=>`<li class="toc-item"><span class="toc-lesson-title">Lesson ${e.lessonNumber}: ${escapeHtml(e.mainTitle)}${e.letterTile?' — '+escapeHtml(e.letterTile):''}</span><span class="toc-page-num">Page ${e.firstPage}</span></li>`).join('') +
+                    `</ul><div class="page-number">${pageNum}</div>`;
+                page.appendChild(card); return page;
+            }
+            function buildSightWordsPage(pageNum, words) {
+                const page = document.createElement('div'); page.className = 'page';
+                page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
+                const card = document.createElement('div'); card.className = 'card';
+                card.innerHTML = `<div class="title">Sight Words Practice</div>
+                    <div class="section-header"><div class="circle">★</div><div class="label-box">Read and say each word</div></div>`;
+                const grid = document.createElement('div');
+                grid.className = 'sight-words-grid';
+                const paddedWords = words.slice(0, MAX_SIGHT_WORDS_PER_PAGE);
+                for (let i = 0; i < MAX_SIGHT_WORDS_PER_PAGE; i++) {
+                    const word = paddedWords[i] || '';
+                    const cell = document.createElement('div');
+                    cell.className = 'sight-word-cell';
+                    cell.textContent = word;
+                    grid.appendChild(cell);
+                }
+                card.appendChild(grid);
+                card.innerHTML += `<div class="page-number">${pageNum}</div>`;
+                page.appendChild(card);
+                return page;
+            }
+            function buildCoverPage() {
+                const page = document.createElement('div'); page.className = 'page';
+                page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
+                const card = document.createElement('div'); card.className = 'card cover-card';
+                card.innerHTML = `<div class="cover-text-block"><div class="cover-line"></div><div class="cover-title">${escapeHtml(coverData.title)}</div><div class="cover-subtitle">${escapeHtml(coverData.subtitle)}</div><div class="cover-line"></div></div>`;
+                page.appendChild(card); return page;
+            }
+
+            window.exportSinglePage = function(pageEl) {
+                const clone = pageEl.cloneNode(true);
+                clone.querySelector('.page-actions')?.remove();
+                const win = window.open('','_blank');
+                const styles = document.querySelector('style').outerHTML;
+                win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Export</title><style>${styles}</style></head><body style="padding:0;background:#fff;margin:0;"><div class="view-container" style="overflow:visible;">${clone.outerHTML}</div></body></html>`);
+                win.document.close(); win.focus(); setTimeout(()=>win.print(),400);
+            };
+            window.exportAllPages = function() {
+                if (!lessons.length && !sightWords.length) return showToast('No lessons or sight words.','warning');
+                const container = document.querySelector('.view-container').cloneNode(true);
+                container.querySelectorAll('.page-actions').forEach(el=>el.remove());
+                const win = window.open('','_blank');
+                const styles = document.querySelector('style').outerHTML;
+                win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>All Pages</title><style>${styles}</style></head><body style="padding:0;background:#fff;margin:0;"><div class="view-container" style="overflow:visible;">${container.outerHTML}</div></body></html>`);
+                win.document.close(); win.focus(); setTimeout(()=>win.print(),400);
+            };
+
+            function countActiveActivities(lesson) {
+                const a = lesson.activities||{};
+                let n = 0;
+                if (a.lookAndSay?.active) n++;
+                if (a.decodable?.active) n++;
+                if (a.traceWrite?.active) { n+=1; if (a.traceWrite.clone) n+=1; }
+                if (a.wordSort?.active) n++;
+                if (a.sentenceWrite?.active) n++;
+                if (a.matchPicture?.active) n++;
+                return Math.max(n,0);
+            }
+
+            function renderAllView() {
+                const container = document.getElementById('viewContainer');
+                container.innerHTML = '';
+                container.appendChild(buildCoverPage());
+                if (!lessons.length && !sightWords.length) return;
+                const swPages = Math.ceil(sightWords.length/MAX_SIGHT_WORDS_PER_PAGE);
+                const activityCounts = lessons.map(countActiveActivities);
+                const lessonsWithPages = lessons.filter((l,i)=>activityCounts[i]>0).length;
+                const tocPages = lessonsWithPages ? Math.ceil(lessonsWithPages/MAX_TOC_PER_PAGE) : 0;
+                const lessonStart = tocPages + swPages + 1;
+                let running = lessonStart;
+                const tocEntries = [];
+                lessons.forEach((l,i)=>{
+                    const activityCount = activityCounts[i];
+                    if (activityCount>0) tocEntries.push({lessonNumber:l.lessonNumber, mainTitle:l.mainTitle, letterTile:l.letterTile, firstPage:running});
+                    running += activityCount;
+                });
+                for (let p=0; p<tocPages; p++) container.appendChild(buildTocPage(p+1, tocEntries.slice(p*MAX_TOC_PER_PAGE,(p+1)*MAX_TOC_PER_PAGE)));
+                let pageNum = tocPages+1;
+                for (let p=0; p<swPages; p++) {
+                    const slice = sightWords.slice(p*MAX_SIGHT_WORDS_PER_PAGE,(p+1)*MAX_SIGHT_WORDS_PER_PAGE);
+                    container.appendChild(buildSightWordsPage(pageNum++, slice));
+                }
+                pageNum = lessonStart;
+                lessons.forEach(l=>{
+                    const a = l.activities||{};
+                    if (a.lookAndSay?.active) container.appendChild(buildLookAndSayPage(l, pageNum++));
+                    if (a.decodable?.active) container.appendChild(buildDecodablePage(l, pageNum++));
+                    if (a.traceWrite?.active) {
+                        container.appendChild(buildTraceWritePage(l, pageNum++));
+                        if (a.traceWrite.clone) container.appendChild(buildBlankPracticePage(a.traceWrite.target||l.letterTile||'a', pageNum++));
+                    }
+                    if (a.wordSort?.active) container.appendChild(buildWordSortPage(l, pageNum++));
+                    if (a.sentenceWrite?.active) container.appendChild(buildSentenceWritePage(l, pageNum++));
+                    if (a.matchPicture?.active) container.appendChild(buildMatchPicturePage(l, pageNum++));
+                });
+            }
+
+            // ---------- EDIT ----------
+            function getFormData() {
+                const wordsRaw = document.getElementById('fWords').value;
+                const wordsArr = wordsRaw.split(',').map(s=>s.trim()).filter(Boolean);
+                const chunked = [];
+                for (let i=0; i<wordsArr.length; i+=4) chunked.push(wordsArr.slice(i,i+4));
+                const showImage = document.getElementById('fShowImage').checked;
+                const pairCount = parseInt(document.getElementById('fPairCount')?.value)||4;
+                const pairs = [];
+                for (let i=0; i<5; i++) {
+                    const img = document.getElementById('fPairImg'+i)?.value||'';
+                    const word = document.getElementById('fPairWord'+i)?.value?.trim()||'';
+                    if (i<pairCount) pairs.push({imagePath:img, word});
+                }
+                const colCount = parseInt(document.getElementById('fSortCols')?.value)||2;
+                const labels = [];
+                for (let i=0; i<4; i++) labels.push(document.getElementById('fSortLabel'+i)?.value?.trim()||('Column '+(i+1)));
+                return {
+                    mainTitle: document.getElementById('fMainTitle').value.trim(),
+                    lessonNumber: parseInt(document.getElementById('fLessonNumber').value)||0,
+                    letterTile: document.getElementById('fLetterTile').value.trim(),
+                    introText: document.getElementById('fIntroText').value.trim(),
+                    showImage,
+                    imagePath: showImage ? (document.getElementById('fImagePath').value||'') : '',
+                    imageCaption: showImage ? document.getElementById('fImageCaption').value.trim() : '',
+                    activities: {
+                        lookAndSay: { active: document.getElementById('actLook').checked, words: chunked },
+                        decodable: {
+                            active: document.getElementById('actDecodable').checked,
+                            sentences: document.getElementById('fSentences').value.split(',').map(s=>s.trim()).filter(Boolean),
+                            fillBlanks: document.getElementById('fFillBlanks').value.split(',').map(s=>s.trim()).filter(Boolean)
+                        },
+                        traceWrite: {
+                            active: document.getElementById('actTrace').checked,
+                            target: document.getElementById('fTraceTarget').value.trim(),
+                            setCount: parseInt(document.getElementById('fTraceSets').value)||5,
+                            clone: document.getElementById('fTraceClone')?.checked||false
+                        },
+                        wordSort: {
+                            active: document.getElementById('actSort').checked,
+                            columnCount: colCount,
+                            columnLabels: labels.slice(0,colCount),
+                            words: document.getElementById('fSortWords').value.split(',').map(s=>s.trim()).filter(Boolean)
+                        },
+                        sentenceWrite: {
+                            active: document.getElementById('actSentence').checked,
+                            prompt: document.getElementById('fSentencePrompt').value.trim(),
+                            lineCount: parseInt(document.getElementById('fSentenceLines').value)||4,
+                            showDrawBox: document.getElementById('fShowDraw').checked,
+                            drawPrompt: document.getElementById('fDrawPrompt')?.value?.trim()||''
+                        },
+                        matchPicture: { active: document.getElementById('actMatch').checked, pairCount, pairs }
+                    }
+                };
+            }
+
+            function setActivityOpen(id, isOn) {
+                const card = document.getElementById('card-'+id);
+                const badge = document.getElementById('badge-'+id);
+                if (card) card.classList.toggle('open', isOn);
+                if (badge) { badge.textContent = isOn?'ON':'OFF'; badge.className = 'toggle-badge '+(isOn?'on':'off'); }
+            }
+            window.toggleActivity = function(id) {
+                const map = { look:'Look', decodable:'Decodable', trace:'Trace', sort:'Sort', sentence:'Sentence', match:'Match' };
+                const el = document.getElementById('act'+(map[id]||id));
+                if (!el) return;
+                setActivityOpen(id, el.checked);
+            };
+
+            function fillForm(lesson) {
+                document.getElementById('fMainTitle').value = lesson.mainTitle||'';
+                document.getElementById('fLessonNumber').value = lesson.lessonNumber||'';
+                document.getElementById('fLetterTile').value = lesson.letterTile||'';
+                document.getElementById('fIntroText').value = lesson.introText||'';
+                document.getElementById('fShowImage').checked = !!lesson.showImage;
+                document.getElementById('imageFields').style.display = lesson.showImage?'block':'none';
+                document.getElementById('fImageCaption').value = lesson.imageCaption||'';
+                document.getElementById('fImagePath').value = lesson.imagePath||'';
+                const img = document.getElementById('imagePreview'), ph = document.getElementById('imagePreviewPlaceholder');
+                if (lesson.imagePath) { img.src = lesson.imagePath; img.style.display='block'; ph.style.display='none'; }
+                else { img.src=''; img.style.display='none'; ph.style.display='flex'; }
+
+                const a = lesson.activities||makeDefaultActivities();
+                document.getElementById('actLook').checked = !!a.lookAndSay?.active;
+                setActivityOpen('look', !!a.lookAndSay?.active);
+                document.getElementById('fWords').value = flattenWords(a.lookAndSay?.words||[]).join(', ');
+
+                document.getElementById('actDecodable').checked = !!a.decodable?.active;
+                setActivityOpen('decodable', !!a.decodable?.active);
+                document.getElementById('fSentences').value = (a.decodable?.sentences||[]).join(', ');
+                document.getElementById('fFillBlanks').value = (a.decodable?.fillBlanks||[]).join(', ');
+
+                document.getElementById('actTrace').checked = !!a.traceWrite?.active;
+                setActivityOpen('trace', !!a.traceWrite?.active);
+                document.getElementById('fTraceTarget').value = a.traceWrite?.target||'';
+                document.getElementById('fTraceSets').value = a.traceWrite?.setCount||5;
+                const cloneEl = document.getElementById('fTraceClone');
+                if (cloneEl) cloneEl.checked = !!a.traceWrite?.clone;
+
+                document.getElementById('actSort').checked = !!a.wordSort?.active;
+                setActivityOpen('sort', !!a.wordSort?.active);
+                document.getElementById('fSortCols').value = a.wordSort?.columnCount||2;
+                document.getElementById('fSortWords').value = (a.wordSort?.words||[]).join(', ');
+                const labels = a.wordSort?.columnLabels||[];
+                for (let i=0; i<4; i++) { const el = document.getElementById('fSortLabel'+i); if (el) el.value = labels[i]||''; }
+                updateSortLabels();
+
+                document.getElementById('actSentence').checked = !!a.sentenceWrite?.active;
+                setActivityOpen('sentence', !!a.sentenceWrite?.active);
+                document.getElementById('fSentencePrompt').value = a.sentenceWrite?.prompt||'';
+                document.getElementById('fSentenceLines').value = a.sentenceWrite?.lineCount||4;
+                document.getElementById('fShowDraw').checked = !!a.sentenceWrite?.showDrawBox;
+                if (document.getElementById('fDrawPrompt')) document.getElementById('fDrawPrompt').value = a.sentenceWrite?.drawPrompt||'';
+
+                document.getElementById('actMatch').checked = !!a.matchPicture?.active;
+                setActivityOpen('match', !!a.matchPicture?.active);
+                const pc = a.matchPicture?.pairCount||4;
+                document.getElementById('fPairCount').value = pc;
+                const pairs = a.matchPicture?.pairs||[];
+                for (let i=0; i<5; i++) {
+                    const p = pairs[i]||{};
+                    document.getElementById('fPairWord'+i).value = p.word||'';
+                    document.getElementById('fPairImg'+i).value = p.imagePath||'';
+                    const pimg = document.getElementById('pairPreview'+i), pph = document.getElementById('pairPh'+i);
+                    if (p.imagePath) { pimg.src = p.imagePath; pimg.style.display='block'; pph.style.display='none'; }
+                    else { pimg.src=''; pimg.style.display='none'; pph.style.display='flex'; }
+                }
+                updatePairVisibility();
+            }
+
+            function resetForm() {
+                editingId = null;
+                document.getElementById('formTitle').textContent = '➕ Add New Lesson';
+                document.getElementById('fMainTitle').value = '';
+                document.getElementById('fLessonNumber').value = lessons.length + 1;
+                document.getElementById('fLetterTile').value = '';
+                document.getElementById('fIntroText').value = '';
+                document.getElementById('fShowImage').checked = false;
+                document.getElementById('imageFields').style.display = 'none';
+                document.getElementById('fImageCaption').value = '';
+                document.getElementById('fImagePath').value = '';
+                document.getElementById('imagePreview').style.display = 'none';
+                document.getElementById('imagePreviewPlaceholder').style.display = 'flex';
+                const mainFileInput = document.getElementById('mainImageFile'); if (mainFileInput) mainFileInput.value = '';
+
+                document.getElementById('actLook').checked = true; setActivityOpen('look', true);
+                document.getElementById('fWords').value = '';
+                document.getElementById('actDecodable').checked = true; setActivityOpen('decodable', true);
+                document.getElementById('fSentences').value = '';
+                document.getElementById('fFillBlanks').value = '';
+                document.getElementById('actTrace').checked = false; setActivityOpen('trace', false);
+                document.getElementById('fTraceTarget').value = '';
+                document.getElementById('fTraceSets').value = 5;
+                const cloneReset = document.getElementById('fTraceClone'); if (cloneReset) cloneReset.checked = false;
+                document.getElementById('actSort').checked = false; setActivityOpen('sort', false);
+                document.getElementById('fSortCols').value = 2;
+                document.getElementById('fSortWords').value = '';
+                for (let i=0; i<4; i++) document.getElementById('fSortLabel'+i).value = '';
+                updateSortLabels();
+                document.getElementById('actSentence').checked = false; setActivityOpen('sentence', false);
+                document.getElementById('fSentencePrompt').value = 'Write sentences using the target words.';
+                document.getElementById('fSentenceLines').value = 4;
+                document.getElementById('fShowDraw').checked = false;
+                if (document.getElementById('fDrawPrompt')) document.getElementById('fDrawPrompt').value = '';
+                document.getElementById('actMatch').checked = false; setActivityOpen('match', false);
+                document.getElementById('fPairCount').value = 4;
+                for (let i=0; i<5; i++) {
+                    document.getElementById('fPairWord'+i).value = '';
+                    document.getElementById('fPairImg'+i).value = '';
+                    document.getElementById('pairPreview'+i).style.display = 'none';
+                    document.getElementById('pairPh'+i).style.display = 'flex';
+                }
+                updatePairVisibility();
+                document.getElementById('saveBtn').textContent = '💾 Save Lesson';
+                document.getElementById('cancelBtn').style.display = 'none';
+            }
+
+            window.toggleShowImage = function() { document.getElementById('imageFields').style.display = document.getElementById('fShowImage').checked?'block':'none'; };
+            window.updatePairVisibility = function() {
+                const n = parseInt(document.getElementById('fPairCount').value)||4;
+                for (let i=0; i<5; i++) { const row = document.getElementById('pairRow'+i); if (row) row.style.display = i<n?'grid':'none'; }
+            };
+            window.updateSortLabels = function() {
+                const n = parseInt(document.getElementById('fSortCols').value)||2;
+                for (let i=0; i<4; i++) { const g = document.getElementById('sortLabelGroup'+i); if (g) g.style.display = i<n?'block':'none'; }
+            };
+
+            window.handleImageUpload = function(event, targetId) {
+                const file = event.target.files[0];
+                if (!file) return;
+                if (file.size > 2*1024*1024) return showToast('Image must be < 2MB.','error');
+                if (!file.type.startsWith('image/')) return showToast('Please select an image.','error');
+                const reader = new FileReader();
+                reader.onload = e => {
+                    const dataUrl = e.target.result;
+                    if (targetId === 'main') {
+                        document.getElementById('fImagePath').value = dataUrl;
+                        const img = document.getElementById('imagePreview'), ph = document.getElementById('imagePreviewPlaceholder');
+                        img.src = dataUrl; img.style.display = 'block'; ph.style.display = 'none';
+                    } else {
+                        const idx = targetId;
+                        document.getElementById('fPairImg'+idx).value = dataUrl;
+                        const img = document.getElementById('pairPreview'+idx), ph = document.getElementById('pairPh'+idx);
+                        img.src = dataUrl; img.style.display = 'block'; ph.style.display = 'none';
+                    }
+                    showToast('Image uploaded.','success');
+                };
+                reader.readAsDataURL(file);
+            };
+
+            window.editLesson = function(id) {
+                const lesson = lessons.find(l=>l.id===id);
+                if (!lesson) return showToast('Lesson not found.','error');
+                editingId = id;
+                document.getElementById('formTitle').textContent = '✏️ Edit Lesson';
+                fillForm(lesson);
+                document.getElementById('saveBtn').textContent = '💾 Update Lesson';
+                document.getElementById('cancelBtn').style.display = 'inline-block';
+                document.querySelector('.form-section').scrollIntoView({behavior:'smooth'});
+            };
+            window.cancelEdit = function() { resetForm(); showToast('Edit cancelled.','info'); };
+
+            window.saveLesson = function() {
+                const data = getFormData();
+                if (!data.mainTitle || !data.lessonNumber || !data.letterTile || !data.introText) {
+                    return showToast('Main Title, Lesson Number, Letter Tile and Intro Text are required.','error');
+                }
+                if (data.activities.lookAndSay.active && flattenWords(data.activities.lookAndSay.words).length < 4) {
+                    return showToast('Look & Say needs at least 4 words.','error');
+                }
+                if (data.activities.decodable.active) {
+                    if (data.activities.decodable.sentences.length < 2) return showToast('Decodable needs at least 2 sentences.','error');
+                    if (data.activities.decodable.fillBlanks.length < 4) return showToast('Decodable needs at least 4 fill-blanks.','error');
+                }
+                if (data.activities.wordSort.active && data.activities.wordSort.words.length < 2) {
+                    return showToast('Word Sort needs at least 2 words.','error');
+                }
+                if (data.activities.matchPicture.active) {
+                    const validPairCount = data.activities.matchPicture.pairs.filter(p=>p.word).length;
+                    if (validPairCount < 2) return showToast('Match the Picture needs at least 2 word pairs filled in.','error');
+                }
+                const hasAnyActivity = ['lookAndSay','decodable','traceWrite','wordSort','sentenceWrite','matchPicture'].some(k=>data.activities[k].active);
+                if (!hasAnyActivity) return showToast('Turn on at least one activity for this lesson.','error');
+
+                if (data.activities.matchPicture.active) {
+                    const words = data.activities.matchPicture.pairs.filter(p=>p.word).map(p=>p.word);
+                    const prevLesson = editingId ? lessons.find(l=>l.id===editingId) : null;
+                    const prevScramble = prevLesson?.activities?.matchPicture?.scrambledWords || [];
+                    const sameSet = prevScramble.length === words.length && words.every(w=>prevScramble.includes(w));
+                    data.activities.matchPicture.scrambledWords = sameSet ? prevScramble : shuffleArray(words);
+                } else {
+                    data.activities.matchPicture.scrambledWords = [];
+                }
+
+                if (editingId) {
+                    const idx = lessons.findIndex(l=>l.id===editingId);
+                    if (idx===-1) return showToast('Lesson not found.','error');
+                    data.lessonNumber = idx + 1;
+                    lessons[idx] = { ...lessons[idx], ...data, id: editingId };
+                } else {
+                    data.lessonNumber = lessons.length + 1;
+                    lessons.push({ ...data, id: generateId() });
+                }
+                saveData();
+                resetForm();
+                refreshUI();
+                showToast('Lesson saved.','success');
+            };
+
+            window.deleteLesson = function(id) {
+                const lesson = lessons.find(l=>l.id===id);
+                if (!lesson) return;
+                confirmDialog(`Delete Lesson ${lesson.lessonNumber}?`, ()=>{
+                    lessons = lessons.filter(l=>l.id!==id);
+                    if (editingId===id) resetForm();
+                    renumberByOrder(lessons);
+                    saveData();
+                    refreshUI();
+                });
+            };
+            window.duplicateLesson = function(id) {
+                const lesson = lessons.find(l=>l.id===id);
+                if (!lesson) return;
+                const copy = JSON.parse(JSON.stringify(lesson));
+                delete copy.id;
+                copy.id = generateId();
+                lessons.push(copy);
+                renumberByOrder(lessons);
+                saveData();
+                refreshUI();
+                showToast('Lesson duplicated.','success');
+            };
+
+            window.exportJSON = function() {
+                const blob = new Blob([JSON.stringify({lessons,sightWords,coverData},null,2)],{type:'application/json'});
+                const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'lessons.json'; a.click();
+            };
+            window.importJSON = function(input) {
+                const file = input.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = e => {
+                    try {
+                        const data = JSON.parse(e.target.result);
+                        if (!data || typeof data !== 'object') throw new Error('Invalid');
+                        confirmDialog('Replace all data with imported file? Lesson numbers will be renumbered by list order.', () => {
+                            if (Array.isArray(data.lessons)) {
+                                lessons = data.lessons.map((l,i) => {
+                                    if (!l.id) l.id = '__import'+i;
+                                    if (!l.activities) {
+                                        l.activities = makeDefaultActivities();
+                                        if (l.words) l.activities.lookAndSay.words = l.words;
+                                        if (l.sentences) l.activities.decodable.sentences = l.sentences;
+                                        if (l.fillBlanks) l.activities.decodable.fillBlanks = l.fillBlanks;
+                                    }
+                                    const def = makeDefaultActivities();
+                                    Object.keys(def).forEach(k => { if (!l.activities[k]) l.activities[k] = def[k]; });
+                                    return l;
+                                });
+                                resyncNextId();
+                                lessons.forEach(l => {
+                                    if (String(l.id).startsWith('__import')) l.id = generateId();
+                                    ensureScramble(l);
+                                });
+                                resyncNextId();
+                            } else {
+                                lessons = JSON.parse(JSON.stringify(DEFAULT_LESSONS));
+                                lessons.forEach(ensureScramble);
+                                resyncNextId();
+                            }
+                            sightWords = Array.isArray(data.sightWords) ? [...data.sightWords] : [...DEFAULT_SIGHT_WORDS];
+                            coverData = data.coverData || { ...DEFAULT_COVER };
+                            renumberByOrder(lessons);
+                            saveData();
+                            resetForm();
+                            refreshUI();
+                            showToast('Data imported and renumbered.','success');
+                        });
+                    } catch (err) { showToast('Invalid JSON file.','error'); }
+                };
+                reader.readAsText(file);
+                input.value = '';
+            };
+
+            window.saveSightWords = function() {
+                sightWords = document.getElementById('fSightWords').value.split(',').map(s=>s.trim()).filter(Boolean);
+                saveData();
+                refreshUI();
+                showToast('Sight words saved.','success');
+            };
+            window.saveCover = function() {
+                coverData = {
+                    title: document.getElementById('coverTitleInput').value.trim() || DEFAULT_COVER.title,
+                    subtitle: document.getElementById('coverSubtitleInput').value.trim() || DEFAULT_COVER.subtitle
+                };
+                saveData();
+                renderAllView();
+                showToast('Cover updated.','success');
+            };
+
+            function refreshUI() {
+                renderEditList();
+                renderAllView();
+                updateCounts();
+            }
+
+            function renderEditList() {
+                const container = document.getElementById('lessonList');
+                const q = (window.searchQuery||'').toLowerCase();
+                const filtered = lessons.filter(l => {
+                    if (!q) return true;
+                    if (String(l.lessonNumber).includes(q) || (l.mainTitle||'').toLowerCase().includes(q)) return true;
+                    if ((l.letterTile||'').toLowerCase().includes(q) || (l.introText||'').toLowerCase().includes(q)) return true;
+                    return false;
+                });
+                container.innerHTML = filtered.length ? filtered.map(l => {
+                    const actCount = countActiveActivities(l);
+                    return `<div class="lesson-item" data-id="${l.id}">
+                        <div class="thumb">${l.showImage && l.imagePath ? `<img src="${escapeHtml(l.imagePath)}" style="width:100%;height:100%;object-fit:cover;border-radius:6px;" />` : '📄'}</div>
+                        <div class="info">
+                            <div class="title">Lesson ${l.lessonNumber} — ${escapeHtml(l.mainTitle)} ${l.letterTile ? '· '+escapeHtml(l.letterTile) : ''}</div>
+                            <div class="sub">${actCount} activit${actCount===1?'y':'ies'} · ${escapeHtml((l.introText||'').slice(0,60))}${(l.introText||'').length>60?'…':''}</div>
+                        </div>
+                        <div class="actions">
+                            <button class="btn btn-primary btn-xs" onclick="editLesson('${l.id}')">✏️</button>
+                            <button class="btn btn-warning btn-xs" onclick="duplicateLesson('${l.id}')">📋</button>
+                            <button class="btn btn-danger btn-xs" onclick="deleteLesson('${l.id}')">🗑️</button>
+                        </div>
+                    </div>`;
+                }).join('') : '<div style="text-align:center;padding:40px;color:#6c757d;">No lessons found.</div>';
+                document.getElementById('listCount').textContent = filtered.length + ' / ' + lessons.length;
+                const sp = document.getElementById('sightWordsPreview');
+                if (sp) {
+                    sp.innerHTML = sightWords.length ? sightWords.map(w=>`<span style="display:inline-block;margin:3px;padding:5px 10px;background:#E2571C;color:#fff;border-radius:8px;font-weight:600;font-size:13px;">${escapeHtml(w)}</span>`).join('') : '<span style="color:#6c757d;">No sight words yet.</span>';
+                }
+            }
+
+            function updateCounts() {
+                document.getElementById('lessonCount').textContent = lessons.length + ' lessons, ' + sightWords.length + ' sight words';
+                const activityCounts = lessons.map(countActiveActivities);
+                const lessonsWithPages = lessons.filter((l,i)=>activityCounts[i]>0).length;
+                const tocPages = lessonsWithPages ? Math.ceil(lessonsWithPages/MAX_TOC_PER_PAGE) : 0;
+                const swPages = Math.ceil(sightWords.length/MAX_SIGHT_WORDS_PER_PAGE);
+                const lessonPages = activityCounts.reduce((s,n)=>s+n,0);
+                document.getElementById('viewInfo').textContent = `📄 ${lessons.length} lessons · ${1+tocPages+swPages+lessonPages} pages`;
+            }
+
+            window.switchTab = function(tab) {
+                document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
+                document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active', p.id===tab+'Panel'));
+                if (tab==='edit') renderEditList();
+                if (tab==='view') renderAllView();
+                updateCounts();
+            };
+
+            // Init
+            loadData();
+            document.getElementById('app').innerHTML = `
+                <div class="app-header"><h1>📚 Phonics Lesson Publisher</h1><span class="badge" id="lessonCount">0</span></div>
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="edit" onclick="switchTab('edit')">✏️ Edit</button>
+                    <button class="tab-btn" data-tab="view" onclick="switchTab('view')">👁️ View</button>
+                </div>
+                <div class="tab-panel active" id="editPanel">
+                    <div class="edit-layout">
+                        <div class="form-section">
+                            <h2 id="formTitle">➕ Add New Lesson</h2>
+                            <div class="form-group"><label>Main Title <span class="req">*</span></label><input id="fMainTitle" placeholder="e.g. SHORT VOWEL CVC WORDS"></div>
+                            <div class="form-group"><label>Lesson Number (auto)</label><input id="fLessonNumber" readonly style="background:#f0f0f0;"></div>
+                            <div class="form-group"><label>Letter Tile <span class="req">*</span></label><input id="fLetterTile" placeholder="e.g. Aa"></div>
+                            <div class="form-group"><label>Intro Text <span class="req">*</span></label><textarea id="fIntroText" rows="3"></textarea></div>
+                            <div class="form-group" style="display:flex;align-items:center;gap:10px;">
+                                <label style="margin:0;display:flex;align-items:center;gap:8px;cursor:pointer;">
+                                    <input type="checkbox" id="fShowImage" onchange="toggleShowImage()" style="width:18px;height:18px;"> Show Image in Hero
+                                </label>
+                            </div>
+                            <div id="imageFields" style="display:none;padding:12px;background:#fff;border:2px solid #F5A623;border-radius:12px;margin-bottom:14px;">
+                                <div class="form-group"><label>Image Caption</label><input id="fImageCaption"></div>
+                                <div class="form-group"><label>Image</label>
+                                    <div class="image-upload-wrap">
+                                        <img id="imagePreview" class="preview" style="display:none;">
+                                        <div id="imagePreviewPlaceholder" class="preview-placeholder">🖼️</div>
+                                        <input type="file" id="mainImageFile" accept="image/*" onchange="handleImageUpload(event,'main')">
+                                        <input type="hidden" id="fImagePath">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="activity-card open" id="card-look">
+                                <div class="activity-header" onclick="document.getElementById('actLook').click()">
+                                    <div class="left"><span class="num">1</span> Look & Say</div><span id="badge-look" class="toggle-badge on">ON</span>
+                                </div>
+                                <div class="activity-body">
+                                    <label style="display:flex;align-items:center;gap:8px;margin-bottom:10px;cursor:pointer;">
+                                        <input type="checkbox" id="actLook" checked onchange="toggleActivity('look')" style="width:18px;height:18px;"> Include this activity
+                                    </label>
+                                    <div class="form-group"><label>Words (comma separated)</label><textarea id="fWords" rows="2"></textarea></div>
+                                </div>
+                            </div>
+                            <div class="activity-card open" id="card-decodable">
+                                <div class="activity-header" onclick="document.getElementById('actDecodable').click()">
+                                    <div class="left"><span class="num">2</span> Decodable Reading + Activities</div><span id="badge-decodable" class="toggle-badge on">ON</span>
+                                </div>
+                                <div class="activity-body">
+                                    <label style="display:flex;align-items:center;gap:8px;margin-bottom:10px;cursor:pointer;">
+                                        <input type="checkbox" id="actDecodable" checked onchange="toggleActivity('decodable')" style="width:18px;height:18px;"> Include this activity
+                                    </label>
+                                    <div class="form-group"><label>Sentences (comma separated)</label><textarea id="fSentences" rows="2"></textarea></div>
+                                    <div class="form-group"><label>Fill Blanks (comma separated)</label><textarea id="fFillBlanks" rows="2"></textarea></div>
+                                </div>
+                            </div>
+                            <div class="activity-card" id="card-trace">
+                                <div class="activity-header" onclick="document.getElementById('actTrace').click()">
+                                    <div class="left"><span class="num">3</span> Trace & Write</div><span id="badge-trace" class="toggle-badge off">OFF</span>
+                                </div>
+                                <div class="activity-body">
+                                    <label style="display:flex;align-items:center;gap:8px;margin-bottom:10px;cursor:pointer;">
+                                        <input type="checkbox" id="actTrace" onchange="toggleActivity('trace')" style="width:18px;height:18px;"> Include this activity
+                                    </label>
+                                    <div class="form-row">
+                                        <div class="form-group"><label>Target letter/word</label><input id="fTraceTarget" placeholder="a or bag"></div>
+                                        <div class="form-group"><label>Number of sets</label><input type="number" id="fTraceSets" value="5" min="3" max="12"></div>
+                                    </div>
+                                    <label style="display:flex;align-items:center;gap:8px;margin-top:8px;cursor:pointer;">
+                                        <input type="checkbox" id="fTraceClone" style="width:18px;height:18px;accent-color:#2c7be5;">
+                                        <span style="font-weight:700;font-size:13px;">Clone — add blank practice page (10 sets)</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="activity-card" id="card-sort">
+                                <div class="activity-header" onclick="document.getElementById('actSort').click()">
+                                    <div class="left"><span class="num">4</span> Word Sort</div><span id="badge-sort" class="toggle-badge off">OFF</span>
+                                </div>
+                                <div class="activity-body">
+                                    <label style="display:flex;align-items:center;gap:8px;margin-bottom:10px;cursor:pointer;">
+                                        <input type="checkbox" id="actSort" onchange="toggleActivity('sort')" style="width:18px;height:18px;"> Include this activity
+                                    </label>
+                                    <div class="form-group"><label>Number of columns</label>
+                                        <select id="fSortCols" onchange="updateSortLabels()">
+                                            <option value="2">2 columns</option><option value="3">3 columns</option><option value="4">4 columns</option>
+                                        </select>
+                                    </div>
+                                    <div id="sortLabelGroup0" class="form-group"><label>Column 1 label</label><input id="fSortLabel0" placeholder="Short a"></div>
+                                    <div id="sortLabelGroup1" class="form-group"><label>Column 2 label</label><input id="fSortLabel1" placeholder="Short e"></div>
+                                    <div id="sortLabelGroup2" class="form-group" style="display:none;"><label>Column 3 label</label><input id="fSortLabel2" placeholder="Other"></div>
+                                    <div id="sortLabelGroup3" class="form-group" style="display:none;"><label>Column 4 label</label><input id="fSortLabel3" placeholder="Extra"></div>
+                                    <div class="form-group"><label>Words to sort (comma separated)</label><textarea id="fSortWords" rows="2"></textarea></div>
+                                </div>
+                            </div>
+                            <div class="activity-card" id="card-sentence">
+                                <div class="activity-header" onclick="document.getElementById('actSentence').click()">
+                                    <div class="left"><span class="num">5</span> Sentence Writing / Read & Draw</div><span id="badge-sentence" class="toggle-badge off">OFF</span>
+                                </div>
+                                <div class="activity-body">
+                                    <label style="display:flex;align-items:center;gap:8px;margin-bottom:10px;cursor:pointer;">
+                                        <input type="checkbox" id="actSentence" onchange="toggleActivity('sentence')" style="width:18px;height:18px;"> Include this activity
+                                    </label>
+                                    <div class="form-group"><label>Prompt</label><input id="fSentencePrompt" value="Write sentences using the target words."></div>
+                                    <div class="form-row">
+                                        <div class="form-group"><label>Number of lines</label><input type="number" id="fSentenceLines" value="4" min="2" max="8"></div>
+                                        <div class="form-group" style="display:flex;align-items:flex-end;">
+                                            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                                                <input type="checkbox" id="fShowDraw" style="width:18px;height:18px;"> Show draw box
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group"><label>Drawing Target (word to draw)</label><input id="fDrawPrompt" placeholder="e.g. cat"></div>
+                                </div>
+                            </div>
+                            <div class="activity-card" id="card-match">
+                                <div class="activity-header" onclick="document.getElementById('actMatch').click()">
+                                    <div class="left"><span class="num">6</span> Match the Picture</div><span id="badge-match" class="toggle-badge off">OFF</span>
+                                </div>
+                                <div class="activity-body">
+                                    <label style="display:flex;align-items:center;gap:8px;margin-bottom:10px;cursor:pointer;">
+                                        <input type="checkbox" id="actMatch" onchange="toggleActivity('match')" style="width:18px;height:18px;"> Include this activity
+                                    </label>
+                                    <div class="form-group"><label>Number of pairs (1–5)</label>
+                                        <select id="fPairCount" onchange="updatePairVisibility()">
+                                            <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4" selected>4</option><option value="5">5</option>
+                                        </select>
+                                    </div>
+                                    ${[0,1,2,3,4].map(i=>`
+                                    <div class="pair-row" id="pairRow${i}">
+                                        <div>
+                                            <img id="pairPreview${i}" class="preview" style="display:none;width:64px;height:64px;">
+                                            <div id="pairPh${i}" class="ph">🖼️</div>
+                                        </div>
+                                        <div>
+                                            <input id="fPairWord${i}" placeholder="Word ${i+1}" style="margin-bottom:6px;">
+                                            <input type="file" accept="image/*" onchange="handleImageUpload(event,${i})" style="font-size:12px;">
+                                            <input type="hidden" id="fPairImg${i}">
+                                        </div>
+                                    </div>`).join('')}
+                                </div>
+                            </div>
+                            <div class="form-actions">
+                                <button class="btn btn-primary" id="saveBtn" onclick="saveLesson()">💾 Save Lesson</button>
+                                <button class="btn btn-outline" id="cancelBtn" onclick="cancelEdit()" style="display:none">Cancel</button>
+                            </div>
+                        </div>
+                        <div class="list-section">
+                            <div style="margin-bottom:20px;border-bottom:2px solid #e9ecef;padding-bottom:20px;">
+                                <h3>📘 Cover Page</h3>
+                                <div class="form-group"><label>Cover Title</label><input id="coverTitleInput" value="${escapeHtml(coverData.title)}"></div>
+                                <div class="form-group"><label>Cover Subtitle</label><input id="coverSubtitleInput" value="${escapeHtml(coverData.subtitle)}"></div>
+                                <button class="btn btn-success btn-sm" onclick="saveCover()">💾 Save Cover</button>
+                            </div>
+                            <h2>📖 All Lessons</h2>
+                            <div class="list-toolbar">
+                                <input class="search-box" placeholder="🔍 Search..." oninput="window.searchQuery=this.value;window.renderEditList()">
+                                <span class="count" id="listCount">0/0</span>
+                                <button class="btn btn-success btn-sm" onclick="exportJSON()">📤 Export</button>
+                                <button class="btn btn-outline btn-sm" onclick="document.getElementById('importFile').click()">📥 Import</button>
+                                <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(this)">
+                            </div>
+                            <div class="lesson-list" id="lessonList"></div>
+                            <div style="margin-top:28px;border-top:2px solid #e9ecef;padding-top:20px;">
+                                <h3>📝 Sight Words</h3>
+                                <div class="form-group"><textarea id="fSightWords" rows="3"></textarea></div>
+                                <button class="btn btn-success btn-sm" onclick="saveSightWords()">💾 Save Sight Words</button>
+                                <div style="margin-top:10px;"><strong>Preview:</strong><div id="sightWordsPreview" style="margin-top:6px;"></div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-panel" id="viewPanel">
+                    <div class="view-toolbar">
+                        <span class="info" id="viewInfo">0 lessons · 0 pages</span>
+                        <button class="btn btn-success" onclick="exportAllPages()">⬇ Export All</button>
+                    </div>
+                    <div class="view-container" id="viewContainer"></div>
+                </div>`;
+
+            document.getElementById('fSightWords').value = sightWords.join(', ');
+            resetForm();
+            renderEditList();
+            renderAllView();
+            updateCounts();
+            window.renderEditList = renderEditList;
+        })();
+    </script>
+</body>
+</html>
