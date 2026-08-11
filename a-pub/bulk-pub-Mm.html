@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>📚 Phonics Lesson Publisher v7 (Sight Words Grid)</title>
+    <title>📚 Phonics Lesson Publisher v7</title>
     <style>
         @page { size: 850px 1100px; margin: 0; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -185,28 +185,30 @@
         .toc-item .toc-page-num { font-weight: 800; color: #E2571C; min-width: 70px; text-align: right; }
         .toc-card .page-number { position: absolute; bottom: 18px; right: 28px; font-weight: 800; font-size: 15px; font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; }
 
-        /* ---------- SIGHT WORDS GRID (NEW) ---------- */
+        /* ---------- SIGHT WORDS GRID (5x10, gold pill, scarlet) ---------- */
         .sight-words-grid {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
-            gap: 0;
+            gap: 12px;
             margin-top: 8px;
+            padding: 0 12px;
         }
-        .sight-word-cell {
+        .sight-word-pill {
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 16px;
-            font-weight: 700;
-            color: #1a1a1a;
+            font-size: 22px;
+            font-weight: 800;
+            color: #E2571C;           /* scarlet */
             background: #fff;
-            border-bottom: 1px solid #e0e0e0;
-            border-right: 1px solid #e0e0e0;
-            padding: 10px 4px;
-            min-height: 46px;
-        }
-        .sight-word-cell:nth-child(5n) {
-            border-right: none;
+            border: 3px solid #F5A623; /* gold border */
+            border-radius: 14px;
+            padding: 16px 6px;
+            min-height: 76px;
+            text-align: center;
+            word-break: break-word;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
         }
 
         .view-toolbar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 2px solid #e9ecef; }
@@ -224,7 +226,7 @@
             .view-container .card, .view-container .lesson-badge, .view-container .hero-letter, .view-container .hero-tile,
             .view-container .word-grid .pill, .view-container .intro-box, .view-container .section-header .circle,
             .view-container .reading-box, .view-container .lesson-badge .arrow, .toc-card, .sort-col .col-label, .sort-words span,
-            .sight-word-cell { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .sight-word-pill { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
         }
     </style>
 </head>
@@ -236,7 +238,7 @@
         (function () {
             const STORAGE_KEY = 'phonics_lessons_v7';
             const MAX_TOC_PER_PAGE = 18;
-            const MAX_SIGHT_WORDS_PER_PAGE = 90;   // 5 columns × 18 rows
+            const MAX_SIGHT_WORDS_PER_PAGE = 50;   // 5 columns × 10 rows
 
             function flattenWords(arr) {
                 if (!Array.isArray(arr)) return [];
@@ -581,7 +583,7 @@
                 for (let i = 0; i < MAX_SIGHT_WORDS_PER_PAGE; i++) {
                     const word = paddedWords[i] || '';
                     const cell = document.createElement('div');
-                    cell.className = 'sight-word-cell';
+                    cell.className = 'sight-word-pill';
                     cell.textContent = word;
                     grid.appendChild(cell);
                 }
