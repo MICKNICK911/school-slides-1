@@ -1,0 +1,1614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Image Prompt Generator - Full CRUD</title>
+    <style>
+        /* ===== RESET & BASE ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fb;
+            color: #1e293b;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .app-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            height: calc(100vh - 40px);
+        }
+
+        /* ===== LEFT PANEL ===== */
+        .left-panel {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-header {
+            padding: 18px 24px;
+            background: #ffffff;
+            border-bottom: 2px solid #f1f5f9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .panel-header .left-group {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .panel-header h1 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .panel-header .badge {
+            background: #e2e8f0;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #475569;
+        }
+
+        .panel-header .badge .count {
+            color: #0f172a;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn-sm {
+            padding: 6px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-sm.primary {
+            background: #3b82f6;
+            color: white;
+        }
+        .btn-sm.primary:hover {
+            background: #2563eb;
+        }
+        .btn-sm.success {
+            background: #22c55e;
+            color: white;
+        }
+        .btn-sm.success:hover {
+            background: #16a34a;
+        }
+        .btn-sm.danger {
+            background: #ef4444;
+            color: white;
+        }
+        .btn-sm.danger:hover {
+            background: #dc2626;
+        }
+        .btn-sm.warning {
+            background: #f59e0b;
+            color: white;
+        }
+        .btn-sm.warning:hover {
+            background: #d97706;
+        }
+        .btn-sm.outline {
+            background: transparent;
+            color: #64748b;
+            border: 2px solid #e2e8f0;
+        }
+        .btn-sm.outline:hover {
+            background: #f1f5f9;
+            border-color: #94a3b8;
+        }
+
+        /* ===== IMPORT SECTION ===== */
+        .import-section {
+            padding: 12px 24px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .import-section input[type="file"] {
+            display: none;
+        }
+
+        .import-section .file-label {
+            display: inline-block;
+            padding: 8px 20px;
+            background: #3b82f6;
+            color: white;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .import-section .file-label:hover {
+            background: #2563eb;
+        }
+
+        .import-section .file-status {
+            font-size: 13px;
+            color: #64748b;
+        }
+
+        .import-section .file-status.success {
+            color: #22c55e;
+        }
+
+        /* ===== SEARCH ===== */
+        .search-section {
+            padding: 12px 24px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .search-section input {
+            flex: 1;
+            min-width: 120px;
+            padding: 10px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .search-section input:focus {
+            border-color: #3b82f6;
+        }
+
+        .filter-badge {
+            font-size: 12px;
+            color: #94a3b8;
+            padding: 4px 12px;
+            background: #f1f5f9;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+
+        /* ===== STORY LIST ===== */
+        .story-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px 12px;
+        }
+
+        .story-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        .story-list::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+        .story-list::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        .story-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 16px;
+            margin: 4px 0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.15s, transform 0.1s;
+            border: 2px solid transparent;
+            gap: 10px;
+        }
+
+        .story-item:hover {
+            background: #f1f5f9;
+        }
+
+        .story-item.active {
+            background: #eff6ff;
+            border-color: #3b82f6;
+        }
+
+        .story-item .info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+            flex: 1;
+        }
+
+        .story-item .info .title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #0f172a;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .story-item .info .meta {
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        .story-item .info .meta .id-badge {
+            background: #e2e8f0;
+            padding: 0 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #475569;
+        }
+
+        .story-item .item-actions {
+            display: flex;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+
+        .story-item .item-actions button {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: background 0.15s;
+            color: #94a3b8;
+        }
+
+        .story-item .item-actions button:hover {
+            background: #e2e8f0;
+        }
+
+        .story-item .item-actions .edit-btn:hover {
+            color: #3b82f6;
+        }
+        .story-item .item-actions .delete-btn:hover {
+            color: #ef4444;
+        }
+
+        .story-item .arrow {
+            color: #94a3b8;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+        .story-item.active .arrow {
+            color: #3b82f6;
+        }
+
+        /* ===== RIGHT PANEL ===== */
+        .right-panel {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .right-panel .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            color: #94a3b8;
+            text-align: center;
+        }
+
+        .right-panel .empty-state .icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+        .right-panel .empty-state h3 {
+            font-size: 18px;
+            color: #64748b;
+        }
+        .right-panel .empty-state p {
+            font-size: 14px;
+            max-width: 300px;
+        }
+
+        /* ===== DETAIL VIEW ===== */
+        .detail-view {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            gap: 16px;
+        }
+
+        .detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            flex-wrap: wrap;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #f1f5f9;
+        }
+
+        .detail-header .title-group h2 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .detail-header .title-group .sub {
+            font-size: 13px;
+            color: #94a3b8;
+        }
+
+        .detail-header .detail-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .detail-header .grade-badge {
+            background: #dbeafe;
+            color: #1d4ed8;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        /* ===== STYLE EDITOR ===== */
+        .style-editor {
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 14px 16px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .style-editor label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #475569;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .style-editor textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 60px;
+            outline: none;
+            transition: border-color 0.2s;
+            background: white;
+        }
+
+        .style-editor textarea:focus {
+            border-color: #3b82f6;
+        }
+
+        .style-editor .helper {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+
+        /* ===== PROMPT DISPLAY ===== */
+        .prompt-display {
+            flex: 1;
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 16px 20px;
+            border: 1px solid #e2e8f0;
+            overflow-y: auto;
+            min-height: 100px;
+        }
+
+        .prompt-display .label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .prompt-display .prompt-text {
+            font-size: 15px;
+            line-height: 1.7;
+            color: #0f172a;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        /* ===== ACTION BUTTONS ===== */
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .action-buttons button {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-copy {
+            background: #3b82f6;
+            color: white;
+            flex: 1;
+            justify-content: center;
+        }
+        .btn-copy:hover {
+            background: #2563eb;
+            transform: translateY(-1px);
+        }
+        .btn-copy.copied {
+            background: #22c55e;
+        }
+
+        .btn-edit-detail {
+            background: #f59e0b;
+            color: white;
+        }
+        .btn-edit-detail:hover {
+            background: #d97706;
+        }
+
+        .btn-delete-detail {
+            background: #ef4444;
+            color: white;
+        }
+        .btn-delete-detail:hover {
+            background: #dc2626;
+        }
+
+        /* ===== TOAST ===== */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #0f172a;
+            color: white;
+            padding: 12px 28px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            opacity: 0;
+            transition: all 0.4s ease;
+            pointer-events: none;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            max-width: 90%;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* ===== MODAL ===== */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+            padding: 20px;
+        }
+
+        .modal-overlay.open {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 20px;
+            max-width: 680px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 32px 36px;
+            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.2);
+            animation: modalIn 0.25s ease;
+        }
+
+        @keyframes modalIn {
+            from {
+                opacity: 0;
+                transform: scale(0.96) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .modal-header h2 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #94a3b8;
+            transition: color 0.2s;
+            line-height: 1;
+        }
+
+        .modal-close:hover {
+            color: #0f172a;
+        }
+
+        .modal .form-group {
+            margin-bottom: 18px;
+        }
+
+        .modal .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 4px;
+        }
+
+        .modal .form-group label .required {
+            color: #ef4444;
+        }
+
+        .modal .form-group input,
+        .modal .form-group textarea,
+        .modal .form-group select {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+            background: white;
+        }
+
+        .modal .form-group input:focus,
+        .modal .form-group textarea:focus,
+        .modal .form-group select:focus {
+            border-color: #3b82f6;
+        }
+
+        .modal .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .modal .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .modal .form-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 8px;
+            padding-top: 16px;
+            border-top: 2px solid #f1f5f9;
+        }
+
+        .modal .form-actions button {
+            padding: 10px 28px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .modal .form-actions .btn-save {
+            background: #3b82f6;
+            color: white;
+        }
+        .modal .form-actions .btn-save:hover {
+            background: #2563eb;
+        }
+
+        .modal .form-actions .btn-cancel {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+        .modal .form-actions .btn-cancel:hover {
+            background: #e2e8f0;
+        }
+
+        .modal .form-actions .btn-delete-modal {
+            background: #ef4444;
+            color: white;
+            margin-right: auto;
+        }
+        .modal .form-actions .btn-delete-modal:hover {
+            background: #dc2626;
+        }
+
+        /* ===== FLOATING ADD BUTTON ===== */
+        .floating-add {
+            position: fixed;
+            bottom: 90px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            font-size: 32px;
+            font-weight: 300;
+            cursor: pointer;
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+        }
+
+        .floating-add:hover {
+            transform: scale(1.08);
+            background: #2563eb;
+            box-shadow: 0 8px 32px rgba(59, 130, 246, 0.5);
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 900px) {
+            .app-container {
+                grid-template-columns: 1fr;
+                height: auto;
+                gap: 16px;
+            }
+            .left-panel {
+                max-height: 55vh;
+            }
+            .right-panel {
+                min-height: 420px;
+            }
+            body {
+                padding: 12px;
+            }
+            .panel-header h1 {
+                font-size: 17px;
+            }
+            .modal .form-row {
+                grid-template-columns: 1fr;
+            }
+            .floating-add {
+                bottom: 80px;
+                right: 20px;
+                width: 54px;
+                height: 54px;
+                font-size: 28px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .panel-header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+            }
+            .panel-header .left-group {
+                flex-wrap: wrap;
+            }
+            .import-section {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .action-buttons {
+                flex-direction: column;
+            }
+            .btn-copy {
+                flex: none;
+            }
+            .detail-header {
+                flex-direction: column;
+            }
+            .search-section {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .modal {
+                padding: 20px;
+            }
+            .floating-add {
+                bottom: 70px;
+                right: 16px;
+                width: 50px;
+                height: 50px;
+                font-size: 24px;
+            }
+        }
+
+        /* ===== SCROLLBAR FOR MODAL ===== */
+        .modal::-webkit-scrollbar {
+            width: 6px;
+        }
+        .modal::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+        .modal::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== TOAST ===== -->
+    <div id="toast" class="toast"></div>
+
+    <!-- ===== MODAL ===== -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal" id="modal">
+            <div class="modal-header">
+                <h2 id="modalTitle">Add New Story</h2>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="modalForm" onsubmit="saveStory(event)">
+                <input type="hidden" id="editIndex" value="-1" />
+
+                <div class="form-group">
+                    <label>Story ID <span class="required">*</span></label>
+                    <input type="text" id="modalId" placeholder="e.g. g2_101" required />
+                    <div style="font-size:12px;color:#94a3b8;margin-top:4px;">Unique identifier for the story (e.g. r1, g2_5)</div>
+                </div>
+
+                <div class="form-group">
+                    <label>Title <span class="required">*</span></label>
+                    <input type="text" id="modalTitle" placeholder="e.g. The Brave Explorer" required />
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Grade <span class="required">*</span></label>
+                        <select id="modalGrade" required>
+                            <option value="1">Grade 1</option>
+                            <option value="2">Grade 2</option>
+                            <option value="3">Grade 3</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Target Sound</label>
+                        <input type="text" id="modalSound" placeholder="e.g. short a (/a/)" />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Image Prompt <span class="required">*</span></label>
+                    <textarea id="modalPrompt" rows="4" placeholder="Describe the image scene in detail..." required></textarea>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn-delete-modal" id="modalDeleteBtn" style="display:none;" onclick="deleteFromModal()">🗑 Delete</button>
+                    <button type="button" class="btn-cancel" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn-save">💾 Save Story</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===== FLOATING ADD BUTTON ===== -->
+    <button class="floating-add" onclick="openAddModal()" title="Add New Story">+</button>
+
+    <!-- ===== APP ===== -->
+    <div class="app-container">
+
+        <!-- LEFT PANEL -->
+        <div class="left-panel">
+            <div class="panel-header">
+                <div class="left-group">
+                    <h1>📖 Prompt Generator</h1>
+                    <span class="badge">📚 <span class="count" id="storyCount">0</span></span>
+                </div>
+                <div class="header-actions">
+                    <button class="btn-sm success" onclick="exportData()">📥 Export JSON</button>
+                </div>
+            </div>
+
+            <!-- Import -->
+            <div class="import-section">
+                <input type="file" id="fileInput" accept=".json" />
+                <label for="fileInput" class="file-label">📤 Import JSON</label>
+                <span class="file-status" id="fileStatus">No data loaded</span>
+                <button class="btn-sm outline" onclick="loadSampleData()">Sample</button>
+            </div>
+
+            <!-- Search -->
+            <div class="search-section">
+                <input type="text" id="searchInput" placeholder="🔍 Search title, ID, or grade..." />
+                <span class="filter-badge" id="filterCount">Showing all</span>
+            </div>
+
+            <!-- Story List -->
+            <div class="story-list" id="storyList">
+                <div class="empty-state" style="padding:40px;text-align:center;color:#94a3b8;">
+                    <div style="font-size:40px;margin-bottom:12px;">📂</div>
+                    <p>Import a JSON file with image prompts.</p>
+                    <p style="font-size:13px;margin-top:8px;">Click "Sample" for demo data.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT PANEL -->
+        <div class="right-panel" id="rightPanel">
+            <div class="empty-state" id="emptyState">
+                <div class="icon">🖼️</div>
+                <h3>Select a Story</h3>
+                <p>Click any story from the list to view and copy its prompt.</p>
+                <p style="font-size:13px;margin-top:6px;">Use ✏️ to edit or 🗑 to delete.</p>
+            </div>
+
+            <div class="detail-view" id="detailView" style="display:none;">
+                <div class="detail-header">
+                    <div class="title-group">
+                        <h2 id="detailTitle">Story Title</h2>
+                        <div class="sub">
+                            <span id="detailId">ID</span>
+                            <span style="margin:0 8px;">•</span>
+                            <span id="detailGrade">Grade</span>
+                            <span style="margin:0 8px;">•</span>
+                            <span id="detailSound">Target Sound</span>
+                        </div>
+                    </div>
+                    <div class="detail-actions">
+                        <span class="grade-badge" id="detailGradeBadge">Grade</span>
+                        <button class="btn-sm warning" onclick="editSelected()">✏️ Edit</button>
+                        <button class="btn-sm danger" onclick="deleteSelected()">🗑</button>
+                    </div>
+                </div>
+
+                <div class="style-editor">
+                    <label>🎨 Style Prefix (prepended to every prompt)</label>
+                    <textarea id="stylePrefix" rows="2">children's book illustration style, colorful, warm and friendly, bright vibrant colors, cartoon-style, expressive faces, high detail, 4K quality, landscape orientation</textarea>
+                    <div class="helper">💡 This text is automatically prepended to the base prompt when you copy.</div>
+                </div>
+
+                <div class="prompt-display">
+                    <div class="label">📝 Full Prompt (with style prefix)</div>
+                    <div class="prompt-text" id="fullPrompt">Select a story to see the prompt.</div>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn-copy" id="copyBtn">📋 Copy Prompt</button>
+                    <button class="btn-sm outline" onclick="resetStyle()">↻ Reset Style</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // DATA
+        // ============================================================
+
+        let allStories = [];
+        let filteredStories = [];
+        let selectedStory = null;
+        let selectedIndex = -1;
+
+        const DEFAULT_STYLE =
+            'children\'s book illustration style, colorful, warm and friendly, bright vibrant colors, cartoon-style, expressive faces, high detail, 4K quality, landscape orientation';
+
+        // ============================================================
+        // DOM REFS
+        // ============================================================
+
+        const fileInput = document.getElementById('fileInput');
+        const fileStatus = document.getElementById('fileStatus');
+        const searchInput = document.getElementById('searchInput');
+        const storyList = document.getElementById('storyList');
+        const storyCount = document.getElementById('storyCount');
+        const filterCount = document.getElementById('filterCount');
+
+        const emptyState = document.getElementById('emptyState');
+        const detailView = document.getElementById('detailView');
+        const detailTitle = document.getElementById('detailTitle');
+        const detailId = document.getElementById('detailId');
+        const detailGrade = document.getElementById('detailGrade');
+        const detailSound = document.getElementById('detailSound');
+        const detailGradeBadge = document.getElementById('detailGradeBadge');
+        const fullPrompt = document.getElementById('fullPrompt');
+        const stylePrefix = document.getElementById('stylePrefix');
+        const copyBtn = document.getElementById('copyBtn');
+
+        const modalOverlay = document.getElementById('modalOverlay');
+        const modalTitle = document.getElementById('modalTitle');
+        const editIndex = document.getElementById('editIndex');
+        const modalId = document.getElementById('modalId');
+        const modalTitleInput = document.getElementById('modalTitle');
+        const modalGrade = document.getElementById('modalGrade');
+        const modalSound = document.getElementById('modalSound');
+        const modalPrompt = document.getElementById('modalPrompt');
+        const modalDeleteBtn = document.getElementById('modalDeleteBtn');
+
+        const toast = document.getElementById('toast');
+
+        // ============================================================
+        // TOAST
+        // ============================================================
+
+        let toastTimeout = null;
+
+        function showToast(message, duration = 2500) {
+            toast.textContent = message;
+            toast.classList.add('show');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('show');
+            }, duration);
+        }
+
+        // ============================================================
+        // DATA IMPORT
+        // ============================================================
+
+        function loadData(data) {
+            let prompts = data.imagePrompts || data.lessons || data;
+
+            if (data.imagePrompts && Array.isArray(data.imagePrompts)) {
+                prompts = data.imagePrompts;
+            }
+
+            if (Array.isArray(prompts)) {
+                allStories = prompts;
+            } else {
+                const keys = Object.keys(prompts);
+                if (keys.length > 0 && typeof prompts[keys[0]] === 'object') {
+                    allStories = Object.values(prompts);
+                } else {
+                    throw new Error('Could not parse data. Expected array or object with imagePrompts.');
+                }
+            }
+
+            if (!allStories.length) {
+                throw new Error('No stories found in data.');
+            }
+
+            allStories = allStories.filter(s => s.storyId || s.id || s.title);
+            allStories.forEach((s, i) => {
+                if (!s.storyId && !s.id) s.storyId = `story_${i}`;
+                if (!s.title) s.title = `Story ${i + 1}`;
+                if (!s.prompt) s.prompt = `Image prompt for ${s.title}`;
+                if (!s.grade) s.grade = '1';
+                // Normalize
+                s.storyId = s.storyId || s.id;
+                delete s.id; // use storyId consistently
+            });
+
+            allStories.sort((a, b) => {
+                const idA = a.storyId || '';
+                const idB = b.storyId || '';
+                return idA.localeCompare(idB, undefined, { numeric: true });
+            });
+
+            try {
+                localStorage.setItem('imagePromptsData', JSON.stringify(allStories));
+                localStorage.setItem('stylePrefix', stylePrefix.value);
+            } catch (e) {}
+
+            fileStatus.textContent = `✅ ${allStories.length} stories loaded`;
+            fileStatus.className = 'file-status success';
+            storyCount.textContent = allStories.length;
+
+            applyFilter();
+            showToast(`✅ Loaded ${allStories.length} stories!`);
+        }
+
+        fileInput.addEventListener('change', function(e) {
+            const file = this.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                try {
+                    const data = JSON.parse(ev.target.result);
+                    loadData(data);
+                } catch (err) {
+                    showToast('❌ Error parsing JSON: ' + err.message, 4000);
+                    fileStatus.textContent = '❌ Error loading file';
+                    fileStatus.className = 'file-status';
+                }
+            };
+            reader.readAsText(file);
+            fileInput.value = '';
+        });
+
+        // ============================================================
+        // SAMPLE DATA
+        // ============================================================
+
+        function loadSampleData() {
+            const sample = [
+                { storyId: "r1", title: "Nat the Cat", grade: "1", targetSound: "short a (/a/)",
+                    prompt: "A fat orange cat named Nat sitting on a tan mat wearing a red hat, cozy living room, warm sunlight, bright and simple" },
+                { storyId: "r2", title: "Sam and Cam", grade: "1", targetSound: "short a (/a/)",
+                    prompt: "Two children Sam and Cam standing by a large dam, one holding a map and the other pointing, sunny day with green hills, cute cartoon style" },
+                { storyId: "r3", title: "My Pet Jet", grade: "1", targetSound: "short e (/e/)",
+                    prompt: "A child sitting on a small red jet airplane in a green field, jet has water drops on it, bright and cheerful" },
+                { storyId: "r4", title: "Jen the Hen", grade: "1", targetSound: "short e (/e/)",
+                    prompt: "A brown hen named Jen sitting on ten eggs in a wooden pen, sunny farm scene, warm children's book style" },
+                { storyId: "r5", title: "Pip the Pig", grade: "1", targetSound: "short i (/i/)",
+                    prompt: "A cute pink pig named Pip sitting in brown mud wearing a small crown, happy farm scene, colorful illustration" },
+                { storyId: "r6", title: "Kim and Tim", grade: "1", targetSound: "short i (/i/)",
+                    prompt: "Two smiling children Kim and Tim playing ball on a green hill, blue sky with clouds, active cartoon style" },
+                { storyId: "g2_1", title: "The Great Cake Race", grade: "2", targetSound: "Silent E: a_e",
+                    prompt: "Two children Jake and Kate racing with a giant golden cake on a plate in a sunny park, bright and energetic" },
+                { storyId: "g2_2", title: "Eve and Steve's Scene", grade: "2", targetSound: "Silent E: e_e",
+                    prompt: "Two children Eve and Steve performing on a theater stage with a spotlight, dramatic scene, colorful and engaging" },
+                { storyId: "g2_3", title: "The Kite Fight", grade: "2", targetSound: "Silent E: i_e",
+                    prompt: "Two children flying colorful kites in a bright blue sky with a pine tree nearby, sunny field, cheerful adventure" },
+                { storyId: "g2_4", title: "The Hope of the Rope", grade: "2", targetSound: "Silent E: o_e",
+                    prompt: "Two children climbing a steep hill with a rope and a glowing golden bone, adventurous outdoor scene" },
+                { storyId: "g2_5", title: "The Tune of the Flute", grade: "2", targetSound: "Silent E: u_e",
+                    prompt: "A cute mule named Luke sitting with a girl playing a flute on a farm, musical and peaceful scene" },
+                { storyId: "g2_71", title: "The Brave Explorer", grade: "2", targetSound: "Open Syllables",
+                    prompt: "A girl explorer with a map and a friendly tiger in a jungle, adventurous scene" },
+                { storyId: "g2_72", title: "The Kite That Saved the Day", grade: "2", targetSound: "Magic-e Syllables",
+                    prompt: "A boy flying a huge kite over a flooded village, heroic rescue scene" },
+                { storyId: "g2_100", title: "The Last Dragon", grade: "2", targetSound: "Closed Syllables",
+                    prompt: "A girl pleading with hunters to save a gentle dragon, peace and understanding scene" },
+            ];
+
+            loadData({ imagePrompts: sample });
+            showToast('📚 Loaded 14 sample stories!', 3000);
+        }
+
+        // ============================================================
+        // SEARCH & FILTER
+        // ============================================================
+
+        searchInput.addEventListener('input', applyFilter);
+
+        function applyFilter() {
+            const query = searchInput.value.toLowerCase().trim();
+
+            if (!query) {
+                filteredStories = [...allStories];
+            } else {
+                filteredStories = allStories.filter(s => {
+                    const title = (s.title || '').toLowerCase();
+                    const id = (s.storyId || '').toLowerCase();
+                    const grade = (s.grade || '').toString();
+                    const sound = (s.targetSound || s.sound || '').toLowerCase();
+                    const prompt = (s.prompt || '').toLowerCase();
+                    return title.includes(query) || id.includes(query) || grade.includes(query) ||
+                        sound.includes(query) || prompt.includes(query);
+                });
+            }
+
+            filterCount.textContent = `Showing ${filteredStories.length} of ${allStories.length}`;
+            renderList();
+        }
+
+        // ============================================================
+        // RENDER LIST
+        // ============================================================
+
+        function renderList() {
+            storyCount.textContent = allStories.length;
+
+            if (!filteredStories.length) {
+                storyList.innerHTML = `
+                    <div class="empty-state" style="padding:40px;text-align:center;color:#94a3b8;">
+                        <div style="font-size:36px;margin-bottom:12px;">${allStories.length ? '🔍' : '📂'}</div>
+                        <p>${allStories.length ? 'No stories match your search.' : 'Import data to get started.'}</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            filteredStories.forEach((s, idx) => {
+                const id = s.storyId || 'unknown';
+                const title = s.title || 'Untitled';
+                const grade = s.grade || '?';
+                const isActive = selectedStory && selectedStory.storyId === id;
+
+                html += `
+                    <div class="story-item ${isActive ? 'active' : ''}" data-id="${id}" onclick="selectStory('${id}')">
+                        <div class="info">
+                            <div class="title">${title}</div>
+                            <div class="meta">
+                                <span class="id-badge">${id}</span>
+                                <span style="margin-left:8px;">Grade ${grade}</span>
+                            </div>
+                        </div>
+                        <div class="item-actions">
+                            <button class="edit-btn" onclick="event.stopPropagation();openEditModal('${id}')" title="Edit">✏️</button>
+                            <button class="delete-btn" onclick="event.stopPropagation();deleteStory('${id}')" title="Delete">🗑</button>
+                        </div>
+                        <div class="arrow">›</div>
+                    </div>
+                `;
+            });
+
+            storyList.innerHTML = html;
+        }
+
+        // ============================================================
+        // SELECT STORY
+        // ============================================================
+
+        function selectStory(id) {
+            const story = allStories.find(s => s.storyId === id);
+            if (!story) return;
+
+            selectedStory = story;
+            selectedIndex = allStories.findIndex(s => s.storyId === id);
+            renderList();
+
+            emptyState.style.display = 'none';
+            detailView.style.display = 'flex';
+
+            detailTitle.textContent = story.title || 'Untitled';
+            detailId.textContent = story.storyId || 'unknown';
+            detailGrade.textContent = `Grade ${story.grade || '?'}`;
+            detailSound.textContent = story.targetSound || story.sound || 'No target sound';
+            detailGradeBadge.textContent = `Grade ${story.grade || '?'}`;
+
+            updatePromptDisplay();
+            document.getElementById('rightPanel').scrollTop = 0;
+        }
+
+        // ============================================================
+        // PROMPT DISPLAY
+        // ============================================================
+
+        function updatePromptDisplay() {
+            if (!selectedStory) {
+                fullPrompt.textContent = 'Select a story to see the prompt.';
+                return;
+            }
+            const basePrompt = selectedStory.prompt || '';
+            const style = stylePrefix.value.trim();
+            const full = style ? `${style}, ${basePrompt}` : basePrompt;
+            fullPrompt.textContent = full;
+        }
+
+        stylePrefix.addEventListener('input', updatePromptDisplay);
+
+        // ============================================================
+        // COPY
+        // ============================================================
+
+        copyBtn.addEventListener('click', function() {
+            const text = fullPrompt.textContent;
+            if (!text || text === 'Select a story to see the prompt.') {
+                showToast('⚠️ No prompt to copy. Select a story first.', 2500);
+                return;
+            }
+            navigator.clipboard.writeText(text).then(() => {
+                const original = this.textContent;
+                this.textContent = '✅ Copied!';
+                this.classList.add('copied');
+                showToast('📋 Prompt copied to clipboard!', 2000);
+                setTimeout(() => {
+                    this.textContent = original;
+                    this.classList.remove('copied');
+                }, 2000);
+            }).catch(() => {
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+                showToast('📋 Prompt copied!', 2000);
+            });
+        });
+
+        // ============================================================
+        // RESET STYLE
+        // ============================================================
+
+        function resetStyle() {
+            stylePrefix.value = DEFAULT_STYLE;
+            updatePromptDisplay();
+            showToast('🔄 Style reset to default', 2000);
+        }
+        window.resetStyle = resetStyle;
+
+        // ============================================================
+        // CRUD: CREATE
+        // ============================================================
+
+        function openAddModal() {
+            modalTitle.textContent = '➕ Add New Story';
+            editIndex.value = '-1';
+            modalId.value = '';
+            modalTitleInput.value = '';
+            modalGrade.value = '1';
+            modalSound.value = '';
+            modalPrompt.value = '';
+            modalDeleteBtn.style.display = 'none';
+            modalOverlay.classList.add('open');
+            setTimeout(() => modalId.focus(), 100);
+        }
+        window.openAddModal = openAddModal;
+
+        // ============================================================
+        // CRUD: EDIT
+        // ============================================================
+
+        function openEditModal(id) {
+            const story = allStories.find(s => s.storyId === id);
+            if (!story) {
+                showToast('❌ Story not found', 2000);
+                return;
+            }
+            const idx = allStories.findIndex(s => s.storyId === id);
+            modalTitle.textContent = `✏️ Edit: ${story.title}`;
+            editIndex.value = idx;
+            modalId.value = story.storyId || '';
+            modalTitleInput.value = story.title || '';
+            modalGrade.value = story.grade || '1';
+            modalSound.value = story.targetSound || story.sound || '';
+            modalPrompt.value = story.prompt || '';
+            modalDeleteBtn.style.display = 'inline-flex';
+            modalOverlay.classList.add('open');
+            setTimeout(() => modalId.focus(), 100);
+        }
+
+        function editSelected() {
+            if (selectedStory) {
+                openEditModal(selectedStory.storyId);
+            } else {
+                showToast('⚠️ No story selected', 2000);
+            }
+        }
+        window.editSelected = editSelected;
+
+        // ============================================================
+        // CRUD: SAVE (Create or Update)
+        // ============================================================
+
+        function saveStory(e) {
+            e.preventDefault();
+            const idx = parseInt(editIndex.value);
+            const storyId = modalId.value.trim();
+            const title = modalTitleInput.value.trim();
+            const grade = modalGrade.value;
+            const sound = modalSound.value.trim();
+            const prompt = modalPrompt.value.trim();
+
+            if (!storyId) { showToast('⚠️ Story ID is required', 2000); return; }
+            if (!title) { showToast('⚠️ Title is required', 2000); return; }
+            if (!prompt) { showToast('⚠️ Prompt is required', 2000); return; }
+
+            // Check duplicate ID (unless editing same)
+            const duplicate = allStories.find((s, i) => s.storyId === storyId && i !== idx);
+            if (duplicate) {
+                showToast('⚠️ Story ID "' + storyId + '" already exists!', 3000);
+                return;
+            }
+
+            const storyData = {
+                storyId: storyId,
+                title: title,
+                grade: grade,
+                targetSound: sound || undefined,
+                prompt: prompt,
+            };
+
+            if (idx === -1 || idx >= allStories.length) {
+                // CREATE
+                allStories.push(storyData);
+                showToast('✅ Story "' + title + '" added!', 2500);
+            } else {
+                // UPDATE
+                allStories[idx] = storyData;
+                showToast('✅ Story "' + title + '" updated!', 2500);
+                if (selectedStory && selectedStory.storyId === storyId) {
+                    selectedStory = storyData;
+                }
+            }
+
+            // Save to localStorage
+            try {
+                localStorage.setItem('imagePromptsData', JSON.stringify(allStories));
+            } catch (e) {}
+
+            closeModal();
+            applyFilter();
+            selectStory(storyId);
+        }
+
+        // ============================================================
+        // CRUD: DELETE
+        // ============================================================
+
+        function deleteStory(id) {
+            const story = allStories.find(s => s.storyId === id);
+            if (!story) return;
+            if (!confirm(`🗑 Delete "${story.title}" (${id})? This cannot be undone.`)) return;
+
+            const idx = allStories.findIndex(s => s.storyId === id);
+            allStories.splice(idx, 1);
+
+            try {
+                localStorage.setItem('imagePromptsData', JSON.stringify(allStories));
+            } catch (e) {}
+
+            if (selectedStory && selectedStory.storyId === id) {
+                selectedStory = null;
+                emptyState.style.display = 'flex';
+                detailView.style.display = 'none';
+            }
+
+            showToast('🗑 Deleted "' + story.title + '"', 2000);
+            applyFilter();
+        }
+
+        function deleteFromModal() {
+            const idx = parseInt(editIndex.value);
+            if (idx < 0 || idx >= allStories.length) return;
+            const story = allStories[idx];
+            if (!story) return;
+            if (!confirm(`🗑 Delete "${story.title}" (${story.storyId})?`)) return;
+
+            allStories.splice(idx, 1);
+            try {
+                localStorage.setItem('imagePromptsData', JSON.stringify(allStories));
+            } catch (e) {}
+
+            closeModal();
+            if (selectedStory && selectedStory.storyId === story.storyId) {
+                selectedStory = null;
+                emptyState.style.display = 'flex';
+                detailView.style.display = 'none';
+            }
+            showToast('🗑 Deleted "' + story.title + '"', 2000);
+            applyFilter();
+        }
+
+        function deleteSelected() {
+            if (selectedStory) {
+                deleteStory(selectedStory.storyId);
+            } else {
+                showToast('⚠️ No story selected', 2000);
+            }
+        }
+        window.deleteSelected = deleteSelected;
+
+        // ============================================================
+        // MODAL CONTROLS
+        // ============================================================
+
+        function closeModal() {
+            modalOverlay.classList.remove('open');
+        }
+
+        modalOverlay.addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeModal();
+        });
+
+        // ============================================================
+        // EXPORT
+        // ============================================================
+
+        function exportData() {
+            if (!allStories.length) {
+                showToast('⚠️ No data to export', 2000);
+                return;
+            }
+
+            // Include style prefix in export metadata
+            const exportObj = {
+                version: "2.0",
+                generatedAt: new Date().toISOString(),
+                storyCount: allStories.length,
+                stylePrefix: stylePrefix.value.trim(),
+                imagePrompts: allStories,
+            };
+
+            const json = JSON.stringify(exportObj, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            const date = new Date().toISOString().slice(0, 10);
+            a.download = `image-prompts-${date}-${allStories.length}stories.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast(`📥 Exported ${allStories.length} stories!`, 2500);
+        }
+        window.exportData = exportData;
+
+        // ============================================================
+        // KEYBOARD SHORTCUTS
+        // ============================================================
+
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + C to copy
+            if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
+                if (document.activeElement?.tagName !== 'INPUT' &&
+                    document.activeElement?.tagName !== 'TEXTAREA') {
+                    e.preventDefault();
+                    copyBtn.click();
+                }
+            }
+
+            // Ctrl/Cmd + N to add new
+            if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+                if (document.activeElement?.tagName !== 'INPUT' &&
+                    document.activeElement?.tagName !== 'TEXTAREA') {
+                    e.preventDefault();
+                    openAddModal();
+                }
+            }
+
+            // Arrow keys to navigate
+            if (!e.ctrlKey && !e.metaKey && !e.shiftKey && !modalOverlay.classList.contains('open')) {
+                if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+                    const items = storyList.querySelectorAll('.story-item');
+                    const currentIndex = Array.from(items).findIndex(el =>
+                        el.classList.contains('active')
+                    );
+                    let newIndex = currentIndex;
+                    if (e.key === 'ArrowDown' && currentIndex < items.length - 1) newIndex = currentIndex + 1;
+                    if (e.key === 'ArrowUp' && currentIndex > 0) newIndex = currentIndex - 1;
+                    if (newIndex !== currentIndex && newIndex >= 0 && newIndex < items.length) {
+                        e.preventDefault();
+                        const id = items[newIndex].dataset.id;
+                        if (id) selectStory(id);
+                        items[newIndex]?.scrollIntoView({ block: 'nearest' });
+                    }
+                }
+            }
+        });
+
+        // ============================================================
+        // LOAD FROM LOCALSTORAGE
+        // ============================================================
+
+        function loadFromStorage() {
+            try {
+                const saved = localStorage.getItem('imagePromptsData');
+                if (saved) {
+                    const data = JSON.parse(saved);
+                    if (data && data.length) {
+                        allStories = data;
+                        fileStatus.textContent = `✅ ${allStories.length} stories from cache`;
+                        fileStatus.className = 'file-status success';
+                        storyCount.textContent = allStories.length;
+                        const savedStyle = localStorage.getItem('stylePrefix');
+                        if (savedStyle) stylePrefix.value = savedStyle;
+                        applyFilter();
+
+                        // Auto-select first
+                        if (filteredStories.length) {
+                            const first = filteredStories[0];
+                            if (first.storyId) selectStory(first.storyId);
+                        }
+                        return true;
+                    }
+                }
+            } catch (e) {}
+            return false;
+        }
+
+        // ============================================================
+        // DRAG & DROP
+        // ============================================================
+
+        document.addEventListener('dragover', e => e.preventDefault());
+        document.addEventListener('drop', function(e) {
+            e.preventDefault();
+            const files = e.dataTransfer.files;
+            if (files.length && files[0].type === 'application/json') {
+                const reader = new FileReader();
+                reader.onload = function(ev) {
+                    try {
+                        const data = JSON.parse(ev.target.result);
+                        loadData(data);
+                    } catch (err) {
+                        showToast('❌ Error: ' + err.message, 4000);
+                    }
+                };
+                reader.readAsText(files[0]);
+            }
+        });
+
+        // ============================================================
+        // INIT
+        // ============================================================
+
+        // If no saved data, load sample
+        if (!loadFromStorage()) {
+            loadSampleData();
+        }
+
+        // If still no data, show sample
+        setTimeout(() => {
+            if (!allStories.length) loadSampleData();
+        }, 500);
+
+        console.log('📖 Image Prompt Generator v2.0 (with CRUD + Export)');
+        console.log(`📚 ${allStories.length} stories loaded`);
+        console.log('💡 Drag & drop JSON to import');
+        console.log('⌨️ Ctrl+N = New, Ctrl+C = Copy, Arrow keys = Navigate');
+        console.log('✏️ Click ✏️ to edit, 🗑 to delete');
+    </script>
+</body>
+</html>
