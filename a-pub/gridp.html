@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>📚 Phonics Grid Publisher — Spatial Layout</title>
+<style>
+@page { size: 850px 1100px; margin: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f5; color: #1a1a1a; padding: 16px; }
+.app { max-width: 1600px; margin: 0 auto; background: #fff; border-radius: 20px; box-shadow: 0 12px 40px rgba(0,0,0,0.08); overflow: hidden; }
+.app-header { background: #1a1a2e; color: #fff; padding: 16px 28px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.app-header h1 { font-size: 22px; font-weight: 800; }
+.badge { background: #F5A623; color: #1a1a1a; padding: 4px 12px; border-radius: 16px; font-size: 12px; font-weight: 700; }
+.tabs { display: flex; border-bottom: 2px solid #e9ecef; background: #fafbfc; padding: 0 24px; }
+.tab-btn { padding: 14px 24px; border: none; background: transparent; font-size: 14px; font-weight: 700; color: #6c757d; cursor: pointer; border-bottom: 3px solid transparent; font-family: inherit; }
+.tab-btn.active { color: #1a1a2e; border-bottom-color: #F5A623; }
+.tab-panel { display: none; padding: 20px 24px 28px; }
+.tab-panel.active { display: block; }
+
+.toast-container { position: fixed; top: 16px; right: 16px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; max-width: 380px; pointer-events: none; }
+.toast { padding: 12px 18px; border-radius: 10px; color: #fff; font-weight: 600; font-size: 13px; box-shadow: 0 6px 20px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 8px; pointer-events: auto; animation: slideIn 0.25s ease; }
+.toast.success { background: #2d7d46; } .toast.error { background: #dc3545; } .toast.warning { background: #e67e22; } .toast.info { background: #2c7be5; }
+@keyframes slideIn { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
+
+.btn { padding: 9px 18px; border: none; border-radius: 9px; font-weight: 700; font-size: 13px; cursor: pointer; font-family: inherit; display: inline-flex; align-items: center; gap: 6px; }
+.btn-primary { background: #F5A623; color: #1a1a1a; }
+.btn-success { background: #2d7d46; color: #fff; }
+.btn-danger { background: #dc3545; color: #fff; }
+.btn-outline { background: transparent; border: 2px solid #dee2e6; color: #495057; }
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+.btn-xs { padding: 4px 9px; font-size: 11px; border-radius: 6px; }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* ===== EDITOR ===== */
+.editor-toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 18px; padding-bottom: 14px; border-bottom: 2px solid #e9ecef; }
+.editor-toolbar .info { font-weight: 700; color: #6c757d; font-size: 13px; margin-right: auto; }
+
+.block-card {
+    background: #f8f9fa;
+    border: 2px solid #e9ecef;
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 14px;
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: 18px;
+}
+.block-card.locked { opacity: 0.85; border-color: #F5A623; }
+.block-card h3 { font-size: 14px; font-weight: 800; color: #E2571C; margin-bottom: 10px; grid-column: 1 / -1; }
+
+.block-left { display: flex; flex-direction: column; gap: 10px; }
+.block-left label { font-weight: 700; font-size: 12px; color: #495057; display: block; margin-bottom: 3px; }
+.block-left input, .block-left textarea, .block-left select {
+    width: 100%; padding: 8px 12px; border: 2px solid #dee2e6; border-radius: 8px; font-size: 13px; font-family: inherit;
+}
+.block-left textarea { min-height: 70px; resize: vertical; }
+.mode-toggle { display: flex; gap: 8px; margin-bottom: 6px; }
+.mode-toggle button {
+    flex: 1; padding: 8px; border: 2px solid #dee2e6; border-radius: 8px; background: #fff;
+    font-weight: 700; font-size: 13px; cursor: pointer; font-family: inherit;
+}
+.mode-toggle button.active { border-color: #F5A623; background: #fff8e6; color: #E2571C; }
+
+.img-preview-wrap { display: flex; align-items: center; gap: 10px; }
+.img-preview-wrap img { width: 64px; height: 64px; object-fit: cover; border-radius: 8px; border: 2px solid #dee2e6; }
+.img-preview-wrap .ph { width: 64px; height: 64px; border: 2px dashed #dee2e6; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 24px; color: #adb5bd; background: #fff; }
+
+.border-toggle { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; }
+.border-toggle input { width: 16px; height: 16px; accent-color: #F5A623; }
+
+.block-right { display: flex; flex-direction: column; gap: 8px; }
+.grid-label { font-size: 12px; font-weight: 700; color: #6c757d; }
+.radio-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 3px;
+    background: #fff;
+    padding: 6px;
+    border-radius: 10px;
+    border: 2px solid #dee2e6;
+}
+.radio-grid .cell {
+    aspect-ratio: 1;
+    border: 1px solid #ced4da;
+    border-radius: 3px;
+    background: #f1f3f5;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    position: relative;
+}
+.radio-grid .cell:hover:not(.used):not(.invalid) { background: #ffe8a3; border-color: #F5A623; }
+.radio-grid .cell.selected { background: #F5A623; border-color: #E2571C; }
+.radio-grid .cell.used { background: #ffc9c9; border-color: #e03131; cursor: not-allowed; }
+.radio-grid .cell.preview { background: #ffd8a8; border-color: #f08c00; }
+.radio-grid .cell.invalid { background: #ffc9c9; border-color: #fa5252; }
+
+.block-actions { grid-column: 1 / -1; display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+.validation-msg { font-size: 12px; font-weight: 600; color: #e03131; min-height: 18px; }
+
+/* ===== VIEW ===== */
+.view-toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid #e9ecef; }
+.view-toolbar .info { font-weight: 700; color: #6c757d; font-size: 13px; margin-right: auto; }
+.view-container { overflow-x: auto; }
+.view-container .page {
+    width: 850px; min-width: 850px; min-height: 1100px;
+    padding: 28px 32px; margin: 0 auto 24px; background: #fff;
+    border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+    position: relative; page-break-after: always;
+}
+.page-card {
+    border: 4px solid #E2571C; border-radius: 12px;
+    width: 100%; height: 1040px; position: relative; overflow: hidden;
+    background: #fff;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+}
+.page-header {
+    display: flex; align-items: stretch; border-bottom: 3px solid #E2571C; height: 64px;
+}
+.page-header-left { flex: 1; padding: 10px 20px; display: flex; flex-direction: column; justify-content: center; }
+.page-header-left h1 { font-size: 26px; font-weight: 800; color: #E2571C; margin: 0; line-height: 1.1; }
+.page-header-left .sub { font-size: 12px; font-weight: 700; color: #c45a12; letter-spacing: 1px; text-transform: uppercase; }
+.page-header-right {
+    background: #E2571C; color: #fff; min-width: 140px;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+}
+.page-header-right .lbl { font-size: 12px; font-weight: 600; }
+.page-header-right .num { font-size: 24px; font-weight: 800; }
+
+.grid-stage {
+    position: absolute;
+    top: 64px; left: 0; right: 0; bottom: 36px;
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    grid-template-rows: repeat(12, 1fr);
+    gap: 0;
+    padding: 12px 16px;
+}
+.block {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px;
+    background: #fff;
+}
+.block.has-border {
+    border: 2px solid #E2571C;
+    border-radius: 8px;
+    margin: 2px;
+}
+.block .block-text {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    text-align: center; line-height: 1.3; word-break: break-word;
+    color: #1a1a1a; font-weight: 600;
+}
+.block .block-img {
+    max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 4px;
+}
+.page-number {
+    position: absolute; bottom: 10px; left: 0; right: 0;
+    text-align: center; font-weight: 700; font-size: 13px; color: #6c757d;
+}
+
+.page-actions { text-align: right; margin-bottom: 6px; }
+.export-btn { background: #E2571C; color: #fff; border: none; border-radius: 7px; padding: 7px 14px; font-weight: 700; font-size: 12px; cursor: pointer; font-family: inherit; }
+
+@media print {
+    body { padding: 0; background: #fff; }
+    .app, .app-header, .tabs, .tab-panel, .view-toolbar, .no-print { display: none !important; }
+    .view-container { overflow: visible !important; }
+    .view-container .page { box-shadow: none !important; border-radius: 0 !important; margin: 0 !important; padding: 16px !important; page-break-after: always; }
+    .view-container .page .page-actions { display: none !important; }
+    .page-card, .page-header-right { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+}
+
+/* Lesson list */
+.lesson-list { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.lesson-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: #f8f9fa; border-radius: 10px; border: 2px solid transparent; }
+.lesson-item:hover { border-color: #F5A623; background: #fff; }
+.lesson-item .info { flex: 1; min-width: 0; }
+.lesson-item .title { font-weight: 700; font-size: 14px; }
+.lesson-item .sub { font-size: 12px; color: #6c757d; }
+.lesson-item .actions { display: flex; gap: 4px; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+(function () {
+    const STORAGE_KEY = 'phonics_grid_v1';
+    const COLS = 8;
+    const ROWS = 12;
+    const TOTAL = COLS * ROWS;
+
+    function escapeHtml(s) {
+        return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+    }
+    function showToast(msg, type = 'info') {
+        const t = document.createElement('div');
+        t.className = 'toast ' + type;
+        t.innerHTML = `<span>${type==='success'?'✅':type==='error'?'❌':type==='warning'?'⚠️':'ℹ️'}</span> ${escapeHtml(msg)}`;
+        document.getElementById('toastContainer').appendChild(t);
+        setTimeout(() => t.remove(), 3200);
+    }
+
+    // ========== DATA ==========
+    let lessons = [];
+    let currentLessonId = null;
+    let currentPageIndex = 0;
+    let history = [];       // undo stack for current page
+    let historyIndex = -1;
+    let nextId = 1;
+
+    function defaultPage() {
+        return {
+            title: 'SHORT VOWEL CVC WORDS',
+            subtitle: 'SHORT VOWEL',
+            lessonNumber: 1,
+            blocks: [],          // { id, row, col, rowSpan, colSpan, type:'text'|'image', text, fontSize, imagePath, showBorder }
+            usedCells: new Set(),
+            locked: false
+        };
+    }
+
+    function defaultLesson() {
+        return {
+            id: 'l' + (nextId++),
+            title: 'SHORT VOWEL CVC WORDS',
+            subtitle: 'SHORT VOWEL',
+            pages: [defaultPage()]
+        };
+    }
+
+    function load() {
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (raw) {
+                const data = JSON.parse(raw);
+                lessons = data.lessons || [];
+                nextId = data.nextId || lessons.length + 1;
+                // restore Sets
+                lessons.forEach(l => l.pages.forEach(p => {
+                    p.usedCells = new Set(p.usedCells || []);
+                }));
+                if (lessons.length) {
+                    currentLessonId = lessons[0].id;
+                    currentPageIndex = 0;
+                }
+                return;
+            }
+        } catch (e) {}
+        const l = defaultLesson();
+        lessons = [l];
+        currentLessonId = l.id;
+        currentPageIndex = 0;
+        save();
+    }
+    function save() {
+        try {
+            const toSave = {
+                nextId,
+                lessons: lessons.map(l => ({
+                    ...l,
+                    pages: l.pages.map(p => ({
+                        ...p,
+                        usedCells: Array.from(p.usedCells || [])
+                    }))
+                }))
+            };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
+        } catch (e) { showToast('Storage full', 'error'); }
+    }
+
+    function getCurrentLesson() {
+        return lessons.find(l => l.id === currentLessonId);
+    }
+    function getCurrentPage() {
+        const l = getCurrentLesson();
+        return l ? l.pages[currentPageIndex] : null;
+    }
+
+    // ========== GRID HELPERS ==========
+    function cellKey(r, c) { return r + ',' + c; }
+    function parseKey(k) { const [r, c] = k.split(',').map(Number); return { r, c }; }
+
+    function isRectangle(selectedKeys) {
+        if (!selectedKeys.size) return false;
+        const cells = Array.from(selectedKeys).map(parseKey);
+        const rows = cells.map(c => c.r);
+        const cols = cells.map(c => c.c);
+        const minR = Math.min(...rows), maxR = Math.max(...rows);
+        const minC = Math.min(...cols), maxC = Math.max(...cols);
+        const expected = (maxR - minR + 1) * (maxC - minC + 1);
+        if (selectedKeys.size !== expected) return false;
+        // every cell inside the bounding box must be selected
+        for (let r = minR; r <= maxR; r++) {
+            for (let c = minC; c <= maxC; c++) {
+                if (!selectedKeys.has(cellKey(r, c))) return false;
+            }
+        }
+        return { minR, maxR, minC, maxC, rowSpan: maxR - minR + 1, colSpan: maxC - minC + 1 };
+    }
+
+    // ========== HISTORY ==========
+    function pushHistory() {
+        const page = getCurrentPage();
+        if (!page) return;
+        const snapshot = JSON.parse(JSON.stringify({
+            blocks: page.blocks,
+            usedCells: Array.from(page.usedCells)
+        }));
+        // truncate redo
+        history = history.slice(0, historyIndex + 1);
+        history.push(snapshot);
+        historyIndex = history.length - 1;
+        if (history.length > 40) { history.shift(); historyIndex--; }
+        updateUndoRedoButtons();
+    }
+    function undo() {
+        if (historyIndex <= 0) return;
+        historyIndex--;
+        applySnapshot(history[historyIndex]);
+        updateUndoRedoButtons();
+        renderEditor();
+        showToast('Undo', 'info');
+    }
+    function redo() {
+        if (historyIndex >= history.length - 1) return;
+        historyIndex++;
+        applySnapshot(history[historyIndex]);
+        updateUndoRedoButtons();
+        renderEditor();
+        showToast('Redo', 'info');
+    }
+    function applySnapshot(snap) {
+        const page = getCurrentPage();
+        if (!page) return;
+        page.blocks = JSON.parse(JSON.stringify(snap.blocks));
+        page.usedCells = new Set(snap.usedCells);
+        save();
+    }
+    function updateUndoRedoButtons() {
+        const u = document.getElementById('btnUndo');
+        const r = document.getElementById('btnRedo');
+        if (u) u.disabled = historyIndex <= 0;
+        if (r) r.disabled = historyIndex >= history.length - 1;
+    }
+
+    // ========== CURRENT SELECTION STATE (for the active card) ==========
+    let activeSelection = new Set();   // keys being selected right now
+    let activeMode = 'text';
+    let activeText = '';
+    let activeFontSize = 18;
+    let activeImagePath = '';
+    let activeShowBorder = true;
+
+    function resetActive() {
+        activeSelection = new Set();
+        activeMode = 'text';
+        activeText = '';
+        activeFontSize = 18;
+        activeImagePath = '';
+        activeShowBorder = true;
+    }
+
+    // ========== RENDER EDITOR ==========
+    function renderEditor() {
+        const page = getCurrentPage();
+        if (!page) return;
+        const container = document.getElementById('editorArea');
+        if (!container) return;
+
+        const freeCount = TOTAL - page.usedCells.size;
+        const locked = page.locked;
+
+        let html = `
+            <div class="editor-toolbar">
+                <span class="info">Page ${currentPageIndex + 1} · ${page.blocks.length} block(s) · ${freeCount} free cells</span>
+                <button class="btn btn-outline btn-sm" id="btnUndo" onclick="undo()" ${historyIndex<=0?'disabled':''}>↩ Undo</button>
+                <button class="btn btn-outline btn-sm" id="btnRedo" onclick="redo()" ${historyIndex>=history.length-1?'disabled':''}>↪ Redo</button>
+                <button class="btn btn-outline btn-sm" onclick="resetPage()">🗑 Reset Page</button>
+                ${locked
+                    ? `<button class="btn btn-primary btn-sm" onclick="unlockPage()">🔓 Unlock</button>`
+                    : `<button class="btn btn-success btn-sm" onclick="lockPage()" ${page.blocks.length===0?'disabled':''}>✅ Done (Lock)</button>`
+                }
+            </div>
+            <div class="form-group" style="margin-bottom:14px;display:grid;grid-template-columns:1fr 1fr 100px;gap:10px;">
+                <div><label style="font-weight:700;font-size:12px;">Page Title</label>
+                    <input id="pageTitle" value="${escapeHtml(page.title)}" onchange="updatePageMeta()" style="width:100%;padding:8px 12px;border:2px solid #dee2e6;border-radius:8px;font-size:13px;"></div>
+                <div><label style="font-weight:700;font-size:12px;">Subtitle</label>
+                    <input id="pageSubtitle" value="${escapeHtml(page.subtitle)}" onchange="updatePageMeta()" style="width:100%;padding:8px 12px;border:2px solid #dee2e6;border-radius:8px;font-size:13px;"></div>
+                <div><label style="font-weight:700;font-size:12px;">Lesson #</label>
+                    <input id="pageLessonNum" type="number" value="${page.lessonNumber}" onchange="updatePageMeta()" style="width:100%;padding:8px 12px;border:2px solid #dee2e6;border-radius:8px;font-size:13px;"></div>
+            </div>
+        `;
+
+        // Existing blocks (read-only summary + border toggle)
+        page.blocks.forEach((b, idx) => {
+            html += `
+                <div class="block-card locked">
+                    <h3>Block ${idx + 1} — ${b.type.toUpperCase()} · ${b.rowSpan}×${b.colSpan} cells</h3>
+                    <div class="block-left">
+                        ${b.type === 'text'
+                            ? `<div style="font-size:13px;font-weight:600;color:#333;white-space:pre-wrap;">${escapeHtml(b.text || '(empty)')}</div>
+                               <div style="font-size:12px;color:#6c757d;">Font size: ${b.fontSize}px</div>`
+                            : (b.imagePath
+                                ? `<img src="${escapeHtml(b.imagePath)}" style="max-width:120px;max-height:80px;border-radius:6px;border:1px solid #ddd;">`
+                                : `<div style="color:#adb5bd;">No image</div>`)
+                        }
+                        <label class="border-toggle">
+                            <input type="checkbox" ${b.showBorder !== false ? 'checked' : ''} onchange="toggleBlockBorder(${idx}, this.checked)" ${locked?'disabled':''}>
+                            Show border on page
+                        </label>
+                    </div>
+                    <div class="block-right">
+                        <div class="grid-label">Allocated cells (red = used)</div>
+                        <div class="radio-grid" id="grid-preview-${idx}"></div>
+                    </div>
+                    ${!locked ? `<div class="block-actions"><button class="btn btn-danger btn-xs" onclick="deleteBlock(${idx})">🗑 Remove block</button></div>` : ''}
+                </div>`;
+        });
+
+        // Active (new) card — only if not locked and free cells remain
+        if (!locked && freeCount > 0) {
+            html += `
+                <div class="block-card" id="activeCard">
+                    <h3>New Block — select a rectangle on the grid</h3>
+                    <div class="block-left">
+                        <div class="mode-toggle">
+                            <button type="button" class="${activeMode==='text'?'active':''}" onclick="setMode('text')">📝 Text</button>
+                            <button type="button" class="${activeMode==='image'?'active':''}" onclick="setMode('image')">🖼️ Image</button>
+                        </div>
+                        <div id="textFields" style="display:${activeMode==='text'?'block':'none'}">
+                            <label>Text content</label>
+                            <textarea id="activeText" oninput="activeText=this.value">${escapeHtml(activeText)}</textarea>
+                            <label style="margin-top:8px;">Font size (px)</label>
+                            <input type="number" id="activeFontSize" value="${activeFontSize}" min="10" max="72" oninput="activeFontSize=parseInt(this.value)||18">
+                        </div>
+                        <div id="imageFields" style="display:${activeMode==='image'?'block':'none'}">
+                            <label>Image</label>
+                            <div class="img-preview-wrap">
+                                <img id="activeImgPreview" style="display:${activeImagePath?'block':'none'}" src="${escapeHtml(activeImagePath||'')}">
+                                <div id="activeImgPh" class="ph" style="display:${activeImagePath?'none':'flex'}">🖼️</div>
+                                <input type="file" accept="image/*" onchange="handleActiveImage(event)">
+                            </div>
+                        </div>
+                        <label class="border-toggle" style="margin-top:8px;">
+                            <input type="checkbox" id="activeBorder" ${activeShowBorder?'checked':''} onchange="activeShowBorder=this.checked">
+                            Show border on page
+                        </label>
+                    </div>
+                    <div class="block-right">
+                        <div class="grid-label">Click cells to form a rectangle (1×1 allowed)</div>
+                        <div class="radio-grid" id="activeGrid"></div>
+                        <div class="validation-msg" id="validationMsg"></div>
+                    </div>
+                    <div class="block-actions">
+                        <button class="btn btn-primary" id="btnSet" onclick="setBlock()" disabled>✔ Set Block</button>
+                        <button class="btn btn-outline" onclick="clearSelection()">Clear selection</button>
+                    </div>
+                </div>`;
+        } else if (!locked && freeCount === 0) {
+            html += `<div style="padding:20px;text-align:center;color:#2d7d46;font-weight:700;">All space allocated. Press Done to lock the page.</div>`;
+        } else if (locked) {
+            html += `<div style="padding:16px;text-align:center;color:#6c757d;font-weight:600;">Page is locked. Unlock to edit blocks.</div>`;
+        }
+
+        container.innerHTML = html;
+
+        // Paint used cells on existing block previews
+        page.blocks.forEach((b, idx) => {
+            const grid = document.getElementById('grid-preview-' + idx);
+            if (!grid) return;
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    const key = cellKey(r, c);
+                    if (page.usedCells.has(key)) {
+                        // check if this cell belongs to this block
+                        if (r >= b.row && r < b.row + b.rowSpan && c >= b.col && c < b.col + b.colSpan) {
+                            cell.classList.add('used');
+                        } else {
+                            cell.classList.add('used');
+                            cell.style.opacity = '0.35';
+                        }
+                    }
+                    grid.appendChild(cell);
+                }
+            }
+        });
+
+        // Active grid
+        const activeGrid = document.getElementById('activeGrid');
+        if (activeGrid) {
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    const key = cellKey(r, c);
+                    if (page.usedCells.has(key)) {
+                        cell.classList.add('used');
+                    } else if (activeSelection.has(key)) {
+                        cell.classList.add('selected');
+                    }
+                    cell.onclick = () => toggleCell(r, c);
+                    activeGrid.appendChild(cell);
+                }
+            }
+            validateSelection();
+        }
+        updateUndoRedoButtons();
+    }
+
+    window.toggleCell = function(r, c) {
+        const page = getCurrentPage();
+        if (!page || page.locked) return;
+        const key = cellKey(r, c);
+        if (page.usedCells.has(key)) return;
+        if (activeSelection.has(key)) activeSelection.delete(key);
+        else activeSelection.add(key);
+        renderEditor();
+    };
+
+    window.clearSelection = function() {
+        activeSelection = new Set();
+        renderEditor();
+    };
+
+    function validateSelection() {
+        const msg = document.getElementById('validationMsg');
+        const btn = document.getElementById('btnSet');
+        if (!msg || !btn) return;
+        if (activeSelection.size === 0) {
+            msg.textContent = '';
+            btn.disabled = true;
+            return;
+        }
+        const rect = isRectangle(activeSelection);
+        if (!rect) {
+            msg.textContent = '⚠ Selection must be a solid rectangle or square';
+            btn.disabled = true;
+            // mark invalid visually
+            document.querySelectorAll('#activeGrid .cell.selected').forEach(el => el.classList.add('invalid'));
+        } else {
+            msg.textContent = `✓ Valid ${rect.rowSpan}×${rect.colSpan} rectangle`;
+            msg.style.color = '#2d7d46';
+            btn.disabled = false;
+        }
+    }
+
+    window.setMode = function(mode) {
+        activeMode = mode;
+        renderEditor();
+    };
+
+    window.handleActiveImage = function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        if (file.size > 2*1024*1024) return showToast('Image must be < 2MB', 'error');
+        const reader = new FileReader();
+        reader.onload = ev => {
+            activeImagePath = ev.target.result;
+            renderEditor();
+        };
+        reader.readAsDataURL(file);
+    };
+
+    window.setBlock = function() {
+        const page = getCurrentPage();
+        if (!page || page.locked) return;
+        const rect = isRectangle(activeSelection);
+        if (!rect) return showToast('Invalid rectangle', 'error');
+        if (activeMode === 'text' && !activeText.trim()) return showToast('Please enter some text', 'error');
+        if (activeMode === 'image' && !activeImagePath) return showToast('Please upload an image', 'error');
+
+        pushHistory();
+
+        const block = {
+            id: 'b' + Date.now(),
+            row: rect.minR,
+            col: rect.minC,
+            rowSpan: rect.rowSpan,
+            colSpan: rect.colSpan,
+            type: activeMode,
+            text: activeText,
+            fontSize: activeFontSize,
+            imagePath: activeImagePath,
+            showBorder: activeShowBorder
+        };
+        page.blocks.push(block);
+        activeSelection.forEach(k => page.usedCells.add(k));
+        resetActive();
+        save();
+        renderEditor();
+        showToast('Block set', 'success');
+    };
+
+    window.deleteBlock = function(idx) {
+        const page = getCurrentPage();
+        if (!page || page.locked) return;
+        pushHistory();
+        const b = page.blocks[idx];
+        // free cells
+        for (let r = b.row; r < b.row + b.rowSpan; r++) {
+            for (let c = b.col; c < b.col + b.colSpan; c++) {
+                page.usedCells.delete(cellKey(r, c));
+            }
+        }
+        page.blocks.splice(idx, 1);
+        save();
+        renderEditor();
+        showToast('Block removed', 'info');
+    };
+
+    window.toggleBlockBorder = function(idx, val) {
+        const page = getCurrentPage();
+        if (!page) return;
+        page.blocks[idx].showBorder = val;
+        save();
+    };
+
+    window.updatePageMeta = function() {
+        const page = getCurrentPage();
+        if (!page) return;
+        page.title = document.getElementById('pageTitle').value;
+        page.subtitle = document.getElementById('pageSubtitle').value;
+        page.lessonNumber = parseInt(document.getElementById('pageLessonNum').value) || 1;
+        save();
+    };
+
+    window.lockPage = function() {
+        const page = getCurrentPage();
+        if (!page) return;
+        page.locked = true;
+        save();
+        renderEditor();
+        showToast('Page locked', 'success');
+    };
+    window.unlockPage = function() {
+        const page = getCurrentPage();
+        if (!page) return;
+        page.locked = false;
+        save();
+        renderEditor();
+        showToast('Page unlocked', 'info');
+    };
+    window.resetPage = function() {
+        if (!confirm('Clear all blocks on this page?')) return;
+        const page = getCurrentPage();
+        if (!page) return;
+        pushHistory();
+        page.blocks = [];
+        page.usedCells = new Set();
+        page.locked = false;
+        resetActive();
+        save();
+        renderEditor();
+        showToast('Page reset', 'info');
+    };
+
+    // ========== VIEW ==========
+    function renderView() {
+        const container = document.getElementById('viewContainer');
+        if (!container) return;
+        container.innerHTML = '';
+        const lesson = getCurrentLesson();
+        if (!lesson) return;
+
+        lesson.pages.forEach((page, pIdx) => {
+            const pageEl = document.createElement('div');
+            pageEl.className = 'page';
+            pageEl.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportPage(this.closest('.page'))">📄 Export</button></div>`;
+
+            const card = document.createElement('div');
+            card.className = 'page-card';
+            card.innerHTML = `
+                <div class="page-header">
+                    <div class="page-header-left">
+                        <h1>${escapeHtml(page.title)}</h1>
+                        <div class="sub">${escapeHtml(page.subtitle)}</div>
+                    </div>
+                    <div class="page-header-right">
+                        <span class="lbl">LESSON</span>
+                        <span class="num">${page.lessonNumber}</span>
+                    </div>
+                </div>
+                <div class="grid-stage" id="stage-${pIdx}"></div>
+                <div class="page-number">${pIdx + 1}</div>
+            `;
+            pageEl.appendChild(card);
+            container.appendChild(pageEl);
+
+            const stage = card.querySelector('.grid-stage');
+            page.blocks.forEach(b => {
+                const el = document.createElement('div');
+                el.className = 'block' + (b.showBorder !== false ? ' has-border' : '');
+                el.style.gridRow = `${b.row + 1} / span ${b.rowSpan}`;
+                el.style.gridColumn = `${b.col + 1} / span ${b.colSpan}`;
+                if (b.type === 'text') {
+                    el.innerHTML = `<div class="block-text" style="font-size:${b.fontSize || 18}px">${escapeHtml(b.text || '')}</div>`;
+                } else if (b.type === 'image' && b.imagePath) {
+                    el.innerHTML = `<img class="block-img" src="${escapeHtml(b.imagePath)}">`;
+                }
+                stage.appendChild(el);
+            });
+        });
+    }
+
+    window.exportPage = function(pageEl) {
+        const clone = pageEl.cloneNode(true);
+        clone.querySelector('.page-actions')?.remove();
+        const win = window.open('', '_blank');
+        const styles = document.querySelector('style').outerHTML;
+        win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Export</title>${styles}</head><body style="padding:0;margin:0;background:#fff;"><div class="view-container">${clone.outerHTML}</div></body></html>`);
+        win.document.close();
+        win.focus();
+        setTimeout(() => win.print(), 400);
+    };
+
+    // ========== LESSON MANAGEMENT ==========
+    function renderLessonList() {
+        const list = document.getElementById('lessonList');
+        if (!list) return;
+        list.innerHTML = lessons.map(l => `
+            <div class="lesson-item" style="${l.id===currentLessonId?'border-color:#F5A623;background:#fff;':''}">
+                <div class="info">
+                    <div class="title">${escapeHtml(l.title)}</div>
+                    <div class="sub">${l.pages.length} page(s)</div>
+                </div>
+                <div class="actions">
+                    <button class="btn btn-primary btn-xs" onclick="selectLesson('${l.id}')">Open</button>
+                    <button class="btn btn-danger btn-xs" onclick="deleteLesson('${l.id}')">🗑</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    window.selectLesson = function(id) {
+        currentLessonId = id;
+        currentPageIndex = 0;
+        history = []; historyIndex = -1;
+        resetActive();
+        pushHistory();
+        renderAll();
+    };
+    window.addLesson = function() {
+        const l = defaultLesson();
+        lessons.push(l);
+        currentLessonId = l.id;
+        currentPageIndex = 0;
+        history = []; historyIndex = -1;
+        resetActive();
+        save();
+        renderAll();
+        showToast('Lesson added', 'success');
+    };
+    window.deleteLesson = function(id) {
+        if (lessons.length <= 1) return showToast('Need at least one lesson', 'warning');
+        if (!confirm('Delete this lesson?')) return;
+        lessons = lessons.filter(l => l.id !== id);
+        if (currentLessonId === id) {
+            currentLessonId = lessons[0].id;
+            currentPageIndex = 0;
+        }
+        save();
+        renderAll();
+    };
+    window.addPage = function() {
+        const lesson = getCurrentLesson();
+        if (!lesson) return;
+        const p = defaultPage();
+        p.lessonNumber = lesson.pages.length + 1;
+        lesson.pages.push(p);
+        currentPageIndex = lesson.pages.length - 1;
+        history = []; historyIndex = -1;
+        resetActive();
+        pushHistory();
+        save();
+        renderAll();
+        showToast('Page added', 'success');
+    };
+
+    // ========== TABS & INIT ==========
+    window.switchTab = function(tab) {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === tab + 'Panel'));
+        if (tab === 'view') renderView();
+        if (tab === 'edit') renderEditor();
+    };
+
+    function renderAll() {
+        renderLessonList();
+        renderEditor();
+        renderView();
+        const lesson = getCurrentLesson();
+        document.getElementById('lessonCount').textContent = lessons.length + ' lessons';
+        document.getElementById('pageSelect').innerHTML = (lesson ? lesson.pages : []).map((p, i) =>
+            `<option value="${i}" ${i===currentPageIndex?'selected':''}>Page ${i+1}</option>`
+        ).join('');
+    }
+
+    window.changePage = function(idx) {
+        currentPageIndex = parseInt(idx);
+        history = []; historyIndex = -1;
+        resetActive();
+        pushHistory();
+        renderEditor();
+        renderView();
+    };
+
+    load();
+    document.getElementById('app').innerHTML = `
+        <div class="app-header">
+            <h1>📚 Phonics Grid Publisher</h1>
+            <span class="badge" id="lessonCount">0</span>
+        </div>
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="edit" onclick="switchTab('edit')">✏️ Build Pages</button>
+            <button class="tab-btn" data-tab="view" onclick="switchTab('view')">👁️ View / Print</button>
+            <button class="tab-btn" data-tab="lessons" onclick="switchTab('lessons')">📖 Lessons</button>
+        </div>
+        <div class="tab-panel active" id="editPanel">
+            <div style="display:flex;gap:12px;align-items:center;margin-bottom:14px;flex-wrap:wrap;">
+                <label style="font-weight:700;font-size:13px;">Current page:</label>
+                <select id="pageSelect" onchange="changePage(this.value)" style="padding:7px 12px;border:2px solid #dee2e6;border-radius:8px;font-size:13px;"></select>
+                <button class="btn btn-outline btn-sm" onclick="addPage()">＋ Add Page</button>
+            </div>
+            <div id="editorArea"></div>
+        </div>
+        <div class="tab-panel" id="viewPanel">
+            <div class="view-toolbar">
+                <span class="info" id="viewInfo">Ready</span>
+            </div>
+            <div class="view-container" id="viewContainer"></div>
+        </div>
+        <div class="tab-panel" id="lessonsPanel">
+            <button class="btn btn-primary" onclick="addLesson()">＋ New Lesson</button>
+            <div class="lesson-list" id="lessonList"></div>
+        </div>
+    `;
+    pushHistory();
+    renderAll();
+})();
+</script>
+</body>
+</html>
