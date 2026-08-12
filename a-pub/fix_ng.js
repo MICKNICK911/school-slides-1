@@ -1,6 +1,6 @@
 const fs = require('fs');
 
-const TEMPLATE_FILE = 'lessons_v8.json';
+const TEMPLATE_FILE = 'de.json';
 const SOURCE_FILE = 'g1_fixed.json';
 const OUTPUT_FILE = 'converted_lessons_improved.json';
 
@@ -79,7 +79,7 @@ function getPartOfSpeech(word) {
   if (PRONOUNS.has(lower)) return 'pronoun';
   if (ADVERBS.has(lower)) return 'adverb';
   if (PREPOSITIONS.has(lower)) return 'preposition';
-  return 'noun'; // default
+  return 'noun';
 }
 
 // ===================== SENTENCE TEMPLATES BY POS =====================
@@ -129,27 +129,25 @@ const PRONOUN_TEMPLATES = [
   "They got {word}.", "Here is {word}.", "There is {word}."
 ];
 
-const DEFAULT_TEMPLATES = NOUN_TEMPLATES; // fallback for adverbs, prepositions, etc.
-
 // ===================== DECODABLE GENERATOR =====================
 
-function generateDecodableContent(words, lessonInfo) {
+function generateDecodableContent(words, lessonInfo, report) {
   const selected = words.slice(0, 5);
 
   const sentences = selected.map((word, i) => {
     const pos = getPartOfSpeech(word);
+    if (pos === 'noun') {
+      report.defaultNouns.add(word.toLowerCase());
+    }
     let pool;
-
     switch (pos) {
       case 'verb': pool = VERB_TEMPLATES; break;
       case 'adjective': pool = ADJECTIVE_TEMPLATES; break;
       case 'pronoun': pool = PRONOUN_TEMPLATES; break;
       default: pool = NOUN_TEMPLATES; break;
     }
-
     let template = pool[Math.floor(Math.random() * pool.length)];
     let sentence = template.replace('{word}', word);
-
     if (template.includes('{word2}')) {
       const other = words[Math.floor(Math.random() * words.length)];
       sentence = sentence.replace('{word2}', other);
@@ -157,14 +155,16 @@ function generateDecodableContent(words, lessonInfo) {
     return sentence;
   });
 
-  // Fill blanks: 1 underscore for 1‑3 letters, 2 for 4 letters, 3 for 5+ letters
+  // Fill blanks: 0 underscores for 1‑letter, 1 for 2‑3, 2 for 4, 3 for 5+
   const fillBlanks = words.map(word => {
     const len = word.length;
     let count;
-    if (len <= 3) count = 1;
+    if (len === 1) count = 0;
+    else if (len <= 3) count = 1;
     else if (len === 4) count = 2;
-    else count = 3; // 5+
+    else count = 3;
 
+    if (count === 0) return word;
     if (count >= len) return '_'.repeat(len);
 
     const positions = [];
@@ -195,7 +195,7 @@ function splitIntro(text) {
   return m ? { intro: m[1].trim(), instruction: m[2].trim() } : { intro: text, instruction: '' };
 }
 
-function convertLesson(src, tmpl) {
+function convertLesson(src, tmpl, report) {
   const out = deepClone(tmpl);
   out.id = src.id;
   out.mainTitle = src.mainTitle;
@@ -219,11 +219,11 @@ function convertLesson(src, tmpl) {
   let decSentences = src.activities.decodable.sentences || [];
   let decFill = src.activities.decodable.fillBlanks || [];
 
-  // Generate only if active and no original sentences (preserve human ones)
-  if (decActive && decSentences.length === 0) {
-    const gen = generateDecodableContent(words, src);
-    decSentences = gen.sentences;
-    decFill = gen.fillBlanks;
+  // FILL ALL EMPTY ARRAYS – regardless of active flag
+  if (decSentences.length === 0 || decFill.length === 0) {
+    const gen = generateDecodableContent(words, src, report);
+    if (decSentences.length === 0) decSentences = gen.sentences;
+    if (decFill.length === 0) decFill = gen.fillBlanks;
   }
 
   out.decodableSentences = decSentences;
@@ -237,15 +237,32 @@ function convertLesson(src, tmpl) {
 
 // ===================== MAIN =====================
 
-const tmpl = JSON.parse(fs.readFileSync(TEMPLATE_FILE)).lessons[0];
-const src = JSON.parse(fs.readFileSync(SOURCE_FILE));
-const converted = src.lessons.map(l => convertLesson(l, tmpl));
+try {
+  // Check files
+  if (!fs.existsSync(TEMPLATE_FILE)) throw new Error(`File not found: ${TEMPLATE_FILE}`);
+  if (!fs.existsSync(SOURCE_FILE)) throw new Error(`File not found: ${SOURCE_FILE}`);
 
-const output = {
-  lessons: converted,
-  sightWords: src.sightWords || [],
-  coverData: src.coverData || { title: 'Crystal Phonics', subtitle: 'Grade 1' }
-};
+  const tmpl = JSON.parse(fs.readFileSync(TEMPLATE_FILE, 'utf8')).lessons[0];
+  const src = JSON.parse(fs.readFileSync(SOURCE_FILE, 'utf8'));
 
-fs.writeFileSync(OUTPUT_FILE, JSON.stringify(output, null, 2));
-console.log('✅ Improved conversion done! Output written to', OUTPUT_FILE);
+  const report = { defaultNouns: new Set() };
+
+  const converted = src.lessons.map(l => convertLesson(l, tmpl, report));
+
+  const output = {
+    lessons: converted,
+    sightWords: src.sightWords || [],
+    coverData: src.coverData || { title: 'Crystal Phonics', subtitle: 'Grade 1' }
+  };
+
+  fs.writeFileSync(OUTPUT_FILE, JSON.stringify(output, null, 2));
+  console.log('✅ Conversion done! Output written to', OUTPUT_FILE);
+
+  // Print report of default nouns
+  console.log('\n=== WORDS DEFAULTED TO NOUN (add to VERBS/ADJECTIVES etc. if needed) ===');
+  console.log([...report.defaultNouns].sort().join(', '));
+
+} catch (err) {
+  console.error('❌ ERROR:', err.message);
+  console.error(err.stack);
+}
