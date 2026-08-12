@@ -322,27 +322,27 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         if (history.length > 40) { history.shift(); historyIndex--; }
         updateUndoRedoButtons();
     }
-    function undo() {
+    window.undo = function() {
         if (historyIndex <= 0) return;
         historyIndex--;
         applySnapshot(history[historyIndex]);
         updateUndoRedoButtons();
         renderEditor();
         showToast('Undo', 'info');
-    }
-    function redo() {
+    };
+    window.redo = function() {
         if (historyIndex >= history.length - 1) return;
         historyIndex++;
         applySnapshot(history[historyIndex]);
         updateUndoRedoButtons();
         renderEditor();
         showToast('Redo', 'info');
-    }
+    };
     function applySnapshot(snap) {
         const page = getCurrentPage();
-        if (!page) return;
-        page.blocks = JSON.parse(JSON.stringify(snap.blocks));
-        page.usedCells = new Set(snap.usedCells);
+        if (!page || !snap) return;
+        page.blocks = JSON.parse(JSON.stringify(snap.blocks || []));
+        page.usedCells = new Set(snap.usedCells || []);
         save();
     }
     function updateUndoRedoButtons() {
@@ -353,20 +353,21 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
     }
 
     // ========== CURRENT SELECTION STATE (for the active card) ==========
-    let activeSelection = new Set();   // keys being selected right now
-    let activeMode = 'text';
-    let activeText = '';
-    let activeFontSize = 18;
-    let activeImagePath = '';
-    let activeShowBorder = true;
+    // Exposed on window so inline handlers can update them
+    window.activeSelection = new Set();
+    window.activeMode = 'text';
+    window.activeText = '';
+    window.activeFontSize = 18;
+    window.activeImagePath = '';
+    window.activeShowBorder = true;
 
     function resetActive() {
-        activeSelection = new Set();
-        activeMode = 'text';
-        activeText = '';
-        activeFontSize = 18;
-        activeImagePath = '';
-        activeShowBorder = true;
+        window.activeSelection = new Set();
+        window.activeMode = 'text';
+        window.activeText = '';
+        window.activeFontSize = 18;
+        window.activeImagePath = '';
+        window.activeShowBorder = true;
     }
 
     // ========== RENDER EDITOR ==========
@@ -433,25 +434,25 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
                     <h3>New Block — select a rectangle on the grid</h3>
                     <div class="block-left">
                         <div class="mode-toggle">
-                            <button type="button" class="${activeMode==='text'?'active':''}" onclick="setMode('text')">📝 Text</button>
-                            <button type="button" class="${activeMode==='image'?'active':''}" onclick="setMode('image')">🖼️ Image</button>
+                            <button type="button" class="${window.activeMode==='text'?'active':''}" onclick="setMode('text')">📝 Text</button>
+                            <button type="button" class="${window.activeMode==='image'?'active':''}" onclick="setMode('image')">🖼️ Image</button>
                         </div>
-                        <div id="textFields" style="display:${activeMode==='text'?'block':'none'}">
+                        <div id="textFields" style="display:${window.activeMode==='text'?'block':'none'}">
                             <label>Text content</label>
-                            <textarea id="activeText" oninput="activeText=this.value">${escapeHtml(activeText)}</textarea>
+                            <textarea id="activeText" oninput="window.activeText=this.value">${escapeHtml(window.activeText)}</textarea>
                             <label style="margin-top:8px;">Font size (px)</label>
-                            <input type="number" id="activeFontSize" value="${activeFontSize}" min="10" max="72" oninput="activeFontSize=parseInt(this.value)||18">
+                            <input type="number" id="activeFontSize" value="${window.activeFontSize}" min="10" max="72" oninput="window.activeFontSize=parseInt(this.value)||18">
                         </div>
-                        <div id="imageFields" style="display:${activeMode==='image'?'block':'none'}">
+                        <div id="imageFields" style="display:${window.activeMode==='image'?'block':'none'}">
                             <label>Image</label>
                             <div class="img-preview-wrap">
-                                <img id="activeImgPreview" style="display:${activeImagePath?'block':'none'}" src="${escapeHtml(activeImagePath||'')}">
-                                <div id="activeImgPh" class="ph" style="display:${activeImagePath?'none':'flex'}">🖼️</div>
+                                <img id="activeImgPreview" style="display:${window.activeImagePath?'block':'none'}" src="${escapeHtml(window.activeImagePath||'')}">
+                                <div id="activeImgPh" class="ph" style="display:${window.activeImagePath?'none':'flex'}">🖼️</div>
                                 <input type="file" accept="image/*" onchange="handleActiveImage(event)">
                             </div>
                         </div>
                         <label class="border-toggle" style="margin-top:8px;">
-                            <input type="checkbox" id="activeBorder" ${activeShowBorder?'checked':''} onchange="activeShowBorder=this.checked">
+                            <input type="checkbox" id="activeBorder" ${window.activeShowBorder?'checked':''} onchange="window.activeShowBorder=this.checked">
                             Show border on page
                         </label>
                     </div>
@@ -506,7 +507,7 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
                     const key = cellKey(r, c);
                     if (page.usedCells.has(key)) {
                         cell.classList.add('used');
-                    } else if (activeSelection.has(key)) {
+                    } else if (window.activeSelection.has(key)) {
                         cell.classList.add('selected');
                     }
                     cell.onclick = () => toggleCell(r, c);
@@ -518,18 +519,32 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         updateUndoRedoButtons();
     }
 
+    function syncActiveFromDom() {
+        const ta = document.getElementById('activeText');
+        if (ta) window.activeText = ta.value;
+        const fs = document.getElementById('activeFontSize');
+        if (fs) {
+            const n = parseInt(fs.value, 10);
+            window.activeFontSize = Number.isFinite(n) ? Math.min(72, Math.max(10, n)) : 18;
+        }
+        const br = document.getElementById('activeBorder');
+        if (br) window.activeShowBorder = !!br.checked;
+    }
+
     window.toggleCell = function(r, c) {
         const page = getCurrentPage();
         if (!page || page.locked) return;
         const key = cellKey(r, c);
         if (page.usedCells.has(key)) return;
-        if (activeSelection.has(key)) activeSelection.delete(key);
-        else activeSelection.add(key);
+        syncActiveFromDom(); // preserve typed text before re-render
+        if (window.activeSelection.has(key)) window.activeSelection.delete(key);
+        else window.activeSelection.add(key);
         renderEditor();
     };
 
     window.clearSelection = function() {
-        activeSelection = new Set();
+        syncActiveFromDom();
+        window.activeSelection = new Set();
         renderEditor();
     };
 
@@ -537,65 +552,92 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         const msg = document.getElementById('validationMsg');
         const btn = document.getElementById('btnSet');
         if (!msg || !btn) return;
-        if (activeSelection.size === 0) {
+        if (window.activeSelection.size === 0) {
             msg.textContent = '';
+            msg.style.color = '#e03131';
             btn.disabled = true;
             return;
         }
-        const rect = isRectangle(activeSelection);
+        const rect = isRectangle(window.activeSelection);
         if (!rect) {
             msg.textContent = '⚠ Selection must be a solid rectangle or square';
+            msg.style.color = '#e03131';
             btn.disabled = true;
-            // mark invalid visually
             document.querySelectorAll('#activeGrid .cell.selected').forEach(el => el.classList.add('invalid'));
         } else {
-            msg.textContent = `✓ Valid ${rect.rowSpan}×${rect.colSpan} rectangle`;
+            msg.textContent = '✓ Valid ' + rect.rowSpan + '×' + rect.colSpan + ' rectangle';
             msg.style.color = '#2d7d46';
             btn.disabled = false;
         }
     }
 
     window.setMode = function(mode) {
-        activeMode = mode;
+        syncActiveFromDom();
+        window.activeMode = mode;
         renderEditor();
     };
 
     window.handleActiveImage = function(e) {
         const file = e.target.files[0];
         if (!file) return;
+        if (!file.type || !file.type.startsWith('image/')) return showToast('Please select an image file', 'error');
         if (file.size > 2*1024*1024) return showToast('Image must be < 2MB', 'error');
+        syncActiveFromDom();
         const reader = new FileReader();
         reader.onload = ev => {
-            activeImagePath = ev.target.result;
+            window.activeImagePath = ev.target.result;
             renderEditor();
+            showToast('Image loaded', 'success');
         };
+        reader.onerror = () => showToast('Failed to read image', 'error');
         reader.readAsDataURL(file);
     };
 
     window.setBlock = function() {
         const page = getCurrentPage();
         if (!page || page.locked) return;
-        const rect = isRectangle(activeSelection);
-        if (!rect) return showToast('Invalid rectangle', 'error');
-        if (activeMode === 'text' && !activeText.trim()) return showToast('Please enter some text', 'error');
-        if (activeMode === 'image' && !activeImagePath) return showToast('Please upload an image', 'error');
+
+        // Always read latest values from the live DOM (most reliable)
+        syncActiveFromDom();
+
+        const rect = isRectangle(window.activeSelection);
+        if (!rect) return showToast('Invalid rectangle — select a solid rectangle or square', 'error');
+
+        if (window.activeMode === 'text') {
+            if (!String(window.activeText || '').trim()) {
+                return showToast('Please enter some text', 'error');
+            }
+        } else if (window.activeMode === 'image') {
+            if (!window.activeImagePath) {
+                return showToast('Please upload an image', 'error');
+            }
+        } else {
+            return showToast('Unknown block mode', 'error');
+        }
+
+        // Prevent overlapping used cells (safety)
+        for (const k of window.activeSelection) {
+            if (page.usedCells.has(k)) {
+                return showToast('Selection overlaps used cells', 'error');
+            }
+        }
 
         pushHistory();
 
         const block = {
-            id: 'b' + Date.now(),
+            id: 'b' + Date.now() + Math.random().toString(36).slice(2, 6),
             row: rect.minR,
             col: rect.minC,
             rowSpan: rect.rowSpan,
             colSpan: rect.colSpan,
-            type: activeMode,
-            text: activeText,
-            fontSize: activeFontSize,
-            imagePath: activeImagePath,
-            showBorder: activeShowBorder
+            type: window.activeMode,
+            text: String(window.activeText || ''),
+            fontSize: window.activeFontSize || 18,
+            imagePath: window.activeImagePath || '',
+            showBorder: window.activeShowBorder !== false
         };
         page.blocks.push(block);
-        activeSelection.forEach(k => page.usedCells.add(k));
+        window.activeSelection.forEach(k => page.usedCells.add(k));
         resetActive();
         save();
         renderEditor();
@@ -605,9 +647,10 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
     window.deleteBlock = function(idx) {
         const page = getCurrentPage();
         if (!page || page.locked) return;
+        if (idx < 0 || idx >= page.blocks.length) return;
         pushHistory();
         const b = page.blocks[idx];
-        // free cells
+        if (!b) return;
         for (let r = b.row; r < b.row + b.rowSpan; r++) {
             for (let c = b.col; c < b.col + b.colSpan; c++) {
                 page.usedCells.delete(cellKey(r, c));
@@ -629,9 +672,15 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
     window.updatePageMeta = function() {
         const page = getCurrentPage();
         if (!page) return;
-        page.title = document.getElementById('pageTitle').value;
-        page.subtitle = document.getElementById('pageSubtitle').value;
-        page.lessonNumber = parseInt(document.getElementById('pageLessonNum').value) || 1;
+        const t = document.getElementById('pageTitle');
+        const s = document.getElementById('pageSubtitle');
+        const n = document.getElementById('pageLessonNum');
+        if (t) page.title = t.value.trim() || 'UNTITLED';
+        if (s) page.subtitle = s.value.trim() || '';
+        if (n) {
+            const num = parseInt(n.value, 10);
+            page.lessonNumber = Number.isFinite(num) && num > 0 ? num : 1;
+        }
         save();
     };
 
