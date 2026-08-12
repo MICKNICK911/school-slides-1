@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>📚 Phonics Lesson Publisher v8 — Single Page (Image Layout)</title>
+    <title>📚 Phonics Lesson Publisher v8 — Single Page (Orange/Amber)</title>
     <style>
         @page { size: 850px 1100px; margin: 0; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -62,6 +62,10 @@
         .modal-overlay .modal p { color: #6c757d; margin-bottom: 20px; font-size: 15px; }
         .modal-overlay .modal .actions { display: flex; gap: 10px; justify-content: flex-end; }
 
+        .toggle-row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; padding: 12px 14px; background: #fff; border: 2px solid #e9ecef; border-radius: 12px; }
+        .toggle-row label { margin: 0; font-weight: 700; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; }
+        .toggle-row input[type="checkbox"] { width: 20px; height: 20px; accent-color: #F5A623; cursor: pointer; }
+
         @media (hover: hover) {
             .tab-btn:hover { color: #1a1a2e; }
             .btn-primary:hover:not(:disabled) { background: #e0950f; transform: translateY(-1px); }
@@ -76,14 +80,27 @@
         .view-container { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 8px; }
         .view-container .page { width: 850px; min-width: 850px; min-height: 1080px; padding: 28px 36px; position: relative; page-break-after: always; margin: 0 auto 30px; background: #fff; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
         .view-container .page:last-child { margin-bottom: 0; }
-        .view-container .card { border: 4px solid #2c5aa0; border-radius: 8px; min-height: 1020px; padding: 0; position: relative; overflow: hidden; display: flex; flex-direction: column; -webkit-print-color-adjust: exact; print-color-adjust: exact; background: #fff; }
 
-        /* === SINGLE LESSON PAGE (image-matched layout, orange/amber accents) === */
+        .view-container .card {
+            border: 4px solid #E2571C;
+            border-radius: 10px;
+            min-height: 1020px;
+            padding: 0;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            background: #fff;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
         .cvc-header {
             display: flex;
             align-items: stretch;
-            border-bottom: 3px solid #2c5aa0;
+            border-bottom: 3px solid #E2571C;
             min-height: 72px;
+            flex-shrink: 0;
         }
         .cvc-header-left {
             flex: 1;
@@ -103,13 +120,13 @@
         .cvc-subtitle {
             font-size: 15px;
             font-weight: 700;
-            color: #2c5aa0;
+            color: #c45a12;
             letter-spacing: 1.5px;
             text-transform: uppercase;
             margin-top: 2px;
         }
         .cvc-header-right {
-            background: #2c5aa0;
+            background: #E2571C;
             color: #fff;
             min-width: 160px;
             display: flex;
@@ -122,7 +139,7 @@
         .cvc-header-right .lesson-label {
             font-size: 14px;
             font-weight: 600;
-            opacity: 0.9;
+            opacity: 0.95;
             margin-right: 8px;
         }
         .cvc-header-right .lesson-num {
@@ -132,26 +149,28 @@
         }
 
         .cvc-body {
-            padding: 18px 28px 12px;
+            padding: 16px 26px 10px;
             flex: 1;
             display: flex;
             flex-direction: column;
+            min-height: 0;
         }
 
         .cvc-top-row {
             display: flex;
-            gap: 18px;
-            margin-bottom: 14px;
+            gap: 16px;
+            margin-bottom: 12px;
             align-items: flex-start;
+            flex-shrink: 0;
         }
         .todays-sound-card {
             background: #fff;
-            border: 2px solid #dee2e6;
+            border: 2px solid #F5A623;
             border-radius: 12px;
-            width: 150px;
+            width: 148px;
             flex-shrink: 0;
             overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            box-shadow: 0 2px 8px rgba(226,87,28,0.12);
         }
         .todays-sound-header {
             background: #E2571C;
@@ -190,10 +209,10 @@
             gap: 10px;
         }
         .cvc-intro-box {
-            border: 2px dashed #2c5aa0;
+            border: 2px dashed #E2571C;
             border-radius: 10px;
             padding: 12px 16px;
-            background: #f8fbff;
+            background: #fff8f3;
         }
         .cvc-intro-box p {
             margin: 0;
@@ -207,10 +226,10 @@
             font-weight: 700;
         }
         .cvc-instruction-box {
-            border: 2px solid #2c5aa0;
+            border: 2px solid #F5A623;
             border-radius: 10px;
             padding: 10px 16px;
-            background: #eef4fb;
+            background: #fffaf0;
         }
         .cvc-instruction-box p {
             margin: 0;
@@ -223,21 +242,22 @@
         .cvc-word-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            border: 2px solid #2c5aa0;
+            border: 2px solid #E2571C;
             border-radius: 10px;
             overflow: hidden;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
             background: #fff;
+            flex-shrink: 0;
         }
         .cvc-word-cell {
-            border-right: 1px solid #c5d4e8;
-            border-bottom: 1px solid #c5d4e8;
-            padding: 12px 6px;
+            border-right: 1px solid #f0c9a8;
+            border-bottom: 1px solid #f0c9a8;
+            padding: 11px 6px;
             text-align: center;
             font-size: 22px;
             font-weight: 600;
             color: #1a1a1a;
-            min-height: 48px;
+            min-height: 46px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -246,54 +266,50 @@
         .cvc-word-cell:nth-child(4n) { border-right: none; }
         .cvc-word-cell:nth-last-child(-n+4) { border-bottom: none; }
         .cvc-word-cell.empty {
-            background: #fafbfc;
+            background: #faf7f4;
             color: transparent;
         }
 
-        /* Writing lines that fill remaining space */
         .cvc-writing-area {
-            flex: 1;
+            flex: 1 1 auto;
             display: flex;
             flex-direction: column;
-            justify-content: flex-start;
-            gap: 0;
+            justify-content: space-evenly;
             min-height: 0;
-            padding-bottom: 8px;
+            padding-bottom: 28px;
         }
         .writing-set {
             position: relative;
-            height: 52px;
+            height: 48px;
             width: 100%;
-            flex-shrink: 0;
+            flex: 0 0 auto;
         }
         .writing-set .line {
             position: absolute;
             left: 0;
             right: 0;
             height: 0;
-            border-top-width: 1.5px;
+            border-top-width: 1.8px;
             border-top-style: solid;
         }
-        .writing-set .line.blue { border-top-color: #2c7be5; }
-        .writing-set .line.red { border-top-color: #E2571C; }
-        .writing-set .line.dotted { border-top-style: dashed; border-top-color: #2c7be5; }
-        .writing-set .line.l1 { top: 0; }
-        .writing-set .line.l2 { top: 17px; }
-        .writing-set .line.l3 { top: 34px; }
-        .writing-set .line.l4 { top: 51px; }
+        .writing-set .line.l1 { top: 0;    border-top-color: #E2571C; }
+        .writing-set .line.l2 { top: 16px; border-top-color: #F5A623; }
+        .writing-set .line.l3 { top: 32px; border-top-color: #F5A623; }
+        .writing-set .line.l4 { top: 47px; border-top-color: #E2571C; }
 
         .cvc-page-number {
             position: absolute;
-            bottom: 14px;
+            bottom: 12px;
             left: 0;
             right: 0;
             text-align: center;
             font-weight: 700;
             font-size: 14px;
-            color: #495057;
+            color: #6c757d;
+            z-index: 2;
+            pointer-events: none;
         }
 
-        /* Cover & TOC (kept) */
         .cover-card { display: flex; flex-direction: column; justify-content: center; align-items: center; font-family: 'Times New Roman', Times, serif; min-height: 1000px; border: 3px solid #F5A623; border-radius: 28px; }
         .cover-text-block { text-align: center; padding: 0 40px; }
         .cover-line { width: 120px; height: 4px; background-color: #F5A623; margin: 30px auto; border-radius: 2px; }
@@ -307,7 +323,6 @@
         .toc-item .toc-page-num { font-weight: 800; color: #E2571C; min-width: 60px; text-align: right; }
         .toc-card .page-number { position: absolute; bottom: 16px; right: 24px; font-weight: 800; font-size: 14px; font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; }
 
-        /* Sight Words */
         .sight-words-grid {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
@@ -369,7 +384,8 @@
             const STORAGE_KEY = 'phonics_lessons_v8';
             const MAX_TOC_PER_PAGE = 20;
             const MAX_SIGHT_WORDS_PER_PAGE = 50;
-            const WRITING_SETS = 7; // fixed number that fits remaining space cleanly
+            const WRITING_SETS_WITH_GRID = 6;
+            const WRITING_SETS_NO_GRID = 11;
 
             function flattenWords(arr) {
                 if (!Array.isArray(arr)) return [];
@@ -399,14 +415,6 @@
                 o.querySelector('.confirm').onclick = () => { o.remove(); cb(); };
             }
 
-            // Simplified default: one page per lesson
-            function makeDefaultLessonData() {
-                return {
-                    words: [],
-                    instruction: 'Say each picture word out loud and listen for this pattern.'
-                };
-            }
-
             const DEFAULT_LESSONS = [
                 {
                     id: 'l1',
@@ -416,6 +424,7 @@
                     letterTile: 'Aa',
                     introText: 'Short a says /a/ like in apple — when a single vowel is boxed in between two consonants, it usually keeps this quick, clipped sound instead of saying its name.',
                     instruction: 'Say each picture word out loud and listen for this pattern.',
+                    showGrid: true,
                     words: ['bag','cat','mat','hat','rat','bat','sat','pat','fat','man','van','map']
                 },
                 {
@@ -426,6 +435,7 @@
                     letterTile: 'Ee',
                     introText: 'Short e says /e/ like in egg — in a closed CVC word, a lone e squeezed between consonants stays short and fast.',
                     instruction: 'Say each picture word out loud and listen for this pattern.',
+                    showGrid: true,
                     words: ['get','wet','net','let','pen','ten','hen','men','bed','red','led','fed']
                 }
             ];
@@ -450,10 +460,10 @@
                         if (lessons.length) {
                             let maxId = 0;
                             lessons.forEach(l => {
-                                // Migrate old multi-activity format if present
                                 if (!l.words && l.activities?.lookAndSay?.words) {
                                     l.words = flattenWords(l.activities.lookAndSay.words);
                                 }
+                                if (typeof l.showGrid === 'undefined') l.showGrid = true;
                                 if (!l.instruction) l.instruction = 'Say each picture word out loud and listen for this pattern.';
                                 if (!l.subtitle) l.subtitle = 'SHORT VOWEL';
                                 if (!l.id) l.id = 'l' + Date.now() + Math.random().toString(36).slice(2, 6);
@@ -497,15 +507,14 @@
                 arr.forEach((lesson, idx) => lesson.lessonNumber = idx + 1);
             }
 
-            // ---------- VIEW HELPERS ----------
             function createWritingSets(count) {
                 let html = '';
                 for (let i = 0; i < count; i++) {
                     html += `<div class="writing-set">
-                        <div class="line blue l1"></div>
-                        <div class="line dotted l2"></div>
-                        <div class="line blue l3"></div>
-                        <div class="line red l4"></div>
+                        <div class="line l1"></div>
+                        <div class="line l2"></div>
+                        <div class="line l3"></div>
+                        <div class="line l4"></div>
                     </div>`;
                 }
                 const el = document.createElement('div');
@@ -522,21 +531,24 @@
                 const card = document.createElement('div');
                 card.className = 'card';
 
+                const showGrid = lesson.showGrid !== false;
                 const words = (lesson.words || []).filter(w => w && String(w).trim());
-                // Pad to multiples of 4 for clean grid (max 12 to leave room for writing lines)
                 const displayWords = words.slice(0, 12);
                 while (displayWords.length % 4 !== 0 && displayWords.length < 12) {
                     displayWords.push('');
                 }
-                // If fewer than 4, still show at least one row of empties or nothing
-                const gridCells = displayWords.map(w => {
-                    const cls = w ? 'cvc-word-cell' : 'cvc-word-cell empty';
-                    return `<div class="${cls}">${escapeHtml(w || '')}</div>`;
-                }).join('');
+
+                let gridHtml = '';
+                if (showGrid && displayWords.length) {
+                    const cells = displayWords.map(w => {
+                        const cls = w ? 'cvc-word-cell' : 'cvc-word-cell empty';
+                        return `<div class="${cls}">${escapeHtml(w || '')}</div>`;
+                    }).join('');
+                    gridHtml = `<div class="cvc-word-grid">${cells}</div>`;
+                }
 
                 const letter = escapeHtml(lesson.letterTile || 'Aa');
                 const intro = escapeHtml(lesson.introText || '');
-                // Highlight the example word if present
                 const introHtml = intro.replace(/\b(apple|egg|igloo|octopus|umbrella)\b/gi, m => `<span class="highlight">${m}</span>`);
 
                 card.innerHTML = `
@@ -564,15 +576,14 @@
                                 <div class="cvc-instruction-box"><p>${escapeHtml(lesson.instruction || 'Say each picture word out loud and listen for this pattern.')}</p></div>
                             </div>
                         </div>
-                        <div class="cvc-word-grid">${gridCells || '<div class="cvc-word-cell empty"></div><div class="cvc-word-cell empty"></div><div class="cvc-word-cell empty"></div><div class="cvc-word-cell empty"></div>'}</div>
+                        ${gridHtml}
                     </div>
                 `;
 
-                // Append writing lines (fills remaining space)
-                const writing = createWritingSets(WRITING_SETS);
+                const setCount = showGrid ? WRITING_SETS_WITH_GRID : WRITING_SETS_NO_GRID;
+                const writing = createWritingSets(setCount);
                 card.querySelector('.cvc-body').appendChild(writing);
 
-                // Page number bottom centered
                 const pn = document.createElement('div');
                 pn.className = 'cvc-page-number';
                 pn.textContent = pageNum;
@@ -641,11 +652,6 @@
                 win.document.close(); win.focus(); setTimeout(() => win.print(), 400);
             };
 
-            function countActiveActivities(lesson) {
-                // Always 1 page per lesson now
-                return 1;
-            }
-
             function renderAllView() {
                 const container = document.getElementById('viewContainer');
                 container.innerHTML = '';
@@ -655,7 +661,7 @@
                 const swPages = Math.ceil(sightWords.length / MAX_SIGHT_WORDS_PER_PAGE) || 0;
                 const lessonsWithPages = lessons.length;
                 const tocPages = lessonsWithPages ? Math.ceil(lessonsWithPages / MAX_TOC_PER_PAGE) : 0;
-                const lessonStart = tocPages + swPages + 1; // after cover (page 0 conceptually), but page numbers start after cover
+                const lessonStart = tocPages + swPages + 1;
 
                 let running = lessonStart;
                 const tocEntries = [];
@@ -666,7 +672,7 @@
                         letterTile: l.letterTile,
                         firstPage: running
                     });
-                    running += 1; // one page each
+                    running += 1;
                 });
 
                 for (let p = 0; p < tocPages; p++) {
@@ -683,7 +689,6 @@
                 });
             }
 
-            // ---------- EDIT ----------
             function getFormData() {
                 const wordsRaw = document.getElementById('fWords').value;
                 const wordsArr = wordsRaw.split(',').map(s => s.trim()).filter(Boolean);
@@ -694,6 +699,7 @@
                     letterTile: document.getElementById('fLetterTile').value.trim(),
                     introText: document.getElementById('fIntroText').value.trim(),
                     instruction: document.getElementById('fInstruction').value.trim() || 'Say each picture word out loud and listen for this pattern.',
+                    showGrid: document.getElementById('fShowGrid').checked,
                     words: wordsArr
                 };
             }
@@ -705,7 +711,9 @@
                 document.getElementById('fLetterTile').value = lesson.letterTile || '';
                 document.getElementById('fIntroText').value = lesson.introText || '';
                 document.getElementById('fInstruction').value = lesson.instruction || 'Say each picture word out loud and listen for this pattern.';
+                document.getElementById('fShowGrid').checked = lesson.showGrid !== false;
                 document.getElementById('fWords').value = (lesson.words || []).join(', ');
+                toggleGridField();
             }
 
             function resetForm() {
@@ -717,10 +725,17 @@
                 document.getElementById('fLetterTile').value = '';
                 document.getElementById('fIntroText').value = '';
                 document.getElementById('fInstruction').value = 'Say each picture word out loud and listen for this pattern.';
+                document.getElementById('fShowGrid').checked = true;
                 document.getElementById('fWords').value = '';
+                toggleGridField();
                 document.getElementById('saveBtn').textContent = '💾 Save Lesson';
                 document.getElementById('cancelBtn').style.display = 'none';
             }
+
+            window.toggleGridField = function() {
+                const on = document.getElementById('fShowGrid').checked;
+                document.getElementById('wordsGroup').style.display = on ? 'block' : 'none';
+            };
 
             window.editLesson = function(id) {
                 const lesson = lessons.find(l => l.id === id);
@@ -739,8 +754,8 @@
                 if (!data.mainTitle || !data.letterTile || !data.introText) {
                     return showToast('Main Title, Letter Tile and Intro Text are required.', 'error');
                 }
-                if (data.words.length < 1) {
-                    return showToast('Please add at least 1 word for the grid.', 'error');
+                if (data.showGrid && data.words.length < 1) {
+                    return showToast('When Word Grid is ON you must enter at least 1 word.', 'error');
                 }
 
                 if (editingId) {
@@ -799,10 +814,10 @@
                             if (Array.isArray(data.lessons)) {
                                 lessons = data.lessons.map((l, i) => {
                                     if (!l.id) l.id = '__import' + i;
-                                    // Migrate old format
                                     if (!l.words && l.activities?.lookAndSay?.words) {
                                         l.words = flattenWords(l.activities.lookAndSay.words);
                                     }
+                                    if (typeof l.showGrid === 'undefined') l.showGrid = true;
                                     if (!l.instruction) l.instruction = 'Say each picture word out loud and listen for this pattern.';
                                     if (!l.subtitle) l.subtitle = 'SHORT VOWEL';
                                     return l;
@@ -862,11 +877,12 @@
                     return false;
                 });
                 container.innerHTML = filtered.length ? filtered.map(l => {
+                    const gridLabel = l.showGrid !== false ? `${(l.words || []).length} words` : 'lines only';
                     return `<div class="lesson-item" data-id="${l.id}">
                         <div class="thumb">📄</div>
                         <div class="info">
                             <div class="title">Lesson ${l.lessonNumber} — ${escapeHtml(l.mainTitle)} ${l.letterTile ? '· ' + escapeHtml(l.letterTile) : ''}</div>
-                            <div class="sub">1 page · ${(l.words || []).length} words · ${escapeHtml((l.introText || '').slice(0, 50))}${(l.introText || '').length > 50 ? '…' : ''}</div>
+                            <div class="sub">1 page · ${gridLabel} · ${escapeHtml((l.introText || '').slice(0, 45))}${(l.introText || '').length > 45 ? '…' : ''}</div>
                         </div>
                         <div class="actions">
                             <button class="btn btn-primary btn-xs" onclick="editLesson('${l.id}')">✏️</button>
@@ -898,7 +914,6 @@
                 updateCounts();
             };
 
-            // Init
             loadData();
             document.getElementById('app').innerHTML = `
                 <div class="app-header"><h1>📚 Phonics Lesson Publisher v8</h1><span class="badge" id="lessonCount">0</span></div>
@@ -916,7 +931,18 @@
                             <div class="form-group"><label>Letter Tile / Target Sound <span class="req">*</span></label><input id="fLetterTile" placeholder="e.g. Aa"></div>
                             <div class="form-group"><label>Intro Text <span class="req">*</span></label><textarea id="fIntroText" rows="3" placeholder="Short a says /a/ like in apple — when a single vowel..."></textarea></div>
                             <div class="form-group"><label>Instruction</label><textarea id="fInstruction" rows="2">Say each picture word out loud and listen for this pattern.</textarea></div>
-                            <div class="form-group"><label>Word Grid (comma separated, up to 12 recommended for 3×4)</label><textarea id="fWords" rows="3" placeholder="bag, cat, mat, hat, rat, bat, sat, pat, fat, man, van, map"></textarea></div>
+
+                            <div class="toggle-row">
+                                <label>
+                                    <input type="checkbox" id="fShowGrid" checked onchange="toggleGridField()">
+                                    Show Word Grid
+                                </label>
+                            </div>
+                            <div class="form-group" id="wordsGroup">
+                                <label>Word Grid (comma separated, up to 12 recommended)</label>
+                                <textarea id="fWords" rows="3" placeholder="bag, cat, mat, hat, rat, bat, sat, pat, fat, man, van, map"></textarea>
+                            </div>
+
                             <div class="form-actions">
                                 <button class="btn btn-primary" id="saveBtn" onclick="saveLesson()">💾 Save Lesson</button>
                                 <button class="btn btn-outline" id="cancelBtn" onclick="cancelEdit()" style="display:none">Cancel</button>
