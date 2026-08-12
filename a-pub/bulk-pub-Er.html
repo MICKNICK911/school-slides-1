@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>📚 Phonics Lesson Publisher v8 — Single Page (Orange/Amber)</title>
+    <title>📚 Phonics Lesson Publisher v8 — Single Page</title>
     <style>
         @page { size: 850px 1100px; margin: 0; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -62,9 +62,10 @@
         .modal-overlay .modal p { color: #6c757d; margin-bottom: 20px; font-size: 15px; }
         .modal-overlay .modal .actions { display: flex; gap: 10px; justify-content: flex-end; }
 
-        .toggle-row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; padding: 12px 14px; background: #fff; border: 2px solid #e9ecef; border-radius: 12px; }
-        .toggle-row label { margin: 0; font-weight: 700; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; }
+        .toggle-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; padding: 10px 14px; background: #fff; border: 2px solid #e9ecef; border-radius: 12px; }
+        .toggle-row label { margin: 0; font-weight: 700; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; flex: 1; }
         .toggle-row input[type="checkbox"] { width: 20px; height: 20px; accent-color: #F5A623; cursor: pointer; }
+        .toggle-row .size-input { width: 80px; padding: 6px 10px; border: 2px solid #dee2e6; border-radius: 8px; font-size: 13px; }
 
         @media (hover: hover) {
             .tab-btn:hover { color: #1a1a2e; }
@@ -160,7 +161,7 @@
             display: flex;
             gap: 16px;
             margin-bottom: 12px;
-            align-items: flex-start;
+            align-items: stretch;
             flex-shrink: 0;
         }
         .todays-sound-card {
@@ -171,6 +172,8 @@
             flex-shrink: 0;
             overflow: hidden;
             box-shadow: 0 2px 8px rgba(226,87,28,0.12);
+            display: flex;
+            flex-direction: column;
         }
         .todays-sound-header {
             background: #E2571C;
@@ -187,6 +190,10 @@
         .todays-sound-body {
             padding: 10px 8px 14px;
             text-align: center;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
         .todays-sound-stars {
             color: #F5A623;
@@ -195,7 +202,6 @@
             margin-bottom: 4px;
         }
         .todays-sound-letter {
-            font-size: 56px;
             font-weight: 800;
             color: #E2571C;
             line-height: 1;
@@ -207,12 +213,14 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
+            min-width: 0;
         }
         .cvc-intro-box {
             border: 2px dashed #E2571C;
             border-radius: 10px;
             padding: 12px 16px;
             background: #fff8f3;
+            flex: 1;
         }
         .cvc-intro-box p {
             margin: 0;
@@ -230,6 +238,7 @@
             border-radius: 10px;
             padding: 10px 16px;
             background: #fffaf0;
+            flex: 1;
         }
         .cvc-instruction-box p {
             margin: 0;
@@ -238,6 +247,9 @@
             color: #1a1a2e;
             line-height: 1.4;
         }
+
+        /* When only one of intro/instruction is shown it stretches */
+        .cvc-intro-stack.single > div { flex: 1; }
 
         .cvc-word-grid {
             display: grid;
@@ -252,12 +264,12 @@
         .cvc-word-cell {
             border-right: 1px solid #f0c9a8;
             border-bottom: 1px solid #f0c9a8;
-            padding: 11px 6px;
+            padding: 10px 4px;
             text-align: center;
-            font-size: 22px;
+            font-size: 20px;
             font-weight: 600;
             color: #1a1a1a;
-            min-height: 46px;
+            min-height: 42px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -292,9 +304,10 @@
             border-top-width: 1.8px;
             border-top-style: solid;
         }
+        /* red → blue → blue → red  (all solid) */
         .writing-set .line.l1 { top: 0;    border-top-color: #E2571C; }
-        .writing-set .line.l2 { top: 16px; border-top-color: #F5A623; }
-        .writing-set .line.l3 { top: 32px; border-top-color: #F5A623; }
+        .writing-set .line.l2 { top: 16px; border-top-color: #2c7be5; }
+        .writing-set .line.l3 { top: 32px; border-top-color: #2c7be5; }
         .writing-set .line.l4 { top: 47px; border-top-color: #E2571C; }
 
         .cvc-page-number {
@@ -384,8 +397,7 @@
             const STORAGE_KEY = 'phonics_lessons_v8';
             const MAX_TOC_PER_PAGE = 20;
             const MAX_SIGHT_WORDS_PER_PAGE = 50;
-            const WRITING_SETS_WITH_GRID = 6;
-            const WRITING_SETS_NO_GRID = 11;
+            const MAX_GRID_WORDS = 24;
 
             function flattenWords(arr) {
                 if (!Array.isArray(arr)) return [];
@@ -422,8 +434,12 @@
                     subtitle: 'SHORT VOWEL',
                     lessonNumber: 1,
                     letterTile: 'Aa',
+                    letterFontSize: 56,
+                    showLetterTile: true,
                     introText: 'Short a says /a/ like in apple — when a single vowel is boxed in between two consonants, it usually keeps this quick, clipped sound instead of saying its name.',
+                    showIntro: true,
                     instruction: 'Say each picture word out loud and listen for this pattern.',
+                    showInstruction: true,
                     showGrid: true,
                     words: ['bag','cat','mat','hat','rat','bat','sat','pat','fat','man','van','map']
                 },
@@ -433,8 +449,12 @@
                     subtitle: 'SHORT VOWEL',
                     lessonNumber: 2,
                     letterTile: 'Ee',
+                    letterFontSize: 56,
+                    showLetterTile: true,
                     introText: 'Short e says /e/ like in egg — in a closed CVC word, a lone e squeezed between consonants stays short and fast.',
+                    showIntro: true,
                     instruction: 'Say each picture word out loud and listen for this pattern.',
+                    showInstruction: true,
                     showGrid: true,
                     words: ['get','wet','net','let','pen','ten','hen','men','bed','red','led','fed']
                 }
@@ -464,6 +484,10 @@
                                     l.words = flattenWords(l.activities.lookAndSay.words);
                                 }
                                 if (typeof l.showGrid === 'undefined') l.showGrid = true;
+                                if (typeof l.showLetterTile === 'undefined') l.showLetterTile = true;
+                                if (typeof l.showIntro === 'undefined') l.showIntro = true;
+                                if (typeof l.showInstruction === 'undefined') l.showInstruction = true;
+                                if (!l.letterFontSize) l.letterFontSize = 56;
                                 if (!l.instruction) l.instruction = 'Say each picture word out loud and listen for this pattern.';
                                 if (!l.subtitle) l.subtitle = 'SHORT VOWEL';
                                 if (!l.id) l.id = 'l' + Date.now() + Math.random().toString(36).slice(2, 6);
@@ -523,6 +547,19 @@
                 return el;
             }
 
+            function calcWritingSets(showGrid, wordCount, showLetter, showIntro, showInstr) {
+                // Rough estimate: more content above = fewer writing sets
+                let base = 11;
+                if (showGrid) {
+                    const rows = Math.ceil(Math.min(wordCount, MAX_GRID_WORDS) / 4) || 1;
+                    base -= Math.min(rows, 6);
+                }
+                if (showLetter) base -= 1;
+                if (showIntro) base -= 1;
+                if (showInstr) base -= 1;
+                return Math.max(4, Math.min(12, base));
+            }
+
             function buildLessonPage(lesson, pageNum) {
                 const page = document.createElement('div');
                 page.className = 'page';
@@ -532,10 +569,16 @@
                 card.className = 'card';
 
                 const showGrid = lesson.showGrid !== false;
-                const words = (lesson.words || []).filter(w => w && String(w).trim());
-                const displayWords = words.slice(0, 12);
-                while (displayWords.length % 4 !== 0 && displayWords.length < 12) {
-                    displayWords.push('');
+                const showLetter = lesson.showLetterTile !== false;
+                const showIntro = lesson.showIntro !== false;
+                const showInstr = lesson.showInstruction !== false;
+                const fontSize = lesson.letterFontSize || 56;
+
+                const words = (lesson.words || []).filter(w => w && String(w).trim()).slice(0, MAX_GRID_WORDS);
+                // pad to multiple of 4 only if we have words
+                const displayWords = [...words];
+                if (displayWords.length > 0) {
+                    while (displayWords.length % 4 !== 0) displayWords.push('');
                 }
 
                 let gridHtml = '';
@@ -551,6 +594,44 @@
                 const intro = escapeHtml(lesson.introText || '');
                 const introHtml = intro.replace(/\b(apple|egg|igloo|octopus|umbrella)\b/gi, m => `<span class="highlight">${m}</span>`);
 
+                // Build top row dynamically so remaining boxes stretch wider
+                let topRowHtml = '';
+                if (showLetter || showIntro || showInstr) {
+                    let leftPart = '';
+                    if (showLetter) {
+                        leftPart = `
+                            <div class="todays-sound-card">
+                                <div class="todays-sound-header">TODAY'S SOUND</div>
+                                <div class="todays-sound-body">
+                                    <div class="todays-sound-stars">★ ★ ★</div>
+                                    <div class="todays-sound-letter" style="font-size:${fontSize}px">${letter}</div>
+                                </div>
+                            </div>`;
+                    }
+
+                    let stackParts = '';
+                    let stackClass = 'cvc-intro-stack';
+                    const activeBoxes = (showIntro ? 1 : 0) + (showInstr ? 1 : 0);
+                    if (activeBoxes === 1) stackClass += ' single';
+
+                    if (showIntro) {
+                        stackParts += `<div class="cvc-intro-box"><p>${introHtml}</p></div>`;
+                    }
+                    if (showInstr) {
+                        stackParts += `<div class="cvc-instruction-box"><p>${escapeHtml(lesson.instruction || 'Say each picture word out loud and listen for this pattern.')}</p></div>`;
+                    }
+
+                    if (showLetter && (showIntro || showInstr)) {
+                        topRowHtml = `<div class="cvc-top-row">${leftPart}<div class="${stackClass}">${stackParts}</div></div>`;
+                    } else if (showLetter) {
+                        // only letter – centre it a bit
+                        topRowHtml = `<div class="cvc-top-row" style="justify-content:center">${leftPart}</div>`;
+                    } else if (showIntro || showInstr) {
+                        // no letter – stack stretches full width
+                        topRowHtml = `<div class="cvc-top-row"><div class="${stackClass}" style="width:100%">${stackParts}</div></div>`;
+                    }
+                }
+
                 card.innerHTML = `
                     <div class="cvc-header">
                         <div class="cvc-header-left">
@@ -563,24 +644,12 @@
                         </div>
                     </div>
                     <div class="cvc-body">
-                        <div class="cvc-top-row">
-                            <div class="todays-sound-card">
-                                <div class="todays-sound-header">TODAY'S SOUND</div>
-                                <div class="todays-sound-body">
-                                    <div class="todays-sound-stars">★ ★ ★</div>
-                                    <div class="todays-sound-letter">${letter}</div>
-                                </div>
-                            </div>
-                            <div class="cvc-intro-stack">
-                                <div class="cvc-intro-box"><p>${introHtml}</p></div>
-                                <div class="cvc-instruction-box"><p>${escapeHtml(lesson.instruction || 'Say each picture word out loud and listen for this pattern.')}</p></div>
-                            </div>
-                        </div>
+                        ${topRowHtml}
                         ${gridHtml}
                     </div>
                 `;
 
-                const setCount = showGrid ? WRITING_SETS_WITH_GRID : WRITING_SETS_NO_GRID;
+                const setCount = calcWritingSets(showGrid, words.length, showLetter, showIntro, showInstr);
                 const writing = createWritingSets(setCount);
                 card.querySelector('.cvc-body').appendChild(writing);
 
@@ -691,14 +760,18 @@
 
             function getFormData() {
                 const wordsRaw = document.getElementById('fWords').value;
-                const wordsArr = wordsRaw.split(',').map(s => s.trim()).filter(Boolean);
+                const wordsArr = wordsRaw.split(',').map(s => s.trim()).filter(Boolean).slice(0, MAX_GRID_WORDS);
                 return {
                     mainTitle: document.getElementById('fMainTitle').value.trim(),
                     subtitle: document.getElementById('fSubtitle').value.trim() || 'SHORT VOWEL',
                     lessonNumber: parseInt(document.getElementById('fLessonNumber').value) || 0,
                     letterTile: document.getElementById('fLetterTile').value.trim(),
+                    letterFontSize: parseInt(document.getElementById('fLetterSize').value) || 56,
+                    showLetterTile: document.getElementById('fShowLetter').checked,
                     introText: document.getElementById('fIntroText').value.trim(),
+                    showIntro: document.getElementById('fShowIntro').checked,
                     instruction: document.getElementById('fInstruction').value.trim() || 'Say each picture word out loud and listen for this pattern.',
+                    showInstruction: document.getElementById('fShowInstr').checked,
                     showGrid: document.getElementById('fShowGrid').checked,
                     words: wordsArr
                 };
@@ -709,11 +782,15 @@
                 document.getElementById('fSubtitle').value = lesson.subtitle || 'SHORT VOWEL';
                 document.getElementById('fLessonNumber').value = lesson.lessonNumber || '';
                 document.getElementById('fLetterTile').value = lesson.letterTile || '';
+                document.getElementById('fLetterSize').value = lesson.letterFontSize || 56;
+                document.getElementById('fShowLetter').checked = lesson.showLetterTile !== false;
                 document.getElementById('fIntroText').value = lesson.introText || '';
+                document.getElementById('fShowIntro').checked = lesson.showIntro !== false;
                 document.getElementById('fInstruction').value = lesson.instruction || 'Say each picture word out loud and listen for this pattern.';
+                document.getElementById('fShowInstr').checked = lesson.showInstruction !== false;
                 document.getElementById('fShowGrid').checked = lesson.showGrid !== false;
                 document.getElementById('fWords').value = (lesson.words || []).join(', ');
-                toggleGridField();
+                toggleFields();
             }
 
             function resetForm() {
@@ -723,18 +800,31 @@
                 document.getElementById('fSubtitle').value = 'SHORT VOWEL';
                 document.getElementById('fLessonNumber').value = lessons.length + 1;
                 document.getElementById('fLetterTile').value = '';
+                document.getElementById('fLetterSize').value = 56;
+                document.getElementById('fShowLetter').checked = true;
                 document.getElementById('fIntroText').value = '';
+                document.getElementById('fShowIntro').checked = true;
                 document.getElementById('fInstruction').value = 'Say each picture word out loud and listen for this pattern.';
+                document.getElementById('fShowInstr').checked = true;
                 document.getElementById('fShowGrid').checked = true;
                 document.getElementById('fWords').value = '';
-                toggleGridField();
+                toggleFields();
                 document.getElementById('saveBtn').textContent = '💾 Save Lesson';
                 document.getElementById('cancelBtn').style.display = 'none';
             }
 
-            window.toggleGridField = function() {
-                const on = document.getElementById('fShowGrid').checked;
-                document.getElementById('wordsGroup').style.display = on ? 'block' : 'none';
+            window.toggleFields = function() {
+                const showLetter = document.getElementById('fShowLetter').checked;
+                document.getElementById('letterFields').style.display = showLetter ? 'block' : 'none';
+
+                const showIntro = document.getElementById('fShowIntro').checked;
+                document.getElementById('introFields').style.display = showIntro ? 'block' : 'none';
+
+                const showInstr = document.getElementById('fShowInstr').checked;
+                document.getElementById('instrFields').style.display = showInstr ? 'block' : 'none';
+
+                const showGrid = document.getElementById('fShowGrid').checked;
+                document.getElementById('wordsGroup').style.display = showGrid ? 'block' : 'none';
             };
 
             window.editLesson = function(id) {
@@ -751,8 +841,14 @@
 
             window.saveLesson = function() {
                 const data = getFormData();
-                if (!data.mainTitle || !data.letterTile || !data.introText) {
-                    return showToast('Main Title, Letter Tile and Intro Text are required.', 'error');
+                if (!data.mainTitle) {
+                    return showToast('Main Title is required.', 'error');
+                }
+                if (data.showLetterTile && !data.letterTile) {
+                    return showToast('Letter Tile is required when enabled.', 'error');
+                }
+                if (data.showIntro && !data.introText) {
+                    return showToast('Intro Text is required when enabled.', 'error');
                 }
                 if (data.showGrid && data.words.length < 1) {
                     return showToast('When Word Grid is ON you must enter at least 1 word.', 'error');
@@ -818,6 +914,10 @@
                                         l.words = flattenWords(l.activities.lookAndSay.words);
                                     }
                                     if (typeof l.showGrid === 'undefined') l.showGrid = true;
+                                    if (typeof l.showLetterTile === 'undefined') l.showLetterTile = true;
+                                    if (typeof l.showIntro === 'undefined') l.showIntro = true;
+                                    if (typeof l.showInstruction === 'undefined') l.showInstruction = true;
+                                    if (!l.letterFontSize) l.letterFontSize = 56;
                                     if (!l.instruction) l.instruction = 'Say each picture word out loud and listen for this pattern.';
                                     if (!l.subtitle) l.subtitle = 'SHORT VOWEL';
                                     return l;
@@ -877,12 +977,17 @@
                     return false;
                 });
                 container.innerHTML = filtered.length ? filtered.map(l => {
-                    const gridLabel = l.showGrid !== false ? `${(l.words || []).length} words` : 'lines only';
+                    const parts = [];
+                    if (l.showGrid !== false) parts.push(`${(l.words || []).length} words`);
+                    else parts.push('no grid');
+                    if (l.showLetterTile === false) parts.push('no tile');
+                    if (l.showIntro === false) parts.push('no intro');
+                    if (l.showInstruction === false) parts.push('no instr');
                     return `<div class="lesson-item" data-id="${l.id}">
                         <div class="thumb">📄</div>
                         <div class="info">
                             <div class="title">Lesson ${l.lessonNumber} — ${escapeHtml(l.mainTitle)} ${l.letterTile ? '· ' + escapeHtml(l.letterTile) : ''}</div>
-                            <div class="sub">1 page · ${gridLabel} · ${escapeHtml((l.introText || '').slice(0, 45))}${(l.introText || '').length > 45 ? '…' : ''}</div>
+                            <div class="sub">1 page · ${parts.join(' · ')}</div>
                         </div>
                         <div class="actions">
                             <button class="btn btn-primary btn-xs" onclick="editLesson('${l.id}')">✏️</button>
@@ -928,18 +1033,34 @@
                             <div class="form-group"><label>Main Title <span class="req">*</span></label><input id="fMainTitle" placeholder="e.g. CVC WORDS" value="CVC WORDS"></div>
                             <div class="form-group"><label>Subtitle</label><input id="fSubtitle" placeholder="e.g. SHORT VOWEL" value="SHORT VOWEL"></div>
                             <div class="form-group"><label>Lesson Number (auto-calculated)</label><input id="fLessonNumber" readonly style="background:#f0f0f0;"></div>
-                            <div class="form-group"><label>Letter Tile / Target Sound <span class="req">*</span></label><input id="fLetterTile" placeholder="e.g. Aa"></div>
-                            <div class="form-group"><label>Intro Text <span class="req">*</span></label><textarea id="fIntroText" rows="3" placeholder="Short a says /a/ like in apple — when a single vowel..."></textarea></div>
-                            <div class="form-group"><label>Instruction</label><textarea id="fInstruction" rows="2">Say each picture word out loud and listen for this pattern.</textarea></div>
 
                             <div class="toggle-row">
-                                <label>
-                                    <input type="checkbox" id="fShowGrid" checked onchange="toggleGridField()">
-                                    Show Word Grid
-                                </label>
+                                <label><input type="checkbox" id="fShowLetter" checked onchange="toggleFields()"> Show Letter Tile</label>
+                                <input type="number" id="fLetterSize" class="size-input" value="56" min="24" max="96" title="Font size (px)">
+                            </div>
+                            <div id="letterFields">
+                                <div class="form-group"><label>Letter Tile / Target Sound</label><input id="fLetterTile" placeholder="e.g. Aa"></div>
+                            </div>
+
+                            <div class="toggle-row">
+                                <label><input type="checkbox" id="fShowIntro" checked onchange="toggleFields()"> Show Intro Text</label>
+                            </div>
+                            <div id="introFields">
+                                <div class="form-group"><label>Intro Text</label><textarea id="fIntroText" rows="3" placeholder="Short a says /a/ like in apple — ..."></textarea></div>
+                            </div>
+
+                            <div class="toggle-row">
+                                <label><input type="checkbox" id="fShowInstr" checked onchange="toggleFields()"> Show Instruction</label>
+                            </div>
+                            <div id="instrFields">
+                                <div class="form-group"><label>Instruction</label><textarea id="fInstruction" rows="2">Say each picture word out loud and listen for this pattern.</textarea></div>
+                            </div>
+
+                            <div class="toggle-row">
+                                <label><input type="checkbox" id="fShowGrid" checked onchange="toggleFields()"> Show Word Grid</label>
                             </div>
                             <div class="form-group" id="wordsGroup">
-                                <label>Word Grid (comma separated, up to 12 recommended)</label>
+                                <label>Word Grid (comma separated, up to 24)</label>
                                 <textarea id="fWords" rows="3" placeholder="bag, cat, mat, hat, rat, bat, sat, pat, fat, man, van, map"></textarea>
                             </div>
 
