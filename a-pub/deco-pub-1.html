@@ -1,626 +1,1071 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>📖 Decodable Reader Publisher</title>
-    <style>
-        :root {
-            --bg: #f1f5f9;
-            --surface: #ffffff;
-            --surface-alt: #f8fafc;
-            --border: #e2e8f0;
-            --border-light: #f1f5f9;
-            --text: #1e293b;
-            --text-secondary: #64748b;
-            --text-muted: #94a3b8;
-            --accent: #f59e0b;
-            --accent-hover: #d97706;
-            --accent-soft: #fef3c7;
-            --accent-ring: rgba(245, 158, 11, 0.25);
-            --primary: #1e293b;
-            --primary-light: #334155;
-            --red: #dc2626;
-            --red-hover: #b91c1c;
-            --red-soft: #fef2f2;
-            --green: #16a34a;
-            --green-hover: #15803d;
-            --green-soft: #f0fdf4;
-            --orange: #ea580c;
-            --orange-hover: #c2410c;
-            --blue: #2563eb;
-            --blue-soft: #eff6ff;
-            --radius-sm: 8px;
-            --radius: 12px;
-            --radius-lg: 16px;
-            --radius-xl: 20px;
-            --radius-2xl: 24px;
-            --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
-            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
-            --shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 2px 4px rgba(0, 0, 0, 0.04);
-            --shadow-md: 0 10px 25px rgba(0, 0, 0, 0.07), 0 4px 10px rgba(0, 0, 0, 0.04);
-            --shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.10), 0 8px 20px rgba(0, 0, 0, 0.05);
-            --shadow-xl: 0 30px 70px rgba(0, 0, 0, 0.12), 0 12px 30px rgba(0, 0, 0, 0.06);
-            --font: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
-            --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>📖 Decodable Reader Publisher with Cover & TOC</title>
+  <style>
+    :root {
+      --bg: #f1f5f9;
+      --surface: #ffffff;
+      --surface-alt: #f8fafc;
+      --border: #e2e8f0;
+      --text: #1e293b;
+      --text-secondary: #64748b;
+      --text-muted: #94a3b8;
+      --accent: #f59e0b;
+      --accent-hover: #d97706;
+      --accent-soft: #fef3c7;
+      --accent-ring: rgba(245, 158, 11, 0.25);
+      --red: #dc2626;
+      --red-hover: #b91c1c;
+      --red-soft: #fef2f2;
+      --green: #16a34a;
+      --green-hover: #15803d;
+      --green-soft: #f0fdf4;
+      --orange: #ea580c;
+      --orange-hover: #c2410c;
+      --blue: #2563eb;
+      --blue-soft: #eff6ff;
+      --radius-sm: 8px;
+      --radius: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 20px;
+      --radius-2xl: 24px;
+      --shadow-xs: 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+      --shadow: 0 4px 6px rgba(0,0,0,0.05), 0 2px 4px rgba(0,0,0,0.04);
+      --shadow-md: 0 10px 25px rgba(0,0,0,0.07), 0 4px 10px rgba(0,0,0,0.04);
+      --shadow-lg: 0 20px 50px rgba(0,0,0,0.10), 0 8px 20px rgba(0,0,0,0.05);
+      --shadow-xl: 0 30px 70px rgba(0,0,0,0.12), 0 12px 30px rgba(0,0,0,0.06);
+      --font: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+      --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
 
-        @page { size: 850px 1100px; margin: 0; }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
-        body { font-family: var(--font); background: var(--bg); color: var(--text); padding: 16px; min-height: 100vh; line-height: 1.5; letter-spacing: -0.01em; }
+    @page { size: 850px 1100px; margin: 0; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    body { font-family: var(--font); background: var(--bg); color: var(--text); padding: 16px; min-height: 100vh; line-height: 1.5; letter-spacing: -0.01em; }
 
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; border-radius: 20px; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 20px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; border-radius: 20px; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 20px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-        .app { max-width: 1400px; margin: 0 auto; background: var(--surface); border-radius: var(--radius-2xl); box-shadow: var(--shadow-lg); overflow: hidden; border: 1px solid var(--border); }
-        .app-header { background: linear-gradient(135deg, #0f172a 0%, #1e293b 40%, #1a1a2e 100%); color: #fff; padding: 18px 28px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; position: relative; overflow: hidden; }
-        .app-header::before { content: ''; position: absolute; top: -60px; right: -60px; width: 200px; height: 200px; background: radial-gradient(circle, rgba(245, 158, 11, 0.25) 0%, transparent 70%); border-radius: 50%; pointer-events: none; }
-        .app-header h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; position: relative; z-index: 1; display: flex; align-items: center; gap: 8px; }
-        .app-header h1 .icon { font-size: 26px; }
-        .app-header .badge { background: var(--accent); color: #0f172a; padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; letter-spacing: 0.01em; position: relative; z-index: 1; box-shadow: 0 2px 8px rgba(245, 158, 11, 0.35); }
+    .app { max-width: 1400px; margin: 0 auto; background: var(--surface); border-radius: var(--radius-2xl); box-shadow: var(--shadow-lg); overflow: hidden; border: 1px solid var(--border); }
+    .app-header { background: linear-gradient(135deg, #0f172a 0%, #1e293b 40%, #1a1a2e 100%); color: #fff; padding: 18px 28px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; position: relative; overflow: hidden; }
+    .app-header::before { content: ''; position: absolute; top: -60px; right: -60px; width: 200px; height: 200px; background: radial-gradient(circle, rgba(245, 158, 11, 0.25) 0%, transparent 70%); border-radius: 50%; pointer-events: none; }
+    .app-header h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; position: relative; z-index: 1; display: flex; align-items: center; gap: 8px; }
+    .app-header h1 .icon { font-size: 26px; }
+    .app-header .badge { background: var(--accent); color: #0f172a; padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; letter-spacing: 0.01em; position: relative; z-index: 1; box-shadow: 0 2px 8px rgba(245, 158, 11, 0.35); }
 
-        .tabs { display: flex; border-bottom: 1px solid var(--border); background: var(--surface-alt); padding: 0 28px; gap: 2px; position: relative; }
-        .tab-btn { padding: 14px 24px; border: none; background: transparent; font-size: 14px; font-weight: 600; color: var(--text-secondary); cursor: pointer; transition: all var(--transition); font-family: var(--font); position: relative; letter-spacing: -0.01em; white-space: nowrap; border-radius: 8px 8px 0 0; margin-bottom: -1px; }
-        .tab-btn:hover { color: var(--text); background: rgba(0,0,0,0.03); }
-        .tab-btn.active { color: var(--text); font-weight: 700; background: var(--surface); border: 1px solid var(--border); border-bottom-color: var(--surface); box-shadow: 0 -2px 8px rgba(0,0,0,0.03); }
-        .tab-btn.active::after { content: ''; position: absolute; bottom: 0; left: 8px; right: 8px; height: 3px; background: var(--accent); border-radius: 3px 3px 0 0; }
+    .tabs { display: flex; border-bottom: 1px solid var(--border); background: var(--surface-alt); padding: 0 28px; gap: 2px; position: relative; }
+    .tab-btn { padding: 14px 24px; border: none; background: transparent; font-size: 14px; font-weight: 600; color: var(--text-secondary); cursor: pointer; transition: all var(--transition); font-family: var(--font); position: relative; letter-spacing: -0.01em; white-space: nowrap; border-radius: 8px 8px 0 0; margin-bottom: -1px; }
+    .tab-btn:hover { color: var(--text); background: rgba(0,0,0,0.03); }
+    .tab-btn.active { color: var(--text); font-weight: 700; background: var(--surface); border: 1px solid var(--border); border-bottom-color: var(--surface); box-shadow: 0 -2px 8px rgba(0,0,0,0.03); }
+    .tab-btn.active::after { content: ''; position: absolute; bottom: 0; left: 8px; right: 8px; height: 3px; background: var(--accent); border-radius: 3px 3px 0 0; }
 
-        .tab-panel { display: none; padding: 24px 28px 28px; animation: fadeSlideIn 0.25s ease; }
-        .tab-panel.active { display: block; }
-        @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    .tab-panel { display: none; padding: 24px 28px 28px; animation: fadeSlideIn 0.25s ease; }
+    .tab-panel.active { display: block; }
+    @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 
-        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; max-width: 420px; width: 100%; pointer-events: none; }
-        .toast { padding: 13px 18px; border-radius: var(--radius); color: #fff; font-weight: 600; font-size: 13px; box-shadow: var(--shadow-lg); animation: toastSlideIn 0.35s cubic-bezier(0.22,0.61,0.36,1); display: flex; align-items: center; gap: 10px; pointer-events: auto; letter-spacing: -0.01em; backdrop-filter: blur(8px); }
-        .toast.success { background: #059669; } .toast.error { background: #dc2626; } .toast.warning { background: #ea580c; } .toast.info { background: #2563eb; }
-        .toast .close-toast { background: none; border: none; color: inherit; font-size: 16px; cursor: pointer; margin-left: auto; opacity: 0.7; padding: 2px; border-radius: 4px; transition: opacity var(--transition); }
-        .toast .close-toast:hover { opacity: 1; background: rgba(255,255,255,0.15); }
-        @keyframes toastSlideIn { from { opacity: 0; transform: translateX(40px) scale(0.95); } to { opacity: 1; transform: translateX(0) scale(1); } }
+    .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; max-width: 420px; width: 100%; pointer-events: none; }
+    .toast { padding: 13px 18px; border-radius: var(--radius); color: #fff; font-weight: 600; font-size: 13px; box-shadow: var(--shadow-lg); animation: toastSlideIn 0.35s cubic-bezier(0.22,0.61,0.36,1); display: flex; align-items: center; gap: 10px; pointer-events: auto; letter-spacing: -0.01em; backdrop-filter: blur(8px); }
+    .toast.success { background: #059669; } .toast.error { background: #dc2626; } .toast.warning { background: #ea580c; } .toast.info { background: #2563eb; }
+    .toast .close-toast { background: none; border: none; color: inherit; font-size: 16px; cursor: pointer; margin-left: auto; opacity: 0.7; padding: 2px; border-radius: 4px; transition: opacity var(--transition); }
+    .toast .close-toast:hover { opacity: 1; background: rgba(255,255,255,0.15); }
+    @keyframes toastSlideIn { from { opacity: 0; transform: translateX(40px) scale(0.95); } to { opacity: 1; transform: translateX(0) scale(1); } }
 
-        .edit-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
-        @media (max-width: 1100px) { .edit-layout { grid-template-columns: 1fr; } }
+    .edit-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+    @media (max-width: 1100px) { .edit-layout { grid-template-columns: 1fr; } }
 
-        .form-section { background: var(--surface-alt); border-radius: var(--radius-xl); padding: 22px 24px; border: 1px solid var(--border); position: sticky; top: 20px; max-height: calc(100vh - 180px); overflow-y: auto; box-shadow: var(--shadow-xs); }
-        .form-section h2 { font-size: 17px; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; letter-spacing: -0.01em; }
-        .form-section h2 .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); display: inline-block; }
-        .form-group { margin-bottom: 12px; }
-        .form-group label { display: block; font-weight: 600; font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; letter-spacing: 0.01em; text-transform: uppercase; }
-        .form-group label .req { color: var(--red); font-weight: 700; }
-        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px 14px; border: 2px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; font-family: var(--font); transition: all var(--transition); background: var(--surface); color: var(--text); letter-spacing: -0.01em; resize: vertical; }
-        .form-group input:focus, .form-group textarea:focus, .form-group select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-ring); background: #fff; }
-        .form-group input::placeholder, .form-group textarea::placeholder { color: var(--text-muted); }
-        .form-group textarea { resize: vertical; min-height: 50px; line-height: 1.6; }
-        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
-        .form-actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+    .form-section { background: var(--surface-alt); border-radius: var(--radius-xl); padding: 22px 24px; border: 1px solid var(--border); position: sticky; top: 20px; max-height: calc(100vh - 180px); overflow-y: auto; box-shadow: var(--shadow-xs); }
+    .form-section h2 { font-size: 17px; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; letter-spacing: -0.01em; }
+    .form-section h2 .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); display: inline-block; }
+    .form-group { margin-bottom: 12px; }
+    .form-group label { display: block; font-weight: 600; font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; letter-spacing: 0.01em; text-transform: uppercase; }
+    .form-group label .req { color: var(--red); font-weight: 700; }
+    .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px 14px; border: 2px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; font-family: var(--font); transition: all var(--transition); background: var(--surface); color: var(--text); letter-spacing: -0.01em; resize: vertical; }
+    .form-group input:focus, .form-group textarea:focus, .form-group select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-ring); background: #fff; }
+    .form-group input::placeholder, .form-group textarea::placeholder { color: var(--text-muted); }
+    .form-group textarea { resize: vertical; min-height: 50px; line-height: 1.6; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+    .form-actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
 
-        .btn { padding: 9px 18px; border: none; border-radius: var(--radius-sm); font-weight: 600; font-size: 13px; cursor: pointer; transition: all var(--transition); font-family: var(--font); display: inline-flex; align-items: center; gap: 6px; letter-spacing: -0.01em; white-space: nowrap; position: relative; overflow: hidden; }
-        .btn:active { transform: scale(0.97); }
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
-        .btn-primary { background: var(--accent); color: #0f172a; box-shadow: 0 2px 8px rgba(245,158,11,0.3); }
-        .btn-primary:hover:not(:disabled) { background: var(--accent-hover); box-shadow: 0 4px 14px rgba(245,158,11,0.4); transform: translateY(-1px); }
-        .btn-success { background: var(--green); color: #fff; box-shadow: 0 2px 8px rgba(22,163,74,0.3); }
-        .btn-success:hover:not(:disabled) { background: var(--green-hover); box-shadow: 0 4px 14px rgba(22,163,74,0.4); transform: translateY(-1px); }
-        .btn-danger { background: var(--red); color: #fff; box-shadow: 0 2px 8px rgba(220,38,38,0.25); }
-        .btn-danger:hover:not(:disabled) { background: var(--red-hover); box-shadow: 0 4px 14px rgba(220,38,38,0.35); transform: translateY(-1px); }
-        .btn-outline { background: transparent; border: 2px solid var(--border); color: var(--text-secondary); }
-        .btn-outline:hover:not(:disabled) { background: var(--surface-alt); border-color: #cbd5e1; color: var(--text); }
-        .btn-sm { padding: 7px 14px; font-size: 12px; border-radius: 6px; }
-        .btn-xs { padding: 5px 10px; font-size: 11px; border-radius: 5px; gap: 3px; }
-        .btn-warning { background: var(--orange); color: #fff; box-shadow: 0 2px 8px rgba(234,88,12,0.25); }
-        .btn-warning:hover:not(:disabled) { background: var(--orange-hover); box-shadow: 0 4px 14px rgba(234,88,12,0.35); transform: translateY(-1px); }
+    .btn { padding: 9px 18px; border: none; border-radius: var(--radius-sm); font-weight: 600; font-size: 13px; cursor: pointer; transition: all var(--transition); font-family: var(--font); display: inline-flex; align-items: center; gap: 6px; letter-spacing: -0.01em; white-space: nowrap; position: relative; overflow: hidden; }
+    .btn:active { transform: scale(0.97); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
+    .btn-primary { background: var(--accent); color: #0f172a; box-shadow: 0 2px 8px rgba(245,158,11,0.3); }
+    .btn-primary:hover:not(:disabled) { background: var(--accent-hover); box-shadow: 0 4px 14px rgba(245,158,11,0.4); transform: translateY(-1px); }
+    .btn-success { background: var(--green); color: #fff; box-shadow: 0 2px 8px rgba(22,163,74,0.3); }
+    .btn-success:hover:not(:disabled) { background: var(--green-hover); box-shadow: 0 4px 14px rgba(22,163,74,0.4); transform: translateY(-1px); }
+    .btn-danger { background: var(--red); color: #fff; box-shadow: 0 2px 8px rgba(220,38,38,0.25); }
+    .btn-danger:hover:not(:disabled) { background: var(--red-hover); box-shadow: 0 4px 14px rgba(220,38,38,0.35); transform: translateY(-1px); }
+    .btn-outline { background: transparent; border: 2px solid var(--border); color: var(--text-secondary); }
+    .btn-outline:hover:not(:disabled) { background: var(--surface-alt); border-color: #cbd5e1; color: var(--text); }
+    .btn-sm { padding: 7px 14px; font-size: 12px; border-radius: 6px; }
+    .btn-xs { padding: 5px 10px; font-size: 11px; border-radius: 5px; gap: 3px; }
+    .btn-warning { background: var(--orange); color: #fff; box-shadow: 0 2px 8px rgba(234,88,12,0.25); }
+    .btn-warning:hover:not(:disabled) { background: var(--orange-hover); box-shadow: 0 4px 14px rgba(234,88,12,0.35); transform: translateY(-1px); }
 
-        .list-section { min-height: 400px; }
-        .list-section h2 { font-size: 17px; font-weight: 700; margin-bottom: 12px; letter-spacing: -0.01em; display: flex; align-items: center; gap: 8px; }
-        .list-toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
-        .search-box { flex: 1; min-width: 160px; padding: 9px 14px; border: 2px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; font-family: var(--font); background: var(--surface-alt); transition: all var(--transition); letter-spacing: -0.01em; }
-        .search-box:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-ring); background: #fff; }
-        .list-toolbar .count { font-weight: 700; color: var(--text-secondary); font-size: 13px; white-space: nowrap; background: var(--surface-alt); padding: 6px 12px; border-radius: 20px; border: 1px solid var(--border); }
-        .lesson-list { display: flex; flex-direction: column; gap: 6px; }
-        .lesson-list .empty-state { text-align: center; padding: 50px 20px; color: var(--text-muted); background: var(--surface-alt); border-radius: var(--radius-lg); border: 2px dashed var(--border); }
-        .lesson-list .empty-state .icon { font-size: 40px; margin-bottom: 10px; }
-        .lesson-list .empty-state h3 { color: var(--text); margin-bottom: 4px; font-size: 15px; }
-        .lesson-item { display: flex; align-items: center; gap: 10px; padding: 11px 14px; background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); transition: all var(--transition); cursor: grab; user-select: none; }
-        .lesson-item:hover { border-color: #cbd5e1; box-shadow: var(--shadow-sm); background: #fafbfc; }
-        .lesson-item.dragging { opacity: 0.35; border-color: var(--accent); background: var(--accent-soft); box-shadow: var(--shadow-md); }
-        .lesson-item .drag-handle { color: #cbd5e1; font-size: 18px; cursor: grab; line-height: 1; flex-shrink: 0; padding: 2px; border-radius: 4px; transition: color var(--transition); }
-        .lesson-item:hover .drag-handle { color: #94a3b8; }
-        .lesson-item .drag-handle:active { cursor: grabbing; }
-        .lesson-item .info { flex: 1; min-width: 0; }
-        .lesson-item .info .title { font-weight: 700; font-size: 14px; letter-spacing: -0.01em; }
-        .lesson-item .info .sub { font-size: 12px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 1px; }
-        .lesson-item .actions { display: flex; gap: 3px; flex-shrink: 0; }
-        .lesson-item.drag-over { border-color: var(--accent); background: var(--accent-soft); box-shadow: 0 0 0 3px var(--accent-ring); }
+    .list-section { min-height: 400px; }
+    .list-section h2 { font-size: 17px; font-weight: 700; margin-bottom: 12px; letter-spacing: -0.01em; display: flex; align-items: center; gap: 8px; }
+    .list-toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+    .search-box { flex: 1; min-width: 160px; padding: 9px 14px; border: 2px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; font-family: var(--font); background: var(--surface-alt); transition: all var(--transition); letter-spacing: -0.01em; }
+    .search-box:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-ring); background: #fff; }
+    .list-toolbar .count { font-weight: 700; color: var(--text-secondary); font-size: 13px; white-space: nowrap; background: var(--surface-alt); padding: 6px 12px; border-radius: 20px; border: 1px solid var(--border); }
+    .lesson-list { display: flex; flex-direction: column; gap: 6px; }
+    .lesson-list .empty-state { text-align: center; padding: 50px 20px; color: var(--text-muted); background: var(--surface-alt); border-radius: var(--radius-lg); border: 2px dashed var(--border); }
+    .lesson-list .empty-state .icon { font-size: 40px; margin-bottom: 10px; }
+    .lesson-list .empty-state h3 { color: var(--text); margin-bottom: 4px; font-size: 15px; }
+    .lesson-item { display: flex; align-items: center; gap: 10px; padding: 11px 14px; background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); transition: all var(--transition); cursor: grab; user-select: none; }
+    .lesson-item:hover { border-color: #cbd5e1; box-shadow: var(--shadow-sm); background: #fafbfc; }
+    .lesson-item.dragging { opacity: 0.35; border-color: var(--accent); background: var(--accent-soft); box-shadow: var(--shadow-md); }
+    .lesson-item .drag-handle { color: #cbd5e1; font-size: 18px; cursor: grab; line-height: 1; flex-shrink: 0; padding: 2px; border-radius: 4px; transition: color var(--transition); }
+    .lesson-item:hover .drag-handle { color: #94a3b8; }
+    .lesson-item .drag-handle:active { cursor: grabbing; }
+    .lesson-item .info { flex: 1; min-width: 0; }
+    .lesson-item .info .title { font-weight: 700; font-size: 14px; letter-spacing: -0.01em; }
+    .lesson-item .info .sub { font-size: 12px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 1px; }
+    .lesson-item .actions { display: flex; gap: 3px; flex-shrink: 0; }
+    .lesson-item.drag-over { border-color: var(--accent); background: var(--accent-soft); box-shadow: 0 0 0 3px var(--accent-ring); }
 
-        .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.5); display: flex; align-items: center; justify-content: center; z-index: 9998; animation: fadeIn 0.2s ease; backdrop-filter: blur(2px); }
-        .modal-overlay .modal { background: #fff; border-radius: var(--radius-xl); padding: 28px; max-width: 420px; width: 90%; box-shadow: var(--shadow-xl); animation: modalPop 0.25s cubic-bezier(0.22,0.61,0.36,1); }
-        @keyframes modalPop { from { opacity: 0; transform: scale(0.92) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
-        .modal-overlay .modal h3 { margin-bottom: 6px; font-size: 18px; letter-spacing: -0.01em; }
-        .modal-overlay .modal p { color: var(--text-secondary); margin-bottom: 20px; font-size: 14px; line-height: 1.5; }
-        .modal-overlay .modal .actions { display: flex; gap: 10px; justify-content: flex-end; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.5); display: flex; align-items: center; justify-content: center; z-index: 9998; animation: fadeIn 0.2s ease; backdrop-filter: blur(2px); }
+    .modal-overlay .modal { background: #fff; border-radius: var(--radius-xl); padding: 28px; max-width: 420px; width: 90%; box-shadow: var(--shadow-xl); animation: modalPop 0.25s cubic-bezier(0.22,0.61,0.36,1); }
+    @keyframes modalPop { from { opacity: 0; transform: scale(0.92) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+    .modal-overlay .modal h3 { margin-bottom: 6px; font-size: 18px; letter-spacing: -0.01em; }
+    .modal-overlay .modal p { color: var(--text-secondary); margin-bottom: 20px; font-size: 14px; line-height: 1.5; }
+    .modal-overlay .modal .actions { display: flex; gap: 10px; justify-content: flex-end; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* ========== VIEW TAB – EXACT 850×1080 LAYOUT ========== */
-        .view-container { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 8px; display: flex; flex-direction: column; align-items: center; gap: 24px; }
-        .lesson-spread { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; width: 100%; }
-        @media print { .lesson-spread { gap: 0; page-break-after: always; } .lesson-spread:last-child { page-break-after: auto; } }
+    /* ========== VIEW TAB – EXACT 850×1080 LAYOUT ========== */
+    .view-container { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 8px; display: flex; flex-direction: column; align-items: center; gap: 24px; }
+    .lesson-spread { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; width: 100%; }
+    @media print { .lesson-spread { gap: 0; page-break-after: always; } .lesson-spread:last-child { page-break-after: auto; } }
 
-        .view-container .page { width: 850px; min-width: 850px; min-height: 1080px; height: 1080px; padding: 30px 35px; position: relative; page-break-after: always; margin: 0 auto; background: #fff; border-radius: 10px; box-shadow: 0 2px 16px rgba(0,0,0,0.07); box-sizing: border-box; overflow: hidden; flex-shrink: 0; }
-        .view-container .page:last-child { page-break-after: auto; }
+    .view-container .page { width: 850px; min-width: 850px; min-height: 1080px; height: 1080px; padding: 30px 35px; position: relative; page-break-after: always; margin: 0 auto; background: #fff; border-radius: 10px; box-shadow: 0 2px 16px rgba(0,0,0,0.07); box-sizing: border-box; overflow: hidden; flex-shrink: 0; }
+    .view-container .page:last-child { page-break-after: auto; }
 
-        .view-container .card { border: 3px solid #f59e0b; border-radius: 26px; min-height: 1010px; height: 1010px; padding: 0; position: relative; display: flex; flex-direction: column; overflow: hidden; -webkit-print-color-adjust: exact; print-color-adjust: exact; background: #fff; }
+    .view-container .card { border: 3px solid #f59e0b; border-radius: 26px; min-height: 1010px; height: 1010px; padding: 0; position: relative; display: flex; flex-direction: column; overflow: hidden; -webkit-print-color-adjust: exact; print-color-adjust: exact; background: #fff; }
 
-        .view-container .page .page-actions { text-align: right; padding: 8px 12px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; border-radius: 8px 8px 0 0; margin-bottom: 6px; }
-        .view-container .export-btn { background: #b91c1c; color: #fff; border: none; border-radius: 6px; padding: 7px 16px; font-weight: 600; font-size: 12px; font-family: var(--font); cursor: pointer; transition: all var(--transition); }
-        .view-container .export-btn:hover { background: #991b1b; box-shadow: 0 2px 8px rgba(185,28,28,0.3); }
+    .view-container .page .page-actions { text-align: right; padding: 8px 12px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; border-radius: 8px 8px 0 0; margin-bottom: 6px; }
+    .view-container .export-btn { background: #b91c1c; color: #fff; border: none; border-radius: 6px; padding: 7px 16px; font-weight: 600; font-size: 12px; font-family: var(--font); cursor: pointer; transition: all var(--transition); }
+    .view-container .export-btn:hover { background: #991b1b; box-shadow: 0 2px 8px rgba(185,28,28,0.3); }
 
-        .inner-pad { flex: 1; padding: 20px 28px 0 28px; display: flex; flex-direction: column; }
+    .inner-pad { flex: 1; padding: 20px 28px 0 28px; display: flex; flex-direction: column; }
 
-        .page-footer-red { margin-top: auto; height: 26px; width: 100%; background: #b91c1c; border-radius: 0 0 23px 23px; display: flex; justify-content: center; align-items: center; color: #fff; font-weight: 800; font-size: 17px; flex-shrink: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; letter-spacing: 0.02em; }
+    .page-footer-red { margin-top: auto; height: 26px; width: 100%; background: #b91c1c; border-radius: 0 0 23px 23px; display: flex; justify-content: center; align-items: center; color: #fff; font-weight: 800; font-size: 17px; flex-shrink: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; letter-spacing: 0.02em; }
 
-        .header-row { display: flex; align-items: stretch; gap: 0; margin-bottom: 14px; font-weight: 800; height: 44px; flex-shrink: 0; }
-        .header-lesson { background: #f59e0b; color: #0f172a; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 2px 18px; border-radius: 10px 0 0 10px; line-height: 1.1; font-size: 11px; -webkit-print-color-adjust: exact; print-color-adjust: exact; font-weight: 800; }
-        .header-lesson span { font-size: 19px; font-weight: 900; }
-        .header-title { background: #b91c1c; color: #fff; flex: 1; display: flex; justify-content: center; align-items: center; font-size: 21px; letter-spacing: 0.04em; -webkit-print-color-adjust: exact; print-color-adjust: exact; font-weight: 800; }
-        .header-grade { background: #f59e0b; color: #0f172a; display: flex; justify-content: center; align-items: center; padding: 2px 18px; border-radius: 0 10px 10px 0; font-size: 15px; -webkit-print-color-adjust: exact; print-color-adjust: exact; font-weight: 800; }
+    .header-row { display: flex; align-items: stretch; gap: 0; margin-bottom: 14px; font-weight: 800; height: 44px; flex-shrink: 0; }
+    .header-lesson { background: #f59e0b; color: #0f172a; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 2px 18px; border-radius: 10px 0 0 10px; line-height: 1.1; font-size: 11px; -webkit-print-color-adjust: exact; print-color-adjust: exact; font-weight: 800; }
+    .header-lesson span { font-size: 19px; font-weight: 900; }
+    .header-title { background: #b91c1c; color: #fff; flex: 1; display: flex; justify-content: center; align-items: center; font-size: 21px; letter-spacing: 0.04em; -webkit-print-color-adjust: exact; print-color-adjust: exact; font-weight: 800; }
+    .header-grade { background: #f59e0b; color: #0f172a; display: flex; justify-content: center; align-items: center; padding: 2px 18px; border-radius: 0 10px 10px 0; font-size: 15px; -webkit-print-color-adjust: exact; print-color-adjust: exact; font-weight: 800; }
 
-        .title-image-row { display: flex; gap: 18px; align-items: flex-start; margin-bottom: 18px; flex-shrink: 0; }
-        .title-side { flex: 1; display: flex; flex-direction: column; justify-content: flex-start; }
-        .story-title { font-size: 26px; font-weight: 800; color: #b91c1c; margin: 0 0 8px 0; line-height: 1.15; letter-spacing: -0.01em; }
-        .target-pill { display: inline-block; background: #fef9e7; border: 2px solid #f59e0b; border-radius: 26px; padding: 5px 16px; font-weight: 700; font-size: 15px; width: fit-content; align-self: flex-start; flex-shrink: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    /* Page 1: Title + Story Lines (no image) */
+    .title-block { margin-bottom: 18px; flex-shrink: 0; display: flex; flex-direction: column; gap: 8px; }
+    .story-title { font-size: 28px; font-weight: 800; color: #b91c1c; margin: 0; line-height: 1.15; letter-spacing: -0.01em; }
+    .target-pill { display: inline-block; background: #fef9e7; border: 2px solid #f59e0b; border-radius: 26px; padding: 5px 16px; font-weight: 700; font-size: 16px; width: fit-content; align-self: flex-start; flex-shrink: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 
-        /* IMAGE CONTAINER 420×140px with light border */
-        .story-img-container { 
-            flex: 0 0 420px;
-            width: 420px;
-            height: 140px;
-            border-radius: 12px; 
-            overflow: hidden; 
-            background: #e2e8f0; 
-            position: relative; 
-            border: 1px solid #cbd5e1;
-            -webkit-print-color-adjust: exact; 
-            print-color-adjust: exact; 
-            flex-shrink: 0;
-        }
-        .story-img-container img { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .story-img-placeholder { width: 100%; height: 100%; background: linear-gradient(135deg, #1e3a5f 0%, #2a4a7f 100%); display: flex; align-items: center; justify-content: center; position: relative; }
-        .story-img-placeholder svg { width: 100%; height: 100%; }
+    .story-lines-area { flex: 0 0 auto; position: relative; padding-bottom: 10px; margin-bottom: 15px; }
+    .story-line { display: flex; justify-content: space-between; align-items: baseline; padding: 3px 0; font-size: 18px; font-weight: 600; line-height: 1.65; }
+    .story-line .sentence { flex: 1; }
+    .story-line .wc { font-weight: 700; color: #b91c1c; min-width: 30px; text-align: right; font-size: 16px; }
 
-        .story-lines-area { flex: 0 0 auto; position: relative; padding-bottom: 10px; margin-bottom: 15px; }
-        .story-line { display: flex; justify-content: space-between; align-items: baseline; padding: 3px 0; font-size: 17px; font-weight: 600; line-height: 1.65; }
-        .story-line .sentence { flex: 1; }
-        .story-line .wc { font-weight: 700; color: #b91c1c; min-width: 30px; text-align: right; font-size: 15px; }
+    .parent-corner { margin-top: 25px; margin-bottom: 12px; border: 3px solid #8B4513; border-radius: 12px; overflow: hidden; flex-shrink: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .pc-header { background: #f59e0b; color: #0f172a; font-weight: 800; font-size: 15px; text-align: center; padding: 5px; letter-spacing: 0.08em; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .pc-body { padding: 10px 14px; background: #fffdf7; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .pc-body p { font-size: 12px; margin-bottom: 8px; line-height: 1.45; font-weight: 700; color: #b91c1c; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .parent-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 12px; }
+    .parent-table th, .parent-table td { padding: 7px 5px; text-align: center; border: 2px solid #8B4513; }
+    .parent-table th:first-child { background: #fdfdfd; color: #0f172a; }
+    .parent-table th { background: #b91c1c; color: #fff; font-weight: 800; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .parent-table td:first-child { font-weight: 700; text-align: left; background: #fdfdfd; }
 
-        /* The total pill is removed, but we keep its CSS just in case it's used elsewhere (none) so we can delete it */
-        .parent-corner { margin-top: 25px; margin-bottom: 12px; border: 3px solid #8B4513; border-radius: 12px; overflow: hidden; flex-shrink: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        .pc-header { background: #f59e0b; color: #0f172a; font-weight: 800; font-size: 15px; text-align: center; padding: 5px; letter-spacing: 0.08em; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        .pc-body { padding: 10px 14px; background: #fffdf7; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        .pc-body p { font-size: 11px; margin-bottom: 8px; line-height: 1.45; font-weight: 700; color: #b91c1c; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        .parent-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 11px; }
-        .parent-table th, .parent-table td { padding: 7px 5px; text-align: center; border: 2px solid #8B4513; }
-        .parent-table th:first-child { background: #fdfdfd; color: #0f172a; }
-        .parent-table th { background: #b91c1c; color: #fff; font-weight: 800; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        .parent-table td:first-child { font-weight: 700; text-align: left; background: #fdfdfd; }
+    /* Page 2 specific styles */
+    .comp-section { margin: 15px 0; flex-shrink: 0; }
+    .comp-section.last-section { flex: 1; display: flex; flex-direction: column; }
+    .comp-section.last-section .activity-blank-large { flex: 1; min-height: 120px; }
+    .comp-header { background: #b91c1c; color: #fff; border-radius: 12px; padding: 7px 18px; font-size: 16px; font-weight: 700; display: inline-block; margin-bottom: 10px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .comp-q { margin-bottom: 18px; }
+    .comp-q .qtext { font-weight: 700; font-size: 17px; margin-bottom: 5px; }
+    .comp-q .opt { display: flex; align-items: center; gap: 12px; font-size: 16px; padding: 2px 0; }
+    .comp-q .box-check { display: inline-block; width: 20px; height: 20px; border: 2px solid #b91c1c; border-radius: 4px; background: #fff; flex-shrink: 0; }
+    .theory-answer { border-bottom: 2px solid #b91c1c; height: 30px; margin-top: 8px; }
+    .activity-blank-large { flex: 0 0 auto; min-height: 120px; border: 3px solid #8B4513; border-radius: 16px; margin: 10px 0 18px 0; background: #fff; width: 100%; overflow: hidden; }
+    .writing-line { border-bottom: 2px dashed #8B4513; height: 40px; margin: 10px 0 15px 0; width: 100%; display: flex; align-items: flex-end; }
+    .writing-line .line-number { font-weight: 800; color: #8B4513; margin-right: 8px; font-size: 16px; }
+    .comp-inst { font-size: 15px; color: #334155; margin-bottom: 5px; line-height: 1.55; }
 
-        .comp-section { margin: 15px 0; flex-shrink: 0; }
-        .comp-header { background: #b91c1c; color: #fff; border-radius: 12px; padding: 7px 18px; font-size: 16px; font-weight: 700; display: inline-block; margin-bottom: 10px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        .comp-q { margin-bottom: 18px; }
-        .comp-q .qtext { font-weight: 700; font-size: 16px; margin-bottom: 5px; }
-        .comp-q .opt { display: flex; align-items: center; gap: 12px; font-size: 15px; padding: 2px 0; }
-        .comp-q .box-check { display: inline-block; width: 20px; height: 20px; border: 2px solid #b91c1c; border-radius: 4px; background: #fff; flex-shrink: 0; }
-        .activity-blank-large { flex: 0 0 auto; min-height: 90px; border: 3px solid #8B4513; border-radius: 16px; margin: 10px 0 18px 0; background: #fff; width: 100%; overflow: hidden; }
-        .writing-line { border-bottom: 2px dashed #8B4513; height: 40px; margin: 10px 0 15px 0; width: 100%; }
-        .comp-inst { font-size: 14px; color: #334155; margin-bottom: 5px; line-height: 1.55; }
+    /* Full-page image placeholder */
+    .image-only-page { display: flex; flex-direction: column; }
+    .image-only-page .image-full-placeholder {
+      flex: 1;
+      border: 3px solid #f59e0b;
+      border-radius: 16px;
+      background: #f8fafc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    .image-only-page .image-full-placeholder img { width: 100%; height: 100%; object-fit: contain; display: block; }
+    .image-only-page .image-full-placeholder .placeholder-text {
+      font-size: 24px;
+      font-weight: 700;
+      color: #94a3b8;
+    }
+    .image-only-page .image-full-label {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0,0,0,0.65);
+      color: #fff;
+      text-align: center;
+      padding: 8px 10px;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+      z-index: 1;
+    }
+    .image-only-page .page-footer-red { margin-top: auto; }
 
-        .view-toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
-        .view-toolbar .info { font-weight: 600; color: var(--text-secondary); font-size: 13px; margin-right: auto; background: var(--surface-alt); padding: 6px 12px; border-radius: 20px; border: 1px solid var(--border); }
+    /* Form question card styles */
+    .question-card { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; margin-bottom: 10px; }
+    .question-card .q-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .question-card .q-header .q-title { font-weight: 700; font-size: 14px; }
+    .question-card .q-controls { display: flex; gap: 4px; }
+    .question-card .q-controls .btn { padding: 4px 8px; font-size: 12px; }
+    .option-row { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; }
+    .option-row input { flex: 1; }
+    .option-row .btn { padding: 4px 8px; font-size: 12px; }
+    .add-option-btn { margin-top: 6px; }
 
-        /* ========== PRINT STYLES ========== */
-        @media print {
-            @page { size: 850px 1100px; margin: 0; }
-            body { padding: 0 !important; background: #fff !important; margin: 0 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-            .app, .app-header, .tabs, .tab-panel, .view-toolbar, .no-print, .page-actions, .toast-container, .modal-overlay { display: none !important; }
-            .view-container { overflow-x: visible !important; display: block !important; padding: 0 !important; gap: 0 !important; }
-            .view-container .page { box-shadow: none !important; border-radius: 0 !important; margin: 0 auto !important; padding: 30px 35px !important; width: 850px !important; min-width: 850px !important; min-height: 1080px !important; height: 1080px !important; page-break-after: always !important; background: #fff !important; transform: scale(1) !important; overflow: hidden !important; }
-            .view-container .page:last-child { page-break-after: auto !important; }
-            .lesson-spread { page-break-after: always !important; gap: 0 !important; display: block !important; }
-            .lesson-spread:last-child { page-break-after: auto !important; }
-            .view-container .card { border-radius: 0 !important; min-height: 1010px !important; height: 1010px !important; border: 3px solid #f59e0b !important; overflow: hidden !important; }
-            .inner-pad { padding: 20px 28px 0 28px !important; }
-            .page-footer-red { border-radius: 0 !important; height: 26px !important; }
-            .story-img-container { border: 1px solid #cbd5e1 !important; width: 420px !important; height: 140px !important; }
-            .parent-corner { margin-top: 25px !important; }
-            .view-container .card, .view-container .header-lesson, .view-container .header-title, .view-container .header-grade, .view-container .pc-header, .view-container .comp-header, .view-container .page-footer-red, .view-container .parent-table th, .view-container .target-pill, .view-container .story-img-placeholder, .view-container .parent-corner, .view-container .pc-body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-        }
+    .view-toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+    .view-toolbar .info { font-weight: 600; color: var(--text-secondary); font-size: 13px; margin-right: auto; background: var(--surface-alt); padding: 6px 12px; border-radius: 20px; border: 1px solid var(--border); }
 
-        @media (max-width: 900px) {
-            .view-container .page { transform: scale(0.75); transform-origin: top center; margin-bottom: -180px; }
-            .edit-layout { grid-template-columns: 1fr; }
-            .form-section { position: static; max-height: none; }
-            .app-header h1 { font-size: 18px; }
-            .tabs { padding: 0 12px; }
-            .tab-btn { padding: 10px 14px; font-size: 12px; }
-            .tab-panel { padding: 14px; }
-        }
-        @media (max-width: 600px) {
-            body { padding: 6px; }
-            .app-header { padding: 14px 16px; }
-            .app-header h1 { font-size: 16px; }
-            .view-container .page { transform: scale(0.55); transform-origin: top center; margin-bottom: -350px; }
-            .form-row { grid-template-columns: 1fr; }
-            .list-toolbar { gap: 6px; }
-            .btn { padding: 7px 12px; font-size: 11px; }
-        }
-    </style>
+    .image-upload-wrap { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .image-upload-wrap .preview { width: 80px; height: 50px; border-radius: 6px; object-fit: cover; border: 2px solid var(--border); background: #f1f5f9; flex-shrink: 0; }
+    .image-upload-wrap .preview-placeholder { width: 80px; height: 50px; border-radius: 6px; border: 2px dashed #cbd5e1; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #94a3b8; background: #f8fafc; flex-shrink: 0; }
+    .image-upload-wrap input[type="file"] { font-size: 12px; padding: 6px; border: none; background: none; color: var(--text); }
+
+    /* Cover page */
+    .cover-card { border: 3px solid #f59e0b; border-radius: 26px; min-height: 1010px; height: 1010px; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #fff; overflow: hidden; }
+    .cover-inner { text-align: center; padding: 40px; }
+    .cover-line { width: 120px; height: 4px; background-color: #f59e0b; margin: 30px auto; border-radius: 2px; }
+    .cover-title { font-size: 52px; font-weight: 800; color: #1e293b; letter-spacing: 2px; margin: 0; line-height: 1.2; }
+    .cover-subtitle { font-size: 26px; font-weight: 600; color: #b91c1c; margin-top: 14px; letter-spacing: 1px; font-style: italic; }
+
+    /* TOC */
+    .toc-card { border: 3px solid #f59e0b; border-radius: 26px; min-height: 1010px; height: 1010px; padding: 32px 40px; position: relative; background: #fff; overflow: hidden; display: flex; flex-direction: column; }
+    .toc-title { font-size: 28px; font-weight: 800; color: #b91c1c; text-align: center; margin-bottom: 24px; border-bottom: 4px solid #f59e0b; padding-bottom: 12px; }
+    .toc-list { list-style: none; padding: 0; margin: 0; flex: 1; }
+    .toc-item { display: flex; justify-content: space-between; align-items: baseline; padding: 10px 8px; border-bottom: 1px dashed #e2e8f0; font-size: 15px; font-weight: 600; color: #1e293b; }
+    .toc-item .toc-page-num { font-weight: 800; color: #b91c1c; min-width: 70px; text-align: right; }
+    .toc-page-footer { margin-top: auto; text-align: right; font-weight: 800; font-size: 15px; color: #1e293b; }
+
+    @media print {
+      @page { size: 850px 1100px; margin: 0; }
+      body { padding: 0 !important; background: #fff !important; margin: 0 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      .app, .app-header, .tabs, .tab-panel, .view-toolbar, .no-print, .page-actions, .toast-container, .modal-overlay { display: none !important; }
+      .view-container { overflow-x: visible !important; display: block !important; padding: 0 !important; gap: 0 !important; }
+      .view-container .page { box-shadow: none !important; border-radius: 0 !important; margin: 0 auto !important; padding: 30px 35px !important; width: 850px !important; min-width: 850px !important; min-height: 1080px !important; height: 1080px !important; page-break-after: always !important; background: #fff !important; transform: scale(1) !important; overflow: hidden !important; }
+      .view-container .page:last-child { page-break-after: auto !important; }
+      .lesson-spread { page-break-after: always !important; gap: 0 !important; display: block !important; }
+      .lesson-spread:last-child { page-break-after: auto !important; }
+      .view-container .card { border-radius: 0 !important; min-height: 1010px !important; height: 1010px !important; border: 3px solid #f59e0b !important; overflow: hidden !important; }
+      .inner-pad { padding: 20px 28px 0 28px !important; }
+      .page-footer-red { border-radius: 0 !important; height: 26px !important; }
+      .parent-corner { margin-top: 25px !important; }
+      .view-container .card, .view-container .header-lesson, .view-container .header-title, .view-container .header-grade, .view-container .pc-header, .view-container .comp-header, .view-container .page-footer-red, .view-container .parent-table th, .view-container .target-pill, .view-container .parent-corner, .view-container .pc-body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      .cover-card, .toc-card { border-radius: 0 !important; min-height: 1010px !important; height: 1010px !important; border: 3px solid #f59e0b !important; }
+      .cover-line, .cover-title, .cover-subtitle { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      .comp-section.last-section { flex: 1 !important; }
+      .comp-section.last-section .activity-blank-large { flex: 1 !important; }
+      .image-only-page .image-full-placeholder { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      .image-only-page .image-full-label { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    }
+
+    @media (max-width: 900px) {
+      .view-container .page { transform: scale(0.75); transform-origin: top center; margin-bottom: -180px; }
+      .edit-layout { grid-template-columns: 1fr; }
+      .form-section { position: static; max-height: none; }
+      .app-header h1 { font-size: 18px; }
+      .tabs { padding: 0 12px; }
+      .tab-btn { padding: 10px 14px; font-size: 12px; }
+      .tab-panel { padding: 14px; }
+    }
+    @media (max-width: 600px) {
+      body { padding: 6px; }
+      .app-header { padding: 14px 16px; }
+      .app-header h1 { font-size: 16px; }
+      .view-container .page { transform: scale(0.55); transform-origin: top center; margin-bottom: -350px; }
+      .form-row { grid-template-columns: 1fr; }
+      .list-toolbar { gap: 6px; }
+      .btn { padding: 7px 12px; font-size: 11px; }
+    }
+  </style>
 </head>
 <body>
-    <div id="app"></div>
-    <div class="toast-container" id="toastContainer"></div>
+  <div id="app"></div>
+  <div class="toast-container" id="toastContainer"></div>
 
-    <script>
-        (function() {
-            const STORAGE_KEY = 'decodable_readers_v1';
+  <script>
+    (function() {
+      const STORAGE_KEY = 'decodable_readers_v7';
+      const MAX_IMAGE_SIZE = 2 * 1024 * 1024;
+      const MAX_TOC_PER_PAGE = 20;
+      const DEFAULT_IMAGE_LABEL = "Let's read together!";
+      const DEFAULT_IMAGE_PAGE_LABEL = "Picture Page";
+      const MAX_OPTIONS = 5;
 
-            function escapeHtml(str) {
-                return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+      function escapeHtml(str) { return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+      function showToast(msg, type='info') {
+        const c = document.getElementById('toastContainer');
+        const t = document.createElement('div');
+        t.className = 'toast ' + type;
+        const icons = {success:'✓',error:'✕',warning:'⚠',info:'ℹ'};
+        t.innerHTML = `<span style="font-weight:700;font-size:15px;">${icons[type]||icons.info}</span> ${escapeHtml(msg)}<button class="close-toast" onclick="this.parentElement.remove()">×</button>`;
+        c.appendChild(t);
+        setTimeout(() => { if (t.parentElement) t.remove(); }, 4000);
+      }
+      function confirmDialog(msg, cb) {
+        const ov = document.createElement('div');
+        ov.className = 'modal-overlay';
+        ov.innerHTML = `<div class="modal"><h3>⚠️ Confirm</h3><p>${msg}</p><div class="actions"><button class="btn btn-outline cancel">Cancel</button><button class="btn btn-danger confirm">Yes, Proceed</button></div></div>`;
+        document.body.appendChild(ov);
+        ov.querySelector('.cancel').onclick = () => ov.remove();
+        ov.querySelector('.confirm').onclick = () => { ov.remove(); cb(); };
+        ov.addEventListener('click', (e) => { if (e.target === ov) ov.remove(); });
+      }
+      function countWords(sentence) { return sentence.trim().split(/\s+/).filter(w => w).length; }
+
+      function generateQuestionId() { return 'q' + Math.random().toString(36).substring(2, 9); }
+
+      function getDefaultPage2() {
+        return {
+          comprehension: {
+            enabled: true,
+            questions: [
+              {
+                id: generateQuestionId(),
+                type: 'objective',
+                question: '',
+                options: ['', '', '']
+              }
+            ]
+          },
+          findSound: {
+            enabled: true,
+            instruction: 'Find and list all the words in the story with the target sound.'
+          },
+          sentenceWriting: {
+            enabled: true,
+            instruction: 'Write any one sentence from the story.',
+            numberOfLines: 1
+          }
+        };
+      }
+
+      function migrateLesson(l) {
+        if (!l.page2) {
+          const oldComprehension = Array.isArray(l.comprehension) ? l.comprehension : [];
+          const questions = oldComprehension.map(q => ({
+            id: generateQuestionId(),
+            type: 'objective',
+            question: q.question || '',
+            options: q.options && q.options.length ? q.options.slice(0, MAX_OPTIONS) : ['', '', '']
+          }));
+          if (questions.length === 0) {
+            questions.push({
+              id: generateQuestionId(),
+              type: 'objective',
+              question: '',
+              options: ['', '', '']
+            });
+          }
+          l.page2 = {
+            comprehension: {
+              enabled: true,
+              questions: questions
+            },
+            findSound: {
+              enabled: true,
+              instruction: 'Find and list all the words in the story with the target sound.'
+            },
+            sentenceWriting: {
+              enabled: true,
+              instruction: 'Write any one sentence from the story.',
+              numberOfLines: 1
             }
-
-            function showToast(msg, type='info') {
-                const c = document.getElementById('toastContainer');
-                const t = document.createElement('div');
-                t.className = 'toast ' + type;
-                const icons = {success:'✓',error:'✕',warning:'⚠',info:'ℹ'};
-                t.innerHTML = `<span style="font-weight:700;font-size:15px;">${icons[type]||icons.info}</span> ${escapeHtml(msg)}<button class="close-toast" onclick="this.parentElement.remove()">×</button>`;
-                c.appendChild(t);
-                setTimeout(() => { if (t.parentElement) t.remove(); }, 4000);
+          };
+          delete l.comprehension;
+        } else {
+          if (!l.page2.comprehension) l.page2.comprehension = { enabled: true, questions: [] };
+          if (!l.page2.comprehension.questions) l.page2.comprehension.questions = [];
+          if (!l.page2.findSound) l.page2.findSound = { enabled: true, instruction: 'Find and list all the words in the story with the target sound.' };
+          if (!l.page2.sentenceWriting) l.page2.sentenceWriting = { enabled: true, instruction: 'Write any one sentence from the story.', numberOfLines: 1 };
+        }
+        l.page2.comprehension.questions.forEach(q => {
+          if (!q.id) q.id = generateQuestionId();
+          if (q.type !== 'objective' && q.type !== 'theory') q.type = 'objective';
+          if (q.type === 'objective') {
+            if (!Array.isArray(q.options)) q.options = ['', '', ''];
+            if (q.options.length < 2) {
+              while (q.options.length < 2) q.options.push('');
             }
+            if (q.options.length > MAX_OPTIONS) q.options = q.options.slice(0, MAX_OPTIONS);
+          } else {
+            delete q.options;
+          }
+        });
+        l.page2.sentenceWriting.numberOfLines = parseInt(l.page2.sentenceWriting.numberOfLines) || 1;
+        if (typeof l.showImagePage !== 'boolean') l.showImagePage = false;
+        if (typeof l.imagePageLabel !== 'string') l.imagePageLabel = DEFAULT_IMAGE_PAGE_LABEL;
+        // Remove old unused imageLabel? Keep for data compatibility
+        return l;
+      }
 
-            function confirmDialog(msg, cb) {
-                const ov = document.createElement('div');
-                ov.className = 'modal-overlay';
-                ov.innerHTML = `<div class="modal"><h3>⚠️ Confirm</h3><p>${msg}</p><div class="actions"><button class="btn btn-outline cancel">Cancel</button><button class="btn btn-danger confirm">Yes, Proceed</button></div></div>`;
-                document.body.appendChild(ov);
-                ov.querySelector('.cancel').onclick = () => ov.remove();
-                ov.querySelector('.confirm').onclick = () => { ov.remove(); cb(); };
-                ov.addEventListener('click', (e) => { if (e.target === ov) ov.remove(); });
+      const DEFAULT_LESSONS = [{
+        id: 'r1', lessonNumber: 1, imageUrl: "", title: "Ben's Camping Trip",
+        targetSound: "short e (/ɛ/)",
+        imageLabel: DEFAULT_IMAGE_LABEL,
+        imagePageLabel: DEFAULT_IMAGE_PAGE_LABEL,
+        storyLines: [
+          { sentence: "Ben went on a camping trip with Dad." },
+          { sentence: "They set up the tent near the lake." },
+          { sentence: "Ben helped gather wood for the fire." },
+          { sentence: "They lit the fire and cooked their food." },
+          { sentence: "Ben had a hot dog and some bread." },
+          { sentence: "After dinner, they told fun stories." },
+          { sentence: "Ben saw the stars light up the sky." },
+          { sentence: "He heard crickets and a soft breeze." },
+          { sentence: "In the morning, they packed up camp." },
+          { sentence: "Ben was happy about the great trip." }
+        ],
+        comprehension: [
+          { question: "Where did Ben and his Dad set up the tent?", options: ["by the river","near the lake","in the forest"] },
+          { question: "What did Ben and his Dad cook over the fire?", options: ["pizza and cookies","hot dogs and bread","fish and rice"] },
+          { question: "How did Ben feel about the trip?", options: ["tired and bored","sad and cold","happy and glad"] }
+        ],
+        showImagePage: false
+      }];
+
+      let lessons = [], editingId = null, nextId = 1;
+      let bookMeta = { title: 'Decodable Readers', subtitle: 'Grade 1', grade: '1', showToc: true };
+      window.searchQuery = '';
+
+      function loadData() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            lessons = Array.isArray(parsed.lessons) ? parsed.lessons.map(l => {
+              const migrated = migrateLesson({
+                id: String(l.id || ''),
+                lessonNumber: typeof l.lessonNumber === 'number' ? l.lessonNumber : 0,
+                imageUrl: String(l.imageUrl || ''),
+                title: String(l.title || 'Untitled'),
+                targetSound: String(l.targetSound || ''),
+                imageLabel: String(l.imageLabel ?? DEFAULT_IMAGE_LABEL),
+                imagePageLabel: String(l.imagePageLabel ?? DEFAULT_IMAGE_PAGE_LABEL),
+                storyLines: (Array.isArray(l.storyLines) ? l.storyLines : []).map(sl => ({ sentence: String(sl.sentence || '') })).filter(sl => sl.sentence.trim() !== ''),
+                comprehension: Array.isArray(l.comprehension) ? l.comprehension : [],
+                showImagePage: typeof l.showImagePage === 'boolean' ? l.showImagePage : false,
+                page2: l.page2
+              });
+              return migrated;
+            }).filter(l => l.id) : [];
+            if (lessons.length === 0) {
+              lessons = JSON.parse(JSON.stringify(DEFAULT_LESSONS)).map(l => migrateLesson(l));
             }
+            bookMeta = parsed.bookMeta || { title: 'Decodable Readers', subtitle: 'Grade 1', grade: '1', showToc: true };
+            bookMeta.grade = String(bookMeta.grade || '1');
+            bookMeta.showToc = (typeof bookMeta.showToc === 'boolean') ? bookMeta.showToc : true;
+            renumberByOrder(lessons);
+            nextId = Math.max(...lessons.map(l => parseInt(l.id.replace('r','')) || 0), 0) + 1;
+            saveData();
+            return;
+          }
+        } catch(e) {
+          console.warn('Error loading data, using defaults', e);
+        }
+        lessons = JSON.parse(JSON.stringify(DEFAULT_LESSONS)).map(l => migrateLesson(l));
+        bookMeta = { title: 'Decodable Readers', subtitle: 'Grade 1', grade: '1', showToc: true };
+        nextId = lessons.length + 1;
+        renumberByOrder(lessons);
+        saveData();
+      }
+      function saveData() {
+        const payload = { lessons, bookMeta };
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(payload)); }
+        catch(e) { showToast('Storage full – delete some lessons.', 'error'); }
+      }
+      function generateId() { return 'r' + (nextId++); }
+      function renumberByOrder(arr) { arr.forEach((l, idx) => l.lessonNumber = idx + 1); }
 
-            // Default data
-            const DEFAULT_LESSONS = [{
-                id: 'r1',
-                lessonNumber: 12,
-                grade: "3",
-                imageUrl: "",
-                title: "Ben's Camping Trip",
-                targetSound: "short e (/ɛ/)",
-                storyLines: [
-                    { sentence: "Ben went on a camping trip with Dad.", wordCount: 7 },
-                    { sentence: "They set up the tent near the lake.", wordCount: 9 },
-                    { sentence: "Ben helped gather wood for the fire.", wordCount: 8 },
-                    { sentence: "They lit the fire and cooked their food.", wordCount: 9 },
-                    { sentence: "Ben had a hot dog and some bread.", wordCount: 9 },
-                    { sentence: "After dinner, they told fun stories.", wordCount: 7 },
-                    { sentence: "Ben saw the stars light up the sky.", wordCount: 8 },
-                    { sentence: "He heard crickets and a soft breeze.", wordCount: 8 },
-                    { sentence: "In the morning, they packed up camp.", wordCount: 7 },
-                    { sentence: "Ben was happy about the great trip.", wordCount: 7 }
-                ],
-                comprehension: [
-                    { question: "Where did Ben and his Dad set up the tent?", options: ["by the river","near the lake","in the forest"] },
-                    { question: "What did Ben and his Dad cook over the fire?", options: ["pizza and cookies","hot dogs and bread","fish and rice"] },
-                    { question: "How did Ben feel about the trip?", options: ["tired and bored","sad and cold","happy and glad"] }
-                ]
-            }];
+      // ---------- Build View Pages ----------
+      function buildPageOne(lesson, pageNum) {
+        const page = document.createElement('div'); page.className = 'page';
+        page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export Page</button></div>`;
+        const card = document.createElement('div'); card.className = 'card';
+        const inner = document.createElement('div'); inner.className = 'inner-pad';
+        let html = `<div class="header-row"><div class="header-lesson">LESSON <span>${escapeHtml(lesson.lessonNumber)}</span></div><div class="header-title">Reading Practice</div><div class="header-grade">Grade ${escapeHtml(bookMeta.grade)}</div></div>
+        <div class="title-block"><div class="story-title">${escapeHtml(lesson.title)}</div><div class="target-pill">Target Sound: ${escapeHtml(lesson.targetSound)}</div></div>
+        <div class="story-lines-area">`;
+        let runningTotal = 0;
+        lesson.storyLines.forEach(line => {
+          const wc = countWords(line.sentence);
+          runningTotal += wc;
+          html += `<div class="story-line"><span class="sentence">${escapeHtml(line.sentence)}</span><span class="wc">${runningTotal}</span></div>`;
+        });
+        html += `</div><div class="parent-corner"><div class="pc-header">PARENT CORNER</div><div class="pc-body"><p>Parents are to listen to their child read aloud every day. Please kindly record your child's daily reading progress in the table below. Your consistent support plays a vital role in building their reading fluency and confidence.</p>
+        <table class="parent-table"><thead><tr><th></th><th>Monday</th><th>Tuesday</th><th>Wednesday</th><th>Thursday</th><th>Friday</th></tr></thead>
+        <tbody><tr><td>Minutes Read</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+        <tr><td>Words Read</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+        <tr><td>Errors</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+        <tr><td>Parent Initials</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr></tbody></table></div></div>`;
+        inner.innerHTML = html;
+        card.appendChild(inner);
+        const footer = document.createElement('div'); footer.className = 'page-footer-red'; footer.textContent = pageNum;
+        card.appendChild(footer);
+        page.appendChild(card);
+        return page;
+      }
 
-            let lessons = [], editingId = null, nextId = 1;
-            let searchQuery = '';
+      function buildPageTwo(lesson, pageNum) {
+        const page = document.createElement('div'); page.className = 'page';
+        page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export Page</button></div>`;
+        const card = document.createElement('div'); card.className = 'card';
+        const inner = document.createElement('div'); inner.className = 'inner-pad';
 
-            function loadData() {
-                try {
-                    const raw = localStorage.getItem(STORAGE_KEY);
-                    if (raw) {
-                        const parsed = JSON.parse(raw);
-                        if (parsed && Array.isArray(parsed.lessons)) {
-                            lessons = parsed.lessons;
-                            lessons.forEach(l => {
-                                if (!l.storyLines) l.storyLines = [];
-                                if (!l.comprehension) l.comprehension = [];
-                                if (!l.grade) l.grade = "3";
-                                if (!l.imageUrl) l.imageUrl = "";
-                                l.storyLines.forEach(line => {
-                                    if (typeof line.wordCount !== 'number') line.wordCount = line.sentence.split(/\s+/).filter(w => w).length;
-                                });
-                            });
-                            if (lessons.length) {
-                                const nums = lessons.map(l => parseInt(l.id.replace('r','')) || 0);
-                                nextId = Math.max(...nums) + 1;
-                            } else nextId = 1;
-                            return;
-                        }
-                    }
-                } catch(e) {}
-                lessons = JSON.parse(JSON.stringify(DEFAULT_LESSONS));
-                nextId = lessons.length + 1;
-                saveData();
+        const compEnabled = lesson.page2.comprehension.enabled && lesson.page2.comprehension.questions.length > 0;
+        const findSoundEnabled = lesson.page2.findSound.enabled;
+        const sentenceEnabled = lesson.page2.sentenceWriting.enabled;
+
+        const sectionArray = [compEnabled, findSoundEnabled, sentenceEnabled];
+        const lastEnabledIndex = sectionArray.lastIndexOf(true);
+        const findSoundIsLast = lastEnabledIndex === 1;
+
+        let html = `<div class="header-row"><div class="header-lesson">LESSON <span>${escapeHtml(lesson.lessonNumber)}</span></div><div class="header-title">Comprehension &amp; Phonics</div><div class="header-grade">Grade ${escapeHtml(bookMeta.grade)}</div></div>`;
+
+        if (compEnabled) {
+          html += `<div class="comp-section"><div class="comp-header">A. Comprehension – Choose the best answer.</div>`;
+          lesson.page2.comprehension.questions.forEach((q, idx) => {
+            html += `<div class="comp-q"><div class="qtext">${idx+1}. ${escapeHtml(q.question)}</div>`;
+            if (q.type === 'objective') {
+              q.options.forEach(opt => {
+                html += `<div class="opt"><span class="box-check"></span> ${escapeHtml(opt)}</div>`;
+              });
+            } else {
+              html += `<div class="theory-answer"></div>`;
             }
-            function saveData() {
-                try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ lessons })); }
-                catch(e) { showToast('Storage full – delete some lessons.', 'error'); }
-            }
-            function generateId() { return 'r' + (nextId++); }
-            function countWords(sentence) { return sentence.trim().split(/\s+/).filter(w => w).length; }
+            html += `</div>`;
+          });
+          html += `</div>`;
+        }
 
-            function getCampingSVG() {
-                return `<svg viewBox="0 0 800 350" xmlns="http://www.w3.org/2000/svg" style="background:#1e3a5f;">
-          <circle cx="700" cy="55" r="28" fill="#f5d76e" /><circle cx="695" cy="50" r="5" fill="#f1c40f" />
-          <rect x="0" y="200" width="800" height="150" fill="#2d5a1e" /><rect x="0" y="220" width="800" height="130" fill="#1e4410" />
-          <polygon points="200,200 75,38 325,38" fill="#d35400" /><polygon points="200,200 95,48 305,48" fill="#e67e22" />
-          <path d="M 125 175 L 125 55 L 135 55 L 135 175 Z" fill="#7a2e00" /><path d="M 265 175 L 265 55 L 275 55 L 275 175 Z" fill="#7a2e00" />
-          <circle cx="200" cy="200" r="28" fill="#b91c1c" /><circle cx="200" cy="200" r="18" fill="#f39c12" />
-          <circle cx="210" cy="195" r="7" fill="#f1c40f" /><circle cx="188" cy="206" r="5" fill="#e67e22" />
-          <rect x="470" y="35" width="75" height="115" fill="#a0522d" rx="3" /><polygon points="450,35 507,0 565,35" fill="#b91c1c" />
-          <rect x="510" y="35" width="75" height="115" fill="#a0522d" rx="3" /><polygon points="490,35 547,0 605,35" fill="#b91c1c" />
-          <polygon points="290,38 310,18 330,38" fill="#e67e22" /><polygon points="80,38 100,18 120,38" fill="#e67e22" />
-        </svg>`;
-            }
+        if (findSoundEnabled) {
+          html += `<div class="comp-section ${findSoundIsLast ? 'last-section' : ''}"><div class="comp-header">B. Find the Target Sound</div>`;
+          html += `<div class="comp-inst">${escapeHtml(lesson.page2.findSound.instruction)}</div>`;
+          html += `<div class="activity-blank-large"></div>`;
+          html += `</div>`;
+        }
 
-            function buildPageOne(lesson, pageNum) {
-                const page = document.createElement('div'); page.className = 'page';
-                page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export Page</button></div>`;
-                const card = document.createElement('div'); card.className = 'card';
-                const inner = document.createElement('div'); inner.className = 'inner-pad';
-                let html = `
-          <div class="header-row">
-            <div class="header-lesson">LESSON <span>${escapeHtml(lesson.lessonNumber)}</span></div>
-            <div class="header-title">Reading Practice</div>
-            <div class="header-grade">Grade ${escapeHtml(lesson.grade)}</div>
-          </div>
-          <div class="title-image-row">
-            <div class="title-side">
-              <div class="story-title">${escapeHtml(lesson.title)}</div>
-              <div class="target-pill">Target Sound: ${escapeHtml(lesson.targetSound)}</div>
+        if (sentenceEnabled) {
+          html += `<div class="comp-section"><div class="comp-header">C. Write One Sentence from the Story</div>`;
+          html += `<div class="comp-inst">${escapeHtml(lesson.page2.sentenceWriting.instruction)}</div>`;
+          const numLines = parseInt(lesson.page2.sentenceWriting.numberOfLines) || 1;
+          for (let i = 1; i <= numLines; i++) {
+            html += `<div class="writing-line"><span class="line-number">${i}.</span></div>`;
+          }
+          html += `</div>`;
+        }
+
+        inner.innerHTML = html;
+        card.appendChild(inner);
+        const footer = document.createElement('div'); footer.className = 'page-footer-red'; footer.textContent = pageNum;
+        card.appendChild(footer);
+        page.appendChild(card);
+        return page;
+      }
+
+      function buildImagePage(lesson, pageNum) {
+        const page = document.createElement('div'); page.className = 'page image-only-page';
+        page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export Page</button></div>`;
+        const card = document.createElement('div'); card.className = 'card image-only-page';
+        card.style.justifyContent = 'center';
+        card.style.alignItems = 'center';
+        const imagePlaceholder = document.createElement('div');
+        imagePlaceholder.className = 'image-full-placeholder';
+        if (lesson.imageUrl) {
+          imagePlaceholder.innerHTML = `<img src="${escapeHtml(lesson.imageUrl)}" alt="Full Page Image">`;
+        } else {
+          imagePlaceholder.innerHTML = `<div class="placeholder-text">🖼️ Image Placeholder</div>`;
+        }
+        if (lesson.imagePageLabel && lesson.imagePageLabel.trim() !== '') {
+          const label = document.createElement('div');
+          label.className = 'image-full-label';
+          label.textContent = lesson.imagePageLabel.trim();
+          imagePlaceholder.appendChild(label);
+        }
+        card.appendChild(imagePlaceholder);
+        const footer = document.createElement('div'); footer.className = 'page-footer-red'; footer.textContent = pageNum;
+        card.appendChild(footer);
+        page.appendChild(card);
+        return page;
+      }
+
+      function buildCoverPage() {
+        const page = document.createElement('div'); page.className = 'page';
+        page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export Page</button></div>`;
+        const card = document.createElement('div'); card.className = 'cover-card';
+        card.innerHTML = `<div class="cover-inner"><div class="cover-line"></div><div class="cover-title">${escapeHtml(bookMeta.title)}</div><div class="cover-subtitle">${escapeHtml(bookMeta.subtitle)}</div><div class="cover-line"></div></div>`;
+        page.appendChild(card);
+        return page;
+      }
+      function buildTocPage(pageNum, entries) {
+        const page = document.createElement('div'); page.className = 'page';
+        page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export Page</button></div>`;
+        const card = document.createElement('div'); card.className = 'toc-card';
+        card.innerHTML = `<div class="toc-title">Table of Contents</div><ul class="toc-list">` +
+          entries.map(e => `<li class="toc-item"><span>Lesson ${e.lessonNumber}: ${escapeHtml(e.title)}</span><span class="toc-page-num">Page ${e.firstPage}</span></li>`).join('') +
+          `</ul><div class="toc-page-footer">${pageNum}</div>`;
+        page.appendChild(card);
+        return page;
+      }
+
+      function renderAllView() {
+        const container = document.getElementById('viewContainer');
+        container.innerHTML = '';
+        container.appendChild(buildCoverPage());
+        if (!lessons.length) return;
+        const activeLessons = lessons.filter(l => l.title.trim());
+
+        let pageNum = 1;
+        const tocPageCount = (bookMeta.showToc && activeLessons.length) ? Math.ceil(activeLessons.length / MAX_TOC_PER_PAGE) : 0;
+        pageNum += tocPageCount;
+        const firstLessonPage = pageNum + 1;
+        const tocEntries = [];
+        let runningPage = firstLessonPage;
+
+        activeLessons.forEach((l) => {
+          const entry = { lessonNumber: l.lessonNumber, title: l.title, firstPage: runningPage };
+          tocEntries.push(entry);
+          if (l.showImagePage) runningPage += 3;
+          else runningPage += 2;
+        });
+
+        if (bookMeta.showToc) {
+          for (let p = 0; p < tocPageCount; p++) {
+            const slice = tocEntries.slice(p * MAX_TOC_PER_PAGE, (p + 1) * MAX_TOC_PER_PAGE);
+            container.appendChild(buildTocPage(p + 2, slice));
+          }
+        }
+
+        let currentPage = firstLessonPage;
+        activeLessons.forEach(l => {
+          const spread = document.createElement('div'); spread.className = 'lesson-spread';
+          if (l.showImagePage) {
+            spread.appendChild(buildImagePage(l, currentPage++));
+          }
+          spread.appendChild(buildPageOne(l, currentPage++));
+          spread.appendChild(buildPageTwo(l, currentPage++));
+          container.appendChild(spread);
+        });
+      }
+
+      window.exportSinglePage = function(pageEl) {
+        const clone = pageEl.cloneNode(true);
+        clone.querySelector('.page-actions')?.remove();
+        const win = window.open('', '_blank');
+        const styles = document.querySelector('style').outerHTML;
+        win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Export Page</title>${styles}</head><body style="padding:0;background:#fff;margin:0;display:flex;justify-content:center;"><div class="view-container" style="overflow:visible;display:flex;flex-direction:column;align-items:center;">${clone.outerHTML}</div></body></html>`);
+        win.document.close(); win.focus(); setTimeout(() => win.print(), 500);
+      };
+      window.exportAllPages = function() {
+        if (!lessons.length) return showToast('No lessons to export.', 'warning');
+        const container = document.querySelector('.view-container').cloneNode(true);
+        container.querySelectorAll('.page-actions').forEach(el => el.remove());
+        const win = window.open('', '_blank');
+        const styles = document.querySelector('style').outerHTML;
+        win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>All Pages</title>${styles}</head><body style="padding:0;background:#fff;margin:0;display:flex;justify-content:center;"><div class="view-container" style="overflow:visible;display:flex;flex-direction:column;align-items:center;">${container.outerHTML}</div></body></html>`);
+        win.document.close(); win.focus(); setTimeout(() => win.print(), 500);
+      };
+
+      // ---------- Form Handling ----------
+      let tempPage2 = null;
+      let tempShowImagePage = false;
+      let tempImagePageLabel = DEFAULT_IMAGE_PAGE_LABEL;
+
+      function getFormData() {
+        const storyRaw = document.getElementById('fStory').value;
+        const lines = storyRaw.split('\n').map(s => s.trim()).filter(Boolean);
+        const storyLines = lines.map(s => ({ sentence: s }));
+
+        const page2 = JSON.parse(JSON.stringify(tempPage2));
+        page2.comprehension.questions.forEach(q => {
+          if (q.type === 'objective') {
+            q.options = q.options.map(o => o.trim()).filter(o => o !== '');
+            if (q.options.length < 2) {
+              q.options.push('');
+            }
+            if (q.options.length > MAX_OPTIONS) q.options = q.options.slice(0, MAX_OPTIONS);
+          } else {
+            delete q.options;
+          }
+        });
+
+        return {
+          title: document.getElementById('fTitle').value.trim(),
+          lessonNumber: parseInt(document.getElementById('fLessonNumber').value)||1,
+          imageUrl: document.getElementById('fImageUrl').value.trim(),
+          imageLabel: document.getElementById('fImageLabel').value.trim() || DEFAULT_IMAGE_LABEL,
+          imagePageLabel: document.getElementById('fImagePageLabel').value.trim() || DEFAULT_IMAGE_PAGE_LABEL,
+          targetSound: document.getElementById('fTargetSound').value.trim(),
+          storyLines,
+          page2,
+          showImagePage: tempShowImagePage
+        };
+      }
+
+      function updateImagePreview(src) {
+        const img = document.getElementById('imagePreview'), ph = document.getElementById('imagePreviewPlaceholder');
+        if (src) { img.src = src; img.style.display = 'block'; ph.style.display = 'none'; }
+        else { img.src = ''; img.style.display = 'none'; ph.style.display = 'flex'; }
+      }
+
+      function fillForm(lesson) {
+        document.getElementById('fTitle').value = lesson.title || '';
+        document.getElementById('fLessonNumber').value = lesson.lessonNumber || '';
+        document.getElementById('fImageUrl').value = lesson.imageUrl || '';
+        document.getElementById('fImageLabel').value = lesson.imageLabel || DEFAULT_IMAGE_LABEL;
+        document.getElementById('fImagePageLabel').value = lesson.imagePageLabel || DEFAULT_IMAGE_PAGE_LABEL;
+        document.getElementById('fTargetSound').value = lesson.targetSound || '';
+        document.getElementById('fStory').value = lesson.storyLines.map(l => l.sentence).join('\n');
+        updateImagePreview(lesson.imageUrl || '');
+
+        tempPage2 = JSON.parse(JSON.stringify(lesson.page2 || getDefaultPage2()));
+        if (!tempPage2.comprehension) tempPage2.comprehension = { enabled: true, questions: [] };
+        if (!tempPage2.comprehension.questions) tempPage2.comprehension.questions = [];
+        if (!tempPage2.findSound) tempPage2.findSound = { enabled: true, instruction: 'Find and list all the words in the story with the target sound.' };
+        if (!tempPage2.sentenceWriting) tempPage2.sentenceWriting = { enabled: true, instruction: 'Write any one sentence from the story.', numberOfLines: 1 };
+
+        tempShowImagePage = !!lesson.showImagePage;
+        tempImagePageLabel = lesson.imagePageLabel || DEFAULT_IMAGE_PAGE_LABEL;
+
+        document.getElementById('compToggle').checked = tempPage2.comprehension.enabled;
+        document.getElementById('findSoundToggle').checked = tempPage2.findSound.enabled;
+        document.getElementById('sentenceToggle').checked = tempPage2.sentenceWriting.enabled;
+        document.getElementById('findSoundInstruction').value = tempPage2.findSound.instruction;
+        document.getElementById('sentenceInstruction').value = tempPage2.sentenceWriting.instruction;
+        document.getElementById('sentenceLines').value = tempPage2.sentenceWriting.numberOfLines;
+        document.getElementById('imagePageToggle').checked = tempShowImagePage;
+
+        renderQuestionList();
+      }
+
+      function resetForm() {
+        editingId = null;
+        document.getElementById('formTitle').innerHTML = '<span class="dot"></span> Add New Reader';
+        document.getElementById('fTitle').value = '';
+        document.getElementById('fLessonNumber').value = lessons.length + 1;
+        document.getElementById('fImageUrl').value = '';
+        document.getElementById('fImageLabel').value = DEFAULT_IMAGE_LABEL;
+        document.getElementById('fImagePageLabel').value = DEFAULT_IMAGE_PAGE_LABEL;
+        document.getElementById('fTargetSound').value = '';
+        document.getElementById('fStory').value = '';
+        updateImagePreview('');
+
+        tempPage2 = getDefaultPage2();
+        tempShowImagePage = false;
+        tempImagePageLabel = DEFAULT_IMAGE_PAGE_LABEL;
+
+        document.getElementById('compToggle').checked = true;
+        document.getElementById('findSoundToggle').checked = true;
+        document.getElementById('sentenceToggle').checked = true;
+        document.getElementById('findSoundInstruction').value = tempPage2.findSound.instruction;
+        document.getElementById('sentenceInstruction').value = tempPage2.sentenceWriting.instruction;
+        document.getElementById('sentenceLines').value = 1;
+        document.getElementById('imagePageToggle').checked = false;
+
+        renderQuestionList();
+
+        document.getElementById('saveBtn').textContent = '💾 Save Lesson';
+        document.getElementById('cancelBtn').style.display = 'none';
+      }
+
+      function renderQuestionList() {
+        const container = document.getElementById('compQuestionsContainer');
+        if (!container) return;
+        if (!tempPage2 || !tempPage2.comprehension) return;
+        const questions = tempPage2.comprehension.questions;
+        let html = '';
+        questions.forEach((q, idx) => {
+          html += `<div class="question-card" data-index="${idx}">
+            <div class="q-header">
+              <span class="q-title">Question ${idx+1}</span>
+              <div class="q-controls">
+                <button class="btn btn-outline btn-xs" onclick="moveQuestion(${idx}, -1)" ${idx === 0 ? 'disabled' : ''} title="Move up">▲</button>
+                <button class="btn btn-outline btn-xs" onclick="moveQuestion(${idx}, 1)" ${idx === questions.length-1 ? 'disabled' : ''} title="Move down">▼</button>
+                <button class="btn btn-danger btn-xs" onclick="deleteQuestion(${idx})" title="Delete">🗑️</button>
+              </div>
             </div>
-            <div class="story-img-container">
-              ${lesson.imageUrl 
-                ? `<img src="${escapeHtml(lesson.imageUrl)}" alt="Story Image">` 
-                : `<div class="story-img-placeholder">${getCampingSVG()}</div>`}
+            <div class="form-group">
+              <label>Type</label>
+              <select onchange="changeQuestionType(${idx}, this.value)">
+                <option value="objective" ${q.type === 'objective' ? 'selected' : ''}>Objective (Multiple Choice)</option>
+                <option value="theory" ${q.type === 'theory' ? 'selected' : ''}>Theory (Open Ended)</option>
+              </select>
             </div>
-          </div>
-          <div class="story-lines-area">`;
-                let runningTotal = 0;
-                lesson.storyLines.forEach(line => {
-                    const wc = typeof line.wordCount === 'number' ? line.wordCount : countWords(line.sentence);
-                    runningTotal += wc;
-                    html += `<div class="story-line"><span class="sentence">${escapeHtml(line.sentence)}</span><span class="wc">${runningTotal}</span></div>`;
-                });
-                // Removed the Word Count pill
-                html += `</div>`;
-                html += `
-          <div class="parent-corner">
-            <div class="pc-header">PARENT CORNER</div>
-            <div class="pc-body">
-              <p>Parents are to listen to their child read aloud every day. Please kindly record your child's daily reading progress in the table below. Your consistent support plays a vital role in building their reading fluency and confidence.</p>
-              <table class="parent-table">
-                <thead><tr><th></th><th>Monday</th><th>Tuesday</th><th>Wednesday</th><th>Thursday</th><th>Friday</th></tr></thead>
-                <tbody>
-                  <tr><td>Minutes Read</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
-                  <tr><td>Words Read</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
-                  <tr><td>Errors</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
-                  <tr><td>Parent Initials</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>`;
-                inner.innerHTML = html;
-                card.appendChild(inner);
-                const footer = document.createElement('div'); footer.className = 'page-footer-red'; footer.textContent = pageNum;
-                card.appendChild(footer);
-                page.appendChild(card);
-                return page;
-            }
+            <div class="form-group">
+              <label>Question Text</label>
+              <input type="text" value="${escapeHtml(q.question)}" onchange="updateQuestionText(${idx}, this.value)">
+            </div>`;
+          if (q.type === 'objective') {
+            html += `<div class="form-group">
+              <label>Options (2-5)</label>`;
+            q.options.forEach((opt, optIdx) => {
+              html += `<div class="option-row">
+                <input type="text" value="${escapeHtml(opt)}" placeholder="Option ${optIdx+1}" onchange="updateOption(${idx}, ${optIdx}, this.value)">
+                <button class="btn btn-danger btn-xs" onclick="deleteOption(${idx}, ${optIdx})" ${q.options.length <= 2 ? 'disabled' : ''}>✕</button>
+              </div>`;
+            });
+            html += `<button class="btn btn-outline btn-xs add-option-btn" onclick="addOption(${idx})" ${q.options.length >= MAX_OPTIONS ? 'disabled' : ''}>+ Add Option</button>
+            </div>`;
+          }
+          html += `</div>`;
+        });
+        if (questions.length === 0) {
+          html = '<p style="color:#94a3b8; text-align:center; padding:12px;">No questions yet. Click "Add Question" to create.</p>';
+        }
+        container.innerHTML = html;
+      }
 
-            function buildPageTwo(lesson, pageNum) {
-                const page = document.createElement('div'); page.className = 'page';
-                page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export Page</button></div>`;
-                const card = document.createElement('div'); card.className = 'card';
-                const inner = document.createElement('div'); inner.className = 'inner-pad';
-                let html = `
-          <div class="header-row">
-            <div class="header-lesson">LESSON <span>${escapeHtml(lesson.lessonNumber)}</span></div>
-            <div class="header-title">Comprehension &amp; Phonics</div>
-            <div class="header-grade">Grade ${escapeHtml(lesson.grade)}</div>
-          </div>`;
-                html += `<div class="comp-section"><div class="comp-header">A. Comprehension – Choose the best answer.</div>`;
-                lesson.comprehension.forEach((q, idx) => {
-                    html += `<div class="comp-q"><div class="qtext">${idx+1}. ${escapeHtml(q.question)}</div>`;
-                    q.options.forEach(opt => html += `<div class="opt"><span class="box-check"></span> ${escapeHtml(opt)}</div>`);
-                    html += `</div>`;
-                });
-                html += `</div>`;
-                html += `<div class="comp-section"><div class="comp-header">B. Find the Target Sound</div><div class="comp-inst">Find and list all the words in the story with the ${escapeHtml(lesson.targetSound)} sound. Write them in the box below.</div><div class="activity-blank-large"></div></div>`;
-                html += `<div class="comp-section"><div class="comp-header">C. Write One Sentence from the Story</div><div class="comp-inst">Write any one sentence from the story.</div><div class="writing-line" style="height:56px;"></div></div>`;
-                inner.innerHTML = html;
-                card.appendChild(inner);
-                const footer = document.createElement('div'); footer.className = 'page-footer-red'; footer.textContent = pageNum;
-                card.appendChild(footer);
-                page.appendChild(card);
-                return page;
-            }
+      window.addQuestion = function() {
+        if (!tempPage2) return;
+        tempPage2.comprehension.questions.push({
+          id: generateQuestionId(),
+          type: 'objective',
+          question: '',
+          options: ['', '', '']
+        });
+        renderQuestionList();
+      };
+      window.deleteQuestion = function(idx) {
+        if (!tempPage2) return;
+        tempPage2.comprehension.questions.splice(idx, 1);
+        renderQuestionList();
+      };
+      window.moveQuestion = function(idx, dir) {
+        if (!tempPage2) return;
+        const arr = tempPage2.comprehension.questions;
+        const newIdx = idx + dir;
+        if (newIdx < 0 || newIdx >= arr.length) return;
+        const temp = arr[idx];
+        arr[idx] = arr[newIdx];
+        arr[newIdx] = temp;
+        renderQuestionList();
+      };
+      window.changeQuestionType = function(idx, type) {
+        if (!tempPage2) return;
+        const q = tempPage2.comprehension.questions[idx];
+        if (!q) return;
+        q.type = type;
+        if (type === 'objective' && !q.options) {
+          q.options = ['', '', ''];
+        } else if (type === 'theory') {
+          delete q.options;
+        }
+        renderQuestionList();
+      };
+      window.updateQuestionText = function(idx, value) {
+        if (!tempPage2) return;
+        const q = tempPage2.comprehension.questions[idx];
+        if (!q) return;
+        q.question = value.trim();
+      };
+      window.updateOption = function(qIdx, optIdx, value) {
+        if (!tempPage2) return;
+        const q = tempPage2.comprehension.questions[qIdx];
+        if (!q || !q.options) return;
+        q.options[optIdx] = value.trim();
+        renderQuestionList();
+      };
+      window.addOption = function(qIdx) {
+        if (!tempPage2) return;
+        const q = tempPage2.comprehension.questions[qIdx];
+        if (!q || !q.options) return;
+        if (q.options.length < MAX_OPTIONS) {
+          q.options.push('');
+          renderQuestionList();
+        }
+      };
+      window.deleteOption = function(qIdx, optIdx) {
+        if (!tempPage2) return;
+        const q = tempPage2.comprehension.questions[qIdx];
+        if (!q || !q.options) return;
+        if (q.options.length > 2) {
+          q.options.splice(optIdx, 1);
+          renderQuestionList();
+        }
+      };
 
-            function renderAllView() {
-                const container = document.getElementById('viewContainer');
-                container.innerHTML = '';
-                if (!lessons.length) {
-                    container.innerHTML = '<div style="padding:60px;text-align:center;color:#64748b;font-size:15px;">📭 No lessons yet. Create one in the <strong>Edit</strong> tab.</div>';
-                    return;
-                }
-                lessons.forEach((l, idx) => {
-                    const spread = document.createElement('div'); spread.className = 'lesson-spread';
-                    spread.appendChild(buildPageOne(l, idx*2+1));
-                    spread.appendChild(buildPageTwo(l, idx*2+2));
-                    container.appendChild(spread);
-                });
-            }
+      window.toggleSection = function(section, checked) {
+        if (!tempPage2) return;
+        if (section === 'comp') tempPage2.comprehension.enabled = checked;
+        else if (section === 'findSound') tempPage2.findSound.enabled = checked;
+        else if (section === 'sentence') tempPage2.sentenceWriting.enabled = checked;
+        renderQuestionList();
+      };
+      window.updateFindSoundInstruction = function(value) {
+        if (!tempPage2) return;
+        tempPage2.findSound.instruction = value;
+      };
+      window.updateSentenceInstruction = function(value) {
+        if (!tempPage2) return;
+        tempPage2.sentenceWriting.instruction = value;
+      };
+      window.updateSentenceLines = function(value) {
+        if (!tempPage2) return;
+        tempPage2.sentenceWriting.numberOfLines = parseInt(value) || 1;
+      };
+      window.toggleImagePage = function(checked) {
+        tempShowImagePage = checked;
+      };
 
-            window.exportSinglePage = function(pageEl) {
-                const clone = pageEl.cloneNode(true);
-                clone.querySelector('.page-actions')?.remove();
-                const win = window.open('', '_blank');
-                const styles = document.querySelector('style').outerHTML;
-                win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Export Page</title>${styles}</head><body style="padding:0;background:#fff;margin:0;display:flex;justify-content:center;"><div class="view-container" style="overflow:visible;display:flex;flex-direction:column;align-items:center;">${clone.outerHTML}</div></body></html>`);
-                win.document.close(); win.focus(); setTimeout(() => win.print(), 500);
-            };
-            window.exportAllPages = function() {
-                if (!lessons.length) return showToast('No lessons to export.', 'warning');
-                const container = document.querySelector('.view-container').cloneNode(true);
-                container.querySelectorAll('.page-actions').forEach(el => el.remove());
-                const win = window.open('', '_blank');
-                const styles = document.querySelector('style').outerHTML;
-                win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>All Pages</title>${styles}</head><body style="padding:0;background:#fff;margin:0;display:flex;justify-content:center;"><div class="view-container" style="overflow:visible;display:flex;flex-direction:column;align-items:center;">${container.outerHTML}</div></body></html>`);
-                win.document.close(); win.focus(); setTimeout(() => win.print(), 500);
-            };
+      // ---------- Save / Edit / Delete etc ----------
+      window.handleImageUpload = function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        if (file.size > MAX_IMAGE_SIZE) { showToast('Image must be less than 2 MB.', 'error'); event.target.value = ''; return; }
+        if (!file.type.startsWith('image/')) { showToast('Please select a valid image file.', 'error'); event.target.value = ''; return; }
+        const reader = new FileReader();
+        reader.onload = e => {
+          const dataUrl = e.target.result;
+          document.getElementById('fImageUrl').value = dataUrl;
+          updateImagePreview(dataUrl);
+          showToast('Image uploaded and embedded!', 'success');
+        };
+        reader.readAsDataURL(file);
+      };
+      window.editLesson = function(id) {
+        const lesson = lessons.find(l => l.id === id);
+        if (!lesson) return showToast('Lesson not found.', 'error');
+        editingId = id;
+        document.getElementById('formTitle').innerHTML = '<span class="dot" style="background:#2563eb;"></span> Edit Reader';
+        fillForm(lesson);
+        document.getElementById('saveBtn').textContent = '💾 Update Lesson';
+        document.getElementById('cancelBtn').style.display = 'inline-flex';
+        document.querySelector('.form-section').scrollIntoView({behavior:'smooth'});
+      };
+      window.cancelEdit = function() { resetForm(); showToast('Edit cancelled.', 'info'); };
+      window.saveLesson = function() {
+        const data = getFormData();
+        if (!data.title || !data.targetSound || data.storyLines.length < 5 || data.page2.comprehension.questions.length === 0) {
+          return showToast('Please fill all required fields (title, target sound, at least 5 story lines, and at least 1 comprehension question).', 'error');
+        }
+        if (editingId) {
+          const idx = lessons.findIndex(l => l.id === editingId);
+          if (idx === -1) return showToast('Not found.', 'error');
+          data.lessonNumber = idx + 1;
+          lessons[idx] = { ...lessons[idx], ...data, id: editingId };
+        } else {
+          data.lessonNumber = lessons.length + 1;
+          lessons.push({ ...data, id: generateId() });
+        }
+        saveData(); resetForm(); refreshUI(); showToast('Lesson saved!', 'success');
+      };
+      window.deleteLesson = function(id) {
+        const l = lessons.find(l => l.id === id);
+        if (!l) return;
+        confirmDialog(`Delete "<strong>${escapeHtml(l.title)}</strong>"?`, () => {
+          lessons = lessons.filter(l => l.id !== id);
+          if (editingId === id) resetForm();
+          renumberByOrder(lessons);
+          saveData(); refreshUI();
+        });
+      };
+      window.duplicateLesson = function(id) {
+        const l = lessons.find(l => l.id === id);
+        if (!l) return;
+        const copy = JSON.parse(JSON.stringify(l));
+        delete copy.id; copy.id = generateId();
+        lessons.push(copy);
+        renumberByOrder(lessons);
+        saveData(); refreshUI(); showToast('Duplicated.', 'success');
+      };
+      window.exportJSON = function() {
+        const payload = { lessons, bookMeta };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'readers.json'; a.click();
+      };
+      window.importJSON = function(input) {
+        const file = input.files[0]; if (!file) return;
+        const reader = new FileReader();
+        reader.onload = e => {
+          try {
+            const data = JSON.parse(e.target.result);
+            if (!data || typeof data !== 'object') throw new Error('Invalid');
+            const importedLessons = Array.isArray(data.lessons) ? data.lessons : [];
+            const validated = importedLessons.map(l => migrateLesson({
+              id: String(l.id || ''),
+              lessonNumber: typeof l.lessonNumber === 'number' ? l.lessonNumber : 0,
+              imageUrl: String(l.imageUrl || ''),
+              title: String(l.title || 'Untitled'),
+              targetSound: String(l.targetSound || ''),
+              imageLabel: String(l.imageLabel ?? DEFAULT_IMAGE_LABEL),
+              imagePageLabel: String(l.imagePageLabel ?? DEFAULT_IMAGE_PAGE_LABEL),
+              storyLines: (Array.isArray(l.storyLines) ? l.storyLines : []).map(sl => ({ sentence: String(sl.sentence || '') })).filter(sl => sl.sentence.trim() !== ''),
+              comprehension: Array.isArray(l.comprehension) ? l.comprehension : [],
+              showImagePage: typeof l.showImagePage === 'boolean' ? l.showImagePage : false,
+              page2: l.page2
+            })).filter(l => l.id);
+            if (validated.length === 0) throw new Error('No valid lessons');
+            confirmDialog('Replace all lessons with imported data?', () => {
+              lessons = validated;
+              bookMeta = data.bookMeta || { title: 'Decodable Readers', subtitle: 'Grade 1', grade: '1', showToc: true };
+              bookMeta.grade = String(bookMeta.grade || '1');
+              bookMeta.showToc = (typeof bookMeta.showToc === 'boolean') ? bookMeta.showToc : true;
+              renumberByOrder(lessons);
+              nextId = Math.max(...lessons.map(l => parseInt(l.id.replace('r','')) || 0), 0) + 1;
+              saveData(); resetForm(); refreshUI(); showToast('Imported successfully.', 'success');
+            });
+          } catch(err) { showToast('Invalid JSON file.', 'error'); }
+        };
+        reader.readAsText(file);
+        input.value = '';
+      };
 
-            function getFormData() {
-                const storyRaw = document.getElementById('fStory').value;
-                const lines = storyRaw.split('\n').map(s => s.trim()).filter(Boolean);
-                const storyLines = lines.map(s => ({ sentence: s, wordCount: countWords(s) }));
-                const comp = [];
-                for (let i=1; i<=3; i++) {
-                    const q = document.getElementById('fQ'+i).value.trim();
-                    const o1 = document.getElementById('fQ'+i+'O1').value.trim();
-                    const o2 = document.getElementById('fQ'+i+'O2').value.trim();
-                    const o3 = document.getElementById('fQ'+i+'O3').value.trim();
-                    if (q && o1 && o2 && o3) comp.push({ question: q, options: [o1, o2, o3] });
-                }
-                return {
-                    title: document.getElementById('fTitle').value.trim(),
-                    lessonNumber: parseInt(document.getElementById('fLessonNumber').value.trim()) || 1,
-                    grade: document.getElementById('fGrade').value.trim(),
-                    imageUrl: document.getElementById('fImageUrl').value.trim(),
-                    targetSound: document.getElementById('fTargetSound').value.trim(),
-                    storyLines,
-                    comprehension: comp
-                };
-            }
+      window.saveBookMeta = function() {
+        bookMeta.title = document.getElementById('coverTitleInput').value.trim() || 'Decodable Readers';
+        bookMeta.subtitle = document.getElementById('coverSubtitleInput').value.trim() || 'Grade 1';
+        bookMeta.grade = document.getElementById('globalGradeInput').value.trim() || '1';
+        bookMeta.showToc = document.getElementById('tocToggle').checked;
+        saveData();
+        renderAllView();
+        renderTocPreview();
+        updateCounts();
+        showToast('Cover & TOC settings saved.', 'success');
+      };
 
-            function fillForm(lesson) {
-                document.getElementById('fTitle').value = lesson.title || '';
-                document.getElementById('fLessonNumber').value = lesson.lessonNumber || '';
-                document.getElementById('fGrade').value = lesson.grade || '3';
-                document.getElementById('fImageUrl').value = lesson.imageUrl || '';
-                document.getElementById('fTargetSound').value = lesson.targetSound || '';
-                document.getElementById('fStory').value = lesson.storyLines.map(l => l.sentence).join('\n');
-                for (let i=0; i<3; i++) {
-                    const q = lesson.comprehension[i] || { question: '', options: ['','',''] };
-                    document.getElementById('fQ'+(i+1)).value = q.question || '';
-                    document.getElementById('fQ'+(i+1)+'O1').value = q.options[0] || '';
-                    document.getElementById('fQ'+(i+1)+'O2').value = q.options[1] || '';
-                    document.getElementById('fQ'+(i+1)+'O3').value = q.options[2] || '';
-                }
-            }
-
-            function resetForm() {
-                editingId = null;
-                document.getElementById('formTitle').innerHTML = '<span class="dot"></span> Add New Reader';
-                document.getElementById('fTitle').value = '';
-                document.getElementById('fLessonNumber').value = '';
-                document.getElementById('fGrade').value = '3';
-                document.getElementById('fImageUrl').value = '';
-                document.getElementById('fTargetSound').value = '';
-                document.getElementById('fStory').value = '';
-                for (let i=1; i<=3; i++) {
-                    document.getElementById('fQ'+i).value = '';
-                    document.getElementById('fQ'+i+'O1').value = '';
-                    document.getElementById('fQ'+i+'O2').value = '';
-                    document.getElementById('fQ'+i+'O3').value = '';
-                }
-                document.getElementById('saveBtn').textContent = '💾 Save Lesson';
-                document.getElementById('cancelBtn').style.display = 'none';
-            }
-
-            window.editLesson = function(id) {
-                const lesson = lessons.find(l => l.id === id);
-                if (!lesson) return showToast('Lesson not found.', 'error');
-                editingId = id;
-                document.getElementById('formTitle').innerHTML = '<span class="dot" style="background:#2563eb;"></span> Edit Reader';
-                fillForm(lesson);
-                document.getElementById('saveBtn').textContent = '💾 Update Lesson';
-                document.getElementById('cancelBtn').style.display = 'inline-flex';
-                document.querySelector('.form-section').scrollIntoView({behavior:'smooth'});
-            };
-            window.cancelEdit = function() { resetForm(); showToast('Edit cancelled.', 'info'); };
-
-            window.saveLesson = function() {
-                const data = getFormData();
-                if (!data.title || !data.lessonNumber || !data.targetSound || data.storyLines.length < 5 || data.comprehension.length < 3) {
-                    return showToast('Please fill all required fields.', 'error');
-                }
-                if (editingId) {
-                    const idx = lessons.findIndex(l => l.id === editingId);
-                    if (idx === -1) return showToast('Not found.', 'error');
-                    lessons[idx] = { ...lessons[idx], ...data, id: editingId };
-                } else {
-                    lessons.push({ ...data, id: generateId() });
-                }
-                saveData(); resetForm(); refreshUI(); showToast('Lesson saved!', 'success');
-            };
-            window.deleteLesson = function(id) {
-                const l = lessons.find(l => l.id === id);
-                if (!l) return;
-                confirmDialog(`Delete "<strong>${escapeHtml(l.title)}</strong>"?`, () => {
-                    lessons = lessons.filter(l => l.id !== id);
-                    if (editingId === id) resetForm();
-                    saveData(); refreshUI();
-                });
-            };
-            window.duplicateLesson = function(id) {
-                const l = lessons.find(l => l.id === id);
-                if (!l) return;
-                const copy = JSON.parse(JSON.stringify(l));
-                delete copy.id; copy.id = generateId();
-                lessons.push(copy); saveData(); refreshUI(); showToast('Duplicated.', 'success');
-            };
-            window.exportJSON = function() {
-                const blob = new Blob([JSON.stringify({ lessons }, null, 2)], {type:'application/json'});
-                const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'readers.json'; a.click();
-            };
-            window.importJSON = function(input) {
-                const file = input.files[0]; if (!file) return;
-                const reader = new FileReader();
-                reader.onload = e => {
-                    try {
-                        const data = JSON.parse(e.target.result);
-                        if (!data || !Array.isArray(data.lessons)) throw new Error('Invalid');
-                        confirmDialog('Replace all data with imported file?', () => {
-                            lessons = data.lessons.map(l => {
-                                if (!l.id) l.id = generateId();
-                                if (!l.storyLines) l.storyLines = [];
-                                if (!l.comprehension) l.comprehension = [];
-                                if (!l.grade) l.grade = "3";
-                                if (!l.imageUrl) l.imageUrl = "";
-                                l.storyLines.forEach(line => { if (typeof line.wordCount !== 'number') line.wordCount = countWords(line.sentence); });
-                                return l;
-                            });
-                            saveData(); resetForm(); refreshUI(); showToast('Imported.', 'success');
-                        });
-                    } catch(err) { showToast('Invalid JSON.', 'error'); }
-                };
-                reader.readAsText(file); input.value = '';
-            };
-
-            function renderEditList() {
-                const container = document.getElementById('lessonList');
-                const q = searchQuery.toLowerCase();
-                const filtered = lessons.filter(l => !q || l.title.toLowerCase().includes(q) || l.targetSound.toLowerCase().includes(q) || l.storyLines.some(line => line.sentence.toLowerCase().includes(q)) || l.comprehension.some(c => c.question.toLowerCase().includes(q) || c.options.some(o => o.toLowerCase().includes(q))));
-                container.innerHTML = filtered.length ? filtered.map(l => `
+      function renderEditList() {
+        const container = document.getElementById('lessonList');
+        const q = (window.searchQuery||'').toLowerCase();
+        const filtered = lessons.filter(l => !q || l.title.toLowerCase().includes(q) || l.targetSound.toLowerCase().includes(q) || l.storyLines.some(sl => sl.sentence.toLowerCase().includes(q)) || (l.page2?.comprehension?.questions || []).some(c => c.question.toLowerCase().includes(q) || (c.options || []).some(o => o.toLowerCase().includes(q))));
+        container.innerHTML = filtered.length ? filtered.map(l => `
           <div class="lesson-item" draggable="true" data-id="${l.id}">
             <span class="drag-handle" title="Drag to reorder">⋮⋮</span>
             <div class="info">
-              <div class="title">Lesson ${l.lessonNumber || '?'} — ${escapeHtml(l.title)}</div>
-              <div class="sub">🎯 ${escapeHtml(l.targetSound)} · 📝 ${l.storyLines.length} lines · 🏫 Grade ${l.grade||'3'}</div>
+              <div class="title">Lesson ${l.lessonNumber} — ${escapeHtml(l.title)}</div>
+              <div class="sub">🎯 ${escapeHtml(l.targetSound)} · 📝 ${l.storyLines.length} lines · 🏫 Grade ${escapeHtml(bookMeta.grade)} · 📚 ${l.page2?.comprehension?.questions?.length || 0} questions ${l.showImagePage ? '· 🖼️ Image Page' : ''}</div>
             </div>
             <div class="actions">
               <button class="btn btn-primary btn-xs" onclick="editLesson('${l.id}')" title="Edit">✏️</button>
@@ -628,28 +1073,69 @@
               <button class="btn btn-danger btn-xs" onclick="deleteLesson('${l.id}')" title="Delete">🗑️</button>
             </div>
           </div>`).join('') : '<div class="empty-state"><div class="icon">📭</div><h3>No lessons found</h3></div>';
-                document.getElementById('listCount').textContent = filtered.length + ' / ' + lessons.length;
-                updateCounts();
-            }
-            function updateCounts() {
-                document.getElementById('lessonCount').textContent = lessons.length + ' lessons';
-                document.getElementById('viewInfo').textContent = `📄 ${lessons.length} lessons · ${lessons.length*2} pages`;
-            }
-            function refreshUI() { renderEditList(); renderAllView(); updateCounts(); }
+        document.getElementById('listCount').textContent = filtered.length + ' / ' + lessons.length;
+        updateCounts();
+      }
+      function updateCounts() {
+        document.getElementById('lessonCount').textContent = lessons.length + ' lessons';
+        const activeLessons = lessons.filter(l => l.title.trim());
+        const tocPages = (bookMeta.showToc && activeLessons.length) ? Math.ceil(activeLessons.length / MAX_TOC_PER_PAGE) : 0;
+        let lessonPages = 0;
+        activeLessons.forEach(l => {
+          lessonPages += l.showImagePage ? 3 : 2;
+        });
+        const totalPages = 1 + tocPages + lessonPages;
+        document.getElementById('viewInfo').textContent = `📄 ${lessons.length} lessons · ${totalPages} pages (Grade ${bookMeta.grade})`;
+      }
+      function refreshUI() { renderEditList(); renderAllView(); updateCounts(); renderTocPreview(); }
 
-            window.switchTab = function(tab) {
-                document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
-                document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === tab+'Panel'));
-                if (tab === 'edit') renderEditList();
-                if (tab === 'view') renderAllView();
-                updateCounts();
-            };
+      function renderTocPreview() {
+        const tocPreview = document.getElementById('tocPreview');
+        if (!tocPreview) return;
+        if (!bookMeta.showToc) {
+          tocPreview.innerHTML = '<p style="color:#64748b; font-style:italic;">Table of Contents is disabled.</p>';
+          return;
+        }
+        const activeLessons = lessons.filter(l => l.title.trim());
+        if (!activeLessons.length) {
+          tocPreview.innerHTML = '<p style="color:#64748b;">No active lessons.</p>';
+          return;
+        }
+        const tocPageCount = Math.ceil(activeLessons.length / MAX_TOC_PER_PAGE);
+        const firstLessonPage = 1 + tocPageCount + 1;
+        let runningPage = firstLessonPage;
+        let html = '<ul style="list-style:none;padding:0;margin:0;">';
+        activeLessons.forEach(l => {
+          html += `<li style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #e2e8f0;"><span>Lesson ${l.lessonNumber}: ${escapeHtml(l.title)}</span><span style="color:#b91c1c;font-weight:700;">Page ${runningPage}</span></li>`;
+          runningPage += l.showImagePage ? 3 : 2;
+        });
+        html += '</ul>';
+        tocPreview.innerHTML = html;
+      }
 
-            loadData();
-            document.getElementById('app').innerHTML = `
+      window.switchTab = function(tab) {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === tab+'Panel'));
+        if (tab === 'edit') renderEditList();
+        if (tab === 'view') renderAllView();
+        if (tab === 'book') {
+          document.getElementById('coverTitleInput').value = bookMeta.title;
+          document.getElementById('coverSubtitleInput').value = bookMeta.subtitle;
+          document.getElementById('globalGradeInput').value = bookMeta.grade;
+          document.getElementById('tocToggle').checked = bookMeta.showToc;
+          renderTocPreview();
+        }
+        updateCounts();
+      };
+
+      // ---------- Initialization ----------
+      loadData();
+
+      document.getElementById('app').innerHTML = `
         <div class="app-header"><h1><span class="icon">📖</span> Decodable Reader Publisher</h1><span class="badge" id="lessonCount">0</span></div>
         <div class="tabs">
           <button class="tab-btn active" data-tab="edit" onclick="switchTab('edit')">✏️ Edit Readers</button>
+          <button class="tab-btn" data-tab="book" onclick="switchTab('book')">📘 Book Setup</button>
           <button class="tab-btn" data-tab="view" onclick="switchTab('view')">👁️ Preview &amp; Export</button>
         </div>
         <div class="tab-panel active" id="editPanel">
@@ -658,24 +1144,53 @@
               <h2 id="formTitle"><span class="dot"></span> Add New Reader</h2>
               <div class="form-row">
                 <div class="form-group"><label>Title <span class="req">*</span></label><input id="fTitle" placeholder="e.g. Ben's Camping Trip"></div>
-                <div class="form-group"><label>Lesson Number <span class="req">*</span></label><input id="fLessonNumber" type="number" placeholder="12"></div>
-                <div class="form-group"><label>Grade <span class="req">*</span></label><input id="fGrade" placeholder="3"></div>
-                <div class="form-group"><label>Image URL</label><input id="fImageUrl" placeholder="Paste link (optional)"></div>
+                <div class="form-group"><label>Lesson Number (auto)</label><input id="fLessonNumber" type="number" readonly style="background:#f0f0f0;"></div>
+                <div class="form-group"><label>Image (for full-page image page if enabled)</label>
+                  <div class="image-upload-wrap">
+                    <img id="imagePreview" class="preview" style="display:none;">
+                    <div id="imagePreviewPlaceholder" class="preview-placeholder">🖼️</div>
+                    <input type="file" id="imageUploadFile" accept="image/*" onchange="handleImageUpload(event)">
+                    <input type="hidden" id="fImageUrl">
+                  </div>
+                </div>
+              </div>
+              <div class="form-group"><label>Full-Page Image Label</label><input id="fImagePageLabel" placeholder="e.g. Picture Page" value="${escapeHtml(DEFAULT_IMAGE_PAGE_LABEL)}"></div>
+              <div class="form-group" style="display:flex;align-items:center;gap:10px;margin-top:16px;">
+                <input type="checkbox" id="imagePageToggle" onchange="toggleImagePage(this.checked)" style="width:18px;height:18px;accent-color:#f59e0b;">
+                <label for="imagePageToggle" style="margin:0;font-weight:600;">Include full-page image placeholder before reading page</label>
               </div>
               <div class="form-group"><label>Target Sound <span class="req">*</span></label><input id="fTargetSound" placeholder="short e (/ɛ/)"></div>
               <div class="form-group"><label>Story Text <span class="req">*</span></label><textarea id="fStory" rows="8" placeholder="One sentence per line..."></textarea></div>
               <hr style="margin:16px 0;border-color:#e2e8f0;">
-              <h4 style="margin-bottom:12px;">📋 Comprehension (3 required)</h4>
-              ${[1,2,3].map(i => `
-                <div style="background:#fff;padding:12px;border-radius:10px;border:1px solid #e2e8f0;margin-bottom:10px;">
-                  <div class="form-group"><label>Question ${i} <span class="req">*</span></label><input id="fQ${i}" placeholder="Question"></div>
-                  <div class="form-row">
-                    <div class="form-group"><label>Option A</label><input id="fQ${i}O1"></div>
-                    <div class="form-group"><label>Option B</label><input id="fQ${i}O2"></div>
-                    <div class="form-group"><label>Option C</label><input id="fQ${i}O3"></div>
-                  </div>
-                </div>
-              `).join('')}
+              <h4 style="margin-bottom:12px;">📋 Page 2 Activities</h4>
+              <div class="form-group" style="display:flex;align-items:center;gap:10px;">
+                <input type="checkbox" id="compToggle" onchange="toggleSection('comp', this.checked)" style="width:18px;height:18px;accent-color:#f59e0b;">
+                <label for="compToggle" style="margin:0;font-weight:600;">Comprehension Section</label>
+              </div>
+              <div id="compQuestionsContainer" style="margin-bottom:16px;"></div>
+              <button class="btn btn-outline btn-sm" onclick="addQuestion()">+ Add Question</button>
+              <hr style="margin:16px 0;border-color:#e2e8f0;">
+              <div class="form-group" style="display:flex;align-items:center;gap:10px;">
+                <input type="checkbox" id="findSoundToggle" onchange="toggleSection('findSound', this.checked)" style="width:18px;height:18px;accent-color:#f59e0b;">
+                <label for="findSoundToggle" style="margin:0;font-weight:600;">Find Sound Section</label>
+              </div>
+              <div class="form-group">
+                <label>Find Sound Instruction</label>
+                <textarea id="findSoundInstruction" rows="2" onchange="updateFindSoundInstruction(this.value)"></textarea>
+              </div>
+              <hr style="margin:16px 0;border-color:#e2e8f0;">
+              <div class="form-group" style="display:flex;align-items:center;gap:10px;">
+                <input type="checkbox" id="sentenceToggle" onchange="toggleSection('sentence', this.checked)" style="width:18px;height:18px;accent-color:#f59e0b;">
+                <label for="sentenceToggle" style="margin:0;font-weight:600;">Sentence Writing Section</label>
+              </div>
+              <div class="form-group">
+                <label>Sentence Writing Instruction</label>
+                <textarea id="sentenceInstruction" rows="2" onchange="updateSentenceInstruction(this.value)"></textarea>
+              </div>
+              <div class="form-group">
+                <label>Number of Lines</label>
+                <input type="number" id="sentenceLines" min="1" max="10" value="1" onchange="updateSentenceLines(this.value)">
+              </div>
               <div class="form-actions">
                 <button class="btn btn-primary" id="saveBtn" onclick="saveLesson()">💾 Save Lesson</button>
                 <button class="btn btn-outline" id="cancelBtn" onclick="cancelEdit()" style="display:none">Cancel</button>
@@ -684,7 +1199,7 @@
             <div class="list-section">
               <h2>📖 All Readers</h2>
               <div class="list-toolbar">
-                <input class="search-box" id="searchInput" placeholder="🔍 Search..." oninput="searchQuery=this.value;renderEditList()">
+                <input class="search-box" id="searchInput" placeholder="🔍 Search..." oninput="window.searchQuery=this.value;renderEditList()">
                 <span class="count" id="listCount">0/0</span>
                 <button class="btn btn-success btn-sm" onclick="exportJSON()">📤 Export JSON</button>
                 <button class="btn btn-outline btn-sm" onclick="document.getElementById('importFile').click()">📥 Import</button>
@@ -694,53 +1209,81 @@
             </div>
           </div>
         </div>
+        <div class="tab-panel" id="bookPanel">
+          <div style="max-width:600px;margin:0 auto;">
+            <h2 style="margin-bottom:20px;">📘 Book Cover &amp; TOC</h2>
+            <div class="form-section" style="position:static;max-height:none;">
+              <div class="form-group"><label>Cover Title</label><input id="coverTitleInput" value="${escapeHtml(bookMeta.title)}"></div>
+              <div class="form-group"><label>Cover Subtitle</label><input id="coverSubtitleInput" value="${escapeHtml(bookMeta.subtitle)}"></div>
+              <div class="form-group"><label>Global Grade</label><input id="globalGradeInput" value="${escapeHtml(bookMeta.grade)}" placeholder="e.g. 1, 2, K"></div>
+              <div class="form-group" style="display:flex;align-items:center;gap:12px;margin-top:16px;">
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600;font-size:14px;">
+                  <input type="checkbox" id="tocToggle" onchange="bookMeta.showToc=this.checked;saveBookMeta()" style="width:18px;height:18px;accent-color:#f59e0b;"> Include Table of Contents
+                </label>
+              </div>
+              <button class="btn btn-primary" onclick="saveBookMeta()">💾 Save Cover & TOC Settings</button>
+            </div>
+            <div style="margin-top:24px;">
+              <h3 style="margin-bottom:12px;">📋 Table of Contents Preview</h3>
+              <div style="background:var(--surface-alt);border-radius:var(--radius-lg);padding:16px;border:1px solid var(--border);">
+                <div id="tocPreview" style="font-size:14px;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
         <div class="tab-panel" id="viewPanel">
           <div class="view-toolbar"><span class="info" id="viewInfo">0 lessons</span><button class="btn btn-success" onclick="exportAllPages()">⬇ Export All</button></div>
           <div class="view-container" id="viewContainer"></div>
         </div>`;
 
-            resetForm();
-            if (lessons.length) fillForm(lessons[0]);
-            renderEditList(); renderAllView(); updateCounts();
+      resetForm();
+      if (lessons.length) fillForm(lessons[0]);
+      renderEditList();
+      renderAllView();
+      updateCounts();
+      renderTocPreview();
 
-            const list = document.getElementById('lessonList');
-            list.addEventListener('dragstart', e => {
-                const item = e.target.closest('.lesson-item');
-                if (item) { item.classList.add('dragging'); e.dataTransfer.setData('text/plain', item.dataset.id); }
-            });
-            list.addEventListener('dragend', e => {
-                const item = e.target.closest('.lesson-item');
-                if (item) item.classList.remove('dragging');
-                list.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
-            });
-            list.addEventListener('dragover', e => {
-                e.preventDefault();
-                const target = e.target.closest('.lesson-item');
-                list.querySelectorAll('.drag-over').forEach(el => { if (el !== target) el.classList.remove('drag-over'); });
-                if (target && !target.classList.contains('dragging')) target.classList.add('drag-over');
-            });
-            list.addEventListener('dragleave', e => {
-                const target = e.target.closest('.lesson-item');
-                if (target) target.classList.remove('drag-over');
-            });
-            list.addEventListener('drop', e => {
-                e.preventDefault();
-                list.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
-                const id = e.dataTransfer.getData('text/plain');
-                const target = e.target.closest('.lesson-item');
-                if (id && target && target.dataset.id !== id) {
-                    const fromIdx = lessons.findIndex(l => l.id === id);
-                    const toIdx = lessons.findIndex(l => l.id === target.dataset.id);
-                    if (fromIdx !== -1 && toIdx !== -1) {
-                        const [moved] = lessons.splice(fromIdx, 1);
-                        lessons.splice(toIdx, 0, moved);
-                        saveData(); refreshUI(); showToast('Order updated.', 'info');
-                    }
-                }
-            });
-            window.searchQuery = '';
-            window.renderEditList = renderEditList;
-        })();
-    </script>
+      const list = document.getElementById('lessonList');
+      list.addEventListener('dragstart', e => {
+        const item = e.target.closest('.lesson-item');
+        if (item) { item.classList.add('dragging'); e.dataTransfer.setData('text/plain', item.dataset.id); }
+      });
+      list.addEventListener('dragend', e => {
+        const item = e.target.closest('.lesson-item');
+        if (item) item.classList.remove('dragging');
+        list.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+      });
+      list.addEventListener('dragover', e => {
+        e.preventDefault();
+        const target = e.target.closest('.lesson-item');
+        list.querySelectorAll('.drag-over').forEach(el => { if (el !== target) el.classList.remove('drag-over'); });
+        if (target && !target.classList.contains('dragging')) target.classList.add('drag-over');
+      });
+      list.addEventListener('dragleave', e => {
+        const target = e.target.closest('.lesson-item');
+        if (target) target.classList.remove('drag-over');
+      });
+      list.addEventListener('drop', e => {
+        e.preventDefault();
+        list.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+        const id = e.dataTransfer.getData('text/plain');
+        const target = e.target.closest('.lesson-item');
+        if (id && target && target.dataset.id !== id) {
+          const fromIdx = lessons.findIndex(l => l.id === id);
+          const toIdx = lessons.findIndex(l => l.id === target.dataset.id);
+          if (fromIdx !== -1 && toIdx !== -1) {
+            const [moved] = lessons.splice(fromIdx, 1);
+            lessons.splice(toIdx, 0, moved);
+            renumberByOrder(lessons);
+            saveData(); refreshUI(); showToast('Order updated.', 'info');
+          }
+        }
+      });
+      window.renderEditList = renderEditList;
+      window.refreshUI = refreshUI;
+      window.renderTocPreview = renderTocPreview;
+      window.updateCounts = updateCounts;
+    })();
+  </script>
 </body>
 </html>
