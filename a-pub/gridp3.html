@@ -840,12 +840,12 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
     function fmtToolbarHtml(prefix, state) {
         return `
             <div class="fmt-toolbar">
-                <button type="button" class="fmt-btn" title="Bold" onclick="execInline('${prefix}','bold')"><b>B</b></button>
-                <button type="button" class="fmt-btn" title="Italic" onclick="execInline('${prefix}','italic')"><i>I</i></button>
-                <button type="button" class="fmt-btn" title="Underline" onclick="execInline('${prefix}','underline')"><u>U</u></button>
+                <button type="button" class="fmt-btn" title="Bold" onmousedown="event.preventDefault()" onclick="execInline('${prefix}','bold')"><b>B</b></button>
+                <button type="button" class="fmt-btn" title="Italic" onmousedown="event.preventDefault()" onclick="execInline('${prefix}','italic')"><i>I</i></button>
+                <button type="button" class="fmt-btn" title="Underline" onmousedown="event.preventDefault()" onclick="execInline('${prefix}','underline')"><u>U</u></button>
                 <div class="sep"></div>
-                <button type="button" class="fmt-btn" title="Bullet list" onclick="applyList('${prefix}','ul')">•</button>
-                <button type="button" class="fmt-btn" title="Numbered list" onclick="applyList('${prefix}','ol')">1.</button>
+                <button type="button" class="fmt-btn" title="Bullet list" onmousedown="event.preventDefault()" onclick="applyList('${prefix}','ul')">•</button>
+                <button type="button" class="fmt-btn" title="Numbered list" onmousedown="event.preventDefault()" onclick="applyList('${prefix}','ol')">1.</button>
                 <div class="sep"></div>
                 <label>Size</label>
                 <input type="number" id="${prefix}FontSize" value="${state.fontSize}" min="1" style="width:56px;padding:4px 6px;border:1px solid #ced4da;border-radius:6px;font-size:12px;" onchange="updateFmtValue('${prefix}','fontSize',this.value)">
@@ -855,13 +855,13 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
                 <div class="sep"></div>
                 <label>Inline Color</label>
                 <input type="color" id="${prefix}InlineColor" value="${escapeStyle(state.color)}" style="width:28px;height:28px;border:none;padding:0;background:none;cursor:pointer;">
-                <button type="button" class="fmt-btn" title="Apply color to selection" onclick="execInline('${prefix}','foreColor', document.getElementById('${prefix}InlineColor').value)">
+                <button type="button" class="fmt-btn" title="Apply color to selection" onmousedown="event.preventDefault()" onclick="execInline('${prefix}','foreColor', document.getElementById('${prefix}InlineColor').value)">
                     <span style="display:inline-block;width:16px;height:16px;border-radius:3px;border:1px solid #ccc;background:${escapeStyle(state.color)};"></span>
                 </button>
                 <div class="sep"></div>
                 <label>Inline Size</label>
                 <input type="number" id="${prefix}InlineSize" value="18" min="1" style="width:50px;padding:4px 6px;border:1px solid #ced4da;border-radius:6px;font-size:12px;">
-                <button type="button" class="fmt-btn" title="Apply font size to selection" onclick="execInlineSize('${prefix}')">
+                <button type="button" class="fmt-btn" title="Apply font size to selection" onmousedown="event.preventDefault()" onclick="execInlineSize('${prefix}')">
                     <span style="font-size:12px;">Aa</span>
                 </button>
             </div>
