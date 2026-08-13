@@ -532,21 +532,17 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
                 blocks: [],
                 usedCells: new Set()
             };
-            // Validate blocks
             if (Array.isArray(p.blocks)) {
                 p.blocks.forEach(b => {
                     const nb = JSON.parse(JSON.stringify(b));
-                    // Ensure row/col are numbers
                     nb.row = Math.max(0, parseInt(nb.row, 10) || 0);
                     nb.col = Math.max(0, parseInt(nb.col, 10) || 0);
                     nb.rowSpan = Math.max(1, parseInt(nb.rowSpan, 10) || 1);
                     nb.colSpan = Math.max(1, parseInt(nb.colSpan, 10) || 1);
-                    // Ensure type is valid
                     if (!['text', 'image', 'trace', 'table'].includes(nb.type)) {
                         nb.type = 'text';
                         nb.text = nb.text || '';
                     }
-                    // For table, ensure rows/cols and cells
                     if (nb.type === 'table') {
                         nb.tableRows = Math.max(1, parseInt(nb.tableRows, 10) || (nb.rowSpan * 2));
                         nb.tableCols = Math.max(1, parseInt(nb.tableCols, 10) || nb.colSpan);
@@ -554,7 +550,6 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
                         if (!Array.isArray(nb.cells) || nb.cells.length === 0) {
                             nb.cells = initTableCells(nb.tableRows, nb.tableCols);
                         } else {
-                            // Repair cells: ensure they don't overlap, and fill holes
                             const covered = new Set();
                             const cleanedCells = [];
                             nb.cells.forEach(cell => {
@@ -562,16 +557,14 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
                                 cell.c = Math.max(0, parseInt(cell.c, 10) || 0);
                                 cell.rowSpan = Math.max(1, parseInt(cell.rowSpan, 10) || 1);
                                 cell.colSpan = Math.max(1, parseInt(cell.colSpan, 10) || 1);
-                                // Clamp to table bounds
                                 cell.rowSpan = Math.min(cell.rowSpan, nb.tableRows - cell.r);
                                 cell.colSpan = Math.min(cell.colSpan, nb.tableCols - cell.c);
-                                if (cell.rowSpan < 1 || cell.colSpan < 1) return; // skip invalid
+                                if (cell.rowSpan < 1 || cell.colSpan < 1) return;
                                 cell.text = cell.text || '';
                                 cell.bg = cell.bg || '#f1f3f5';
                                 cell.fontSize = Math.min(22, Math.max(10, parseInt(cell.fontSize, 10) || 14));
                                 cell.bold = !!cell.bold;
                                 cell.italic = !!cell.italic;
-                                // Check overlap; skip if any atomic cell already covered
                                 let overlap = false;
                                 for (let r = cell.r; r < cell.r + cell.rowSpan; r++) {
                                     for (let c = cell.c; c < cell.c + cell.colSpan; c++) {
@@ -583,7 +576,6 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
                                 }
                                 if (!overlap) cleanedCells.push(cell);
                             });
-                            // Fill holes
                             for (let r = 0; r < nb.tableRows; r++) {
                                 for (let c = 0; c < nb.tableCols; c++) {
                                     if (!covered.has(tKey(r, c))) {
@@ -598,7 +590,6 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
                             nb.cells = cleanedCells;
                         }
                     }
-                    // Ensure other block props have defaults
                     if (nb.type === 'text') {
                         nb.fontSize = Math.min(72, Math.max(10, parseInt(nb.fontSize, 10) || 18));
                         nb.color = nb.color || '#1a1a1a';
@@ -623,7 +614,6 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
                     page.blocks.push(nb);
                 });
             }
-            // Rebuild usedCells from blocks (always, to ensure consistency)
             rebuildUsedCells(page);
             lesson.pages.push(page);
         });
@@ -639,7 +629,6 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
             if (stored && Array.isArray(stored.lessons) && stored.lessons.length > 0) {
                 nextId = Number(stored.nextId) || 1;
                 lessons = stored.lessons.map(src => validateAndNormalizeLesson(src));
-                // Ensure IDs are unique
                 const seenIds = new Set();
                 lessons.forEach(l => {
                     while (seenIds.has(l.id)) l.id = generateUniqueId();
@@ -652,7 +641,6 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         } catch (e) {
             console.warn('IndexedDB load failed, starting fresh.', e);
         }
-        // Default case: no data or load error
         nextId = 1;
         const l = defaultLesson();
         lessons = [l];
@@ -684,7 +672,6 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
     function pushHistory() {
         const page = getCurrentPage();
         if (!page) return;
-        // Clear any pending debounced history timer to avoid double snapshots
         if (_editTextHistoryTimer) {
             clearTimeout(_editTextHistoryTimer);
             _editTextHistoryTimer = null;
@@ -1150,7 +1137,6 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
             </div>
         `;
 
-        // Existing blocks
         page.blocks.forEach((b, idx) => {
             const isEditing = editingBlockIdx === idx;
             html += `
@@ -1199,7 +1185,6 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
                 </div>`;
         });
 
-        // Active (new) card
         if (!locked && freeCount > 0) {
             const activeState = {
                 bold: window.activeBold,
@@ -1307,7 +1292,6 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
 
         container.innerHTML = html;
 
-        // Paint used cells on existing block previews
         page.blocks.forEach((b, idx) => {
             const grid = document.getElementById('grid-preview-' + idx);
             if (!grid) return;
@@ -1329,7 +1313,6 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
             }
         });
 
-        // Active grid
         const activeGrid = document.getElementById('activeGrid');
         if (activeGrid) {
             for (let r = 0; r < ROWS; r++) {
@@ -1349,7 +1332,6 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
             validateSelection();
         }
         updateUndoRedoButtons();
-        // Update view info
         const viewInfo = document.getElementById('viewInfo');
         if (viewInfo) viewInfo.textContent = `${lessons.length} lesson(s) · Page ${currentPageIndex + 1} of ${getCurrentLesson()?.pages.length || 0}`;
     }
@@ -1634,7 +1616,7 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
             }
         }
         b.cells = cells;
-        tableSel = new Set(); // Clear selection after unmerge
+        tableSel = new Set();
         save();
         renderEditor();
         renderView();
@@ -1867,7 +1849,6 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         const page = getCurrentPage();
         if (!page || page.locked) return;
         syncActiveFromDom();
-        // Ensure any pending history timer is cleared
         if (_editTextHistoryTimer) {
             clearTimeout(_editTextHistoryTimer);
             _editTextHistoryTimer = null;
@@ -1962,7 +1943,6 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         const page = getCurrentPage();
         if (!page || page.locked) return;
         if (idx < 0 || idx >= page.blocks.length) return;
-        // Clear timer
         if (_editTextHistoryTimer) { clearTimeout(_editTextHistoryTimer); _editTextHistoryTimer = null; }
         pushHistory();
         const b = page.blocks[idx];
@@ -1974,7 +1954,6 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         } else if (editingBlockIdx > idx) {
             editingBlockIdx--;
         }
-        // Rebuild usedCells from remaining blocks to maintain consistency
         rebuildUsedCells(page);
         save();
         renderEditor();
@@ -2004,7 +1983,7 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
             const num = parseInt(n.value, 10);
             page.lessonNumber = Number.isFinite(num) && num > 0 ? num : 1;
         }
-        pushHistory(); // include metadata change in undo/redo
+        pushHistory();
         save();
         renderView();
     };
@@ -2090,8 +2069,10 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
 
                 if (b.type === 'text') {
                     const vAlign = b.verticalAlign || 'center';
-                    el.style.alignItems = vAlign === 'top' ? 'flex-start' : vAlign === 'bottom' ? 'flex-end' : 'center';
-                    el.style.justifyContent = 'stretch';
+                    el.style.display = 'flex';
+                    el.style.flexDirection = 'column';
+                    el.style.justifyContent = vAlign === 'top' ? 'flex-start' : vAlign === 'bottom' ? 'flex-end' : 'center';
+                    el.style.alignItems = 'stretch';
                     const style = [
                         `font-size:${b.fontSize || 18}px`,
                         `color:${escapeStyle(b.color || '#1a1a1a')}`,
@@ -2099,7 +2080,8 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
                         b.bold ? 'font-weight:700' : 'font-weight:600',
                         b.italic ? 'font-style:italic' : '',
                         b.underline ? 'text-decoration:underline' : '',
-                        'width:100%'
+                        'width:100%',
+                        'height:auto'
                     ].filter(Boolean).join(';');
                     el.innerHTML = `<div class="block-text" style="${style}">${textToHtml(b.text || '')}</div>`;
                 } else if (b.type === 'image' && b.imagePath) {
@@ -2117,17 +2099,17 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
                         const sc = (b.imageScale ?? 100) / 100;
                         imgStyle += `max-width:${100 * sc}%;max-height:${100 * sc}%;object-fit:contain;`;
                     }
+
                     if (b.imageLabelOn && b.imageLabel) {
-                        const labelHeight = '22%';
+                        const wrapperStyle = 'display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:100%;height:100%;';
                         if (fit === 'contain') {
-                            imgStyle = imgStyle.replace(/max-height:100%/, `max-height:calc(100% - ${labelHeight})`);
+                            imgStyle = imgStyle.replace(/max-height:100%/, 'max-height:calc(100% - 1.6em)');
                         } else if (fit === 'scale') {
-                            imgStyle = imgStyle.replace(/max-height:\d+%/, `max-height:calc(100% - ${labelHeight})`);
+                            imgStyle = imgStyle.replace(/max-height:\d+%/, 'max-height:calc(100% - 1.6em)');
                         } else if (fit === 'cover') {
-                            el.style.flexDirection = 'column';
-                            imgStyle = imgStyle.replace(/height:100%/, `height:calc(100% - ${labelHeight})`);
+                            imgStyle = imgStyle.replace(/height:100%/, 'height:calc(100% - 1.6em)');
                         }
-                        el.innerHTML = `<div class="block-img-wrap">
+                        el.innerHTML = `<div class="block-img-wrap" style="${wrapperStyle}">
                             <img class="block-img" src="${escapeHtml(b.imagePath)}" style="${imgStyle}">
                             <div class="block-img-label">${escapeHtml(b.imageLabel)}</div>
                         </div>`;
@@ -2146,7 +2128,6 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
                 stage.appendChild(el);
             });
         });
-        // Update view info
         const viewInfo = document.getElementById('viewInfo');
         if (viewInfo) viewInfo.textContent = `${lessons.length} lesson(s) · Page ${currentPageIndex + 1} of ${lesson.pages.length}`;
     }
@@ -2330,7 +2311,6 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
                     return showToast('No valid lessons found in file', 'warning');
                 }
 
-                // Ensure unique lesson IDs after import
                 const seenIds = new Set();
                 lessons.forEach(l => {
                     while (seenIds.has(l.id)) {
@@ -2466,7 +2446,6 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         renderAll();
     }
 
-    // Start app
     init().catch(err => {
         console.error('Initialization failed:', err);
         showToast('Failed to initialize app', 'error');
