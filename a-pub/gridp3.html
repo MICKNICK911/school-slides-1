@@ -702,29 +702,56 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
     };
 
     // NEW: Apply preset inline font size
-    window.applyInlineSizePreset = function (prefix, size) {
-        const editor = (prefix === 'active') ? document.getElementById('activeText') : document.getElementById('editText');
-        if (!editor) return;
-        editor.focus();
-        document.execCommand('styleWithCSS', false, true);
-        document.execCommand('fontSize', false, size + 'px');
-        if (prefix === 'active') {
-            window.activeText = sanitizeHTML(editor.innerHTML);
-            window.activeRichText = true;
-            updatePreview('active');
-        } else if (prefix === 'edit' && editingBlockIdx !== null) {
-            const page = getCurrentPage();
-            if (page && page.blocks[editingBlockIdx]) {
-                pushHistory();
-                page.blocks[editingBlockIdx].text = sanitizeHTML(editor.innerHTML);
-                page.blocks[editingBlockIdx].richText = true;
-                save();
-                updatePreview('edit');
-                renderView();
-            }
-        }
-    };
+    window.applyInlineSizePreset = function(prefix, size) {
+    const editor = (prefix === 'active') ? document.getElementById('activeText') : document.getElementById('editText');
+    if (!editor) return;
+    editor.focus();
 
+    const selection = window.getSelection();
+    if (!selection.rangeCount || selection.isCollapsed) {
+        showToast('Select text first', 'warning');
+        return;
+    }
+
+    const range = selection.getRangeAt(0);
+    // Verify the selection is inside the editor
+    if (!editor.contains(range.commonAncestorContainer)) return;
+
+    // Create a span with the desired font size
+    const span = document.createElement('span');
+    span.style.fontSize = size + 'px';
+
+    try {
+        // Try surroundContents (works when selection doesn't partially select elements)
+        range.surroundContents(span);
+    } catch (e) {
+        // Fallback: extract the content, wrap it, and reinsert
+        const fragment = range.extractContents();
+        span.appendChild(fragment);
+        range.insertNode(span);
+    }
+
+    // Clear the selection (optional, but keeps things clean)
+    selection.removeAllRanges();
+    editor.focus();
+
+    // Update state and save
+    if (prefix === 'active') {
+        window.activeText = sanitizeHTML(editor.innerHTML);
+        window.activeRichText = true;
+        updatePreview('active');
+    } else if (prefix === 'edit' && editingBlockIdx !== null) {
+        const page = getCurrentPage();
+        if (page && page.blocks[editingBlockIdx]) {
+            pushHistory();
+            page.blocks[editingBlockIdx].text = sanitizeHTML(editor.innerHTML);
+            page.blocks[editingBlockIdx].richText = true;
+            save();
+            updatePreview('edit');
+            renderView();
+        }
+    }
+};
     window.applyList = function (prefix, type) {
         let editor;
         if (prefix === 'active') editor = document.getElementById('activeText');
