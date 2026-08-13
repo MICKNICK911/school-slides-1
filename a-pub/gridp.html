@@ -46,7 +46,7 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
     grid-template-columns: 1fr 280px;
     gap: 18px;
 }
-.block-card.locked { opacity: 0.85; border-color: #F5A623; }
+.block-card.locked { border-color: #F5A623; }
 .block-card h3 { font-size: 14px; font-weight: 800; color: #E2571C; margin-bottom: 10px; grid-column: 1 / -1; }
 
 .block-left { display: flex; flex-direction: column; gap: 10px; }
@@ -54,7 +54,7 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
 .block-left input, .block-left textarea, .block-left select {
     width: 100%; padding: 8px 12px; border: 2px solid #dee2e6; border-radius: 8px; font-size: 13px; font-family: inherit;
 }
-.block-left textarea { min-height: 70px; resize: vertical; }
+.block-left textarea { min-height: 90px; resize: vertical; font-family: inherit; line-height: 1.4; }
 .mode-toggle { display: flex; gap: 8px; margin-bottom: 6px; }
 .mode-toggle button {
     flex: 1; padding: 8px; border: 2px solid #dee2e6; border-radius: 8px; background: #fff;
@@ -97,6 +97,33 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
 
 .block-actions { grid-column: 1 / -1; display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
 .validation-msg { font-size: 12px; font-weight: 600; color: #e03131; min-height: 18px; }
+
+/* Formatting toolbar */
+.fmt-toolbar {
+    display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+    padding: 8px; background: #fff; border: 2px solid #dee2e6; border-radius: 8px;
+}
+.fmt-toolbar .fmt-btn {
+    width: 32px; height: 32px; border: 1px solid #ced4da; border-radius: 6px;
+    background: #fff; font-weight: 700; font-size: 13px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; font-family: inherit;
+}
+.fmt-toolbar .fmt-btn.active { background: #fff8e6; border-color: #F5A623; color: #E2571C; }
+.fmt-toolbar .fmt-btn:hover { border-color: #F5A623; }
+.fmt-toolbar .sep { width: 1px; height: 22px; background: #dee2e6; margin: 0 2px; }
+.fmt-toolbar label { font-size: 11px; font-weight: 600; color: #6c757d; margin-right: 2px; }
+.fmt-toolbar input[type="color"] { width: 32px; height: 32px; border: 1px solid #ced4da; border-radius: 6px; padding: 2px; cursor: pointer; }
+.fmt-toolbar select { padding: 4px 6px; border: 1px solid #ced4da; border-radius: 6px; font-size: 12px; font-family: inherit; }
+
+.align-group { display: flex; gap: 4px; flex-wrap: wrap; }
+.align-group button {
+    padding: 5px 10px; border: 1px solid #ced4da; border-radius: 6px; background: #fff;
+    font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit;
+}
+.align-group button.active { background: #fff8e6; border-color: #F5A623; color: #E2571C; }
+
+.edit-panel { grid-column: 1 / -1; background: #fff; border: 2px solid #F5A623; border-radius: 10px; padding: 14px; margin-top: 6px; }
+.summary-text { font-size: 13px; font-weight: 600; color: #333; white-space: pre-wrap; max-height: 60px; overflow: hidden; }
 
 /* ===== VIEW ===== */
 .view-toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid #e9ecef; }
@@ -141,8 +168,6 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
     position: relative;
     overflow: hidden;
     display: flex;
-    align-items: center;
-    justify-content: center;
     padding: 6px;
     background: #fff;
 }
@@ -153,13 +178,91 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
 }
 .block .block-text {
     width: 100%; height: 100%;
-    display: flex; align-items: center; justify-content: center;
-    text-align: center; line-height: 1.3; word-break: break-word;
-    color: #1a1a1a; font-weight: 600;
+    line-height: 1.35; word-break: break-word;
+    color: #1a1a1a;
 }
+.block .block-text p { margin: 0 0 0.4em 0; }
+.block .block-text p:last-child { margin-bottom: 0; }
+.block .block-text ul, .block .block-text ol {
+    margin: 0.2em 0 0.4em 0; padding-left: 1.4em;
+}
+.block .block-text li { margin-bottom: 0.15em; }
 .block .block-img {
-    max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 4px;
+    max-width: 100%; max-height: 100%; border-radius: 4px;
 }
+.block .block-img-wrap {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    width: 100%; height: 100%; gap: 4px; overflow: hidden;
+}
+.block .block-img-label {
+    font-size: 13px; font-weight: 700; color: #1a1a1a; text-align: center;
+    line-height: 1.2; max-width: 100%; word-break: break-word;
+}
+/* Trace guidelines */
+.block .trace-wrap {
+    width: 100%; height: 100%;
+    display: flex; flex-direction: column; justify-content: space-evenly;
+    padding: 2px 4px; box-sizing: border-box;
+}
+.block .trace-set {
+    position: relative; width: 100%; flex: 1; min-height: 0;
+    margin: 2px 0;
+}
+.block .trace-set .tline {
+    position: absolute; left: 0; right: 0; height: 0;
+    border-top-width: 1.5px; border-top-style: solid;
+}
+.block .trace-set .tline.red { border-top-color: #e03131; }
+.block .trace-set .tline.blue { border-top-color: #1c7ed6; }
+.block .trace-set .trace-letters {
+    position: absolute; left: 0; right: 0;
+    display: flex; justify-content: space-evenly; align-items: center;
+    pointer-events: none;
+    font-family: 'Comic Sans MS', 'Chalkboard SE', 'Comic Neue', 'Segoe UI', Arial, sans-serif;
+    font-weight: 400; line-height: 1;
+    color: #868e96; /* solid = soft gray model letters */
+}
+.block .trace-set .trace-letters.outlined {
+    color: transparent;
+    -webkit-text-stroke: 1.3px #868e96;
+}
+@media print {
+    .block .trace-set .trace-letters.outlined {
+        color: transparent;
+        -webkit-text-stroke: 1.1px #495057;
+    }
+    .block .trace-set .tline { border-top-width: 1.25px; }
+}
+/* Inner table block */
+.block .inner-table {
+    width: 100%; height: 100%;
+    display: grid;
+    gap: 0;
+    box-sizing: border-box;
+}
+.block .inner-table .it-cell {
+    display: flex; align-items: center; justify-content: center;
+    text-align: center; overflow: hidden; padding: 2px;
+    font-family: inherit; line-height: 1.2; word-break: break-word;
+    box-sizing: border-box;
+}
+.block .inner-table.has-borders .it-cell {
+    border: 1px solid #adb5bd;
+}
+/* Editor mini-table */
+.mini-table {
+    display: grid; gap: 2px; background: #dee2e6; border: 2px solid #dee2e6;
+    border-radius: 8px; overflow: hidden; max-width: 100%;
+}
+.mini-table .mt-cell {
+    background: #f1f3f5; min-height: 28px; padding: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; cursor: pointer; text-align: center;
+    word-break: break-word; line-height: 1.15;
+    border: 2px solid transparent; user-select: none;
+}
+.mini-table .mt-cell.selected { border-color: #F5A623; background: #fff3bf; }
+.mini-table .mt-cell.covered { opacity: 0.35; pointer-events: none; }
 .page-number {
     position: absolute; bottom: 10px; left: 0; right: 0;
     text-align: center; font-weight: 700; font-size: 13px; color: #6c757d;
@@ -193,7 +296,7 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
 
 <script>
 (function () {
-    const STORAGE_KEY = 'phonics_grid_v1';
+    const STORAGE_KEY = 'phonics_grid_v2';
     const COLS = 8;
     const ROWS = 12;
     const TOTAL = COLS * ROWS;
@@ -213,16 +316,40 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
     let lessons = [];
     let currentLessonId = null;
     let currentPageIndex = 0;
-    let history = [];       // undo stack for current page
+    let history = [];
     let historyIndex = -1;
     let nextId = 1;
+    let editingBlockIdx = null; // which existing block is expanded for editing
+    let _editTextHistoryTimer = null;
+
+    function defaultTextProps() {
+        return {
+            text: '',
+            fontSize: 18,
+            bold: false,
+            italic: false,
+            underline: false,
+            color: '#1a1a1a',
+            textAlign: 'center',
+            verticalAlign: 'center'
+        };
+    }
+    function defaultImageProps() {
+        return {
+            imagePath: '',
+            imageAlign: 'center',
+            imageVerticalAlign: 'center',
+            imageFit: 'contain', // contain | cover | scale
+            imageScale: 100
+        };
+    }
 
     function defaultPage() {
         return {
             title: 'SHORT VOWEL CVC WORDS',
             subtitle: 'SHORT VOWEL',
             lessonNumber: 1,
-            blocks: [],          // { id, row, col, rowSpan, colSpan, type:'text'|'image', text, fontSize, imagePath, showBorder }
+            blocks: [],
             usedCells: new Set(),
             locked: false
         };
@@ -239,14 +366,73 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
 
     function load() {
         try {
-            const raw = localStorage.getItem(STORAGE_KEY);
+            const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('phonics_grid_v1');
             if (raw) {
                 const data = JSON.parse(raw);
                 lessons = data.lessons || [];
                 nextId = data.nextId || lessons.length + 1;
-                // restore Sets
                 lessons.forEach(l => l.pages.forEach(p => {
                     p.usedCells = new Set(p.usedCells || []);
+                    // migrate old blocks
+                    p.blocks.forEach(b => {
+                        if (b.type === 'text') {
+                            b.bold = b.bold ?? false;
+                            b.italic = b.italic ?? false;
+                            b.underline = b.underline ?? false;
+                            b.color = b.color || '#1a1a1a';
+                            b.textAlign = b.textAlign || 'center';
+                            b.verticalAlign = b.verticalAlign || 'center';
+                        } else if (b.type === 'image') {
+                            b.imageAlign = b.imageAlign || 'center';
+                            b.imageVerticalAlign = b.imageVerticalAlign || 'center';
+                            b.imageFit = b.imageFit || 'contain';
+                            b.imageScale = b.imageScale ?? 100;
+                            b.imageLabelOn = b.imageLabelOn ?? false;
+                            b.imageLabel = b.imageLabel || '';
+                        } else if (b.type === 'trace') {
+                            b.traceTarget = b.traceTarget || '';
+                            b.traceStyle = b.traceStyle === 'solid' ? 'solid' : 'outlined';
+                            b.traceClones = b.traceClones ?? 5;
+                            b.traceRepeatAll = b.traceRepeatAll !== false;
+                        } else if (b.type === 'table') {
+                            b.tableRows = b.tableRows || (b.rowSpan * 2);
+                            b.tableCols = b.tableCols || b.colSpan;
+                            b.tableShowBorders = b.tableShowBorders !== false;
+                            if (!Array.isArray(b.cells) || !b.cells.length) {
+                                b.cells = initTableCells(b.tableRows, b.tableCols);
+                            } else {
+                                b.cells.forEach(c => {
+                                    c.bg = c.bg || '#f1f3f5';
+                                    c.fontSize = Math.min(22, Math.max(10, c.fontSize ?? 14));
+                                    c.bold = !!c.bold;
+                                    c.italic = !!c.italic;
+                                    c.text = c.text || '';
+                                    c.rowSpan = Math.max(1, c.rowSpan || 1);
+                                    c.colSpan = Math.max(1, c.colSpan || 1);
+                                });
+                                // Repair missing atomic coverage (corrupted saves)
+                                const covered = new Set();
+                                b.cells.forEach(cell => {
+                                    for (let r = cell.r; r < cell.r + cell.rowSpan; r++) {
+                                        for (let c = cell.c; c < cell.c + cell.colSpan; c++) {
+                                            covered.add(r + ',' + c);
+                                        }
+                                    }
+                                });
+                                for (let r = 0; r < b.tableRows; r++) {
+                                    for (let c = 0; c < b.tableCols; c++) {
+                                        if (!covered.has(r + ',' + c)) {
+                                            b.cells.push({
+                                                r, c, rowSpan: 1, colSpan: 1,
+                                                text: '', bg: '#f1f3f5',
+                                                fontSize: 14, bold: false, italic: false
+                                            });
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
                 }));
                 if (lessons.length) {
                     currentLessonId = lessons[0].id;
@@ -298,7 +484,6 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         const minC = Math.min(...cols), maxC = Math.max(...cols);
         const expected = (maxR - minR + 1) * (maxC - minC + 1);
         if (selectedKeys.size !== expected) return false;
-        // every cell inside the bounding box must be selected
         for (let r = minR; r <= maxR; r++) {
             for (let c = minC; c <= maxC; c++) {
                 if (!selectedKeys.has(cellKey(r, c))) return false;
@@ -315,7 +500,6 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
             blocks: page.blocks,
             usedCells: Array.from(page.usedCells)
         }));
-        // truncate redo
         history = history.slice(0, historyIndex + 1);
         history.push(snapshot);
         historyIndex = history.length - 1;
@@ -326,6 +510,8 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         if (historyIndex <= 0) return;
         historyIndex--;
         applySnapshot(history[historyIndex]);
+        editingBlockIdx = null;
+        tableSel = new Set();
         updateUndoRedoButtons();
         renderEditor();
         showToast('Undo', 'info');
@@ -334,6 +520,8 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         if (historyIndex >= history.length - 1) return;
         historyIndex++;
         applySnapshot(history[historyIndex]);
+        editingBlockIdx = null;
+        tableSel = new Set();
         updateUndoRedoButtons();
         renderEditor();
         showToast('Redo', 'info');
@@ -352,23 +540,422 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         if (r) r.disabled = historyIndex >= history.length - 1;
     }
 
-    // ========== CURRENT SELECTION STATE (for the active card) ==========
-    // Exposed on window so inline handlers can update them
+    // ========== ACTIVE (NEW BLOCK) STATE ==========
     window.activeSelection = new Set();
     window.activeMode = 'text';
     window.activeText = '';
     window.activeFontSize = 18;
+    window.activeBold = false;
+    window.activeItalic = false;
+    window.activeUnderline = false;
+    window.activeColor = '#1a1a1a';
+    window.activeTextAlign = 'center';
+    window.activeVerticalAlign = 'center';
     window.activeImagePath = '';
+    window.activeImageAlign = 'center';
+    window.activeImageVerticalAlign = 'center';
+    window.activeImageFit = 'contain';
+    window.activeImageScale = 100;
     window.activeShowBorder = true;
+    // Image label
+    window.activeImageLabelOn = false;
+    window.activeImageLabel = '';
+    // Trace
+    window.activeTraceTarget = '';
+    window.activeTraceStyle = 'outlined'; // outlined | solid
+    window.activeTraceClones = 5;
+    window.activeTraceRepeatAll = true; // true = all line sets, false = first only
+    // Table
+    window.activeTableShowBorders = true;
 
     function resetActive() {
         window.activeSelection = new Set();
         window.activeMode = 'text';
         window.activeText = '';
         window.activeFontSize = 18;
+        window.activeBold = false;
+        window.activeItalic = false;
+        window.activeUnderline = false;
+        window.activeColor = '#1a1a1a';
+        window.activeTextAlign = 'center';
+        window.activeVerticalAlign = 'center';
         window.activeImagePath = '';
+        window.activeImageAlign = 'center';
+        window.activeImageVerticalAlign = 'center';
+        window.activeImageFit = 'contain';
+        window.activeImageScale = 100;
         window.activeShowBorder = true;
+        window.activeImageLabelOn = false;
+        window.activeImageLabel = '';
+        window.activeTraceTarget = '';
+        window.activeTraceStyle = 'outlined';
+        window.activeTraceClones = 5;
+        window.activeTraceRepeatAll = true;
+        window.activeTableShowBorders = true;
     }
+
+    // Table editing state (for open edit panel)
+    let tableSel = new Set(); // keys "r,c" of selected atomic cells in edit panel
+
+    function tKey(r, c) { return r + ',' + c; }
+    function parseTKey(k) { const [r, c] = k.split(',').map(Number); return { r, c }; }
+
+    function initTableCells(tableRows, tableCols) {
+        const cells = [];
+        for (let r = 0; r < tableRows; r++) {
+            for (let c = 0; c < tableCols; c++) {
+                cells.push({
+                    r, c, rowSpan: 1, colSpan: 1,
+                    text: '',
+                    bg: '#f1f3f5',
+                    fontSize: 14,
+                    bold: false,
+                    italic: false
+                });
+            }
+        }
+        return cells;
+    }
+
+    /** Return the cell object that owns (covers) atomic position (r,c), or null */
+    function findTableCellAt(cells, r, c) {
+        for (const cell of cells) {
+            if (r >= cell.r && r < cell.r + cell.rowSpan &&
+                c >= cell.c && c < cell.c + cell.colSpan) {
+                return cell;
+            }
+        }
+        return null;
+    }
+
+    /** Atomic cells covered by a table cell region */
+    function coveredKeys(cell) {
+        const keys = [];
+        for (let r = cell.r; r < cell.r + cell.rowSpan; r++) {
+            for (let c = cell.c; c < cell.c + cell.colSpan; c++) {
+                keys.push(tKey(r, c));
+            }
+        }
+        return keys;
+    }
+
+    function isTableRect(selectedKeys) {
+        return isRectangle(selectedKeys); // same solid-rectangle rule
+    }
+
+    // ========== LIST HELPERS (plain text markers) ==========
+    function getLineInfo(textarea) {
+        const val = textarea.value;
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        // find line start/end for selection
+        let lineStart = start;
+        while (lineStart > 0 && val[lineStart - 1] !== '\n') lineStart--;
+        let lineEnd = end;
+        while (lineEnd < val.length && val[lineEnd] !== '\n') lineEnd++;
+        const selected = val.slice(lineStart, lineEnd);
+        const lines = selected.split('\n');
+        return { val, start, end, lineStart, lineEnd, lines };
+    }
+
+    function toggleListMarkers(textarea, type) {
+        // type: 'ul' or 'ol'
+        const info = getLineInfo(textarea);
+        let { val, lineStart, lineEnd, lines } = info;
+        const isBullet = type === 'ul';
+        const markerRe = isBullet ? /^\s*[-*]\s+/ : /^\s*\d+\.\s+/;
+
+        // Empty textarea or empty selection → insert a single marker line
+        if (!val || (lines.length === 1 && lines[0].trim() === '')) {
+            const marker = isBullet ? '- ' : '1. ';
+            const newText = val.slice(0, lineStart) + marker + val.slice(lineEnd);
+            textarea.value = newText;
+            const pos = lineStart + marker.length;
+            textarea.selectionStart = textarea.selectionEnd = pos;
+            textarea.focus();
+            return newText;
+        }
+
+        // Only consider non-empty lines when deciding "all marked"
+        const contentLines = lines.filter(l => l.trim() !== '');
+        const allMarked = contentLines.length > 0 && contentLines.every(l => markerRe.test(l));
+
+        let newLines;
+        if (allMarked) {
+            // remove markers
+            newLines = lines.map(l => l.replace(markerRe, ''));
+        } else {
+            if (isBullet) {
+                newLines = lines.map(l => {
+                    if (l.trim() === '') return l;
+                    const cleaned = l.replace(markerRe, '');
+                    return '- ' + cleaned;
+                });
+            } else {
+                let n = 1;
+                newLines = lines.map(l => {
+                    if (l.trim() === '') return l;
+                    const cleaned = l.replace(markerRe, '');
+                    return (n++) + '. ' + cleaned;
+                });
+            }
+        }
+        const newText = val.slice(0, lineStart) + newLines.join('\n') + val.slice(lineEnd);
+        textarea.value = newText;
+        textarea.selectionStart = lineStart;
+        textarea.selectionEnd = lineStart + newLines.join('\n').length;
+        textarea.focus();
+        return newText;
+    }
+
+    // ========== RENDER TEXT TO HTML (for view) ==========
+    function textToHtml(text) {
+        if (!text) return '';
+        const lines = String(text).split('\n');
+        let html = '';
+        let i = 0;
+        while (i < lines.length) {
+            const line = lines[i];
+            const bulletMatch = line.match(/^\s*[-*]\s+(.*)$/);
+            const numMatch = line.match(/^\s*\d+\.\s+(.*)$/);
+            if (bulletMatch) {
+                html += '<ul>';
+                while (i < lines.length) {
+                    const m = lines[i].match(/^\s*[-*]\s+(.*)$/);
+                    if (!m) break;
+                    html += '<li>' + escapeHtml(m[1]) + '</li>';
+                    i++;
+                }
+                html += '</ul>';
+            } else if (numMatch) {
+                html += '<ol>';
+                while (i < lines.length) {
+                    const m = lines[i].match(/^\s*\d+\.\s+(.*)$/);
+                    if (!m) break;
+                    html += '<li>' + escapeHtml(m[1]) + '</li>';
+                    i++;
+                }
+                html += '</ol>';
+            } else {
+                // normal paragraph (collect consecutive non-list lines)
+                let para = [];
+                while (i < lines.length) {
+                    if (/^\s*[-*]\s+/.test(lines[i]) || /^\s*\d+\.\s+/.test(lines[i])) break;
+                    para.push(escapeHtml(lines[i]));
+                    i++;
+                }
+                const joined = para.join('<br>');
+                if (joined.trim() !== '') html += '<p>' + joined + '</p>';
+                else if (para.length) html += '<p><br></p>';
+            }
+        }
+        return html || '<p></p>';
+    }
+
+    // ========== FORMATTING TOOLBAR HTML ==========
+    function fmtToolbarHtml(prefix, state) {
+        // prefix: 'active' or 'edit'
+        const s = state;
+        return `
+            <div class="fmt-toolbar" id="${prefix}FmtToolbar">
+                <button type="button" class="fmt-btn ${s.bold?'active':''}" title="Bold" onclick="toggleFmt('${prefix}','bold')"><b>B</b></button>
+                <button type="button" class="fmt-btn ${s.italic?'active':''}" title="Italic" onclick="toggleFmt('${prefix}','italic')"><i>I</i></button>
+                <button type="button" class="fmt-btn ${s.underline?'active':''}" title="Underline" onclick="toggleFmt('${prefix}','underline')"><u>U</u></button>
+                <div class="sep"></div>
+                <button type="button" class="fmt-btn" title="Bullet list" onclick="applyList('${prefix}','ul')">•</button>
+                <button type="button" class="fmt-btn" title="Numbered list" onclick="applyList('${prefix}','ol')">1.</button>
+                <div class="sep"></div>
+                <label>Size</label>
+                <input type="number" id="${prefix}FontSize" value="${s.fontSize}" min="10" max="72" style="width:56px;padding:4px 6px;border:1px solid #ced4da;border-radius:6px;font-size:12px;" onchange="updateFmtValue('${prefix}','fontSize',this.value)">
+                <div class="sep"></div>
+                <label>Color</label>
+                <input type="color" id="${prefix}Color" value="${s.color}" onchange="updateFmtValue('${prefix}','color',this.value)">
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;">
+                <div>
+                    <label style="font-size:11px;font-weight:700;color:#6c757d;">Horizontal</label>
+                    <div class="align-group" id="${prefix}HAlign">
+                        <button type="button" class="${s.textAlign==='left'?'active':''}" onclick="setAlign('${prefix}','textAlign','left')">Left</button>
+                        <button type="button" class="${s.textAlign==='center'?'active':''}" onclick="setAlign('${prefix}','textAlign','center')">Center</button>
+                        <button type="button" class="${s.textAlign==='right'?'active':''}" onclick="setAlign('${prefix}','textAlign','right')">Right</button>
+                        <button type="button" class="${s.textAlign==='justify'?'active':''}" onclick="setAlign('${prefix}','textAlign','justify')">Justify</button>
+                    </div>
+                </div>
+                <div>
+                    <label style="font-size:11px;font-weight:700;color:#6c757d;">Vertical</label>
+                    <div class="align-group" id="${prefix}VAlign">
+                        <button type="button" class="${s.verticalAlign==='top'?'active':''}" onclick="setAlign('${prefix}','verticalAlign','top')">Top</button>
+                        <button type="button" class="${s.verticalAlign==='center'?'active':''}" onclick="setAlign('${prefix}','verticalAlign','center')">Center</button>
+                        <button type="button" class="${s.verticalAlign==='bottom'?'active':''}" onclick="setAlign('${prefix}','verticalAlign','bottom')">Bottom</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    function imageControlsHtml(prefix, state) {
+        return `
+            <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;">
+                <div>
+                    <label style="font-size:11px;font-weight:700;color:#6c757d;">Horizontal</label>
+                    <div class="align-group">
+                        <button type="button" class="${state.imageAlign==='left'?'active':''}" onclick="setImgAlign('${prefix}','imageAlign','left')">Left</button>
+                        <button type="button" class="${state.imageAlign==='center'?'active':''}" onclick="setImgAlign('${prefix}','imageAlign','center')">Center</button>
+                        <button type="button" class="${state.imageAlign==='right'?'active':''}" onclick="setImgAlign('${prefix}','imageAlign','right')">Right</button>
+                    </div>
+                </div>
+                <div>
+                    <label style="font-size:11px;font-weight:700;color:#6c757d;">Vertical</label>
+                    <div class="align-group">
+                        <button type="button" class="${state.imageVerticalAlign==='top'?'active':''}" onclick="setImgAlign('${prefix}','imageVerticalAlign','top')">Top</button>
+                        <button type="button" class="${state.imageVerticalAlign==='center'?'active':''}" onclick="setImgAlign('${prefix}','imageVerticalAlign','center')">Center</button>
+                        <button type="button" class="${state.imageVerticalAlign==='bottom'?'active':''}" onclick="setImgAlign('${prefix}','imageVerticalAlign','bottom')">Bottom</button>
+                    </div>
+                </div>
+                <div>
+                    <label style="font-size:11px;font-weight:700;color:#6c757d;">Fit mode</label>
+                    <div class="align-group">
+                        <button type="button" class="${state.imageFit==='contain'?'active':''}" onclick="setImgAlign('${prefix}','imageFit','contain')">Fit</button>
+                        <button type="button" class="${state.imageFit==='cover'?'active':''}" onclick="setImgAlign('${prefix}','imageFit','cover')">Expand</button>
+                        <button type="button" class="${state.imageFit==='scale'?'active':''}" onclick="setImgAlign('${prefix}','imageFit','scale')">Scale</button>
+                    </div>
+                </div>
+                ${state.imageFit === 'scale' ? `
+                <div>
+                    <label style="font-size:11px;font-weight:700;color:#6c757d;">Scale %</label>
+                    <input type="number" id="${prefix}ImageScale" value="${state.imageScale}" min="10" max="200" style="width:64px;padding:4px 6px;border:1px solid #ced4da;border-radius:6px;font-size:12px;" onchange="updateImgScale('${prefix}',this.value)">
+                </div>` : ''}
+            </div>
+        `;
+    }
+
+    // ========== ACTIVE STATE HANDLERS ==========
+    function restoreEditFocus(cursorPos) {
+        const ta = document.getElementById('editText');
+        if (!ta) return;
+        ta.focus();
+        if (typeof cursorPos === 'number') {
+            const pos = Math.min(cursorPos, ta.value.length);
+            ta.selectionStart = ta.selectionEnd = pos;
+        }
+    }
+
+    window.toggleFmt = function(prefix, prop) {
+        if (prefix === 'active') {
+            if (prop === 'bold') window.activeBold = !window.activeBold;
+            else if (prop === 'italic') window.activeItalic = !window.activeItalic;
+            else if (prop === 'underline') window.activeUnderline = !window.activeUnderline;
+            syncActiveFromDom();
+            renderEditor();
+            const ta = document.getElementById('activeText');
+            if (ta) { ta.focus(); ta.selectionStart = ta.selectionEnd = ta.value.length; }
+        } else if (prefix === 'edit' && editingBlockIdx !== null) {
+            const page = getCurrentPage();
+            if (!page) return;
+            const b = page.blocks[editingBlockIdx];
+            if (!b || b.type !== 'text') return;
+            const ta = document.getElementById('editText');
+            const cursorPos = ta ? ta.selectionStart : 0;
+            pushHistory();
+            b[prop] = !b[prop];
+            save();
+            renderEditor();
+            restoreEditFocus(cursorPos);
+        }
+    };
+
+    window.updateFmtValue = function(prefix, prop, value) {
+        if (prefix === 'active') {
+            if (prop === 'fontSize') window.activeFontSize = Math.min(72, Math.max(10, parseInt(value,10) || 18));
+            if (prop === 'color') window.activeColor = value;
+        } else if (prefix === 'edit' && editingBlockIdx !== null) {
+            const page = getCurrentPage();
+            if (!page) return;
+            const b = page.blocks[editingBlockIdx];
+            if (!b || b.type !== 'text') return;
+            pushHistory();
+            if (prop === 'fontSize') b.fontSize = Math.min(72, Math.max(10, parseInt(value,10) || 18));
+            if (prop === 'color') b.color = value;
+            save();
+        }
+    };
+
+    window.setAlign = function(prefix, prop, value) {
+        if (prefix === 'active') {
+            if (prop === 'textAlign') window.activeTextAlign = value;
+            if (prop === 'verticalAlign') window.activeVerticalAlign = value;
+            syncActiveFromDom();
+            renderEditor();
+            const ta = document.getElementById('activeText');
+            if (ta) { ta.focus(); ta.selectionStart = ta.selectionEnd = ta.value.length; }
+        } else if (prefix === 'edit' && editingBlockIdx !== null) {
+            const page = getCurrentPage();
+            if (!page) return;
+            const b = page.blocks[editingBlockIdx];
+            if (!b || b.type !== 'text') return;
+            const ta = document.getElementById('editText');
+            const cursorPos = ta ? ta.selectionStart : 0;
+            pushHistory();
+            b[prop] = value;
+            save();
+            renderEditor();
+            restoreEditFocus(cursorPos);
+        }
+    };
+
+    window.setImgAlign = function(prefix, prop, value) {
+        if (prefix === 'active') {
+            if (prop === 'imageAlign') window.activeImageAlign = value;
+            else if (prop === 'imageVerticalAlign') window.activeImageVerticalAlign = value;
+            else if (prop === 'imageFit') window.activeImageFit = value;
+            renderEditor();
+        } else if (prefix === 'edit' && editingBlockIdx !== null) {
+            const page = getCurrentPage();
+            if (!page) return;
+            const b = page.blocks[editingBlockIdx];
+            if (!b || b.type !== 'image') return;
+            pushHistory();
+            b[prop] = value;
+            save();
+            renderEditor();
+        }
+    };
+
+    window.updateImgScale = function(prefix, value) {
+        const v = Math.min(200, Math.max(10, parseInt(value,10) || 100));
+        if (prefix === 'active') {
+            window.activeImageScale = v;
+        } else if (prefix === 'edit' && editingBlockIdx !== null) {
+            const page = getCurrentPage();
+            if (!page) return;
+            const b = page.blocks[editingBlockIdx];
+            if (!b || b.type !== 'image') return;
+            pushHistory();
+            b.imageScale = v;
+            save();
+        }
+    };
+
+    window.applyList = function(prefix, type) {
+        let ta;
+        if (prefix === 'active') {
+            ta = document.getElementById('activeText');
+        } else if (prefix === 'edit') {
+            ta = document.getElementById('editText');
+        }
+        if (!ta) return;
+        if (prefix === 'edit' && editingBlockIdx !== null) pushHistory();
+        const newVal = toggleListMarkers(ta, type);
+        if (prefix === 'active') {
+            window.activeText = newVal;
+        } else if (prefix === 'edit' && editingBlockIdx !== null) {
+            const page = getCurrentPage();
+            if (page && page.blocks[editingBlockIdx]) {
+                page.blocks[editingBlockIdx].text = newVal;
+                save();
+            }
+        }
+    };
 
     // ========== RENDER EDITOR ==========
     function renderEditor() {
@@ -382,13 +969,13 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
 
         let html = `
             <div class="editor-toolbar">
-                <span class="info">Page ${currentPageIndex + 1} · ${page.blocks.length} block(s) · ${freeCount} free cells</span>
+                <span class="info">Page ${currentPageIndex + 1} · ${page.blocks.length} block(s) · ${freeCount} free cells ${locked ? '· 🔒 Layout locked' : ''}</span>
                 <button class="btn btn-outline btn-sm" id="btnUndo" onclick="undo()" ${historyIndex<=0?'disabled':''}>↩ Undo</button>
                 <button class="btn btn-outline btn-sm" id="btnRedo" onclick="redo()" ${historyIndex>=history.length-1?'disabled':''}>↪ Redo</button>
                 <button class="btn btn-outline btn-sm" onclick="resetPage()">🗑 Reset Page</button>
                 ${locked
-                    ? `<button class="btn btn-primary btn-sm" onclick="unlockPage()">🔓 Unlock</button>`
-                    : `<button class="btn btn-success btn-sm" onclick="lockPage()" ${page.blocks.length===0?'disabled':''}>✅ Done (Lock)</button>`
+                    ? `<button class="btn btn-primary btn-sm" onclick="unlockPage()">🔓 Unlock Layout</button>`
+                    : `<button class="btn btn-success btn-sm" onclick="lockPage()" ${page.blocks.length===0?'disabled':''}>✅ Done (Lock Layout)</button>`
                 }
             </div>
             <div class="form-group" style="margin-bottom:14px;display:grid;grid-template-columns:1fr 1fr 100px;gap:10px;">
@@ -401,34 +988,72 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
             </div>
         `;
 
-        // Existing blocks (read-only summary + border toggle)
+        // Existing blocks
         page.blocks.forEach((b, idx) => {
+            const isEditing = editingBlockIdx === idx;
             html += `
-                <div class="block-card locked">
-                    <h3>Block ${idx + 1} — ${b.type.toUpperCase()} · ${b.rowSpan}×${b.colSpan} cells</h3>
+                <div class="block-card ${locked ? 'locked' : ''}">
+                    <h3>Block ${idx + 1} — ${b.type.toUpperCase()} · ${b.rowSpan}×${b.colSpan} cells ${locked ? '🔒' : ''}</h3>
                     <div class="block-left">
-                        ${b.type === 'text'
-                            ? `<div style="font-size:13px;font-weight:600;color:#333;white-space:pre-wrap;">${escapeHtml(b.text || '(empty)')}</div>
-                               <div style="font-size:12px;color:#6c757d;">Font size: ${b.fontSize}px</div>`
-                            : (b.imagePath
-                                ? `<img src="${escapeHtml(b.imagePath)}" style="max-width:120px;max-height:80px;border-radius:6px;border:1px solid #ddd;">`
-                                : `<div style="color:#adb5bd;">No image</div>`)
-                        }
-                        <label class="border-toggle">
-                            <input type="checkbox" ${b.showBorder !== false ? 'checked' : ''} onchange="toggleBlockBorder(${idx}, this.checked)" ${locked?'disabled':''}>
-                            Show border on page
-                        </label>
+                        ${!isEditing ? `
+                            ${b.type === 'text'
+                                ? `<div class="summary-text">${escapeHtml(b.text || '(empty)')}</div>
+                                   <div style="font-size:12px;color:#6c757d;margin-top:4px;">
+                                     Size ${b.fontSize}px · ${b.textAlign}/${b.verticalAlign}
+                                     ${b.bold?' · B':''}${b.italic?' · I':''}${b.underline?' · U':''}
+                                   </div>`
+                                : b.type === 'image'
+                                ? (b.imagePath
+                                    ? `<img src="${escapeHtml(b.imagePath)}" style="max-width:120px;max-height:80px;border-radius:6px;border:1px solid #ddd;">
+                                       <div style="font-size:12px;color:#6c757d;margin-top:4px;">${b.imageFit} · ${b.imageAlign}/${b.imageVerticalAlign}${b.imageLabelOn ? ' · label: ' + escapeHtml(b.imageLabel || '') : ''}</div>`
+                                    : `<div style="color:#adb5bd;">No image</div>`)
+                                : b.type === 'trace'
+                                ? `<div class="summary-text">Trace: ${escapeHtml(b.traceTarget || '(blank lines)')}</div>
+                                   <div style="font-size:12px;color:#6c757d;margin-top:4px;">
+                                     ${b.traceStyle || 'outlined'} · ${b.traceClones || 5} clones · ${b.traceRepeatAll !== false ? 'all sets' : 'first only'} · ${b.rowSpan} set(s)
+                                   </div>`
+                                : b.type === 'table'
+                                ? `<div class="summary-text">Table ${b.tableRows || (b.rowSpan*2)}×${b.tableCols || b.colSpan}</div>
+                                   <div style="font-size:12px;color:#6c757d;margin-top:4px;">
+                                     ${(b.cells||[]).length} region(s) · borders ${b.tableShowBorders !== false ? 'on' : 'off'}
+                                   </div>`
+                                : `<div style="color:#adb5bd;">Unknown type</div>`
+                            }
+                            <label class="border-toggle" style="margin-top:6px;">
+                                <input type="checkbox" ${b.showBorder !== false ? 'checked' : ''} onchange="toggleBlockBorder(${idx}, this.checked)">
+                                Show border on page
+                            </label>
+                        ` : ''}
                     </div>
                     <div class="block-right">
-                        <div class="grid-label">Allocated cells (red = used)</div>
+                        <div class="grid-label">Allocated cells</div>
                         <div class="radio-grid" id="grid-preview-${idx}"></div>
                     </div>
-                    ${!locked ? `<div class="block-actions"><button class="btn btn-danger btn-xs" onclick="deleteBlock(${idx})">🗑 Remove block</button></div>` : ''}
+                    <div class="block-actions">
+                        <button class="btn btn-primary btn-xs" onclick="toggleEditBlock(${idx})">${isEditing ? '▲ Close' : '✏️ Edit content'}</button>
+                        ${!locked ? `<button class="btn btn-danger btn-xs" onclick="deleteBlock(${idx})">🗑 Remove block</button>` : ''}
+                    </div>
+                    ${isEditing ? renderEditPanel(b, idx) : ''}
                 </div>`;
         });
 
-        // Active (new) card — only if not locked and free cells remain
+        // Active (new) card
         if (!locked && freeCount > 0) {
+            const activeState = {
+                bold: window.activeBold,
+                italic: window.activeItalic,
+                underline: window.activeUnderline,
+                fontSize: window.activeFontSize,
+                color: window.activeColor,
+                textAlign: window.activeTextAlign,
+                verticalAlign: window.activeVerticalAlign
+            };
+            const imgState = {
+                imageAlign: window.activeImageAlign,
+                imageVerticalAlign: window.activeImageVerticalAlign,
+                imageFit: window.activeImageFit,
+                imageScale: window.activeImageScale
+            };
             html += `
                 <div class="block-card" id="activeCard">
                     <h3>New Block — select a rectangle on the grid</h3>
@@ -436,12 +1061,13 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
                         <div class="mode-toggle">
                             <button type="button" class="${window.activeMode==='text'?'active':''}" onclick="setMode('text')">📝 Text</button>
                             <button type="button" class="${window.activeMode==='image'?'active':''}" onclick="setMode('image')">🖼️ Image</button>
+                            <button type="button" class="${window.activeMode==='trace'?'active':''}" onclick="setMode('trace')">✏️ Trace</button>
+                            <button type="button" class="${window.activeMode==='table'?'active':''}" onclick="setMode('table')">▦ Table</button>
                         </div>
                         <div id="textFields" style="display:${window.activeMode==='text'?'block':'none'}">
                             <label>Text content</label>
                             <textarea id="activeText" oninput="window.activeText=this.value">${escapeHtml(window.activeText)}</textarea>
-                            <label style="margin-top:8px;">Font size (px)</label>
-                            <input type="number" id="activeFontSize" value="${window.activeFontSize}" min="10" max="72" oninput="window.activeFontSize=parseInt(this.value)||18">
+                            ${fmtToolbarHtml('active', activeState)}
                         </div>
                         <div id="imageFields" style="display:${window.activeMode==='image'?'block':'none'}">
                             <label>Image</label>
@@ -450,6 +1076,51 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
                                 <div id="activeImgPh" class="ph" style="display:${window.activeImagePath?'none':'flex'}">🖼️</div>
                                 <input type="file" accept="image/*" onchange="handleActiveImage(event)">
                             </div>
+                            ${imageControlsHtml('active', imgState)}
+                            <label class="border-toggle" style="margin-top:8px;">
+                                <input type="checkbox" id="activeImageLabelOn" ${window.activeImageLabelOn?'checked':''} onchange="window.activeImageLabelOn=this.checked;renderEditor()">
+                                Show label under image
+                            </label>
+                            <div style="display:${window.activeImageLabelOn?'block':'none'};margin-top:6px;">
+                                <label>Label text</label>
+                                <input id="activeImageLabel" value="${escapeHtml(window.activeImageLabel)}" oninput="window.activeImageLabel=this.value" placeholder="e.g. cat" style="width:100%;padding:8px 12px;border:2px solid #dee2e6;border-radius:8px;font-size:13px;">
+                            </div>
+                        </div>
+                        <div id="traceFields" style="display:${window.activeMode==='trace'?'block':'none'}">
+                            <label>Target letter / word <span style="font-weight:400;color:#6c757d;">(empty = blank lines)</span></label>
+                            <input id="activeTraceTarget" value="${escapeHtml(window.activeTraceTarget)}" oninput="window.activeTraceTarget=this.value" placeholder="e.g. a  or  cat" style="width:100%;padding:8px 12px;border:2px solid #dee2e6;border-radius:8px;font-size:13px;">
+                            <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;">
+                                <div>
+                                    <label style="font-size:11px;font-weight:700;color:#6c757d;">Style</label>
+                                    <div class="align-group">
+                                        <button type="button" class="${window.activeTraceStyle==='outlined'?'active':''}" onclick="window.activeTraceStyle='outlined';renderEditor()">Outlined</button>
+                                        <button type="button" class="${window.activeTraceStyle==='solid'?'active':''}" onclick="window.activeTraceStyle='solid';renderEditor()">Solid</button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label style="font-size:11px;font-weight:700;color:#6c757d;">Clones per line</label>
+                                    <input type="number" id="activeTraceClones" value="${window.activeTraceClones}" min="1" max="20" style="width:64px;padding:4px 6px;border:1px solid #ced4da;border-radius:6px;font-size:12px;" onchange="window.activeTraceClones=Math.min(20,Math.max(1,parseInt(this.value,10)||5))">
+                                </div>
+                                <div>
+                                    <label style="font-size:11px;font-weight:700;color:#6c757d;">Repeat on</label>
+                                    <div class="align-group">
+                                        <button type="button" class="${window.activeTraceRepeatAll?'active':''}" onclick="window.activeTraceRepeatAll=true;renderEditor()">All sets</button>
+                                        <button type="button" class="${!window.activeTraceRepeatAll?'active':''}" onclick="window.activeTraceRepeatAll=false;renderEditor()">First only</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="font-size:11px;color:#6c757d;margin-top:6px;">Each grid row = one guideline set (red-blue-blue-red). Select full-width rows for best results.</div>
+                        </div>
+                        <div id="tableFields" style="display:${window.activeMode==='table'?'block':'none'}">
+                            <div style="font-size:12px;color:#495057;line-height:1.4;margin-bottom:8px;">
+                                Table size is derived from your selection:<br>
+                                <strong>cols</strong> = block width · <strong>rows</strong> = block height × 2<br>
+                                After placing, open <em>Edit content</em> to fill cells, merge, and style.
+                            </div>
+                            <label class="border-toggle">
+                                <input type="checkbox" id="activeTableShowBorders" ${window.activeTableShowBorders?'checked':''} onchange="window.activeTableShowBorders=this.checked">
+                                Show cell borders
+                            </label>
                         </div>
                         <label class="border-toggle" style="margin-top:8px;">
                             <input type="checkbox" id="activeBorder" ${window.activeShowBorder?'checked':''} onchange="window.activeShowBorder=this.checked">
@@ -467,9 +1138,9 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
                     </div>
                 </div>`;
         } else if (!locked && freeCount === 0) {
-            html += `<div style="padding:20px;text-align:center;color:#2d7d46;font-weight:700;">All space allocated. Press Done to lock the page.</div>`;
+            html += `<div style="padding:20px;text-align:center;color:#2d7d46;font-weight:700;">All space allocated. Press Done to lock the layout.</div>`;
         } else if (locked) {
-            html += `<div style="padding:16px;text-align:center;color:#6c757d;font-weight:600;">Page is locked. Unlock to edit blocks.</div>`;
+            html += `<div style="padding:16px;text-align:center;color:#6c757d;font-weight:600;">Layout is locked. You can still edit content of any block. Unlock to change structure.</div>`;
         }
 
         container.innerHTML = html;
@@ -484,7 +1155,6 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
                     cell.className = 'cell';
                     const key = cellKey(r, c);
                     if (page.usedCells.has(key)) {
-                        // check if this cell belongs to this block
                         if (r >= b.row && r < b.row + b.rowSpan && c >= b.col && c < b.col + b.colSpan) {
                             cell.classList.add('used');
                         } else {
@@ -519,6 +1189,441 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         updateUndoRedoButtons();
     }
 
+    function renderEditPanel(b, idx) {
+        if (b.type === 'text') {
+            const state = {
+                bold: !!b.bold,
+                italic: !!b.italic,
+                underline: !!b.underline,
+                fontSize: b.fontSize || 18,
+                color: b.color || '#1a1a1a',
+                textAlign: b.textAlign || 'center',
+                verticalAlign: b.verticalAlign || 'center'
+            };
+            return `
+                <div class="edit-panel">
+                    <label style="font-weight:700;font-size:12px;">Text content</label>
+                    <textarea id="editText" oninput="updateEditText(${idx}, this.value)">${escapeHtml(b.text || '')}</textarea>
+                    ${fmtToolbarHtml('edit', state)}
+                    <label class="border-toggle" style="margin-top:10px;">
+                        <input type="checkbox" ${b.showBorder !== false ? 'checked' : ''} onchange="toggleBlockBorder(${idx}, this.checked)">
+                        Show border on page
+                    </label>
+                    <div style="margin-top:10px;">
+                        <button class="btn btn-success btn-sm" onclick="toggleEditBlock(${idx})">✓ Done editing</button>
+                    </div>
+                </div>`;
+        } else if (b.type === 'image') {
+            const imgState = {
+                imageAlign: b.imageAlign || 'center',
+                imageVerticalAlign: b.imageVerticalAlign || 'center',
+                imageFit: b.imageFit || 'contain',
+                imageScale: b.imageScale ?? 100
+            };
+            return `
+                <div class="edit-panel">
+                    <label style="font-weight:700;font-size:12px;">Image</label>
+                    <div class="img-preview-wrap" style="margin-bottom:8px;">
+                        ${b.imagePath ? `<img src="${escapeHtml(b.imagePath)}" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:2px solid #dee2e6;">` : '<div class="ph">🖼️</div>'}
+                        <input type="file" accept="image/*" onchange="handleEditImage(event, ${idx})">
+                    </div>
+                    ${imageControlsHtml('edit', imgState)}
+                    <label class="border-toggle" style="margin-top:8px;">
+                        <input type="checkbox" ${b.imageLabelOn ? 'checked' : ''} onchange="updateImageLabelOn(${idx}, this.checked)">
+                        Show label under image
+                    </label>
+                    <div style="display:${b.imageLabelOn ? 'block' : 'none'};margin-top:6px;">
+                        <label style="font-weight:700;font-size:12px;">Label text</label>
+                        <input value="${escapeHtml(b.imageLabel || '')}" oninput="updateImageLabel(${idx}, this.value)" placeholder="e.g. cat" style="width:100%;padding:8px 12px;border:2px solid #dee2e6;border-radius:8px;font-size:13px;">
+                    </div>
+                    <label class="border-toggle" style="margin-top:10px;">
+                        <input type="checkbox" ${b.showBorder !== false ? 'checked' : ''} onchange="toggleBlockBorder(${idx}, this.checked)">
+                        Show border on page
+                    </label>
+                    <div style="margin-top:10px;">
+                        <button class="btn btn-success btn-sm" onclick="toggleEditBlock(${idx})">✓ Done editing</button>
+                    </div>
+                </div>`;
+        } else if (b.type === 'trace') {
+            return `
+                <div class="edit-panel">
+                    <label style="font-weight:700;font-size:12px;">Target letter / word <span style="font-weight:400;color:#6c757d;">(empty = blank lines)</span></label>
+                    <input id="editTraceTarget" value="${escapeHtml(b.traceTarget || '')}" oninput="updateTraceField(${idx},'traceTarget',this.value)" placeholder="e.g. a  or  cat" style="width:100%;padding:8px 12px;border:2px solid #dee2e6;border-radius:8px;font-size:13px;">
+                    <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;">
+                        <div>
+                            <label style="font-size:11px;font-weight:700;color:#6c757d;">Style</label>
+                            <div class="align-group">
+                                <button type="button" class="${(b.traceStyle||'outlined')==='outlined'?'active':''}" onclick="updateTraceField(${idx},'traceStyle','outlined')">Outlined</button>
+                                <button type="button" class="${b.traceStyle==='solid'?'active':''}" onclick="updateTraceField(${idx},'traceStyle','solid')">Solid</button>
+                            </div>
+                        </div>
+                        <div>
+                            <label style="font-size:11px;font-weight:700;color:#6c757d;">Clones per line</label>
+                            <input type="number" value="${b.traceClones || 5}" min="1" max="20" style="width:64px;padding:4px 6px;border:1px solid #ced4da;border-radius:6px;font-size:12px;" onchange="updateTraceField(${idx},'traceClones',Math.min(20,Math.max(1,parseInt(this.value,10)||5)))">
+                        </div>
+                        <div>
+                            <label style="font-size:11px;font-weight:700;color:#6c757d;">Repeat on</label>
+                            <div class="align-group">
+                                <button type="button" class="${b.traceRepeatAll !== false ? 'active' : ''}" onclick="updateTraceField(${idx},'traceRepeatAll',true)">All sets</button>
+                                <button type="button" class="${b.traceRepeatAll === false ? 'active' : ''}" onclick="updateTraceField(${idx},'traceRepeatAll',false)">First only</button>
+                            </div>
+                        </div>
+                    </div>
+                    <label class="border-toggle" style="margin-top:10px;">
+                        <input type="checkbox" ${b.showBorder !== false ? 'checked' : ''} onchange="toggleBlockBorder(${idx}, this.checked)">
+                        Show border on page
+                    </label>
+                    <div style="margin-top:10px;">
+                        <button class="btn btn-success btn-sm" onclick="toggleEditBlock(${idx})">✓ Done editing</button>
+                    </div>
+                </div>`;
+        } else if (b.type === 'table') {
+            return renderTableEditPanel(b, idx);
+        }
+        return '';
+    }
+
+    function renderTableEditPanel(b, idx) {
+        const rows = b.tableRows || (b.rowSpan * 2);
+        const cols = b.tableCols || b.colSpan;
+        const cells = b.cells || [];
+
+        // Build occupancy map: atomic (r,c) -> cell object
+        const rect = isTableRect(tableSel);
+
+        // Primary selected region (first selected cell's owner) for form defaults
+        let primary = null;
+        if (tableSel.size) {
+            const first = parseTKey(Array.from(tableSel)[0]);
+            primary = findTableCellAt(cells, first.r, first.c);
+        }
+
+        let mini = `<div class="mini-table" style="grid-template-columns:repeat(${cols},1fr);grid-template-rows:repeat(${rows},minmax(28px,auto));">`;
+        // Render only origin cells with span; mark covered atoms
+        const originMap = {};
+        cells.forEach(cell => { originMap[tKey(cell.r, cell.c)] = cell; });
+
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+                const k = tKey(r, c);
+                const owner = findTableCellAt(cells, r, c);
+                const isOrigin = owner && owner.r === r && owner.c === c;
+                if (!isOrigin) {
+                    // covered by a merge — skip painting a separate box (grid will span)
+                    // But CSS grid needs placeholders OR we use explicit placement only on origins
+                    continue;
+                }
+                const selected = coveredKeys(owner).some(ck => tableSel.has(ck));
+                const style = [
+                    `grid-row:${owner.r + 1}/span ${owner.rowSpan}`,
+                    `grid-column:${owner.c + 1}/span ${owner.colSpan}`,
+                    `background:${owner.bg || '#f1f3f5'}`,
+                    owner.bold ? 'font-weight:700' : '',
+                    owner.italic ? 'font-style:italic' : '',
+                    `font-size:${Math.min(18, owner.fontSize || 14)}px`
+                ].filter(Boolean).join(';');
+                mini += `<div class="mt-cell ${selected ? 'selected' : ''}" style="${style}" onclick="toggleTableCell(${idx},${r},${c})" title="${owner.rowSpan}×${owner.colSpan}">${escapeHtml(owner.text || '')}</div>`;
+            }
+        }
+        mini += '</div>';
+
+        // Merge only if selection is a solid rectangle covering 2+ distinct cell regions
+        let ownerCount = 0;
+        if (rect && tableSel.size > 1) {
+            const seen = new Set();
+            for (const k of tableSel) {
+                const { r, c } = parseTKey(k);
+                const o = findTableCellAt(cells, r, c);
+                if (o) seen.add(tKey(o.r, o.c));
+            }
+            ownerCount = seen.size;
+        }
+        const canMerge = rect && ownerCount >= 2;
+        // Can unmerge if selection sits inside one multi-cell region
+        const canUnmerge = primary && (primary.rowSpan > 1 || primary.colSpan > 1);
+
+        return `
+            <div class="edit-panel">
+                <div style="font-size:12px;font-weight:700;color:#6c757d;margin-bottom:6px;">Click cells to select a rectangle · ${rows}×${cols} table</div>
+                ${mini}
+                <div class="block-actions" style="margin-top:8px;">
+                    <button class="btn btn-primary btn-xs" onclick="mergeTableCells(${idx})" ${canMerge ? '' : 'disabled'}>Merge</button>
+                    <button class="btn btn-outline btn-xs" onclick="unmergeTableCells(${idx})" ${canUnmerge ? '' : 'disabled'}>Unmerge</button>
+                    <button class="btn btn-outline btn-xs" onclick="clearTableSel()">Clear selection</button>
+                </div>
+                <div style="margin-top:10px;display:${tableSel.size ? 'block' : 'none'};">
+                    <label style="font-weight:700;font-size:12px;">Cell text</label>
+                    <input id="tableCellText" value="${escapeHtml(primary ? (primary.text || '') : '')}" oninput="applyTableCellProp(${idx},'text',this.value)" placeholder="Centered text" style="width:100%;padding:8px 12px;border:2px solid #dee2e6;border-radius:8px;font-size:13px;">
+                    <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;align-items:flex-end;">
+                        <div>
+                            <label style="font-size:11px;font-weight:700;color:#6c757d;">Background</label>
+                            <input type="color" value="${primary ? (primary.bg || '#f1f3f5') : '#f1f3f5'}" onchange="applyTableCellProp(${idx},'bg',this.value)" style="width:42px;height:32px;border:1px solid #ced4da;border-radius:6px;padding:2px;cursor:pointer;">
+                        </div>
+                        <div>
+                            <label style="font-size:11px;font-weight:700;color:#6c757d;">Font size</label>
+                            <input type="number" value="${primary ? (primary.fontSize || 14) : 14}" min="10" max="22" style="width:56px;padding:4px 6px;border:1px solid #ced4da;border-radius:6px;font-size:12px;" onchange="applyTableCellProp(${idx},'fontSize',Math.min(22,Math.max(10,parseInt(this.value,10)||14)))">
+                        </div>
+                        <div class="align-group">
+                            <button type="button" class="${primary && primary.bold ? 'active' : ''}" onclick="applyTableCellProp(${idx},'bold',${primary && primary.bold ? 'false' : 'true'})"><b>B</b></button>
+                            <button type="button" class="${primary && primary.italic ? 'active' : ''}" onclick="applyTableCellProp(${idx},'italic',${primary && primary.italic ? 'false' : 'true'})"><i>I</i></button>
+                        </div>
+                    </div>
+                </div>
+                <label class="border-toggle" style="margin-top:10px;">
+                    <input type="checkbox" ${b.tableShowBorders !== false ? 'checked' : ''} onchange="toggleTableBorders(${idx}, this.checked)">
+                    Show cell borders
+                </label>
+                <label class="border-toggle" style="margin-top:6px;">
+                    <input type="checkbox" ${b.showBorder !== false ? 'checked' : ''} onchange="toggleBlockBorder(${idx}, this.checked)">
+                    Show border on page
+                </label>
+                <div style="margin-top:10px;">
+                    <button class="btn btn-success btn-sm" onclick="toggleEditBlock(${idx})">✓ Done editing</button>
+                </div>
+            </div>`;
+    }
+
+    window.clearTableSel = function() {
+        tableSel = new Set();
+        renderEditor();
+    };
+
+    window.toggleTableCell = function(blockIdx, r, c) {
+        const page = getCurrentPage();
+        if (!page || !page.blocks[blockIdx] || page.blocks[blockIdx].type !== 'table') return;
+        const b = page.blocks[blockIdx];
+        const owner = findTableCellAt(b.cells || [], r, c);
+        if (!owner) return;
+
+        // Toggle all atomic keys belonging to this region
+        const keys = coveredKeys(owner);
+        const allOn = keys.every(k => tableSel.has(k));
+        if (allOn) {
+            keys.forEach(k => tableSel.delete(k));
+        } else {
+            keys.forEach(k => tableSel.add(k));
+        }
+        renderEditor();
+    };
+
+    window.mergeTableCells = function(blockIdx) {
+        const page = getCurrentPage();
+        if (!page || !page.blocks[blockIdx] || page.blocks[blockIdx].type !== 'table') return;
+        const b = page.blocks[blockIdx];
+        const rect = isTableRect(tableSel);
+        if (!rect || tableSel.size < 2) {
+            return showToast('Select a solid rectangle of 2+ cells to merge', 'warning');
+        }
+
+        // Ensure selection doesn't partially cut existing merges — all atoms of any touched region must be selected
+        const cells = b.cells || [];
+        const ownersHit = new Set();
+        for (const cell of cells) {
+            const keys = coveredKeys(cell);
+            const hit = keys.some(k => tableSel.has(k));
+            const all = keys.every(k => tableSel.has(k));
+            if (hit && !all) {
+                return showToast('Selection cuts through a merged cell — select the whole region', 'error');
+            }
+            if (hit) ownersHit.add(tKey(cell.r, cell.c));
+        }
+        if (ownersHit.size < 2) {
+            return showToast('Select at least two separate cells/regions to merge', 'warning');
+        }
+
+        pushHistory();
+
+        // Remove all cells that overlap the selection
+        const remaining = cells.filter(cell => {
+            const keys = coveredKeys(cell);
+            return !keys.some(k => tableSel.has(k));
+        });
+
+        // Create one merged cell; inherit text/style from top-left owner if any
+        const topLeft = findTableCellAt(cells, rect.minR, rect.minC);
+        remaining.push({
+            r: rect.minR,
+            c: rect.minC,
+            rowSpan: rect.rowSpan,
+            colSpan: rect.colSpan,
+            text: topLeft ? (topLeft.text || '') : '',
+            bg: topLeft ? (topLeft.bg || '#f1f3f5') : '#f1f3f5',
+            fontSize: topLeft ? (topLeft.fontSize || 14) : 14,
+            bold: topLeft ? !!topLeft.bold : false,
+            italic: topLeft ? !!topLeft.italic : false
+        });
+
+        b.cells = remaining;
+        // Keep selection as the merged region
+        tableSel = new Set();
+        for (let r = rect.minR; r <= rect.maxR; r++) {
+            for (let c = rect.minC; c <= rect.maxC; c++) tableSel.add(tKey(r, c));
+        }
+        save();
+        renderEditor();
+        showToast('Cells merged', 'success');
+    };
+
+    window.unmergeTableCells = function(blockIdx) {
+        const page = getCurrentPage();
+        if (!page || !page.blocks[blockIdx] || page.blocks[blockIdx].type !== 'table') return;
+        const b = page.blocks[blockIdx];
+        if (!tableSel.size) return showToast('Select a merged cell first', 'warning');
+
+        const first = parseTKey(Array.from(tableSel)[0]);
+        const owner = findTableCellAt(b.cells || [], first.r, first.c);
+        if (!owner || (owner.rowSpan === 1 && owner.colSpan === 1)) {
+            return showToast('Selection is not a merged cell', 'warning');
+        }
+
+        pushHistory();
+        const cells = (b.cells || []).filter(cell => !(cell.r === owner.r && cell.c === owner.c));
+        // Split back into 1×1 cells, copy style to each
+        for (let r = owner.r; r < owner.r + owner.rowSpan; r++) {
+            for (let c = owner.c; c < owner.c + owner.colSpan; c++) {
+                cells.push({
+                    r, c, rowSpan: 1, colSpan: 1,
+                    text: (r === owner.r && c === owner.c) ? (owner.text || '') : '',
+                    bg: owner.bg || '#f1f3f5',
+                    fontSize: owner.fontSize || 14,
+                    bold: !!owner.bold,
+                    italic: !!owner.italic
+                });
+            }
+        }
+        b.cells = cells;
+        save();
+        renderEditor();
+        showToast('Cell unmerged', 'info');
+    };
+
+    window.applyTableCellProp = function(blockIdx, prop, value) {
+        const page = getCurrentPage();
+        if (!page || !page.blocks[blockIdx] || page.blocks[blockIdx].type !== 'table') return;
+        const b = page.blocks[blockIdx];
+        if (!tableSel.size) return;
+
+        // Collect unique owner cells in selection
+        const owners = new Map();
+        for (const k of tableSel) {
+            const { r, c } = parseTKey(k);
+            const owner = findTableCellAt(b.cells || [], r, c);
+            if (owner) owners.set(tKey(owner.r, owner.c), owner);
+        }
+        if (!owners.size) return;
+
+        if (prop === 'text') {
+            if (!_editTextHistoryTimer) pushHistory();
+            clearTimeout(_editTextHistoryTimer);
+            _editTextHistoryTimer = setTimeout(() => { _editTextHistoryTimer = null; }, 800);
+        } else {
+            pushHistory();
+        }
+
+        owners.forEach(owner => {
+            if (prop === 'fontSize') {
+                owner.fontSize = Math.min(22, Math.max(10, parseInt(value, 10) || 14));
+            } else if (prop === 'bold' || prop === 'italic') {
+                owner[prop] = value === true || value === 'true';
+            } else {
+                owner[prop] = value;
+            }
+        });
+        save();
+        if (prop !== 'text') renderEditor();
+    };
+
+    window.toggleTableBorders = function(idx, val) {
+        const page = getCurrentPage();
+        if (!page || !page.blocks[idx]) return;
+        pushHistory();
+        page.blocks[idx].tableShowBorders = !!val;
+        save();
+    };
+
+    window.updateImageLabelOn = function(idx, val) {
+        const page = getCurrentPage();
+        if (!page || !page.blocks[idx]) return;
+        pushHistory();
+        page.blocks[idx].imageLabelOn = !!val;
+        save();
+        renderEditor();
+    };
+    window.updateImageLabel = function(idx, val) {
+        const page = getCurrentPage();
+        if (!page || !page.blocks[idx]) return;
+        if (!_editTextHistoryTimer) pushHistory();
+        clearTimeout(_editTextHistoryTimer);
+        _editTextHistoryTimer = setTimeout(() => { _editTextHistoryTimer = null; }, 800);
+        page.blocks[idx].imageLabel = val;
+        save();
+    };
+    window.updateTraceField = function(idx, prop, val) {
+        const page = getCurrentPage();
+        if (!page || !page.blocks[idx] || page.blocks[idx].type !== 'trace') return;
+        if (prop === 'traceTarget') {
+            // Debounced history for typing; no full re-render (keeps focus)
+            if (!_editTextHistoryTimer) pushHistory();
+            clearTimeout(_editTextHistoryTimer);
+            _editTextHistoryTimer = setTimeout(() => { _editTextHistoryTimer = null; }, 800);
+            page.blocks[idx][prop] = val;
+            save();
+            return;
+        }
+        pushHistory();
+        page.blocks[idx][prop] = val;
+        save();
+        renderEditor();
+    };
+
+    window.toggleEditBlock = function(idx) {
+        if (editingBlockIdx === idx) {
+            editingBlockIdx = null;
+            tableSel = new Set();
+            if (_editTextHistoryTimer) { clearTimeout(_editTextHistoryTimer); _editTextHistoryTimer = null; }
+        } else {
+            editingBlockIdx = idx;
+            tableSel = new Set();
+        }
+        renderEditor();
+        if (editingBlockIdx !== null) {
+            const ta = document.getElementById('editText');
+            if (ta) ta.focus();
+        }
+    };
+
+    window.updateEditText = function(idx, value) {
+        const page = getCurrentPage();
+        if (!page || !page.blocks[idx]) return;
+        // Debounced history: push once per typing burst, not every keystroke
+        if (!_editTextHistoryTimer) {
+            pushHistory();
+        }
+        clearTimeout(_editTextHistoryTimer);
+        _editTextHistoryTimer = setTimeout(() => { _editTextHistoryTimer = null; }, 800);
+        page.blocks[idx].text = value;
+        save();
+    };
+
+    window.handleEditImage = function(e, idx) {
+        const file = e.target.files[0];
+        if (!file) return;
+        if (!file.type || !file.type.startsWith('image/')) return showToast('Please select an image file', 'error');
+        if (file.size > 2*1024*1024) return showToast('Image must be < 2MB', 'error');
+        const reader = new FileReader();
+        reader.onload = ev => {
+            const page = getCurrentPage();
+            if (!page || !page.blocks[idx]) return;
+            pushHistory();
+            page.blocks[idx].imagePath = ev.target.result;
+            save();
+            renderEditor();
+            showToast('Image updated', 'success');
+        };
+        reader.onerror = () => showToast('Failed to read image', 'error');
+        reader.readAsDataURL(file);
+    };
+
     function syncActiveFromDom() {
         const ta = document.getElementById('activeText');
         if (ta) window.activeText = ta.value;
@@ -527,8 +1632,22 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
             const n = parseInt(fs.value, 10);
             window.activeFontSize = Number.isFinite(n) ? Math.min(72, Math.max(10, n)) : 18;
         }
+        const col = document.getElementById('activeColor');
+        if (col) window.activeColor = col.value;
         const br = document.getElementById('activeBorder');
         if (br) window.activeShowBorder = !!br.checked;
+        const sc = document.getElementById('activeImageScale');
+        if (sc) window.activeImageScale = Math.min(200, Math.max(10, parseInt(sc.value,10) || 100));
+        const labOn = document.getElementById('activeImageLabelOn');
+        if (labOn) window.activeImageLabelOn = !!labOn.checked;
+        const lab = document.getElementById('activeImageLabel');
+        if (lab) window.activeImageLabel = lab.value;
+        const tt = document.getElementById('activeTraceTarget');
+        if (tt) window.activeTraceTarget = tt.value;
+        const tc = document.getElementById('activeTraceClones');
+        if (tc) window.activeTraceClones = Math.min(20, Math.max(1, parseInt(tc.value, 10) || 5));
+        const tsb = document.getElementById('activeTableShowBorders');
+        if (tsb) window.activeTableShowBorders = !!tsb.checked;
     }
 
     window.toggleCell = function(r, c) {
@@ -536,7 +1655,7 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         if (!page || page.locked) return;
         const key = cellKey(r, c);
         if (page.usedCells.has(key)) return;
-        syncActiveFromDom(); // preserve typed text before re-render
+        syncActiveFromDom();
         if (window.activeSelection.has(key)) window.activeSelection.delete(key);
         else window.activeSelection.add(key);
         renderEditor();
@@ -596,8 +1715,6 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
     window.setBlock = function() {
         const page = getCurrentPage();
         if (!page || page.locked) return;
-
-        // Always read latest values from the live DOM (most reliable)
         syncActiveFromDom();
 
         const rect = isRectangle(window.activeSelection);
@@ -611,11 +1728,14 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
             if (!window.activeImagePath) {
                 return showToast('Please upload an image', 'error');
             }
+        } else if (window.activeMode === 'trace') {
+            // target can be empty (blank lines) — always valid
+        } else if (window.activeMode === 'table') {
+            // table is always valid once rectangle is selected
         } else {
             return showToast('Unknown block mode', 'error');
         }
 
-        // Prevent overlapping used cells (safety)
         for (const k of window.activeSelection) {
             if (page.usedCells.has(k)) {
                 return showToast('Selection overlaps used cells', 'error');
@@ -631,14 +1751,52 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
             rowSpan: rect.rowSpan,
             colSpan: rect.colSpan,
             type: window.activeMode,
-            text: String(window.activeText || ''),
-            fontSize: window.activeFontSize || 18,
-            imagePath: window.activeImagePath || '',
             showBorder: window.activeShowBorder !== false
         };
+
+        if (window.activeMode === 'text') {
+            Object.assign(block, {
+                text: String(window.activeText || ''),
+                fontSize: window.activeFontSize || 18,
+                bold: !!window.activeBold,
+                italic: !!window.activeItalic,
+                underline: !!window.activeUnderline,
+                color: window.activeColor || '#1a1a1a',
+                textAlign: window.activeTextAlign || 'center',
+                verticalAlign: window.activeVerticalAlign || 'center'
+            });
+        } else if (window.activeMode === 'image') {
+            Object.assign(block, {
+                imagePath: window.activeImagePath || '',
+                imageAlign: window.activeImageAlign || 'center',
+                imageVerticalAlign: window.activeImageVerticalAlign || 'center',
+                imageFit: window.activeImageFit || 'contain',
+                imageScale: window.activeImageScale ?? 100,
+                imageLabelOn: !!window.activeImageLabelOn,
+                imageLabel: String(window.activeImageLabel || '')
+            });
+        } else if (window.activeMode === 'trace') {
+            Object.assign(block, {
+                traceTarget: String(window.activeTraceTarget || ''),
+                traceStyle: window.activeTraceStyle === 'solid' ? 'solid' : 'outlined',
+                traceClones: Math.min(20, Math.max(1, parseInt(window.activeTraceClones, 10) || 5)),
+                traceRepeatAll: window.activeTraceRepeatAll !== false
+            });
+        } else if (window.activeMode === 'table') {
+            const tableRows = rect.rowSpan * 2;
+            const tableCols = rect.colSpan;
+            Object.assign(block, {
+                tableRows,
+                tableCols,
+                tableShowBorders: window.activeTableShowBorders !== false,
+                cells: initTableCells(tableRows, tableCols)
+            });
+        }
+
         page.blocks.push(block);
         window.activeSelection.forEach(k => page.usedCells.add(k));
         resetActive();
+        editingBlockIdx = null;
         save();
         renderEditor();
         showToast('Block set', 'success');
@@ -657,6 +1815,12 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
             }
         }
         page.blocks.splice(idx, 1);
+        if (editingBlockIdx === idx) {
+            editingBlockIdx = null;
+            tableSel = new Set();
+        } else if (editingBlockIdx > idx) {
+            editingBlockIdx--;
+        }
         save();
         renderEditor();
         showToast('Block removed', 'info');
@@ -664,7 +1828,9 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
 
     window.toggleBlockBorder = function(idx, val) {
         const page = getCurrentPage();
-        if (!page) return;
+        if (!page || !page.blocks[idx]) return;
+        if (page.blocks[idx].showBorder === val) return;
+        pushHistory();
         page.blocks[idx].showBorder = val;
         save();
     };
@@ -688,9 +1854,11 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         const page = getCurrentPage();
         if (!page) return;
         page.locked = true;
+        editingBlockIdx = null;
+        tableSel = new Set();
         save();
         renderEditor();
-        showToast('Page locked', 'success');
+        showToast('Layout locked — content still editable', 'success');
     };
     window.unlockPage = function() {
         const page = getCurrentPage();
@@ -698,7 +1866,7 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         page.locked = false;
         save();
         renderEditor();
-        showToast('Page unlocked', 'info');
+        showToast('Layout unlocked', 'info');
     };
     window.resetPage = function() {
         if (!confirm('Clear all blocks on this page?')) return;
@@ -709,6 +1877,8 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         page.usedCells = new Set();
         page.locked = false;
         resetActive();
+        editingBlockIdx = null;
+        tableSel = new Set();
         save();
         renderEditor();
         showToast('Page reset', 'info');
@@ -752,14 +1922,133 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
                 el.className = 'block' + (b.showBorder !== false ? ' has-border' : '');
                 el.style.gridRow = `${b.row + 1} / span ${b.rowSpan}`;
                 el.style.gridColumn = `${b.col + 1} / span ${b.colSpan}`;
+
                 if (b.type === 'text') {
-                    el.innerHTML = `<div class="block-text" style="font-size:${b.fontSize || 18}px">${escapeHtml(b.text || '')}</div>`;
+                    const vAlign = b.verticalAlign || 'center';
+                    el.style.alignItems = vAlign === 'top' ? 'flex-start' : vAlign === 'bottom' ? 'flex-end' : 'center';
+                    el.style.justifyContent = 'stretch';
+                    const style = [
+                        `font-size:${b.fontSize || 18}px`,
+                        `color:${b.color || '#1a1a1a'}`,
+                        `text-align:${b.textAlign || 'center'}`,
+                        b.bold ? 'font-weight:700' : 'font-weight:600',
+                        b.italic ? 'font-style:italic' : '',
+                        b.underline ? 'text-decoration:underline' : '',
+                        'width:100%'
+                    ].filter(Boolean).join(';');
+                    el.innerHTML = `<div class="block-text" style="${style}">${textToHtml(b.text || '')}</div>`;
                 } else if (b.type === 'image' && b.imagePath) {
-                    el.innerHTML = `<img class="block-img" src="${escapeHtml(b.imagePath)}">`;
+                    const vAlign = b.imageVerticalAlign || 'center';
+                    const hAlign = b.imageAlign || 'center';
+                    el.style.alignItems = vAlign === 'top' ? 'flex-start' : vAlign === 'bottom' ? 'flex-end' : 'center';
+                    el.style.justifyContent = hAlign === 'left' ? 'flex-start' : hAlign === 'right' ? 'flex-end' : 'center';
+                    const fit = b.imageFit || 'contain';
+                    let imgStyle = 'border-radius:4px;';
+                    if (fit === 'contain') {
+                        imgStyle += 'max-width:100%;max-height:100%;object-fit:contain;';
+                    } else if (fit === 'cover') {
+                        imgStyle += 'width:100%;height:100%;object-fit:cover;';
+                    } else if (fit === 'scale') {
+                        const sc = (b.imageScale ?? 100) / 100;
+                        imgStyle += `max-width:${100 * sc}%;max-height:${100 * sc}%;object-fit:contain;`;
+                    }
+                    if (b.imageLabelOn && b.imageLabel) {
+                        // When label is on, constrain image so label fits
+                        if (fit === 'contain' || fit === 'scale') {
+                            imgStyle = imgStyle.replace(/max-height:100%/, 'max-height:78%');
+                        }
+                        el.innerHTML = `<div class="block-img-wrap">
+                            <img class="block-img" src="${escapeHtml(b.imagePath)}" style="${imgStyle}">
+                            <div class="block-img-label">${escapeHtml(b.imageLabel)}</div>
+                        </div>`;
+                    } else {
+                        el.innerHTML = `<img class="block-img" src="${escapeHtml(b.imagePath)}" style="${imgStyle}">`;
+                    }
+                } else if (b.type === 'trace') {
+                    el.style.alignItems = 'stretch';
+                    el.style.justifyContent = 'stretch';
+                    el.innerHTML = buildTraceHtml(b);
+                } else if (b.type === 'table') {
+                    el.style.alignItems = 'stretch';
+                    el.style.justifyContent = 'stretch';
+                    el.innerHTML = buildTableHtml(b);
                 }
                 stage.appendChild(el);
             });
         });
+    }
+
+    function buildTableHtml(b) {
+        const rows = b.tableRows || (b.rowSpan * 2) || 1;
+        const cols = b.tableCols || b.colSpan || 1;
+        const cells = b.cells || [];
+        const showBorders = b.tableShowBorders !== false;
+
+        let html = `<div class="inner-table ${showBorders ? 'has-borders' : ''}" style="grid-template-columns:repeat(${cols},1fr);grid-template-rows:repeat(${rows},1fr);">`;
+
+        // Only paint origin cells with placement spans
+        cells.forEach(cell => {
+            const style = [
+                `grid-row:${cell.r + 1} / span ${cell.rowSpan}`,
+                `grid-column:${cell.c + 1} / span ${cell.colSpan}`,
+                `background:${cell.bg || '#f1f3f5'}`,
+                `font-size:${Math.min(22, cell.fontSize || 14)}px`,
+                cell.bold ? 'font-weight:700' : 'font-weight:600',
+                cell.italic ? 'font-style:italic' : '',
+                'color:#1a1a1a'
+            ].filter(Boolean).join(';');
+            html += `<div class="it-cell" style="${style}">${escapeHtml(cell.text || '')}</div>`;
+        });
+
+        html += '</div>';
+        return html;
+    }
+
+    /**
+     * Build handwriting guideline sets for a trace block.
+     * - 1 grid row height = 1 line set (red-blue-blue-red, evenly spaced)
+     * - Letters centered in the band between the two blue lines
+     * - Desktop vs mobile: font-size uses relative units; positioning is % based so it scales
+     */
+    function buildTraceHtml(b) {
+        const sets = Math.max(1, b.rowSpan || 1);
+        const target = String(b.traceTarget || '').trim();
+        const clones = Math.min(20, Math.max(1, parseInt(b.traceClones, 10) || 5));
+        const style = b.traceStyle === 'solid' ? 'solid' : 'outlined';
+        const repeatAll = b.traceRepeatAll !== false;
+
+        // Evenly spaced 4 lines → positions at 0%, 33.33%, 66.67%, 100% of set height
+        // Letters sit in exact middle of the two blue lines → 50% of set height
+        // Font size: scale with set height. On typical page a row is ~70-80px;
+        // we use a clamp so it works on desktop print and narrower mobile preview.
+        let html = '<div class="trace-wrap">';
+        for (let s = 0; s < sets; s++) {
+            const showLetters = target && (repeatAll || s === 0);
+            html += '<div class="trace-set">';
+            // Four guideline lines (evenly spaced)
+            html += '<div class="tline red" style="top:0;"></div>';
+            html += '<div class="tline blue" style="top:33.333%;"></div>';
+            html += '<div class="tline blue" style="top:66.667%;"></div>';
+            html += '<div class="tline red" style="top:100%;"></div>';
+            if (showLetters) {
+                // Letters sit in the exact middle of the space between the 2 blue lines
+                // (band from 33.333% to 66.667% of set height).
+                // Desktop vs mobile: percentage positioning scales with cell height;
+                // font-size uses clamp so print (wide) and mobile preview both look balanced.
+                let spans = '';
+                for (let c = 0; c < clones; c++) {
+                    spans += `<span>${escapeHtml(target)}</span>`;
+                }
+                html += `<div class="trace-letters ${style === 'outlined' ? 'outlined' : ''}" style="
+                    top: 33.333%;
+                    height: 33.333%;
+                    font-size: clamp(16px, 2.8vw, 32px);
+                ">${spans}</div>`;
+            }
+            html += '</div>';
+        }
+        html += '</div>';
+        return html;
     }
 
     window.exportPage = function(pageEl) {
@@ -785,6 +2074,7 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
                 </div>
                 <div class="actions">
                     <button class="btn btn-primary btn-xs" onclick="selectLesson('${l.id}')">Open</button>
+                    <button class="btn btn-outline btn-xs" onclick="duplicateLesson('${l.id}')" title="Duplicate lesson">⧉ Duplicate</button>
                     <button class="btn btn-danger btn-xs" onclick="deleteLesson('${l.id}')">🗑</button>
                 </div>
             </div>
@@ -795,20 +2085,187 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         currentLessonId = id;
         currentPageIndex = 0;
         history = []; historyIndex = -1;
+        editingBlockIdx = null;
+        tableSel = new Set();
+        if (_editTextHistoryTimer) { clearTimeout(_editTextHistoryTimer); _editTextHistoryTimer = null; }
         resetActive();
         pushHistory();
         renderAll();
+        // Switch to Edit tab so the opened lesson is ready for manipulation
+        switchTab('edit');
+        showToast('Lesson opened', 'info');
     };
+
+    window.duplicateLesson = function(id) {
+        const source = lessons.find(l => l.id === id);
+        if (!source) return;
+
+        // Full deep clone so nested table cells / image data are not shared
+        const raw = JSON.parse(JSON.stringify({
+            title: source.title,
+            subtitle: source.subtitle,
+            pages: source.pages.map(p => ({
+                title: p.title,
+                subtitle: p.subtitle,
+                lessonNumber: p.lessonNumber,
+                locked: !!p.locked,
+                blocks: p.blocks || [],
+                usedCells: Array.from(p.usedCells || [])
+            }))
+        }));
+
+        const copy = {
+            id: 'l' + (nextId++),
+            title: (raw.title || 'Untitled') + ' (copy)',
+            subtitle: raw.subtitle || '',
+            pages: (raw.pages || []).map((p, i) => ({
+                title: p.title,
+                subtitle: p.subtitle,
+                lessonNumber: i + 1,
+                locked: !!p.locked,
+                blocks: (p.blocks || []).map(b => {
+                    const nb = JSON.parse(JSON.stringify(b));
+                    nb.id = 'b' + Date.now() + Math.random().toString(36).slice(2, 8);
+                    return nb;
+                }),
+                usedCells: new Set(p.usedCells || [])
+            }))
+        };
+
+        if (!copy.pages.length) {
+            copy.pages = [defaultPage()];
+        }
+
+        lessons.push(copy);
+        save();
+        renderLessonList();
+        document.getElementById('lessonCount').textContent = lessons.length + ' lessons';
+        showToast('Lesson duplicated', 'success');
+    };
+
     window.addLesson = function() {
         const l = defaultLesson();
         lessons.push(l);
         currentLessonId = l.id;
         currentPageIndex = 0;
         history = []; historyIndex = -1;
+        editingBlockIdx = null;
+        tableSel = new Set();
         resetActive();
         save();
         renderAll();
+        switchTab('edit');
         showToast('Lesson added', 'success');
+    };
+
+    window.exportLessonsJson = function() {
+        try {
+            const payload = {
+                app: 'phonics-grid-publisher',
+                version: 2,
+                exportedAt: new Date().toISOString(),
+                nextId,
+                lessons: lessons.map(l => ({
+                    id: l.id,
+                    title: l.title,
+                    subtitle: l.subtitle,
+                    pages: l.pages.map(p => ({
+                        title: p.title,
+                        subtitle: p.subtitle,
+                        lessonNumber: p.lessonNumber,
+                        locked: !!p.locked,
+                        blocks: p.blocks || [],
+                        usedCells: Array.from(p.usedCells || [])
+                    }))
+                }))
+            };
+            const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'phonics-lessons-' + new Date().toISOString().slice(0, 10) + '.json';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+            showToast('Exported ' + lessons.length + ' lesson(s)', 'success');
+        } catch (e) {
+            showToast('Export failed', 'error');
+        }
+    };
+
+    window.importLessonsJson = function(event) {
+        const file = event.target.files && event.target.files[0];
+        event.target.value = ''; // allow re-importing same file
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function() {
+            try {
+                const data = JSON.parse(String(reader.result || ''));
+                if (!data || !Array.isArray(data.lessons)) {
+                    return showToast('Invalid file: missing lessons array', 'error');
+                }
+
+                let added = 0;
+                data.lessons.forEach(src => {
+                    if (!src || typeof src !== 'object') return;
+                    const pagesIn = Array.isArray(src.pages) ? src.pages : [];
+                    const lesson = {
+                        id: 'l' + (nextId++),
+                        title: (src.title || 'Imported lesson') + '',
+                        subtitle: (src.subtitle || '') + '',
+                        pages: pagesIn.map((p, i) => {
+                            const blocks = Array.isArray(p.blocks)
+                                ? p.blocks.map(b => {
+                                    const nb = JSON.parse(JSON.stringify(b));
+                                    nb.id = 'b' + Date.now() + Math.random().toString(36).slice(2, 8);
+                                    return nb;
+                                })
+                                : [];
+                            // Rebuild usedCells from blocks if missing/invalid
+                            let used = Array.isArray(p.usedCells) ? p.usedCells.slice() : [];
+                            if (!used.length && blocks.length) {
+                                blocks.forEach(b => {
+                                    for (let r = b.row; r < b.row + (b.rowSpan || 1); r++) {
+                                        for (let c = b.col; c < b.col + (b.colSpan || 1); c++) {
+                                            used.push(r + ',' + c);
+                                        }
+                                    }
+                                });
+                            }
+                            return {
+                                title: p.title || 'UNTITLED',
+                                subtitle: p.subtitle || '',
+                                lessonNumber: i + 1,
+                                locked: !!p.locked,
+                                blocks,
+                                usedCells: new Set(used)
+                            };
+                        })
+                    };
+                    if (!lesson.pages.length) {
+                        lesson.pages = [defaultPage()];
+                    }
+                    lessons.push(lesson);
+                    added++;
+                });
+
+                if (!added) {
+                    return showToast('No valid lessons found in file', 'warning');
+                }
+
+                save();
+                renderAll();
+                showToast('Imported ' + added + ' lesson(s) (merged)', 'success');
+            } catch (e) {
+                showToast('Import failed: invalid JSON', 'error');
+            }
+        };
+        reader.onerror = function() {
+            showToast('Could not read file', 'error');
+        };
+        reader.readAsText(file);
     };
     window.deleteLesson = function(id) {
         if (lessons.length <= 1) return showToast('Need at least one lesson', 'warning');
@@ -829,6 +2286,7 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         lesson.pages.push(p);
         currentPageIndex = lesson.pages.length - 1;
         history = []; historyIndex = -1;
+        editingBlockIdx = null;
         resetActive();
         pushHistory();
         save();
@@ -858,6 +2316,9 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
     window.changePage = function(idx) {
         currentPageIndex = parseInt(idx);
         history = []; historyIndex = -1;
+        editingBlockIdx = null;
+        tableSel = new Set();
+        if (_editTextHistoryTimer) { clearTimeout(_editTextHistoryTimer); _editTextHistoryTimer = null; }
         resetActive();
         pushHistory();
         renderEditor();
@@ -890,7 +2351,12 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
             <div class="view-container" id="viewContainer"></div>
         </div>
         <div class="tab-panel" id="lessonsPanel">
-            <button class="btn btn-primary" onclick="addLesson()">＋ New Lesson</button>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:4px;">
+                <button class="btn btn-primary" onclick="addLesson()">＋ New Lesson</button>
+                <button class="btn btn-outline" onclick="exportLessonsJson()">⬇ Export JSON</button>
+                <button class="btn btn-outline" onclick="document.getElementById('importJsonInput').click()">⬆ Import JSON</button>
+                <input type="file" id="importJsonInput" accept="application/json,.json" style="display:none" onchange="importLessonsJson(event)">
+            </div>
             <div class="lesson-list" id="lessonList"></div>
         </div>
     `;
