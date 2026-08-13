@@ -2139,6 +2139,32 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         });
     };
 
+    // NEW: Delete current page
+    window.deletePage = function () {
+        const lesson = getCurrentLesson();
+        if (!lesson) return;
+        if (lesson.pages.length <= 1) {
+            showToast('Cannot delete the only page', 'warning');
+            return;
+        }
+        if (!confirm('Delete current page? This cannot be undone.')) return;
+        if (_editTextHistoryTimer) { clearTimeout(_editTextHistoryTimer); _editTextHistoryTimer = null; }
+        lesson.pages.splice(currentPageIndex, 1);
+        // Adjust index if we removed the last page
+        if (currentPageIndex >= lesson.pages.length) {
+            currentPageIndex = lesson.pages.length - 1;
+        }
+        history = []; historyIndex = -1;
+        editingBlockIdx = null;
+        tableSel = new Set();
+        resetActive();
+        save().then(() => {
+            pushHistory();
+            renderAll();
+            showToast('Page deleted', 'info');
+        });
+    };
+
     // ========== TABS & INIT ==========
     window.switchTab = function (tab) {
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
@@ -2190,6 +2216,7 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
                     <select id="pageSelect" onchange="changePage(this.value)" style="padding:7px 12px;border:2px solid #dee2e6;border-radius:8px;font-size:13px;"></select>
                     <button type="button" class="btn btn-outline btn-sm" onclick="addPage()">＋ Add Page</button>
                     <button type="button" class="btn btn-outline btn-sm" onclick="duplicatePage()">⧉ Duplicate Page</button>
+                    <button type="button" class="btn btn-outline btn-sm" onclick="deletePage()" id="btnDeletePage">🗑 Delete Page</button>
                 </div>
                 <div id="editorArea"></div>
             </div>
