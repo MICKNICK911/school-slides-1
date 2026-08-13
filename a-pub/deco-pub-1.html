@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>📖 Decodable Reader</title>
+  <title>📖 Decodable Reader Publisher with Cover & TOC</title>
   <style>
     :root {
       --bg: #f1f5f9;
@@ -336,10 +336,11 @@
 
   <script>
     (function() {
-      const STORAGE_KEY = 'decodable_readers_v8';
+      const STORAGE_KEY = 'decodable_readers_v9';
       const MAX_IMAGE_SIZE = 2 * 1024 * 1024;
       const MAX_TOC_PER_PAGE = 20;
       const DEFAULT_IMAGE_PAGE_LABEL = "Picture Page";
+      const DEFAULT_IMAGE_PATH = "./read.png"; // default image in root
       const MAX_OPTIONS = 5;
 
       function escapeHtml(str) { return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
@@ -618,10 +619,11 @@
         card.style.alignItems = 'center';
         const imagePlaceholder = document.createElement('div');
         imagePlaceholder.className = 'image-full-placeholder';
+        // Use lesson.imageUrl if available; otherwise use default image path with fallback
         if (lesson.imageUrl) {
-          imagePlaceholder.innerHTML = `<img src="${escapeHtml(lesson.imageUrl)}" alt="Full Page Image">`;
+          imagePlaceholder.innerHTML = `<img src="${escapeHtml(lesson.imageUrl)}" alt="Full Page Image" onerror="this.parentElement.innerHTML='<div class=&quot;placeholder-text&quot;>🖼️ Image Placeholder</div>'">`;
         } else {
-          imagePlaceholder.innerHTML = `<div class="placeholder-text">🖼️ Image Placeholder</div>`;
+          imagePlaceholder.innerHTML = `<img src="${DEFAULT_IMAGE_PATH}" alt="Default Image" onerror="this.parentElement.innerHTML='<div class=&quot;placeholder-text&quot;>🖼️ Image Placeholder</div>'">`;
         }
         if (lesson.imagePageLabel && lesson.imagePageLabel.trim() !== '') {
           const label = document.createElement('div');
