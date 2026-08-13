@@ -1119,12 +1119,12 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         let html = `
             <div class="editor-toolbar">
                 <span class="info">Page ${currentPageIndex + 1} · ${page.blocks.length} block(s) · ${freeCount} free cells ${locked ? '· 🔒 Layout locked' : ''}</span>
-                <button class="btn btn-outline btn-sm" id="btnUndo" onclick="undo()" ${historyIndex<=0?'disabled':''}>↩ Undo</button>
-                <button class="btn btn-outline btn-sm" id="btnRedo" onclick="redo()" ${historyIndex>=history.length-1?'disabled':''}>↪ Redo</button>
-                <button class="btn btn-outline btn-sm" onclick="resetPage()" ${locked ? 'disabled title="Unlock to reset"' : ''}>🗑 Reset Page</button>
+                <button type="button" class="btn btn-outline btn-sm" id="btnUndo" onclick="undo()" ${historyIndex<=0?'disabled':''}>↩ Undo</button>
+                <button type="button" class="btn btn-outline btn-sm" id="btnRedo" onclick="redo()" ${historyIndex>=history.length-1?'disabled':''}>↪ Redo</button>
+                <button type="button" class="btn btn-outline btn-sm" onclick="resetPage()" ${locked ? 'disabled title="Unlock to reset"' : ''}>🗑 Reset Page</button>
                 ${locked
-                    ? `<button class="btn btn-primary btn-sm" onclick="unlockPage()">🔓 Unlock Layout</button>`
-                    : `<button class="btn btn-success btn-sm" onclick="lockPage()" ${page.blocks.length===0?'disabled':''}>✅ Done (Lock Layout)</button>`
+                    ? `<button type="button" class="btn btn-primary btn-sm" onclick="unlockPage()">🔓 Unlock Layout</button>`
+                    : `<button type="button" class="btn btn-success btn-sm" onclick="lockPage()" ${page.blocks.length===0?'disabled':''}>✅ Done (Lock Layout)</button>`
                 }
             </div>
             <div class="form-group" style="margin-bottom:14px;display:grid;grid-template-columns:1fr 1fr 100px;gap:10px;">
@@ -1178,8 +1178,8 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
                         <div class="radio-grid" id="grid-preview-${idx}"></div>
                     </div>
                     <div class="block-actions">
-                        <button class="btn btn-primary btn-xs" onclick="toggleEditBlock(${idx})">${isEditing ? '▲ Close' : '✏️ Edit content'}</button>
-                        ${!locked ? `<button class="btn btn-danger btn-xs" onclick="deleteBlock(${idx})">🗑 Remove block</button>` : ''}
+                        <button type="button" class="btn btn-primary btn-xs" onclick="toggleEditBlock(${idx})">${isEditing ? '▲ Close' : '✏️ Edit content'}</button>
+                        ${!locked ? `<button type="button" class="btn btn-danger btn-xs" onclick="deleteBlock(${idx})">🗑 Remove block</button>` : ''}
                     </div>
                     ${isEditing ? renderEditPanel(b, idx) : ''}
                 </div>`;
@@ -1280,8 +1280,8 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
                         <div class="validation-msg" id="validationMsg"></div>
                     </div>
                     <div class="block-actions">
-                        <button class="btn btn-primary" id="btnSet" onclick="setBlock()" disabled>✔ Set Block</button>
-                        <button class="btn btn-outline" onclick="clearSelection()">Clear selection</button>
+                        <button type="button" class="btn btn-primary" id="btnSet" onclick="setBlock()" disabled>✔ Set Block</button>
+                        <button type="button" class="btn btn-outline" onclick="clearSelection()">Clear selection</button>
                     </div>
                 </div>`;
         } else if (!locked && freeCount === 0) {
@@ -1357,7 +1357,7 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
                         Show border on page
                     </label>
                     <div style="margin-top:10px;">
-                        <button class="btn btn-success btn-sm" onclick="toggleEditBlock(${idx})">✓ Done editing</button>
+                        <button type="button" class="btn btn-success btn-sm" onclick="toggleEditBlock(${idx})">✓ Done editing</button>
                     </div>
                 </div>`;
         } else if (b.type === 'image') {
@@ -1388,7 +1388,7 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
                         Show border on page
                     </label>
                     <div style="margin-top:10px;">
-                        <button class="btn btn-success btn-sm" onclick="toggleEditBlock(${idx})">✓ Done editing</button>
+                        <button type="button" class="btn btn-success btn-sm" onclick="toggleEditBlock(${idx})">✓ Done editing</button>
                     </div>
                 </div>`;
         } else if (b.type === 'trace') {
@@ -1400,8 +1400,8 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
                         <div>
                             <label style="font-size:11px;font-weight:700;color:#6c757d;">Style</label>
                             <div class="align-group">
-                                <button type="button" class="${(b.traceStyle||'outlined')==='outlined'?'active':''}" onclick="updateTraceField(${idx},'traceStyle','outlined')">Outlined</button>
-                                <button type="button" class="${b.traceStyle==='solid'?'active':''}" onclick="updateTraceField(${idx},'traceStyle','solid')">Solid</button>
+                                <button type="button" class="${b.traceStyle === 'solid' ? '' : 'active'}" onclick="updateTraceField(${idx},'traceStyle','outlined')">Outlined</button>
+                                <button type="button" class="${b.traceStyle === 'solid' ? 'active' : ''}" onclick="updateTraceField(${idx},'traceStyle','solid')">Solid</button>
                             </div>
                         </div>
                         <div>
@@ -1421,7 +1421,7 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
                         Show border on page
                     </label>
                     <div style="margin-top:10px;">
-                        <button class="btn btn-success btn-sm" onclick="toggleEditBlock(${idx})">✓ Done editing</button>
+                        <button type="button" class="btn btn-success btn-sm" onclick="toggleEditBlock(${idx})">✓ Done editing</button>
                     </div>
                 </div>`;
         } else if (b.type === 'table') {
@@ -1484,9 +1484,9 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
                 <div style="font-size:12px;font-weight:700;color:#6c757d;margin-bottom:6px;">Click cells to select a rectangle · ${rows}×${cols} table</div>
                 ${mini}
                 <div class="block-actions" style="margin-top:8px;">
-                    <button class="btn btn-primary btn-xs" onclick="mergeTableCells(${idx})" ${canMerge ? '' : 'disabled'}>Merge</button>
-                    <button class="btn btn-outline btn-xs" onclick="unmergeTableCells(${idx})" ${canUnmerge ? '' : 'disabled'}>Unmerge</button>
-                    <button class="btn btn-outline btn-xs" onclick="clearTableSel()">Clear selection</button>
+                    <button type="button" class="btn btn-primary btn-xs" onclick="mergeTableCells(${idx})" ${canMerge ? '' : 'disabled'}>Merge</button>
+                    <button type="button" class="btn btn-outline btn-xs" onclick="unmergeTableCells(${idx})" ${canUnmerge ? '' : 'disabled'}>Unmerge</button>
+                    <button type="button" class="btn btn-outline btn-xs" onclick="clearTableSel()">Clear selection</button>
                 </div>
                 <div style="margin-top:10px;display:${tableSel.size ? 'block' : 'none'};">
                     <label style="font-weight:700;font-size:12px;">Cell text (applies to all selected cells)</label>
@@ -1515,7 +1515,7 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
                     Show border on page
                 </label>
                 <div style="margin-top:10px;">
-                    <button class="btn btn-success btn-sm" onclick="toggleEditBlock(${idx})">✓ Done editing</button>
+                    <button type="button" class="btn btn-success btn-sm" onclick="toggleEditBlock(${idx})">✓ Done editing</button>
                 </div>
             </div>`;
     }
@@ -2039,7 +2039,7 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         lesson.pages.forEach((page, pIdx) => {
             const pageEl = document.createElement('div');
             pageEl.className = 'page';
-            pageEl.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportPage(this.closest('.page'))">📄 Export</button></div>`;
+            pageEl.innerHTML = `<div class="page-actions no-print"><button type="button" class="export-btn" onclick="exportPage(this.closest('.page'))">📄 Export</button></div>`;
 
             const card = document.createElement('div');
             card.className = 'page-card';
@@ -2211,8 +2211,8 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
                     <div class="sub">${l.pages.length} page(s)</div>
                 </div>
                 <div class="actions">
-                    <button class="btn btn-primary btn-xs" onclick="selectLesson('${l.id}')">Open</button>
-                    <button class="btn btn-danger btn-xs" onclick="deleteLesson('${l.id}')">🗑</button>
+                    <button type="button" class="btn btn-primary btn-xs" onclick="selectLesson('${l.id}')">Open</button>
+                    <button type="button" class="btn btn-danger btn-xs" onclick="deleteLesson('${l.id}')">🗑</button>
                 </div>
             </div>
         `).join('');
@@ -2414,15 +2414,15 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
                 <span class="badge" id="lessonCount">0</span>
             </div>
             <div class="tabs">
-                <button class="tab-btn active" data-tab="edit" onclick="switchTab('edit')">✏️ Build Pages</button>
-                <button class="tab-btn" data-tab="view" onclick="switchTab('view')">👁️ View / Print</button>
-                <button class="tab-btn" data-tab="lessons" onclick="switchTab('lessons')">📖 Lessons</button>
+                <button type="button" class="tab-btn active" data-tab="edit" onclick="switchTab('edit')">✏️ Build Pages</button>
+                <button type="button" class="tab-btn" data-tab="view" onclick="switchTab('view')">👁️ View / Print</button>
+                <button type="button" class="tab-btn" data-tab="lessons" onclick="switchTab('lessons')">📖 Lessons</button>
             </div>
             <div class="tab-panel active" id="editPanel">
                 <div style="display:flex;gap:12px;align-items:center;margin-bottom:14px;flex-wrap:wrap;">
                     <label style="font-weight:700;font-size:13px;">Current page:</label>
                     <select id="pageSelect" onchange="changePage(this.value)" style="padding:7px 12px;border:2px solid #dee2e6;border-radius:8px;font-size:13px;"></select>
-                    <button class="btn btn-outline btn-sm" onclick="addPage()">＋ Add Page</button>
+                    <button type="button" class="btn btn-outline btn-sm" onclick="addPage()">＋ Add Page</button>
                 </div>
                 <div id="editorArea"></div>
             </div>
@@ -2434,9 +2434,9 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
             </div>
             <div class="tab-panel" id="lessonsPanel">
                 <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:4px;">
-                    <button class="btn btn-primary" onclick="addLesson()">＋ New Lesson</button>
-                    <button class="btn btn-outline" onclick="exportLessonsJson()">⬇ Export JSON</button>
-                    <button class="btn btn-outline" onclick="document.getElementById('importJsonInput').click()">⬆ Import JSON</button>
+                    <button type="button" class="btn btn-primary" onclick="addLesson()">＋ New Lesson</button>
+                    <button type="button" class="btn btn-outline" onclick="exportLessonsJson()">⬇ Export JSON</button>
+                    <button type="button" class="btn btn-outline" onclick="document.getElementById('importJsonInput').click()">⬆ Import JSON</button>
                     <input type="file" id="importJsonInput" accept="application/json,.json" style="display:none" onchange="importLessonsJson(event)">
                 </div>
                 <div class="lesson-list" id="lessonList"></div>
