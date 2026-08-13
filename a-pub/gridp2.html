@@ -217,38 +217,33 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
 .lesson-item .title { font-weight: 700; font-size: 14px; }
 .lesson-item .sub { font-size: 12px; color: #6c757d; }
 .lesson-item .actions { display: flex; gap: 4px; }
-/* Desktop – default vertical position */
+/* Desktop – letters on second blue line */
 .block .trace-set .trace-letters {
-    /* Set the container to occupy the middle band; change these to move text up/down */
+    /* Container occupies only the middle band */
     top: 33.333% !important;
-    bottom: 50.333% !important;
+    bottom: 33.333% !important;
 
-    /* Keep horizontal centring and flex layout */
+    /* Keep horizontal centring */
     left: 0 !important;
     right: 0 !important;
     display: flex !important;
     justify-content: center !important;
 
-    /* Vertical alignment inside the container – adjust to fine‑tune */
-    align-items: center !important;   /* start = top of band, end = bottom of band, center = middle */
+    /* Align letters to the bottom of this band (second blue line) */
+    align-items: flex-end !important;
 
-    /* Optional: fine‑tune with padding or transform */
-    /* transform: translateY(4px); */
+    /* Optional: adjust font size, letter spacing */
+    font-size: 36px;
+    gap: 12px;
 }
 
-/* Mobile – different vertical position */
+/* Mobile – same alignment, smaller size */
 @media screen and (max-width: 768px) {
     .block .trace-set .trace-letters {
-        /* Example: move text lower on mobile (larger top, smaller bottom) */
-        top: 0% !important;
-        bottom: 200% !important;
-        font-size: 100px; !important;
-        
-        /*align-items: center !important;*/
-
-        /* Or keep same top/bottom and adjust align-items */
-        /* align-items: flex-end !important; */
+        font-size: 24px;
+        gap: 8px;
     }
+}
 }
 </style>
 </head>
