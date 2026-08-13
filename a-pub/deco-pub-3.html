@@ -175,6 +175,8 @@
     .story-img-placeholder { width: 100%; height: 100%; background: linear-gradient(135deg, #1e3a5f 0%, #2a4a7f 100%); display: flex; align-items: center; justify-content: center; position: relative; }
     .story-img-placeholder svg { width: 100%; height: 100%; }
 
+    .story-img-label { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.65); color: #fff; text-align: center; padding: 5px 10px; font-size: 12px; font-weight: 700; letter-spacing: 0.03em; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
     .story-lines-area { flex: 0 0 auto; position: relative; padding-bottom: 10px; margin-bottom: 15px; }
     .story-line { display: flex; justify-content: space-between; align-items: baseline; padding: 3px 0; font-size: 18px; font-weight: 600; line-height: 1.65; }
     .story-line .sentence { flex: 1; }
@@ -237,7 +239,7 @@
       .page-footer-red { border-radius: 0 !important; height: 26px !important; }
       .story-img-container { border: 1px solid #cbd5e1 !important; width: 420px !important; height: 160px !important; }
       .parent-corner { margin-top: 25px !important; }
-      .view-container .card, .view-container .header-lesson, .view-container .header-title, .view-container .header-grade, .view-container .pc-header, .view-container .comp-header, .view-container .page-footer-red, .view-container .parent-table th, .view-container .target-pill, .view-container .story-img-placeholder, .view-container .parent-corner, .view-container .pc-body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      .view-container .card, .view-container .header-lesson, .view-container .header-title, .view-container .header-grade, .view-container .pc-header, .view-container .comp-header, .view-container .page-footer-red, .view-container .parent-table th, .view-container .target-pill, .view-container .story-img-placeholder, .view-container .parent-corner, .view-container .pc-body, .view-container .story-img-label { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
       .cover-card, .toc-card { border-radius: 0 !important; min-height: 1010px !important; height: 1010px !important; border: 3px solid #f59e0b !important; }
       .cover-line, .cover-title, .cover-subtitle { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
     }
@@ -271,6 +273,7 @@
       const STORAGE_KEY = 'decodable_readers_v3';
       const MAX_IMAGE_SIZE = 2 * 1024 * 1024;
       const MAX_TOC_PER_PAGE = 20;
+      const DEFAULT_IMAGE_LABEL = "Let's read together!";
 
       function escapeHtml(str) { return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
       function showToast(msg, type='info') {
@@ -296,6 +299,7 @@
       const DEFAULT_LESSONS = [{
         id: 'r1', lessonNumber: 1, imageUrl: "", title: "Ben's Camping Trip",
         targetSound: "short e (/ɛ/)",
+        imageLabel: DEFAULT_IMAGE_LABEL,
         storyLines: [
           { sentence: "Ben went on a camping trip with Dad." },
           { sentence: "They set up the tent near the lake." },
@@ -330,6 +334,7 @@
               imageUrl: String(l.imageUrl || ''),
               title: String(l.title || 'Untitled'),
               targetSound: String(l.targetSound || ''),
+              imageLabel: String(l.imageLabel ?? DEFAULT_IMAGE_LABEL),
               storyLines: (Array.isArray(l.storyLines) ? l.storyLines : []).map(sl => ({ sentence: String(sl.sentence || '') })).filter(sl => sl.sentence.trim() !== ''),
               comprehension: (Array.isArray(l.comprehension) ? l.comprehension : []).map(q => ({ question: String(q.question || ''), options: Array.isArray(q.options) ? q.options.slice(0,3).map(String) : ['','',''] })).filter(q => q.question.trim() !== '')
             })).filter(l => l.id) : [];
@@ -366,7 +371,7 @@
         const inner = document.createElement('div'); inner.className = 'inner-pad';
         let html = `<div class="header-row"><div class="header-lesson">LESSON <span>${escapeHtml(lesson.lessonNumber)}</span></div><div class="header-title">Reading Practice</div><div class="header-grade">Grade ${escapeHtml(bookMeta.grade)}</div></div>
         <div class="title-image-row"><div class="title-side"><div class="story-title">${escapeHtml(lesson.title)}</div><div class="target-pill">Target Sound: ${escapeHtml(lesson.targetSound)}</div></div>
-        <div class="story-img-container">${lesson.imageUrl ? `<img src="${escapeHtml(lesson.imageUrl)}" alt="Story Image">` : getDefaultImageHTML()}</div></div>
+        <div class="story-img-container">${lesson.imageUrl ? `<img src="${escapeHtml(lesson.imageUrl)}" alt="Story Image">` : getDefaultImageHTML()}<div class="story-img-label">${escapeHtml(lesson.imageLabel || DEFAULT_IMAGE_LABEL)}</div></div></div>
         <div class="story-lines-area">`;
         let runningTotal = 0;
         lesson.storyLines.forEach(line => {
@@ -491,6 +496,7 @@
           title: document.getElementById('fTitle').value.trim(),
           lessonNumber: parseInt(document.getElementById('fLessonNumber').value)||1,
           imageUrl: document.getElementById('fImageUrl').value.trim(),
+          imageLabel: document.getElementById('fImageLabel').value.trim() || DEFAULT_IMAGE_LABEL,
           targetSound: document.getElementById('fTargetSound').value.trim(),
           storyLines,
           comprehension: comp
@@ -505,6 +511,7 @@
         document.getElementById('fTitle').value = lesson.title || '';
         document.getElementById('fLessonNumber').value = lesson.lessonNumber || '';
         document.getElementById('fImageUrl').value = lesson.imageUrl || '';
+        document.getElementById('fImageLabel').value = lesson.imageLabel || DEFAULT_IMAGE_LABEL;
         document.getElementById('fTargetSound').value = lesson.targetSound || '';
         document.getElementById('fStory').value = lesson.storyLines.map(l => l.sentence).join('\n');
         updateImagePreview(lesson.imageUrl || '');
@@ -522,6 +529,7 @@
         document.getElementById('fTitle').value = '';
         document.getElementById('fLessonNumber').value = lessons.length + 1;
         document.getElementById('fImageUrl').value = '';
+        document.getElementById('fImageLabel').value = DEFAULT_IMAGE_LABEL;
         document.getElementById('fTargetSound').value = '';
         document.getElementById('fStory').value = '';
         updateImagePreview('');
@@ -614,6 +622,7 @@
               imageUrl: String(l.imageUrl || ''),
               title: String(l.title || 'Untitled'),
               targetSound: String(l.targetSound || ''),
+              imageLabel: String(l.imageLabel ?? DEFAULT_IMAGE_LABEL),
               storyLines: (Array.isArray(l.storyLines) ? l.storyLines : []).map(sl => ({ sentence: String(sl.sentence || '') })).filter(sl => sl.sentence.trim() !== ''),
               comprehension: (Array.isArray(l.comprehension) ? l.comprehension : []).map(q => ({ question: String(q.question || ''), options: Array.isArray(q.options) ? q.options.slice(0,3).map(String) : ['','',''] })).filter(q => q.question.trim() !== '')
             })).filter(l => l.id);
@@ -654,7 +663,7 @@
             <span class="drag-handle" title="Drag to reorder">⋮⋮</span>
             <div class="info">
               <div class="title">Lesson ${l.lessonNumber} — ${escapeHtml(l.title)}</div>
-              <div class="sub">🎯 ${escapeHtml(l.targetSound)} · 📝 ${l.storyLines.length} lines · 🏫 Grade ${escapeHtml(bookMeta.grade)}</div>
+              <div class="sub">🎯 ${escapeHtml(l.targetSound)} · 📝 ${l.storyLines.length} lines · 🏫 Grade ${escapeHtml(bookMeta.grade)} · 🖼️ ${escapeHtml(l.imageLabel || DEFAULT_IMAGE_LABEL)}</div>
             </div>
             <div class="actions">
               <button class="btn btn-primary btn-xs" onclick="editLesson('${l.id}')" title="Edit">✏️</button>
@@ -738,6 +747,7 @@
                   </div>
                 </div>
               </div>
+              <div class="form-group"><label>Image Label (overlay on image)</label><input id="fImageLabel" placeholder="e.g. Let's read together!" value="${escapeHtml(DEFAULT_IMAGE_LABEL)}"></div>
               <div class="form-group"><label>Target Sound <span class="req">*</span></label><input id="fTargetSound" placeholder="short e (/ɛ/)"></div>
               <div class="form-group"><label>Story Text <span class="req">*</span></label><textarea id="fStory" rows="8" placeholder="One sentence per line..."></textarea></div>
               <hr style="margin:16px 0;border-color:#e2e8f0;">
