@@ -217,34 +217,26 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
 .lesson-item .title { font-weight: 700; font-size: 14px; }
 .lesson-item .sub { font-size: 12px; color: #6c757d; }
 .lesson-item .actions { display: flex; gap: 4px; }
-/* Desktop – letters on second blue line */
 .block .trace-set .trace-letters {
-    /* Container occupies only the middle band */
-    top: 33.333% !important;
-    bottom: 33.333% !important;
-
-    /* Keep horizontal centring */
-    left: 0 !important;
-    right: 0 !important;
-    display: flex !important;
-    justify-content: center !important;
-
-    /* Align letters to the bottom of this band (second blue line) */
-    align-items: flex-end !important;
-
-    /* Optional: adjust font size, letter spacing */
+    top: 33.333%;
+    bottom: 33.333%;
+    left: 0;
+    right: 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
     font-size: 36px;
     gap: 12px;
 }
 
-/* Mobile – same alignment, smaller size */
 @media screen and (max-width: 768px) {
     .block .trace-set .trace-letters {
-        font-size: 80px;
+        font-size: 24px;
         gap: 8px;
     }
 }
-}
+
+
 </style>
 </head>
 <body>
@@ -1943,7 +1935,7 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
             if (showLetters) {
                 let spans = '';
                 for (let c = 0; c < clones; c++) spans += `<span>${escapeHtml(target)}</span>`;
-                html += `<div class="trace-letters ${style === 'outlined' ? 'outlined' : ''}" style="top:0;bottom:0;height:100%;align-items:flex-end;font-size:clamp(20px,4vw,48px);">${spans}</div>`;
+                html += `<div class="trace-letters ${style === 'outlined' ? 'outlined' : ''}">${spans}</div>`;
             }
             html += '</div>';
         }
