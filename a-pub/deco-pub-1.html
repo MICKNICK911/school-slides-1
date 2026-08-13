@@ -165,8 +165,25 @@
 
     /* Page 1: Title + Story Lines (no image) */
     .title-block { margin-bottom: 18px; flex-shrink: 0; display: flex; flex-direction: column; gap: 8px; }
-    .story-title { font-size: 28px; font-weight: 800; color: #b91c1c; margin: 0; line-height: 1.15; letter-spacing: -0.01em; }
-    .target-pill { display: inline-block; background: #fef9e7; border: 2px solid #f59e0b; border-radius: 26px; padding: 5px 16px; font-weight: 700; font-size: 16px; width: fit-content; align-self: flex-start; flex-shrink: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .story-title { font-size: 28px; font-weight: 800; color: #b91c1c; margin: 0; line-height: 1.15; letter-spacing: -0.01em; text-align: center; }
+    .target-pill {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 44px;
+      background: #fef9e7;
+      border: 2px solid #f59e0b;
+      border-radius: 0;
+      padding: 0 16px;
+      font-weight: 700;
+      font-size: 16px;
+      color: #b91c1c;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+      letter-spacing: 0.04em;
+      box-sizing: border-box;
+    }
 
     .story-lines-area { flex: 0 0 auto; position: relative; padding-bottom: 10px; margin-bottom: 15px; }
     .story-line { display: flex; justify-content: space-between; align-items: baseline; padding: 3px 0; font-size: 18px; font-weight: 600; line-height: 1.65; }
@@ -319,10 +336,9 @@
 
   <script>
     (function() {
-      const STORAGE_KEY = 'decodable_readers_v7';
+      const STORAGE_KEY = 'decodable_readers_v8';
       const MAX_IMAGE_SIZE = 2 * 1024 * 1024;
       const MAX_TOC_PER_PAGE = 20;
-      const DEFAULT_IMAGE_LABEL = "Let's read together!";
       const DEFAULT_IMAGE_PAGE_LABEL = "Picture Page";
       const MAX_OPTIONS = 5;
 
@@ -429,14 +445,12 @@
         l.page2.sentenceWriting.numberOfLines = parseInt(l.page2.sentenceWriting.numberOfLines) || 1;
         if (typeof l.showImagePage !== 'boolean') l.showImagePage = false;
         if (typeof l.imagePageLabel !== 'string') l.imagePageLabel = DEFAULT_IMAGE_PAGE_LABEL;
-        // Remove old unused imageLabel? Keep for data compatibility
         return l;
       }
 
       const DEFAULT_LESSONS = [{
         id: 'r1', lessonNumber: 1, imageUrl: "", title: "Ben's Camping Trip",
         targetSound: "short e (/ɛ/)",
-        imageLabel: DEFAULT_IMAGE_LABEL,
         imagePageLabel: DEFAULT_IMAGE_PAGE_LABEL,
         storyLines: [
           { sentence: "Ben went on a camping trip with Dad." },
@@ -474,7 +488,6 @@
                 imageUrl: String(l.imageUrl || ''),
                 title: String(l.title || 'Untitled'),
                 targetSound: String(l.targetSound || ''),
-                imageLabel: String(l.imageLabel ?? DEFAULT_IMAGE_LABEL),
                 imagePageLabel: String(l.imagePageLabel ?? DEFAULT_IMAGE_PAGE_LABEL),
                 storyLines: (Array.isArray(l.storyLines) ? l.storyLines : []).map(sl => ({ sentence: String(sl.sentence || '') })).filter(sl => sl.sentence.trim() !== ''),
                 comprehension: Array.isArray(l.comprehension) ? l.comprehension : [],
@@ -727,7 +740,6 @@
           title: document.getElementById('fTitle').value.trim(),
           lessonNumber: parseInt(document.getElementById('fLessonNumber').value)||1,
           imageUrl: document.getElementById('fImageUrl').value.trim(),
-          imageLabel: document.getElementById('fImageLabel').value.trim() || DEFAULT_IMAGE_LABEL,
           imagePageLabel: document.getElementById('fImagePageLabel').value.trim() || DEFAULT_IMAGE_PAGE_LABEL,
           targetSound: document.getElementById('fTargetSound').value.trim(),
           storyLines,
@@ -746,7 +758,6 @@
         document.getElementById('fTitle').value = lesson.title || '';
         document.getElementById('fLessonNumber').value = lesson.lessonNumber || '';
         document.getElementById('fImageUrl').value = lesson.imageUrl || '';
-        document.getElementById('fImageLabel').value = lesson.imageLabel || DEFAULT_IMAGE_LABEL;
         document.getElementById('fImagePageLabel').value = lesson.imagePageLabel || DEFAULT_IMAGE_PAGE_LABEL;
         document.getElementById('fTargetSound').value = lesson.targetSound || '';
         document.getElementById('fStory').value = lesson.storyLines.map(l => l.sentence).join('\n');
@@ -778,7 +789,6 @@
         document.getElementById('fTitle').value = '';
         document.getElementById('fLessonNumber').value = lessons.length + 1;
         document.getElementById('fImageUrl').value = '';
-        document.getElementById('fImageLabel').value = DEFAULT_IMAGE_LABEL;
         document.getElementById('fImagePageLabel').value = DEFAULT_IMAGE_PAGE_LABEL;
         document.getElementById('fTargetSound').value = '';
         document.getElementById('fStory').value = '';
@@ -1021,7 +1031,6 @@
               imageUrl: String(l.imageUrl || ''),
               title: String(l.title || 'Untitled'),
               targetSound: String(l.targetSound || ''),
-              imageLabel: String(l.imageLabel ?? DEFAULT_IMAGE_LABEL),
               imagePageLabel: String(l.imagePageLabel ?? DEFAULT_IMAGE_PAGE_LABEL),
               storyLines: (Array.isArray(l.storyLines) ? l.storyLines : []).map(sl => ({ sentence: String(sl.sentence || '') })).filter(sl => sl.sentence.trim() !== ''),
               comprehension: Array.isArray(l.comprehension) ? l.comprehension : [],
