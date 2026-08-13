@@ -1,0 +1,2223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>📚 Phonics Grid Publisher — Spatial Layout</title>
+<style>
+@page { size: 850px 1100px; margin: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f5; color: #1a1a1a; padding: 16px; }
+.app { max-width: 1600px; margin: 0 auto; background: #fff; border-radius: 20px; box-shadow: 0 12px 40px rgba(0,0,0,0.08); overflow: hidden; }
+.app-header { background: #1a1a2e; color: #fff; padding: 16px 28px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.app-header h1 { font-size: 22px; font-weight: 800; }
+.badge { background: #F5A623; color: #1a1a1a; padding: 4px 12px; border-radius: 16px; font-size: 12px; font-weight: 700; }
+.tabs { display: flex; border-bottom: 2px solid #e9ecef; background: #fafbfc; padding: 0 24px; }
+.tab-btn { padding: 14px 24px; border: none; background: transparent; font-size: 14px; font-weight: 700; color: #6c757d; cursor: pointer; border-bottom: 3px solid transparent; font-family: inherit; }
+.tab-btn.active { color: #1a1a2e; border-bottom-color: #F5A623; }
+.tab-panel { display: none; padding: 20px 24px 28px; }
+.tab-panel.active { display: block; }
+
+.toast-container { position: fixed; top: 16px; right: 16px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; max-width: 380px; pointer-events: none; }
+.toast { padding: 12px 18px; border-radius: 10px; color: #fff; font-weight: 600; font-size: 13px; box-shadow: 0 6px 20px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 8px; pointer-events: auto; animation: slideIn 0.25s ease; }
+.toast.success { background: #2d7d46; } .toast.error { background: #dc3545; } .toast.warning { background: #e67e22; } .toast.info { background: #2c7be5; }
+@keyframes slideIn { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
+
+.btn { padding: 9px 18px; border: none; border-radius: 9px; font-weight: 700; font-size: 13px; cursor: pointer; font-family: inherit; display: inline-flex; align-items: center; gap: 6px; }
+.btn-primary { background: #F5A623; color: #1a1a1a; }
+.btn-success { background: #2d7d46; color: #fff; }
+.btn-danger { background: #dc3545; color: #fff; }
+.btn-outline { background: transparent; border: 2px solid #dee2e6; color: #495057; }
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+.btn-xs { padding: 4px 9px; font-size: 11px; border-radius: 6px; }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.editor-toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 18px; padding-bottom: 14px; border-bottom: 2px solid #e9ecef; }
+.editor-toolbar .info { font-weight: 700; color: #6c757d; font-size: 13px; margin-right: auto; }
+
+.block-card {
+    background: #f8f9fa; border: 2px solid #e9ecef; border-radius: 14px; padding: 16px;
+    margin-bottom: 14px; display: grid; grid-template-columns: 1fr 280px; gap: 18px;
+}
+.block-card.locked { border-color: #F5A623; }
+.block-card h3 { font-size: 14px; font-weight: 800; color: #E2571C; margin-bottom: 10px; grid-column: 1 / -1; }
+
+.block-left { display: flex; flex-direction: column; gap: 10px; }
+.block-left label { font-weight: 700; font-size: 12px; color: #495057; display: block; margin-bottom: 3px; }
+.block-left input, .block-left textarea, .block-left select {
+    width: 100%; padding: 8px 12px; border: 2px solid #dee2e6; border-radius: 8px; font-size: 13px; font-family: inherit;
+}
+.mode-toggle { display: flex; gap: 8px; margin-bottom: 6px; }
+.mode-toggle button {
+    flex: 1; padding: 8px; border: 2px solid #dee2e6; border-radius: 8px; background: #fff;
+    font-weight: 700; font-size: 13px; cursor: pointer; font-family: inherit;
+}
+.mode-toggle button.active { border-color: #F5A623; background: #fff8e6; color: #E2571C; }
+
+.img-preview-wrap { display: flex; align-items: center; gap: 10px; }
+.img-preview-wrap img { width: 64px; height: 64px; object-fit: cover; border-radius: 8px; border: 2px solid #dee2e6; }
+.img-preview-wrap .ph { width: 64px; height: 64px; border: 2px dashed #dee2e6; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 24px; color: #adb5bd; background: #fff; }
+
+.border-toggle { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; }
+.border-toggle input { width: 16px; height: 16px; accent-color: #F5A623; }
+
+.block-right { display: flex; flex-direction: column; gap: 8px; }
+.grid-label { font-size: 12px; font-weight: 700; color: #6c757d; }
+.radio-grid {
+    display: grid; grid-template-columns: repeat(8, 1fr); gap: 3px;
+    background: #fff; padding: 6px; border-radius: 10px; border: 2px solid #dee2e6;
+}
+.radio-grid .cell {
+    aspect-ratio: 1; border: 1px solid #ced4da; border-radius: 3px; background: #f1f3f5;
+    cursor: pointer; transition: background 0.15s, border-color 0.15s; position: relative;
+}
+.radio-grid .cell:hover:not(.used):not(.invalid) { background: #ffe8a3; border-color: #F5A623; }
+.radio-grid .cell.selected { background: #F5A623; border-color: #E2571C; }
+.radio-grid .cell.used { background: #ffc9c9; border-color: #e03131; cursor: not-allowed; }
+.radio-grid .cell.invalid { background: #ffc9c9; border-color: #fa5252; }
+
+.block-actions { grid-column: 1 / -1; display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+.validation-msg { font-size: 12px; font-weight: 600; color: #e03131; min-height: 18px; }
+
+.fmt-toolbar {
+    display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+    padding: 8px; background: #fff; border: 2px solid #dee2e6; border-radius: 8px;
+}
+.fmt-toolbar .fmt-btn {
+    width: 32px; height: 32px; border: 1px solid #ced4da; border-radius: 6px;
+    background: #fff; font-weight: 700; font-size: 13px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; font-family: inherit;
+}
+.fmt-toolbar .fmt-btn:hover { border-color: #F5A623; }
+.fmt-toolbar .sep { width: 1px; height: 22px; background: #dee2e6; margin: 0 2px; }
+.fmt-toolbar label { font-size: 11px; font-weight: 600; color: #6c757d; margin-right: 2px; }
+.fmt-toolbar input[type="color"] { width: 32px; height: 32px; border: 1px solid #ced4da; border-radius: 6px; padding: 2px; cursor: pointer; }
+
+.align-group { display: flex; gap: 4px; flex-wrap: wrap; }
+.align-group button {
+    padding: 5px 10px; border: 1px solid #ced4da; border-radius: 6px; background: #fff;
+    font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit;
+}
+.align-group button.active { background: #fff8e6; border-color: #F5A623; color: #E2571C; }
+
+.edit-panel { grid-column: 1 / -1; background: #fff; border: 2px solid #F5A623; border-radius: 10px; padding: 14px; margin-top: 6px; }
+.summary-text { font-size: 13px; font-weight: 600; color: #333; white-space: pre-wrap; max-height: 60px; overflow: hidden; }
+
+.rich-editor {
+    min-height: 180px; padding: 8px 12px; border: 2px solid #dee2e6; border-radius: 8px;
+    font-size: 13px; line-height: 1.4; background: #fff; overflow-y: auto; word-break: break-word;
+}
+.rich-editor:focus { outline: none; border-color: #F5A623; }
+.preview-box {
+    border: 2px dashed #dee2e6; border-radius: 8px; padding: 8px; background: #f8f9fa;
+    min-height: 60px; margin-top: 6px;
+}
+
+.view-toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid #e9ecef; }
+.view-toolbar .info { font-weight: 700; color: #6c757d; font-size: 13px; margin-right: auto; }
+.view-container { overflow-x: auto; }
+.view-container .page {
+    width: 850px; min-width: 850px; min-height: 1100px; padding: 28px 32px; margin: 0 auto 24px;
+    background: #fff; border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+    position: relative; page-break-after: always;
+}
+.view-container .page:last-child { page-break-after: auto; }
+.page-card {
+    border: 4px solid #E2571C; border-radius: 12px; width: 100%; height: 1040px;
+    position: relative; overflow: hidden; background: #fff;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+}
+.page-header { display: flex; align-items: stretch; border-bottom: 3px solid #E2571C; height: 64px; }
+.page-header-left { flex: 1; padding: 10px 20px; display: flex; flex-direction: column; justify-content: center; }
+.page-header-left h1 { font-size: 26px; font-weight: 800; color: #E2571C; margin: 0; line-height: 1.1; }
+.page-header-left .sub { font-size: 12px; font-weight: 700; color: #c45a12; letter-spacing: 1px; text-transform: uppercase; }
+.page-header-right {
+    background: #E2571C; color: #fff; min-width: 140px;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+}
+.page-header-right .lbl { font-size: 12px; font-weight: 600; }
+.page-header-right .num { font-size: 24px; font-weight: 800; }
+
+.grid-stage {
+    position: absolute; top: 64px; left: 0; right: 0; bottom: 36px;
+    display: grid; grid-template-columns: repeat(8, 1fr); grid-template-rows: repeat(12, 1fr);
+    gap: 0; padding: 12px 16px;
+}
+.block { position: relative; overflow: hidden; display: flex; padding: 6px; background: #fff; }
+.block.has-border { border: 2px solid #E2571C; border-radius: 8px; margin: 2px; }
+.block .block-text { width: 100%; height: 100%; line-height: 1.35; word-break: break-word; color: #1a1a1a; }
+.block .block-text p { margin: 0 0 0.4em 0; }
+.block .block-text p:last-child { margin-bottom: 0; }
+.block .block-text ul, .block .block-text ol { margin: 0.2em 0 0.4em 0; padding-left: 1.4em; }
+.block .block-text li { margin-bottom: 0.15em; }
+.block .block-img { max-width: 100%; max-height: 100%; border-radius: 4px; }
+.block .block-img-wrap {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    width: 100%; height: 100%; gap: 4px; overflow: hidden;
+}
+.block .block-img-label { font-size: 13px; font-weight: 700; color: #1a1a1a; text-align: center; line-height: 1.2; max-width: 100%; word-break: break-word; }
+
+.block .trace-wrap { width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: space-evenly; padding: 2px 4px; box-sizing: border-box; }
+.block .trace-set { position: relative; width: 100%; flex: 1; min-height: 0; margin: 2px 0; }
+.block .trace-set .tline { position: absolute; left: 0; right: 0; height: 0; border-top-width: 1.5px; border-top-style: solid; }
+.block .trace-set .tline.red { border-top-color: #e03131; }
+.block .trace-set .tline.blue { border-top-color: #1c7ed6; }
+.block .trace-set .trace-letters {
+    position: absolute; left: 0; right: 0; display: flex; justify-content: space-evenly; align-items: center;
+    pointer-events: none; font-family: 'Comic Sans MS', 'Chalkboard SE', 'Comic Neue', 'Segoe UI', Arial, sans-serif;
+    font-weight: 400; line-height: 1; color: #868e96;
+}
+.block .trace-set .trace-letters.outlined { color: transparent; -webkit-text-stroke: 1.3px #868e96; }
+
+/* Trace text positioning – sits exactly on second blue line */
+.block .trace-set .trace-letters {
+    top: 33.333%;
+    bottom: 33.333%;
+    left: 0;
+    right: 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 12px;
+    font-size: 36px;
+}
+@media screen and (max-width: 768px) {
+    .block .trace-set .trace-letters {
+        font-size: 24px;
+        gap: 8px;
+    }
+}
+
+.block .inner-table { width: 100%; height: 100%; display: grid; gap: 0; box-sizing: border-box; }
+.block .inner-table .it-cell {
+    display: flex; align-items: center; justify-content: center; text-align: center;
+    overflow: hidden; padding: 2px; font-family: inherit; line-height: 1.2; word-break: break-word; box-sizing: border-box;
+}
+.block .inner-table.has-borders .it-cell { border: 1px solid #adb5bd; }
+
+.mini-table { display: grid; gap: 2px; background: #dee2e6; border: 2px solid #dee2e6; border-radius: 8px; overflow: hidden; max-width: 100%; }
+.mini-table .mt-cell {
+    background: #f1f3f5; min-height: 28px; padding: 4px; display: flex; align-items: center; justify-content: center;
+    font-size: 11px; cursor: pointer; text-align: center; word-break: break-word; line-height: 1.15;
+    border: 2px solid transparent; user-select: none;
+}
+.mini-table .mt-cell.selected { border-color: #F5A623; background: #fff3bf; }
+
+.page-number { position: absolute; bottom: 10px; left: 0; right: 0; text-align: center; font-weight: 700; font-size: 13px; color: #6c757d; }
+
+.worksheet-lines { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; z-index: 1; }
+.worksheet-lines .red-margin { position: absolute; left: 40px; top: 0; bottom: 0; width: 2px; background: #e03131; }
+.worksheet-lines .blue-line {
+    position: absolute; left: 0; right: 0; height: 0;
+    border-top: 1px solid #74c0fc; border-bottom: 1px solid #74c0fc; background: #74c0fc; opacity: 0.5;
+}
+
+.page-actions { text-align: right; margin-bottom: 6px; }
+.export-btn { background: #E2571C; color: #fff; border: none; border-radius: 7px; padding: 7px 14px; font-weight: 700; font-size: 12px; cursor: pointer; font-family: inherit; }
+
+@media print {
+    body { padding: 0; background: #fff; }
+    .app, .app-header, .tabs, .tab-panel, .view-toolbar, .no-print { display: none !important; }
+    .view-container { overflow: visible !important; }
+    .view-container .page { box-shadow: none !important; border-radius: 0 !important; margin: 0 !important; padding: 16px !important; page-break-after: always; }
+    .view-container .page:last-child { page-break-after: auto; }
+    .view-container .page .page-actions { display: none !important; }
+    .page-card, .page-header-right { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    .block .trace-set .trace-letters.outlined { -webkit-text-stroke: 1.1px #495057; }
+    .block .trace-set .tline { border-top-width: 1.25px; }
+    .worksheet-lines { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+
+.lesson-list { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.lesson-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: #f8f9fa; border-radius: 10px; border: 2px solid transparent; }
+.lesson-item:hover { border-color: #F5A623; background: #fff; }
+.lesson-item .info { flex: 1; min-width: 0; }
+.lesson-item .title { font-weight: 700; font-size: 14px; }
+.lesson-item .sub { font-size: 12px; color: #6c757d; }
+.lesson-item .actions { display: flex; gap: 4px; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+(function () {
+    // ========== INDEXEDDB ==========
+    const DB_NAME = 'phonics_grid_db';
+    const DB_VERSION = 1;
+    const STORE_NAME = 'lessons';
+    let db = null;
+
+    function openDB() {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open(DB_NAME, DB_VERSION);
+            request.onupgradeneeded = (e) => {
+                const database = e.target.result;
+                if (!database.objectStoreNames.contains(STORE_NAME)) {
+                    database.createObjectStore(STORE_NAME, { keyPath: 'id' });
+                }
+            };
+            request.onsuccess = (e) => resolve(e.target.result);
+            request.onerror = (e) => reject(e.target.error);
+        });
+    }
+
+    async function saveToDB(data) {
+        if (!db) db = await openDB();
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction(STORE_NAME, 'readwrite');
+            const store = tx.objectStore(STORE_NAME);
+            store.put({ id: 'app_data', nextId: data.nextId, lessons: data.lessons });
+            tx.oncomplete = () => resolve();
+            tx.onerror = (e) => reject(e.target.error);
+        });
+    }
+
+    async function loadFromDB() {
+        if (!db) db = await openDB();
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction(STORE_NAME, 'readonly');
+            const store = tx.objectStore(STORE_NAME);
+            const request = store.get('app_data');
+            request.onsuccess = () => resolve(request.result || null);
+            request.onerror = (e) => reject(e.target.error);
+        });
+    }
+
+    // ========== UTILITIES ==========
+    function escapeHtml(s) {
+        return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+    }
+    function escapeStyle(s) {
+        return String(s).replace(/[&<>"'\\\n\r]/g, ch => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '\\"', "'": "\\'",
+            '\\': '\\\\', '\n': '\\A ', '\r': '\\D '
+        }[ch] || ''));
+    }
+    function showToast(msg, type = 'info') {
+        const t = document.createElement('div');
+        t.className = 'toast ' + type;
+        t.innerHTML = `<span>${type==='success'?'✅':type==='error'?'❌':type==='warning'?'⚠️':'ℹ️'}</span> ${escapeHtml(msg)}`;
+        document.getElementById('toastContainer').appendChild(t);
+        setTimeout(() => t.remove(), 3200);
+    }
+
+    // Make sanitize available globally for inline handlers
+    function sanitizeHTML(html) {
+        const template = document.createElement('template');
+        template.innerHTML = html;
+        function clean(node) {
+            if (node.nodeType === Node.ELEMENT_NODE) {
+                if (node.tagName === 'SCRIPT') { node.remove(); return; }
+                for (const attr of [...node.attributes]) {
+                    const name = attr.name.toLowerCase();
+                    const val = (attr.value || '').toLowerCase();
+                    if (name.startsWith('on') || (name === 'href' && val.startsWith('javascript:'))) {
+                        node.removeAttribute(attr.name);
+                    } else if (name === 'style') {
+                        const allowed = ['color','background-color','background','font-weight','font-style','text-decoration','font-size'];
+                        const cleanStyle = attr.value.split(';').filter(decl => {
+                            const prop = decl.split(':')[0].trim().toLowerCase();
+                            return allowed.includes(prop);
+                        }).join(';');
+                        node.setAttribute('style', cleanStyle);
+                    }
+                }
+                [...node.childNodes].forEach(clean);
+            }
+        }
+        clean(template.content);
+        return template.innerHTML;
+    }
+    window.sanitizeHTML = sanitizeHTML;
+
+    // ========== DATA ==========
+    const COLS = 8;
+    const ROWS = 12;
+    const TOTAL = COLS * ROWS;
+
+    let lessons = [];
+    let currentLessonId = null;
+    let currentPageIndex = 0;
+    let history = [];
+    let historyIndex = -1;
+    let nextId = 1;
+    let editingBlockIdx = null;
+    let _editTextHistoryTimer = null;
+    let tableSel = new Set();
+
+    function generateUniqueId() {
+        let id;
+        do { id = 'l' + (nextId++); } while (lessons.some(l => l.id === id));
+        return id;
+    }
+
+    function defaultPage() {
+        return {
+            title: 'SHORT VOWEL CVC WORDS', subtitle: 'SHORT VOWEL', lessonNumber: 1,
+            blocks: [], usedCells: new Set(), locked: false,
+            worksheetEnabled: false, worksheetCount: 1
+        };
+    }
+    function defaultLesson() {
+        return { id: generateUniqueId(), title: 'SHORT VOWEL CVC WORDS', subtitle: 'SHORT VOWEL', pages: [defaultPage()] };
+    }
+
+    // ========== GRID / TABLE HELPERS ==========
+    function cellKey(r, c) { return r + ',' + c; }
+    function parseKey(k) { const [r, c] = k.split(',').map(Number); return { r, c }; }
+    function isRectangle(selectedKeys) {
+        if (!selectedKeys.size) return false;
+        const cells = Array.from(selectedKeys).map(parseKey);
+        const rows = cells.map(c => c.r), cols = cells.map(c => c.c);
+        const minR = Math.min(...rows), maxR = Math.max(...rows);
+        const minC = Math.min(...cols), maxC = Math.max(...cols);
+        const expected = (maxR - minR + 1) * (maxC - minC + 1);
+        if (selectedKeys.size !== expected) return false;
+        for (let r = minR; r <= maxR; r++) for (let c = minC; c <= maxC; c++) if (!selectedKeys.has(cellKey(r, c))) return false;
+        return { minR, maxR, minC, maxC, rowSpan: maxR - minR + 1, colSpan: maxC - minC + 1 };
+    }
+
+    function tKey(r, c) { return r + ',' + c; }
+    function parseTKey(k) { const [r, c] = k.split(',').map(Number); return { r, c }; }
+    function initTableCells(tableRows, tableCols) {
+        const cells = [];
+        for (let r = 0; r < tableRows; r++) for (let c = 0; c < tableCols; c++) {
+            cells.push({ r, c, rowSpan:1, colSpan:1, text:'', bg:'#f1f3f5', fontSize:14, bold:false, italic:false });
+        }
+        return cells;
+    }
+    function findTableCellAt(cells, r, c) {
+        for (const cell of cells) if (r >= cell.r && r < cell.r + cell.rowSpan && c >= cell.c && c < cell.c + cell.colSpan) return cell;
+        return null;
+    }
+    function coveredKeys(cell) {
+        const keys = [];
+        for (let r = cell.r; r < cell.r + cell.rowSpan; r++) for (let c = cell.c; c < cell.c + cell.colSpan; c++) keys.push(tKey(r, c));
+        return keys;
+    }
+    function isTableRect(selectedKeys) { return isRectangle(selectedKeys); }
+
+    // ========== STORAGE ==========
+    function rebuildUsedCells(page) {
+        const used = new Set();
+        (page.blocks || []).forEach(b => {
+            for (let r = b.row; r < b.row + b.rowSpan; r++) for (let c = b.col; c < b.col + b.colSpan; c++) used.add(cellKey(r, c));
+        });
+        page.usedCells = used;
+    }
+
+    function validateAndNormalizeLesson(src) {
+        const lesson = { id: src.id ? String(src.id) : generateUniqueId(), title: (src.title || 'Untitled') + '', subtitle: (src.subtitle || '') + '', pages: [] };
+        const pagesIn = Array.isArray(src.pages) ? src.pages : [];
+        pagesIn.forEach((p, i) => {
+            const page = {
+                title: p.title || 'UNTITLED', subtitle: p.subtitle || '',
+                lessonNumber: (Number.isFinite(parseInt(p.lessonNumber)) && parseInt(p.lessonNumber) > 0) ? parseInt(p.lessonNumber) : (i + 1),
+                locked: !!p.locked, blocks: [], usedCells: new Set(),
+                worksheetEnabled: !!p.worksheetEnabled, worksheetCount: Math.max(1, parseInt(p.worksheetCount) || 1)
+            };
+            if (Array.isArray(p.blocks)) {
+                p.blocks.forEach(b => {
+                    const nb = JSON.parse(JSON.stringify(b));
+                    nb.row = Math.max(0, parseInt(nb.row) || 0);
+                    nb.col = Math.max(0, parseInt(nb.col) || 0);
+                    nb.rowSpan = Math.max(1, parseInt(nb.rowSpan) || 1);
+                    nb.colSpan = Math.max(1, parseInt(nb.colSpan) || 1);
+                    if (!['text','image','trace','table'].includes(nb.type)) { nb.type = 'text'; nb.text = nb.text || ''; }
+                    if (nb.type === 'table') {
+                        nb.tableRows = Math.max(1, parseInt(nb.tableRows) || (nb.rowSpan * 2));
+                        nb.tableCols = Math.max(1, parseInt(nb.tableCols) || nb.colSpan);
+                        nb.tableShowBorders = nb.tableShowBorders !== false;
+                        if (!Array.isArray(nb.cells) || nb.cells.length === 0) nb.cells = initTableCells(nb.tableRows, nb.tableCols);
+                        else {
+                            const covered = new Set(); const cleanedCells = [];
+                            nb.cells.forEach(cell => {
+                                cell.r = Math.max(0, parseInt(cell.r) || 0); cell.c = Math.max(0, parseInt(cell.c) || 0);
+                                cell.rowSpan = Math.max(1, parseInt(cell.rowSpan) || 1); cell.colSpan = Math.max(1, parseInt(cell.colSpan) || 1);
+                                cell.rowSpan = Math.min(cell.rowSpan, nb.tableRows - cell.r);
+                                cell.colSpan = Math.min(cell.colSpan, nb.tableCols - cell.c);
+                                if (cell.rowSpan < 1 || cell.colSpan < 1) return;
+                                cell.text = cell.text || ''; cell.bg = cell.bg || '#f1f3f5';
+                                cell.fontSize = Math.min(22, Math.max(10, parseInt(cell.fontSize) || 14));
+                                cell.bold = !!cell.bold; cell.italic = !!cell.italic;
+                                let overlap = false;
+                                for (let r = cell.r; r < cell.r + cell.rowSpan; r++) {
+                                    for (let c = cell.c; c < cell.c + cell.colSpan; c++) {
+                                        const key = tKey(r, c);
+                                        if (covered.has(key)) { overlap = true; break; }
+                                        covered.add(key);
+                                    }
+                                    if (overlap) break;
+                                }
+                                if (!overlap) cleanedCells.push(cell);
+                            });
+                            for (let r = 0; r < nb.tableRows; r++) for (let c = 0; c < nb.tableCols; c++) {
+                                if (!covered.has(tKey(r, c))) cleanedCells.push({ r, c, rowSpan:1, colSpan:1, text:'', bg:'#f1f3f5', fontSize:14, bold:false, italic:false });
+                            }
+                            nb.cells = cleanedCells;
+                        }
+                    }
+                    if (nb.type === 'text') {
+                        nb.fontSize = Math.max(1, parseInt(nb.fontSize) || 18);
+                        nb.color = nb.color || '#1a1a1a';
+                        nb.textAlign = nb.textAlign || 'center';
+                        nb.verticalAlign = nb.verticalAlign || 'center';
+                        nb.bold = !!nb.bold; nb.italic = !!nb.italic; nb.underline = !!nb.underline;
+                        nb.richText = !!nb.richText || /<[a-z][\s\S]*>/i.test(nb.text || '');
+                        if (nb.richText) nb.text = sanitizeHTML(nb.text || '');
+                    } else if (nb.type === 'image') {
+                        nb.imageAlign = nb.imageAlign || 'center';
+                        nb.imageVerticalAlign = nb.imageVerticalAlign || 'center';
+                        nb.imageFit = nb.imageFit || 'contain';
+                        nb.imageScale = Math.min(200, Math.max(10, parseInt(nb.imageScale) || 100));
+                        nb.imageLabelOn = !!nb.imageLabelOn;
+                        nb.imageLabel = nb.imageLabel || '';
+                    } else if (nb.type === 'trace') {
+                        nb.traceTarget = nb.traceTarget || '';
+                        nb.traceStyle = nb.traceStyle === 'solid' ? 'solid' : 'outlined';
+                        nb.traceClones = Math.min(20, Math.max(1, parseInt(nb.traceClones) || 5));
+                        nb.traceRepeatAll = nb.traceRepeatAll !== false;
+                    }
+                    page.blocks.push(nb);
+                });
+            }
+            rebuildUsedCells(page);
+            lesson.pages.push(page);
+        });
+        if (!lesson.pages.length) lesson.pages = [defaultPage()];
+        return lesson;
+    }
+
+    async function load() {
+        try {
+            const stored = await loadFromDB();
+            if (stored && Array.isArray(stored.lessons) && stored.lessons.length > 0) {
+                nextId = Number(stored.nextId) || 1;
+                lessons = stored.lessons.map(src => validateAndNormalizeLesson(src));
+                const seenIds = new Set();
+                lessons.forEach(l => { while (seenIds.has(l.id)) l.id = generateUniqueId(); seenIds.add(l.id); });
+                currentLessonId = lessons[0].id;
+                currentPageIndex = 0;
+                return;
+            }
+        } catch (e) { console.warn('IndexedDB load failed', e); }
+        nextId = 1;
+        const l = defaultLesson();
+        lessons = [l];
+        currentLessonId = l.id;
+        currentPageIndex = 0;
+        await save();
+    }
+
+    async function save() {
+        try {
+            const toSave = {
+                nextId,
+                lessons: lessons.map(l => ({
+                    ...l,
+                    pages: l.pages.map(p => ({
+                        ...p,
+                        usedCells: Array.from(p.usedCells || []),
+                        worksheetEnabled: p.worksheetEnabled || false,
+                        worksheetCount: p.worksheetCount || 1
+                    }))
+                }))
+            };
+            await saveToDB(toSave);
+        } catch (e) {
+            console.error('Save failed:', e);
+            showToast('Storage error: could not save data', 'error');
+        }
+    }
+
+    // ========== HISTORY ==========
+    function pushHistory() {
+        const page = getCurrentPage();
+        if (!page) return;
+        if (_editTextHistoryTimer) { clearTimeout(_editTextHistoryTimer); _editTextHistoryTimer = null; }
+        const snapshot = JSON.parse(JSON.stringify({
+            title: page.title, subtitle: page.subtitle, lessonNumber: page.lessonNumber,
+            locked: page.locked, blocks: page.blocks, usedCells: Array.from(page.usedCells),
+            worksheetEnabled: page.worksheetEnabled, worksheetCount: page.worksheetCount
+        }));
+        history = history.slice(0, historyIndex + 1);
+        history.push(snapshot);
+        historyIndex = history.length - 1;
+        if (history.length > 40) { history.shift(); historyIndex--; }
+        updateUndoRedoButtons();
+    }
+
+    window.undo = function () {
+        if (historyIndex <= 0) return;
+        historyIndex--;
+        applySnapshot(history[historyIndex]);
+        editingBlockIdx = null;
+        tableSel = new Set();
+        if (_editTextHistoryTimer) { clearTimeout(_editTextHistoryTimer); _editTextHistoryTimer = null; }
+        updateUndoRedoButtons();
+        renderEditor();
+        renderView();
+        showToast('Undo', 'info');
+    };
+    window.redo = function () {
+        if (historyIndex >= history.length - 1) return;
+        historyIndex++;
+        applySnapshot(history[historyIndex]);
+        editingBlockIdx = null;
+        tableSel = new Set();
+        if (_editTextHistoryTimer) { clearTimeout(_editTextHistoryTimer); _editTextHistoryTimer = null; }
+        updateUndoRedoButtons();
+        renderEditor();
+        renderView();
+        showToast('Redo', 'info');
+    };
+    function applySnapshot(snap) {
+        const page = getCurrentPage();
+        if (!page || !snap) return;
+        page.title = snap.title ?? page.title;
+        page.subtitle = snap.subtitle ?? page.subtitle;
+        page.lessonNumber = snap.lessonNumber ?? page.lessonNumber;
+        page.locked = snap.locked ?? page.locked;
+        page.worksheetEnabled = snap.worksheetEnabled ?? false;
+        page.worksheetCount = snap.worksheetCount ?? 1;
+        page.blocks = JSON.parse(JSON.stringify(snap.blocks || []));
+        page.usedCells = new Set(snap.usedCells || []);
+        save();
+    }
+    function updateUndoRedoButtons() {
+        const u = document.getElementById('btnUndo');
+        const r = document.getElementById('btnRedo');
+        if (u) u.disabled = historyIndex <= 0;
+        if (r) r.disabled = historyIndex >= history.length - 1;
+    }
+
+    // ========== ACTIVE STATE ==========
+    window.activeSelection = new Set();
+    window.activeMode = 'text';
+    window.activeText = '';
+    window.activeFontSize = 18;
+    window.activeBold = false;
+    window.activeItalic = false;
+    window.activeUnderline = false;
+    window.activeColor = '#1a1a1a';
+    window.activeTextAlign = 'center';
+    window.activeVerticalAlign = 'center';
+    window.activeImagePath = '';
+    window.activeImageAlign = 'center';
+    window.activeImageVerticalAlign = 'center';
+    window.activeImageFit = 'contain';
+    window.activeImageScale = 100;
+    window.activeShowBorder = true;
+    window.activeImageLabelOn = false;
+    window.activeImageLabel = '';
+    window.activeTraceTarget = '';
+    window.activeTraceStyle = 'outlined';
+    window.activeTraceClones = 5;
+    window.activeTraceRepeatAll = true;
+    window.activeTableShowBorders = true;
+    window.activeRichText = false;
+
+    function resetActive() {
+        Object.assign(window, {
+            activeSelection: new Set(), activeMode: 'text', activeText: '', activeFontSize: 18,
+            activeBold: false, activeItalic: false, activeUnderline: false, activeColor: '#1a1a1a',
+            activeTextAlign: 'center', activeVerticalAlign: 'center',
+            activeImagePath: '', activeImageAlign: 'center', activeImageVerticalAlign: 'center',
+            activeImageFit: 'contain', activeImageScale: 100, activeShowBorder: true,
+            activeImageLabelOn: false, activeImageLabel: '',
+            activeTraceTarget: '', activeTraceStyle: 'outlined', activeTraceClones: 5, activeTraceRepeatAll: true,
+            activeTableShowBorders: true, activeRichText: false
+        });
+    }
+
+    // ========== TEXT HELPERS ==========
+    function textToHtml(text) {
+        if (!text) return '';
+        const lines = String(text).split('\n');
+        let html = '';
+        let i = 0;
+        while (i < lines.length) {
+            const line = lines[i];
+            const bulletMatch = line.match(/^\s*[-*]\s+(.*)$/);
+            const numMatch = line.match(/^\s*\d+\.\s+(.*)$/);
+            if (bulletMatch) {
+                html += '<ul>';
+                while (i < lines.length) {
+                    const m = lines[i].match(/^\s*[-*]\s+(.*)$/);
+                    if (!m) break;
+                    html += '<li>' + escapeHtml(m[1]) + '</li>';
+                    i++;
+                }
+                html += '</ul>';
+            } else if (numMatch) {
+                html += '<ol>';
+                while (i < lines.length) {
+                    const m = lines[i].match(/^\s*\d+\.\s+(.*)$/);
+                    if (!m) break;
+                    html += '<li>' + escapeHtml(m[1]) + '</li>';
+                    i++;
+                }
+                html += '</ol>';
+            } else {
+                let para = [];
+                while (i < lines.length) {
+                    if (/^\s*[-*]\s+/.test(lines[i]) || /^\s*\d+\.\s+/.test(lines[i])) break;
+                    para.push(escapeHtml(lines[i]));
+                    i++;
+                }
+                const joined = para.join('<br>');
+                if (joined.trim() !== '') html += '<p>' + joined + '</p>';
+                else if (para.length) html += '<p><br></p>';
+            }
+        }
+        return html || '<p></p>';
+    }
+
+    window.execInline = function (prefix, command, value = null) {
+        let editor;
+        if (prefix === 'active') editor = document.getElementById('activeText');
+        else if (prefix === 'edit') editor = document.getElementById('editText');
+        if (!editor) return;
+        editor.focus();
+        document.execCommand(command, false, value);
+        if (prefix === 'active') {
+            window.activeText = sanitizeHTML(editor.innerHTML);
+            window.activeRichText = true;
+            updatePreview('active');
+        } else if (prefix === 'edit' && editingBlockIdx !== null) {
+            const page = getCurrentPage();
+            if (!page) return;
+            const b = page.blocks[editingBlockIdx];
+            if (!b || b.type !== 'text') return;
+            pushHistory();
+            b.text = sanitizeHTML(editor.innerHTML);
+            b.richText = true;
+            save();
+            updatePreview('edit');
+            renderView();
+        }
+    };
+
+    window.applyList = function (prefix, type) {
+        let editor;
+        if (prefix === 'active') editor = document.getElementById('activeText');
+        else if (prefix === 'edit') editor = document.getElementById('editText');
+        if (!editor) return;
+        editor.focus();
+        document.execCommand(type === 'ul' ? 'insertUnorderedList' : 'insertOrderedList');
+        if (prefix === 'active') {
+            window.activeText = sanitizeHTML(editor.innerHTML);
+            window.activeRichText = true;
+            updatePreview('active');
+        } else if (prefix === 'edit' && editingBlockIdx !== null) {
+            const page = getCurrentPage();
+            if (!page || !page.blocks[editingBlockIdx]) return;
+            pushHistory();
+            page.blocks[editingBlockIdx].text = sanitizeHTML(editor.innerHTML);
+            page.blocks[editingBlockIdx].richText = true;
+            save();
+            updatePreview('edit');
+            renderView();
+        }
+    };
+
+    window.updateFmtValue = function (prefix, prop, value) {
+        if (prefix === 'active') {
+            if (prop === 'fontSize') window.activeFontSize = Math.max(1, parseInt(value) || 18);
+            if (prop === 'color') window.activeColor = value;
+            updatePreview('active');
+        } else if (prefix === 'edit' && editingBlockIdx !== null) {
+            const page = getCurrentPage();
+            if (!page) return;
+            const b = page.blocks[editingBlockIdx];
+            if (!b || b.type !== 'text') return;
+            pushHistory();
+            if (prop === 'fontSize') b.fontSize = Math.max(1, parseInt(value) || 18);
+            if (prop === 'color') b.color = value;
+            save();
+            updatePreview('edit');
+            renderView();
+        }
+    };
+
+    window.setAlign = function (prefix, prop, value) {
+        if (prefix === 'active') {
+            if (prop === 'textAlign') window.activeTextAlign = value;
+            if (prop === 'verticalAlign') window.activeVerticalAlign = value;
+            renderEditor();
+        } else if (prefix === 'edit' && editingBlockIdx !== null) {
+            const page = getCurrentPage();
+            if (!page) return;
+            const b = page.blocks[editingBlockIdx];
+            if (!b || b.type !== 'text') return;
+            pushHistory();
+            b[prop] = value;
+            save();
+            renderEditor();
+            renderView();
+        }
+    };
+
+    function updatePreview(prefix) {
+        const preview = document.getElementById(prefix === 'active' ? 'activePreview' : 'editPreview');
+        if (!preview) return;
+        let html = '', fontSize = 18, textAlign = 'center', color = '#1a1a1a';
+        if (prefix === 'active') {
+            html = window.activeText || '';
+            fontSize = window.activeFontSize;
+            textAlign = window.activeTextAlign;
+            color = window.activeColor;
+        } else if (prefix === 'edit' && editingBlockIdx !== null) {
+            const page = getCurrentPage();
+            if (!page) return;
+            const b = page.blocks[editingBlockIdx];
+            html = b.text || '';
+            fontSize = b.fontSize || 18;
+            textAlign = b.textAlign || 'center';
+            color = b.color || '#1a1a1a';
+        }
+        preview.innerHTML = html || '<p></p>';
+        preview.style.fontSize = fontSize + 'px';
+        preview.style.textAlign = textAlign;
+        preview.style.color = color;
+    }
+
+    window.updateEditText = function (idx, html) {
+        const page = getCurrentPage();
+        if (!page || !page.blocks[idx]) return;
+        if (!_editTextHistoryTimer) pushHistory();
+        clearTimeout(_editTextHistoryTimer);
+        _editTextHistoryTimer = setTimeout(() => { _editTextHistoryTimer = null; }, 800);
+        page.blocks[idx].text = sanitizeHTML(html);
+        page.blocks[idx].richText = true;
+        save();
+        updatePreview('edit');
+        renderView();
+    };
+
+    // ========== TOOLBARS ==========
+    function fmtToolbarHtml(prefix, state) {
+        return `
+            <div class="fmt-toolbar">
+                <button type="button" class="fmt-btn" title="Bold" onclick="execInline('${prefix}','bold')"><b>B</b></button>
+                <button type="button" class="fmt-btn" title="Italic" onclick="execInline('${prefix}','italic')"><i>I</i></button>
+                <button type="button" class="fmt-btn" title="Underline" onclick="execInline('${prefix}','underline')"><u>U</u></button>
+                <div class="sep"></div>
+                <button type="button" class="fmt-btn" title="Bullet list" onclick="applyList('${prefix}','ul')">•</button>
+                <button type="button" class="fmt-btn" title="Numbered list" onclick="applyList('${prefix}','ol')">1.</button>
+                <div class="sep"></div>
+                <label>Size</label>
+                <input type="number" id="${prefix}FontSize" value="${state.fontSize}" min="1" style="width:56px;padding:4px 6px;border:1px solid #ced4da;border-radius:6px;font-size:12px;" onchange="updateFmtValue('${prefix}','fontSize',this.value)">
+                <div class="sep"></div>
+                <label>Color</label>
+                <input type="color" id="${prefix}Color" value="${escapeStyle(state.color)}" onchange="updateFmtValue('${prefix}','color',this.value)">
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;">
+                <div>
+                    <label style="font-size:11px;font-weight:700;color:#6c757d;">Horizontal</label>
+                    <div class="align-group">
+                        <button type="button" class="${state.textAlign==='left'?'active':''}" onclick="setAlign('${prefix}','textAlign','left')">Left</button>
+                        <button type="button" class="${state.textAlign==='center'?'active':''}" onclick="setAlign('${prefix}','textAlign','center')">Center</button>
+                        <button type="button" class="${state.textAlign==='right'?'active':''}" onclick="setAlign('${prefix}','textAlign','right')">Right</button>
+                        <button type="button" class="${state.textAlign==='justify'?'active':''}" onclick="setAlign('${prefix}','textAlign','justify')">Justify</button>
+                    </div>
+                </div>
+                <div>
+                    <label style="font-size:11px;font-weight:700;color:#6c757d;">Vertical</label>
+                    <div class="align-group">
+                        <button type="button" class="${state.verticalAlign==='top'?'active':''}" onclick="setAlign('${prefix}','verticalAlign','top')">Top</button>
+                        <button type="button" class="${state.verticalAlign==='center'?'active':''}" onclick="setAlign('${prefix}','verticalAlign','center')">Center</button>
+                        <button type="button" class="${state.verticalAlign==='bottom'?'active':''}" onclick="setAlign('${prefix}','verticalAlign','bottom')">Bottom</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    function imageControlsHtml(prefix, state) {
+        return `
+            <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;">
+                <div>
+                    <label style="font-size:11px;font-weight:700;color:#6c757d;">Horizontal</label>
+                    <div class="align-group">
+                        <button type="button" class="${state.imageAlign==='left'?'active':''}" onclick="setImgAlign('${prefix}','imageAlign','left')">Left</button>
+                        <button type="button" class="${state.imageAlign==='center'?'active':''}" onclick="setImgAlign('${prefix}','imageAlign','center')">Center</button>
+                        <button type="button" class="${state.imageAlign==='right'?'active':''}" onclick="setImgAlign('${prefix}','imageAlign','right')">Right</button>
+                    </div>
+                </div>
+                <div>
+                    <label style="font-size:11px;font-weight:700;color:#6c757d;">Vertical</label>
+                    <div class="align-group">
+                        <button type="button" class="${state.imageVerticalAlign==='top'?'active':''}" onclick="setImgAlign('${prefix}','imageVerticalAlign','top')">Top</button>
+                        <button type="button" class="${state.imageVerticalAlign==='center'?'active':''}" onclick="setImgAlign('${prefix}','imageVerticalAlign','center')">Center</button>
+                        <button type="button" class="${state.imageVerticalAlign==='bottom'?'active':''}" onclick="setImgAlign('${prefix}','imageVerticalAlign','bottom')">Bottom</button>
+                    </div>
+                </div>
+                <div>
+                    <label style="font-size:11px;font-weight:700;color:#6c757d;">Fit mode</label>
+                    <div class="align-group">
+                        <button type="button" class="${state.imageFit==='contain'?'active':''}" onclick="setImgAlign('${prefix}','imageFit','contain')">Fit</button>
+                        <button type="button" class="${state.imageFit==='cover'?'active':''}" onclick="setImgAlign('${prefix}','imageFit','cover')">Expand</button>
+                        <button type="button" class="${state.imageFit==='scale'?'active':''}" onclick="setImgAlign('${prefix}','imageFit','scale')">Scale</button>
+                    </div>
+                </div>
+                ${state.imageFit === 'scale' ? `
+                <div>
+                    <label style="font-size:11px;font-weight:700;color:#6c757d;">Scale %</label>
+                    <input type="number" id="${prefix}ImageScale" value="${state.imageScale}" min="10" max="200" style="width:64px;padding:4px 6px;border:1px solid #ced4da;border-radius:6px;font-size:12px;" onchange="updateImgScale('${prefix}',this.value)">
+                </div>` : ''}
+            </div>
+        `;
+    }
+
+    // ========== IMAGE / TRACE / TABLE HANDLERS ==========
+    window.setImgAlign = function (prefix, prop, value) {
+        if (prefix === 'active') {
+            if (prop === 'imageAlign') window.activeImageAlign = value;
+            else if (prop === 'imageVerticalAlign') window.activeImageVerticalAlign = value;
+            else if (prop === 'imageFit') window.activeImageFit = value;
+            renderEditor();
+        } else if (prefix === 'edit' && editingBlockIdx !== null) {
+            const page = getCurrentPage();
+            if (!page) return;
+            const b = page.blocks[editingBlockIdx];
+            if (!b || b.type !== 'image') return;
+            pushHistory();
+            b[prop] = value;
+            save();
+            renderEditor();
+            renderView();
+        }
+    };
+    window.updateImgScale = function (prefix, value) {
+        const v = Math.min(200, Math.max(10, parseInt(value) || 100));
+        if (prefix === 'active') window.activeImageScale = v;
+        else if (prefix === 'edit' && editingBlockIdx !== null) {
+            const page = getCurrentPage();
+            if (!page) return;
+            const b = page.blocks[editingBlockIdx];
+            if (!b || b.type !== 'image') return;
+            pushHistory();
+            b.imageScale = v;
+            save();
+            renderView();
+        }
+    };
+    window.handleActiveImage = function (e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        if (!file.type || !file.type.startsWith('image/')) return showToast('Please select an image file', 'error');
+        if (file.size > 2 * 1024 * 1024) return showToast('Image must be < 2MB', 'error');
+        const reader = new FileReader();
+        reader.onload = ev => {
+            window.activeImagePath = ev.target.result;
+            renderEditor();
+            showToast('Image loaded', 'success');
+        };
+        reader.onerror = () => showToast('Failed to read image', 'error');
+        reader.readAsDataURL(file);
+    };
+    window.handleEditImage = function (e, idx) {
+        const file = e.target.files[0];
+        if (!file) return;
+        if (!file.type || !file.type.startsWith('image/')) return showToast('Please select an image file', 'error');
+        if (file.size > 2 * 1024 * 1024) return showToast('Image must be < 2MB', 'error');
+        const reader = new FileReader();
+        reader.onload = ev => {
+            const page = getCurrentPage();
+            if (!page || !page.blocks[idx]) return;
+            pushHistory();
+            page.blocks[idx].imagePath = ev.target.result;
+            save();
+            renderEditor();
+            renderView();
+            showToast('Image updated', 'success');
+        };
+        reader.onerror = () => showToast('Failed to read image', 'error');
+        reader.readAsDataURL(file);
+    };
+    window.updateImageLabelOn = function (idx, val) {
+        const page = getCurrentPage();
+        if (!page || !page.blocks[idx]) return;
+        pushHistory();
+        page.blocks[idx].imageLabelOn = !!val;
+        save();
+        renderEditor();
+        renderView();
+    };
+    window.updateImageLabel = function (idx, val) {
+        const page = getCurrentPage();
+        if (!page || !page.blocks[idx]) return;
+        if (!_editTextHistoryTimer) pushHistory();
+        clearTimeout(_editTextHistoryTimer);
+        _editTextHistoryTimer = setTimeout(() => { _editTextHistoryTimer = null; }, 800);
+        page.blocks[idx].imageLabel = val;
+        save();
+        renderView();
+    };
+    window.updateTraceField = function (idx, prop, val) {
+        const page = getCurrentPage();
+        if (!page || !page.blocks[idx] || page.blocks[idx].type !== 'trace') return;
+        if (prop === 'traceTarget') {
+            if (!_editTextHistoryTimer) pushHistory();
+            clearTimeout(_editTextHistoryTimer);
+            _editTextHistoryTimer = setTimeout(() => { _editTextHistoryTimer = null; }, 800);
+            page.blocks[idx][prop] = val;
+            save();
+            renderView();
+            return;
+        }
+        pushHistory();
+        page.blocks[idx][prop] = val;
+        save();
+        renderEditor();
+        renderView();
+    };
+
+    // Table handlers
+    window.clearTableSel = function () { tableSel = new Set(); renderEditor(); };
+    window.toggleTableCell = function (blockIdx, r, c) {
+        const page = getCurrentPage();
+        if (!page || !page.blocks[blockIdx] || page.blocks[blockIdx].type !== 'table') return;
+        const b = page.blocks[blockIdx];
+        const owner = findTableCellAt(b.cells || [], r, c);
+        if (!owner) return;
+        const keys = coveredKeys(owner);
+        const allOn = keys.every(k => tableSel.has(k));
+        if (allOn) keys.forEach(k => tableSel.delete(k));
+        else keys.forEach(k => tableSel.add(k));
+        renderEditor();
+    };
+    window.mergeTableCells = function (blockIdx) {
+        const page = getCurrentPage();
+        if (!page || !page.blocks[blockIdx] || page.blocks[blockIdx].type !== 'table') return;
+        const b = page.blocks[blockIdx];
+        const rect = isTableRect(tableSel);
+        if (!rect || tableSel.size < 2) return showToast('Select a solid rectangle of 2+ cells to merge', 'warning');
+        const cells = b.cells || [];
+        const ownersHit = new Set();
+        for (const cell of cells) {
+            const keys = coveredKeys(cell);
+            const hit = keys.some(k => tableSel.has(k));
+            const all = keys.every(k => tableSel.has(k));
+            if (hit && !all) return showToast('Selection cuts through a merged cell', 'error');
+            if (hit) ownersHit.add(tKey(cell.r, cell.c));
+        }
+        if (ownersHit.size < 2) return showToast('Select at least two separate cells/regions', 'warning');
+        pushHistory();
+        const remaining = cells.filter(cell => !coveredKeys(cell).some(k => tableSel.has(k)));
+        const topLeft = findTableCellAt(cells, rect.minR, rect.minC);
+        remaining.push({
+            r: rect.minR, c: rect.minC, rowSpan: rect.rowSpan, colSpan: rect.colSpan,
+            text: topLeft ? (topLeft.text || '') : '', bg: topLeft ? (topLeft.bg || '#f1f3f5') : '#f1f3f5',
+            fontSize: topLeft ? (topLeft.fontSize || 14) : 14, bold: topLeft ? !!topLeft.bold : false, italic: topLeft ? !!topLeft.italic : false
+        });
+        b.cells = remaining;
+        tableSel = new Set();
+        for (let r = rect.minR; r <= rect.maxR; r++) for (let c = rect.minC; c <= rect.maxC; c++) tableSel.add(tKey(r, c));
+        save();
+        renderEditor();
+        renderView();
+        showToast('Cells merged', 'success');
+    };
+    window.unmergeTableCells = function (blockIdx) {
+        const page = getCurrentPage();
+        if (!page || !page.blocks[blockIdx] || page.blocks[blockIdx].type !== 'table') return;
+        const b = page.blocks[blockIdx];
+        if (!tableSel.size) return showToast('Select a merged cell first', 'warning');
+        const first = parseTKey(Array.from(tableSel)[0]);
+        const owner = findTableCellAt(b.cells || [], first.r, first.c);
+        if (!owner || (owner.rowSpan === 1 && owner.colSpan === 1)) return showToast('Selection is not a merged cell', 'warning');
+        pushHistory();
+        const cells = (b.cells || []).filter(cell => !(cell.r === owner.r && cell.c === owner.c));
+        for (let r = owner.r; r < owner.r + owner.rowSpan; r++) {
+            for (let c = owner.c; c < owner.c + owner.colSpan; c++) {
+                cells.push({
+                    r, c, rowSpan: 1, colSpan: 1,
+                    text: (r === owner.r && c === owner.c) ? (owner.text || '') : '',
+                    bg: owner.bg || '#f1f3f5', fontSize: owner.fontSize || 14, bold: !!owner.bold, italic: !!owner.italic
+                });
+            }
+        }
+        b.cells = cells;
+        tableSel = new Set();
+        save();
+        renderEditor();
+        renderView();
+        showToast('Cell unmerged', 'info');
+    };
+    window.applyTableCellProp = function (blockIdx, prop, value) {
+        const page = getCurrentPage();
+        if (!page || !page.blocks[blockIdx] || page.blocks[blockIdx].type !== 'table') return;
+        const b = page.blocks[blockIdx];
+        if (!tableSel.size) return;
+        const owners = new Map();
+        for (const k of tableSel) {
+            const { r, c } = parseTKey(k);
+            const owner = findTableCellAt(b.cells || [], r, c);
+            if (owner) owners.set(tKey(owner.r, owner.c), owner);
+        }
+        if (!owners.size) return;
+        if (prop === 'text') {
+            if (!_editTextHistoryTimer) pushHistory();
+            clearTimeout(_editTextHistoryTimer);
+            _editTextHistoryTimer = setTimeout(() => { _editTextHistoryTimer = null; }, 800);
+        } else pushHistory();
+        owners.forEach(owner => {
+            if (prop === 'fontSize') owner.fontSize = Math.min(22, Math.max(10, parseInt(value) || 14));
+            else if (prop === 'bold' || prop === 'italic') owner[prop] = value === true || value === 'true';
+            else owner[prop] = value;
+        });
+        save();
+        if (prop !== 'text') { renderEditor(); renderView(); }
+        else renderView();
+    };
+    window.toggleTableBorders = function (idx, val) {
+        const page = getCurrentPage();
+        if (!page || !page.blocks[idx]) return;
+        pushHistory();
+        page.blocks[idx].tableShowBorders = !!val;
+        save();
+        renderView();
+    };
+
+    // ========== RENDER ==========
+    function getCurrentLesson() { return lessons.find(l => l.id === currentLessonId); }
+    function getCurrentPage() {
+        const l = getCurrentLesson();
+        return l ? l.pages[currentPageIndex] : null;
+    }
+
+    function renderEditor() {
+        const page = getCurrentPage();
+        if (!page) return;
+        const container = document.getElementById('editorArea');
+        if (!container) return;
+
+        const freeCount = TOTAL - page.usedCells.size;
+        const locked = page.locked;
+
+        let html = `
+            <div class="editor-toolbar">
+                <span class="info">Page ${currentPageIndex + 1} · ${page.blocks.length} block(s) · ${freeCount} free cells ${locked ? '· 🔒 Layout locked' : ''}</span>
+                <button type="button" class="btn btn-outline btn-sm" id="btnUndo" onclick="undo()" ${historyIndex <= 0 ? 'disabled' : ''}>↩ Undo</button>
+                <button type="button" class="btn btn-outline btn-sm" id="btnRedo" onclick="redo()" ${historyIndex >= history.length - 1 ? 'disabled' : ''}>↪ Redo</button>
+                <button type="button" class="btn btn-outline btn-sm" onclick="resetPage()" ${locked ? 'disabled' : ''}>🗑 Reset Page</button>
+                ${locked
+                    ? `<button type="button" class="btn btn-primary btn-sm" onclick="unlockPage()">🔓 Unlock Layout</button>`
+                    : `<button type="button" class="btn btn-success btn-sm" onclick="lockPage()" ${page.blocks.length === 0 ? 'disabled' : ''}>✅ Done (Lock Layout)</button>`
+                }
+            </div>
+            <div style="margin-bottom:14px;display:grid;grid-template-columns:1fr 1fr 100px;gap:10px;">
+                <div><label style="font-weight:700;font-size:12px;">Page Title</label>
+                    <input id="pageTitle" value="${escapeHtml(page.title)}" onchange="updatePageMeta()" style="width:100%;padding:8px 12px;border:2px solid #dee2e6;border-radius:8px;font-size:13px;"></div>
+                <div><label style="font-weight:700;font-size:12px;">Subtitle</label>
+                    <input id="pageSubtitle" value="${escapeHtml(page.subtitle)}" onchange="updatePageMeta()" style="width:100%;padding:8px 12px;border:2px solid #dee2e6;border-radius:8px;font-size:13px;"></div>
+                <div><label style="font-weight:700;font-size:12px;">Lesson #</label>
+                    <input id="pageLessonNum" type="number" value="${page.lessonNumber}" onchange="updatePageMeta()" style="width:100%;padding:8px 12px;border:2px solid #dee2e6;border-radius:8px;font-size:13px;"></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;">
+                <label class="border-toggle" style="margin:0;">
+                    <input type="checkbox" id="worksheetToggle" ${page.worksheetEnabled ? 'checked' : ''} onchange="toggleWorksheet()">
+                    Include worksheet pages after this page
+                </label>
+                <div id="worksheetCountWrap" style="display:${page.worksheetEnabled ? 'flex' : 'none'};align-items:center;gap:6px;">
+                    <label style="font-size:12px;font-weight:700;">Number of worksheet pages:</label>
+                    <input type="number" id="worksheetCount" value="${page.worksheetCount}" min="1" max="10" style="width:70px;padding:4px 6px;border:1px solid #ced4da;border-radius:6px;" onchange="updateWorksheetCount(this.value)">
+                </div>
+            </div>
+        `;
+
+        page.blocks.forEach((b, idx) => {
+            const isEditing = editingBlockIdx === idx;
+            let summary = '';
+            if (b.type === 'text') {
+                const plain = b.richText ? (b.text || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim() : (b.text || '');
+                summary = `<div class="summary-text">${escapeHtml(plain || '(empty)')}</div>
+                           <div style="font-size:12px;color:#6c757d;margin-top:4px;">Size ${b.fontSize}px · ${b.textAlign}/${b.verticalAlign}${b.bold?' · B':''}${b.italic?' · I':''}${b.underline?' · U':''}${b.richText?' · rich':''}</div>`;
+            } else if (b.type === 'image') {
+                summary = b.imagePath
+                    ? `<img src="${escapeHtml(b.imagePath)}" style="max-width:120px;max-height:80px;border-radius:6px;border:1px solid #ddd;">
+                       <div style="font-size:12px;color:#6c757d;margin-top:4px;">${b.imageFit} · ${b.imageAlign}/${b.imageVerticalAlign}${b.imageLabelOn?' · label: '+escapeHtml(b.imageLabel||''):''}</div>`
+                    : `<div style="color:#adb5bd;">No image</div>`;
+            } else if (b.type === 'trace') {
+                summary = `<div class="summary-text">Trace: ${escapeHtml(b.traceTarget || '(blank lines)')}</div>
+                           <div style="font-size:12px;color:#6c757d;margin-top:4px;">${b.traceStyle||'outlined'} · ${b.traceClones||5} clones · ${b.traceRepeatAll!==false?'all sets':'first only'} · ${b.rowSpan} set(s)</div>`;
+            } else if (b.type === 'table') {
+                summary = `<div class="summary-text">Table ${b.tableRows||(b.rowSpan*2)}×${b.tableCols||b.colSpan}</div>
+                           <div style="font-size:12px;color:#6c757d;margin-top:4px;">${(b.cells||[]).length} region(s) · borders ${b.tableShowBorders!==false?'on':'off'}</div>`;
+            }
+
+            html += `
+                <div class="block-card ${locked ? 'locked' : ''}">
+                    <h3>Block ${idx + 1} — ${b.type.toUpperCase()} · ${b.rowSpan}×${b.colSpan} cells ${locked ? '🔒' : ''}</h3>
+                    <div class="block-left">
+                        ${!isEditing ? summary + `
+                            <label class="border-toggle" style="margin-top:6px;">
+                                <input type="checkbox" ${b.showBorder !== false ? 'checked' : ''} onchange="toggleBlockBorder(${idx}, this.checked)">
+                                Show border on page
+                            </label>` : ''}
+                    </div>
+                    <div class="block-right">
+                        <div class="grid-label">Allocated cells</div>
+                        <div class="radio-grid" id="grid-preview-${idx}"></div>
+                    </div>
+                    <div class="block-actions">
+                        <button type="button" class="btn btn-primary btn-xs" onclick="toggleEditBlock(${idx})">${isEditing ? '▲ Close' : '✏️ Edit content'}</button>
+                        ${!locked ? `<button type="button" class="btn btn-danger btn-xs" onclick="deleteBlock(${idx})">🗑 Remove block</button>` : ''}
+                    </div>
+                    ${isEditing ? renderEditPanel(b, idx) : ''}
+                </div>`;
+        });
+
+        if (!locked && freeCount > 0) {
+            const activeState = {
+                fontSize: window.activeFontSize, color: window.activeColor,
+                textAlign: window.activeTextAlign, verticalAlign: window.activeVerticalAlign
+            };
+            const imgState = {
+                imageAlign: window.activeImageAlign, imageVerticalAlign: window.activeImageVerticalAlign,
+                imageFit: window.activeImageFit, imageScale: window.activeImageScale
+            };
+            html += `
+                <div class="block-card" id="activeCard">
+                    <h3>New Block — select a rectangle on the grid</h3>
+                    <div class="block-left">
+                        <div class="mode-toggle">
+                            <button type="button" class="${window.activeMode==='text'?'active':''}" onclick="setMode('text')">📝 Text</button>
+                            <button type="button" class="${window.activeMode==='image'?'active':''}" onclick="setMode('image')">🖼️ Image</button>
+                            <button type="button" class="${window.activeMode==='trace'?'active':''}" onclick="setMode('trace')">✏️ Trace</button>
+                            <button type="button" class="${window.activeMode==='table'?'active':''}" onclick="setMode('table')">▦ Table</button>
+                        </div>
+                        <div id="textFields" style="display:${window.activeMode==='text'?'block':'none'}">
+                            <label>Text content (rich)</label>
+                            <div id="activeText" class="rich-editor" contenteditable="true"
+                                 oninput="window.activeText=window.sanitizeHTML(this.innerHTML);window.activeRichText=true;updatePreview('active')">${window.activeText || ''}</div>
+                            ${fmtToolbarHtml('active', activeState)}
+                            <div class="preview-box" id="activePreview"></div>
+                        </div>
+                        <div id="imageFields" style="display:${window.activeMode==='image'?'block':'none'}">
+                            <label>Image</label>
+                            <div class="img-preview-wrap">
+                                <img id="activeImgPreview" style="display:${window.activeImagePath?'block':'none'}" src="${escapeHtml(window.activeImagePath||'')}">
+                                <div id="activeImgPh" class="ph" style="display:${window.activeImagePath?'none':'flex'}">🖼️</div>
+                                <input type="file" accept="image/*" onchange="handleActiveImage(event)">
+                            </div>
+                            ${imageControlsHtml('active', imgState)}
+                            <label class="border-toggle" style="margin-top:8px;">
+                                <input type="checkbox" id="activeImageLabelOn" ${window.activeImageLabelOn?'checked':''} onchange="window.activeImageLabelOn=this.checked;renderEditor()">
+                                Show label under image
+                            </label>
+                            <div style="display:${window.activeImageLabelOn?'block':'none'};margin-top:6px;">
+                                <label>Label text</label>
+                                <input id="activeImageLabel" value="${escapeHtml(window.activeImageLabel)}" oninput="window.activeImageLabel=this.value" placeholder="e.g. cat" style="width:100%;padding:8px 12px;border:2px solid #dee2e6;border-radius:8px;font-size:13px;">
+                            </div>
+                        </div>
+                        <div id="traceFields" style="display:${window.activeMode==='trace'?'block':'none'}">
+                            <label>Target letter / word <span style="font-weight:400;color:#6c757d;">(empty = blank lines)</span></label>
+                            <input id="activeTraceTarget" value="${escapeHtml(window.activeTraceTarget)}" oninput="window.activeTraceTarget=this.value" placeholder="e.g. a  or  cat" style="width:100%;padding:8px 12px;border:2px solid #dee2e6;border-radius:8px;font-size:13px;">
+                            <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;">
+                                <div>
+                                    <label style="font-size:11px;font-weight:700;color:#6c757d;">Style</label>
+                                    <div class="align-group">
+                                        <button type="button" class="${window.activeTraceStyle==='outlined'?'active':''}" onclick="window.activeTraceStyle='outlined';renderEditor()">Outlined</button>
+                                        <button type="button" class="${window.activeTraceStyle==='solid'?'active':''}" onclick="window.activeTraceStyle='solid';renderEditor()">Solid</button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label style="font-size:11px;font-weight:700;color:#6c757d;">Clones per line</label>
+                                    <input type="number" id="activeTraceClones" value="${window.activeTraceClones}" min="1" max="20" style="width:64px;padding:4px 6px;border:1px solid #ced4da;border-radius:6px;font-size:12px;" onchange="window.activeTraceClones=Math.min(20,Math.max(1,parseInt(this.value)||5))">
+                                </div>
+                                <div>
+                                    <label style="font-size:11px;font-weight:700;color:#6c757d;">Repeat on</label>
+                                    <div class="align-group">
+                                        <button type="button" class="${window.activeTraceRepeatAll?'active':''}" onclick="window.activeTraceRepeatAll=true;renderEditor()">All sets</button>
+                                        <button type="button" class="${!window.activeTraceRepeatAll?'active':''}" onclick="window.activeTraceRepeatAll=false;renderEditor()">First only</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="tableFields" style="display:${window.activeMode==='table'?'block':'none'}">
+                            <div style="font-size:12px;color:#495057;line-height:1.4;margin-bottom:8px;">
+                                Table size is derived from your selection:<br>
+                                <strong>cols</strong> = block width · <strong>rows</strong> = block height × 2<br>
+                                After placing, open <em>Edit content</em> to fill cells, merge, and style.
+                            </div>
+                            <label class="border-toggle">
+                                <input type="checkbox" id="activeTableShowBorders" ${window.activeTableShowBorders?'checked':''} onchange="window.activeTableShowBorders=this.checked">
+                                Show cell borders
+                            </label>
+                        </div>
+                        <label class="border-toggle" style="margin-top:8px;">
+                            <input type="checkbox" id="activeBorder" ${window.activeShowBorder?'checked':''} onchange="window.activeShowBorder=this.checked">
+                            Show border on page
+                        </label>
+                    </div>
+                    <div class="block-right">
+                        <div class="grid-label">Click cells to form a rectangle (1×1 allowed)</div>
+                        <div class="radio-grid" id="activeGrid"></div>
+                        <div class="validation-msg" id="validationMsg"></div>
+                    </div>
+                    <div class="block-actions">
+                        <button type="button" class="btn btn-primary" id="btnSet" onclick="setBlock()" disabled>✔ Set Block</button>
+                        <button type="button" class="btn btn-outline" onclick="clearSelection()">Clear selection</button>
+                    </div>
+                </div>`;
+        } else if (!locked && freeCount === 0) {
+            html += `<div style="padding:20px;text-align:center;color:#2d7d46;font-weight:700;">All space allocated. Press Done to lock the layout.</div>`;
+        } else if (locked) {
+            html += `<div style="padding:16px;text-align:center;color:#6c757d;font-weight:600;">Layout is locked. You can still edit content of any block. Unlock to change structure.</div>`;
+        }
+
+        container.innerHTML = html;
+
+        // Paint grids
+        page.blocks.forEach((b, idx) => {
+            const grid = document.getElementById('grid-preview-' + idx);
+            if (!grid) return;
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    const key = cellKey(r, c);
+                    if (page.usedCells.has(key)) {
+                        cell.classList.add('used');
+                        if (!(r >= b.row && r < b.row + b.rowSpan && c >= b.col && c < b.col + b.colSpan)) {
+                            cell.style.opacity = '0.35';
+                        }
+                    }
+                    grid.appendChild(cell);
+                }
+            }
+        });
+
+        const activeGrid = document.getElementById('activeGrid');
+        if (activeGrid) {
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    const key = cellKey(r, c);
+                    if (page.usedCells.has(key)) cell.classList.add('used');
+                    else if (window.activeSelection.has(key)) cell.classList.add('selected');
+                    cell.onclick = () => toggleCell(r, c);
+                    activeGrid.appendChild(cell);
+                }
+            }
+            validateSelection();
+        }
+
+        updateUndoRedoButtons();
+        updatePreview('active');
+        if (editingBlockIdx !== null) updatePreview('edit');
+    }
+
+    function renderEditPanel(b, idx) {
+        if (b.type === 'text') {
+            const state = {
+                fontSize: b.fontSize || 18, color: b.color || '#1a1a1a',
+                textAlign: b.textAlign || 'center', verticalAlign: b.verticalAlign || 'center'
+            };
+            return `
+                <div class="edit-panel">
+                    <label style="font-weight:700;font-size:12px;">Text content (rich)</label>
+                    <div id="editText" class="rich-editor" contenteditable="true"
+                         oninput="updateEditText(${idx}, this.innerHTML)">${b.text || ''}</div>
+                    ${fmtToolbarHtml('edit', state)}
+                    <div class="preview-box" id="editPreview"></div>
+                    <label class="border-toggle" style="margin-top:10px;">
+                        <input type="checkbox" ${b.showBorder !== false ? 'checked' : ''} onchange="toggleBlockBorder(${idx}, this.checked)">
+                        Show border on page
+                    </label>
+                    <div style="margin-top:10px;">
+                        <button type="button" class="btn btn-success btn-sm" onclick="toggleEditBlock(${idx})">✓ Done editing</button>
+                    </div>
+                </div>`;
+        } else if (b.type === 'image') {
+            const imgState = {
+                imageAlign: b.imageAlign || 'center',
+                imageVerticalAlign: b.imageVerticalAlign || 'center',
+                imageFit: b.imageFit || 'contain',
+                imageScale: b.imageScale ?? 100
+            };
+            return `
+                <div class="edit-panel">
+                    <label style="font-weight:700;font-size:12px;">Image</label>
+                    <div class="img-preview-wrap" style="margin-bottom:8px;">
+                        ${b.imagePath ? `<img src="${escapeHtml(b.imagePath)}" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:2px solid #dee2e6;">` : '<div class="ph">🖼️</div>'}
+                        <input type="file" accept="image/*" onchange="handleEditImage(event, ${idx})">
+                    </div>
+                    ${imageControlsHtml('edit', imgState)}
+                    <label class="border-toggle" style="margin-top:8px;">
+                        <input type="checkbox" ${b.imageLabelOn ? 'checked' : ''} onchange="updateImageLabelOn(${idx}, this.checked)">
+                        Show label under image
+                    </label>
+                    <div style="display:${b.imageLabelOn ? 'block' : 'none'};margin-top:6px;">
+                        <label style="font-weight:700;font-size:12px;">Label text</label>
+                        <input value="${escapeHtml(b.imageLabel || '')}" oninput="updateImageLabel(${idx}, this.value)" placeholder="e.g. cat" style="width:100%;padding:8px 12px;border:2px solid #dee2e6;border-radius:8px;font-size:13px;">
+                    </div>
+                    <label class="border-toggle" style="margin-top:10px;">
+                        <input type="checkbox" ${b.showBorder !== false ? 'checked' : ''} onchange="toggleBlockBorder(${idx}, this.checked)">
+                        Show border on page
+                    </label>
+                    <div style="margin-top:10px;">
+                        <button type="button" class="btn btn-success btn-sm" onclick="toggleEditBlock(${idx})">✓ Done editing</button>
+                    </div>
+                </div>`;
+        } else if (b.type === 'trace') {
+            return `
+                <div class="edit-panel">
+                    <label style="font-weight:700;font-size:12px;">Target letter / word <span style="font-weight:400;color:#6c757d;">(empty = blank lines)</span></label>
+                    <input value="${escapeHtml(b.traceTarget || '')}" oninput="updateTraceField(${idx},'traceTarget',this.value)" placeholder="e.g. a  or  cat" style="width:100%;padding:8px 12px;border:2px solid #dee2e6;border-radius:8px;font-size:13px;">
+                    <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;">
+                        <div>
+                            <label style="font-size:11px;font-weight:700;color:#6c757d;">Style</label>
+                            <div class="align-group">
+                                <button type="button" class="${b.traceStyle === 'solid' ? '' : 'active'}" onclick="updateTraceField(${idx},'traceStyle','outlined')">Outlined</button>
+                                <button type="button" class="${b.traceStyle === 'solid' ? 'active' : ''}" onclick="updateTraceField(${idx},'traceStyle','solid')">Solid</button>
+                            </div>
+                        </div>
+                        <div>
+                            <label style="font-size:11px;font-weight:700;color:#6c757d;">Clones per line</label>
+                            <input type="number" value="${b.traceClones || 5}" min="1" max="20" style="width:64px;padding:4px 6px;border:1px solid #ced4da;border-radius:6px;font-size:12px;" onchange="updateTraceField(${idx},'traceClones',Math.min(20,Math.max(1,parseInt(this.value)||5)))">
+                        </div>
+                        <div>
+                            <label style="font-size:11px;font-weight:700;color:#6c757d;">Repeat on</label>
+                            <div class="align-group">
+                                <button type="button" class="${b.traceRepeatAll !== false ? 'active' : ''}" onclick="updateTraceField(${idx},'traceRepeatAll',true)">All sets</button>
+                                <button type="button" class="${b.traceRepeatAll === false ? 'active' : ''}" onclick="updateTraceField(${idx},'traceRepeatAll',false)">First only</button>
+                            </div>
+                        </div>
+                    </div>
+                    <label class="border-toggle" style="margin-top:10px;">
+                        <input type="checkbox" ${b.showBorder !== false ? 'checked' : ''} onchange="toggleBlockBorder(${idx}, this.checked)">
+                        Show border on page
+                    </label>
+                    <div style="margin-top:10px;">
+                        <button type="button" class="btn btn-success btn-sm" onclick="toggleEditBlock(${idx})">✓ Done editing</button>
+                    </div>
+                </div>`;
+        } else if (b.type === 'table') {
+            return renderTableEditPanel(b, idx);
+        }
+        return '';
+    }
+
+    function renderTableEditPanel(b, idx) {
+        const rows = b.tableRows || (b.rowSpan * 2);
+        const cols = b.tableCols || b.colSpan;
+        const cells = b.cells || [];
+        const rect = isTableRect(tableSel);
+        let primary = null;
+        if (tableSel.size) {
+            const first = parseTKey(Array.from(tableSel)[0]);
+            primary = findTableCellAt(cells, first.r, first.c);
+        }
+
+        let mini = `<div class="mini-table" style="grid-template-columns:repeat(${cols},1fr);grid-template-rows:repeat(${rows},minmax(28px,auto));">`;
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+                const owner = findTableCellAt(cells, r, c);
+                if (!owner || owner.r !== r || owner.c !== c) continue;
+                const selected = coveredKeys(owner).some(ck => tableSel.has(ck));
+                const style = [
+                    `grid-row:${owner.r + 1}/span ${owner.rowSpan}`,
+                    `grid-column:${owner.c + 1}/span ${owner.colSpan}`,
+                    `background:${escapeStyle(owner.bg || '#f1f3f5')}`,
+                    owner.bold ? 'font-weight:700' : '',
+                    owner.italic ? 'font-style:italic' : '',
+                    `font-size:${Math.min(18, owner.fontSize || 14)}px`
+                ].filter(Boolean).join(';');
+                mini += `<div class="mt-cell ${selected ? 'selected' : ''}" style="${style}" onclick="toggleTableCell(${idx},${r},${c})" title="${owner.rowSpan}×${owner.colSpan}">${escapeHtml(owner.text || '')}</div>`;
+            }
+        }
+        mini += '</div>';
+
+        let ownerCount = 0;
+        if (rect && tableSel.size > 1) {
+            const seen = new Set();
+            for (const k of tableSel) {
+                const { r, c } = parseTKey(k);
+                const o = findTableCellAt(cells, r, c);
+                if (o) seen.add(tKey(o.r, o.c));
+            }
+            ownerCount = seen.size;
+        }
+        const canMerge = rect && ownerCount >= 2;
+        const canUnmerge = primary && (primary.rowSpan > 1 || primary.colSpan > 1);
+
+        return `
+            <div class="edit-panel">
+                <div style="font-size:12px;font-weight:700;color:#6c757d;margin-bottom:6px;">Click cells to select a rectangle · ${rows}×${cols} table</div>
+                ${mini}
+                <div class="block-actions" style="margin-top:8px;">
+                    <button type="button" class="btn btn-primary btn-xs" onclick="mergeTableCells(${idx})" ${canMerge ? '' : 'disabled'}>Merge</button>
+                    <button type="button" class="btn btn-outline btn-xs" onclick="unmergeTableCells(${idx})" ${canUnmerge ? '' : 'disabled'}>Unmerge</button>
+                    <button type="button" class="btn btn-outline btn-xs" onclick="clearTableSel()">Clear selection</button>
+                </div>
+                <div style="margin-top:10px;display:${tableSel.size ? 'block' : 'none'};">
+                    <label style="font-weight:700;font-size:12px;">Cell text</label>
+                    <input value="${escapeHtml(primary ? (primary.text || '') : '')}" oninput="applyTableCellProp(${idx},'text',this.value)" placeholder="Centered text" style="width:100%;padding:8px 12px;border:2px solid #dee2e6;border-radius:8px;font-size:13px;">
+                    <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;align-items:flex-end;">
+                        <div>
+                            <label style="font-size:11px;font-weight:700;color:#6c757d;">Background</label>
+                            <input type="color" value="${escapeStyle(primary ? (primary.bg || '#f1f3f5') : '#f1f3f5')}" onchange="applyTableCellProp(${idx},'bg',this.value)" style="width:42px;height:32px;border:1px solid #ced4da;border-radius:6px;padding:2px;cursor:pointer;">
+                        </div>
+                        <div>
+                            <label style="font-size:11px;font-weight:700;color:#6c757d;">Font size</label>
+                            <input type="number" value="${primary ? (primary.fontSize || 14) : 14}" min="10" max="22" style="width:56px;padding:4px 6px;border:1px solid #ced4da;border-radius:6px;font-size:12px;" onchange="applyTableCellProp(${idx},'fontSize',Math.min(22,Math.max(10,parseInt(this.value)||14)))">
+                        </div>
+                        <div class="align-group">
+                            <button type="button" class="${primary && primary.bold ? 'active' : ''}" onclick="applyTableCellProp(${idx},'bold',${primary && primary.bold ? 'false' : 'true'})"><b>B</b></button>
+                            <button type="button" class="${primary && primary.italic ? 'active' : ''}" onclick="applyTableCellProp(${idx},'italic',${primary && primary.italic ? 'false' : 'true'})"><i>I</i></button>
+                        </div>
+                    </div>
+                </div>
+                <label class="border-toggle" style="margin-top:10px;">
+                    <input type="checkbox" ${b.tableShowBorders !== false ? 'checked' : ''} onchange="toggleTableBorders(${idx}, this.checked)">
+                    Show cell borders
+                </label>
+                <label class="border-toggle" style="margin-top:6px;">
+                    <input type="checkbox" ${b.showBorder !== false ? 'checked' : ''} onchange="toggleBlockBorder(${idx}, this.checked)">
+                    Show border on page
+                </label>
+                <div style="margin-top:10px;">
+                    <button type="button" class="btn btn-success btn-sm" onclick="toggleEditBlock(${idx})">✓ Done editing</button>
+                </div>
+            </div>`;
+    }
+
+    // ========== ACTIVE SELECTION ==========
+    function syncActiveFromDom() {
+        const editor = document.getElementById('activeText');
+        if (editor) {
+            window.activeText = sanitizeHTML(editor.innerHTML);
+            window.activeRichText = true;
+        }
+        const fs = document.getElementById('activeFontSize');
+        if (fs) window.activeFontSize = Math.max(1, parseInt(fs.value) || 18);
+        const col = document.getElementById('activeColor');
+        if (col) window.activeColor = col.value;
+        const br = document.getElementById('activeBorder');
+        if (br) window.activeShowBorder = !!br.checked;
+        const sc = document.getElementById('activeImageScale');
+        if (sc) window.activeImageScale = Math.min(200, Math.max(10, parseInt(sc.value) || 100));
+        const labOn = document.getElementById('activeImageLabelOn');
+        if (labOn) window.activeImageLabelOn = !!labOn.checked;
+        const lab = document.getElementById('activeImageLabel');
+        if (lab) window.activeImageLabel = lab.value;
+        const tt = document.getElementById('activeTraceTarget');
+        if (tt) window.activeTraceTarget = tt.value;
+        const tc = document.getElementById('activeTraceClones');
+        if (tc) window.activeTraceClones = Math.min(20, Math.max(1, parseInt(tc.value) || 5));
+        const tsb = document.getElementById('activeTableShowBorders');
+        if (tsb) window.activeTableShowBorders = !!tsb.checked;
+    }
+
+    window.toggleCell = function (r, c) {
+        const page = getCurrentPage();
+        if (!page || page.locked) return;
+        const key = cellKey(r, c);
+        if (page.usedCells.has(key)) return;
+        syncActiveFromDom();
+        if (window.activeSelection.has(key)) window.activeSelection.delete(key);
+        else window.activeSelection.add(key);
+        renderEditor();
+    };
+    window.clearSelection = function () {
+        syncActiveFromDom();
+        window.activeSelection = new Set();
+        renderEditor();
+    };
+    function validateSelection() {
+        const msg = document.getElementById('validationMsg');
+        const btn = document.getElementById('btnSet');
+        if (!msg || !btn) return;
+        if (window.activeSelection.size === 0) {
+            msg.textContent = '';
+            btn.disabled = true;
+            return;
+        }
+        const rect = isRectangle(window.activeSelection);
+        if (!rect) {
+            msg.textContent = '⚠ Selection must be a solid rectangle or square';
+            msg.style.color = '#e03131';
+            btn.disabled = true;
+        } else {
+            msg.textContent = '✓ Valid ' + rect.rowSpan + '×' + rect.colSpan + ' rectangle';
+            msg.style.color = '#2d7d46';
+            btn.disabled = false;
+        }
+    }
+    window.setMode = function (mode) {
+        syncActiveFromDom();
+        window.activeMode = mode;
+        renderEditor();
+    };
+
+    window.setBlock = function () {
+        const page = getCurrentPage();
+        if (!page || page.locked) return;
+        syncActiveFromDom();
+        if (_editTextHistoryTimer) { clearTimeout(_editTextHistoryTimer); _editTextHistoryTimer = null; }
+        const rect = isRectangle(window.activeSelection);
+        if (!rect) return showToast('Invalid rectangle', 'error');
+
+        if (window.activeMode === 'text') {
+            const plain = String(window.activeText || '').replace(/<[^>]+>/g, '').trim();
+            if (!plain) return showToast('Please enter some text', 'error');
+        } else if (window.activeMode === 'image') {
+            if (!window.activeImagePath) return showToast('Please upload an image', 'error');
+        }
+
+        for (const k of window.activeSelection) {
+            if (page.usedCells.has(k)) return showToast('Selection overlaps used cells', 'error');
+        }
+
+        pushHistory();
+
+        const block = {
+            id: 'b' + Date.now() + Math.random().toString(36).slice(2, 6),
+            row: rect.minR, col: rect.minC, rowSpan: rect.rowSpan, colSpan: rect.colSpan,
+            type: window.activeMode, showBorder: window.activeShowBorder !== false
+        };
+
+        if (window.activeMode === 'text') {
+            Object.assign(block, {
+                text: String(window.activeText || ''),
+                fontSize: window.activeFontSize || 18,
+                bold: !!window.activeBold, italic: !!window.activeItalic, underline: !!window.activeUnderline,
+                color: window.activeColor || '#1a1a1a',
+                textAlign: window.activeTextAlign || 'center',
+                verticalAlign: window.activeVerticalAlign || 'center',
+                richText: true
+            });
+        } else if (window.activeMode === 'image') {
+            Object.assign(block, {
+                imagePath: window.activeImagePath || '',
+                imageAlign: window.activeImageAlign || 'center',
+                imageVerticalAlign: window.activeImageVerticalAlign || 'center',
+                imageFit: window.activeImageFit || 'contain',
+                imageScale: window.activeImageScale ?? 100,
+                imageLabelOn: !!window.activeImageLabelOn,
+                imageLabel: String(window.activeImageLabel || '')
+            });
+        } else if (window.activeMode === 'trace') {
+            Object.assign(block, {
+                traceTarget: String(window.activeTraceTarget || ''),
+                traceStyle: window.activeTraceStyle === 'solid' ? 'solid' : 'outlined',
+                traceClones: Math.min(20, Math.max(1, parseInt(window.activeTraceClones) || 5)),
+                traceRepeatAll: window.activeTraceRepeatAll !== false
+            });
+        } else if (window.activeMode === 'table') {
+            const tableRows = rect.rowSpan * 2;
+            const tableCols = rect.colSpan;
+            Object.assign(block, {
+                tableRows, tableCols,
+                tableShowBorders: window.activeTableShowBorders !== false,
+                cells: initTableCells(tableRows, tableCols)
+            });
+        }
+
+        page.blocks.push(block);
+        window.activeSelection.forEach(k => page.usedCells.add(k));
+        resetActive();
+        editingBlockIdx = null;
+        save();
+        renderEditor();
+        renderView();
+        showToast('Block set', 'success');
+    };
+
+    window.deleteBlock = function (idx) {
+        const page = getCurrentPage();
+        if (!page || page.locked) return;
+        if (idx < 0 || idx >= page.blocks.length) return;
+        if (_editTextHistoryTimer) { clearTimeout(_editTextHistoryTimer); _editTextHistoryTimer = null; }
+        pushHistory();
+        page.blocks.splice(idx, 1);
+        if (editingBlockIdx === idx) { editingBlockIdx = null; tableSel = new Set(); }
+        else if (editingBlockIdx > idx) editingBlockIdx--;
+        rebuildUsedCells(page);
+        save();
+        renderEditor();
+        renderView();
+        showToast('Block removed', 'info');
+    };
+
+    window.toggleBlockBorder = function (idx, val) {
+        const page = getCurrentPage();
+        if (!page || !page.blocks[idx]) return;
+        if (page.blocks[idx].showBorder === val) return;
+        pushHistory();
+        page.blocks[idx].showBorder = val;
+        save();
+        renderView();
+    };
+
+    window.updatePageMeta = function () {
+        const page = getCurrentPage();
+        if (!page) return;
+        const t = document.getElementById('pageTitle');
+        const s = document.getElementById('pageSubtitle');
+        const n = document.getElementById('pageLessonNum');
+        if (t) page.title = t.value.trim() || 'UNTITLED';
+        if (s) page.subtitle = s.value.trim() || '';
+        if (n) {
+            const num = parseInt(n.value, 10);
+            page.lessonNumber = Number.isFinite(num) && num > 0 ? num : 1;
+        }
+        pushHistory();
+        save();
+        renderView();
+    };
+
+    window.toggleWorksheet = function () {
+        const page = getCurrentPage();
+        if (!page) return;
+        const enabled = document.getElementById('worksheetToggle').checked;
+        page.worksheetEnabled = enabled;
+        if (enabled) page.worksheetCount = Math.max(1, page.worksheetCount || 1);
+        pushHistory();
+        save();
+        renderEditor();
+        renderView();
+        showToast(enabled ? 'Worksheet pages enabled' : 'Worksheet pages disabled', 'info');
+    };
+    window.updateWorksheetCount = function (value) {
+        const page = getCurrentPage();
+        if (!page) return;
+        const count = Math.min(10, Math.max(1, parseInt(value) || 1));
+        page.worksheetCount = count;
+        pushHistory();
+        save();
+        renderView();
+        showToast('Worksheet count updated to ' + count, 'info');
+    };
+
+    window.lockPage = function () {
+        const page = getCurrentPage();
+        if (!page) return;
+        pushHistory();
+        page.locked = true;
+        editingBlockIdx = null;
+        tableSel = new Set();
+        save();
+        renderEditor();
+        renderView();
+        showToast('Layout locked — content still editable', 'success');
+    };
+    window.unlockPage = function () {
+        const page = getCurrentPage();
+        if (!page) return;
+        pushHistory();
+        page.locked = false;
+        save();
+        renderEditor();
+        renderView();
+        showToast('Layout unlocked', 'info');
+    };
+    window.resetPage = function () {
+        const page = getCurrentPage();
+        if (!page || page.locked) return;
+        if (!confirm('Clear all blocks on this page?')) return;
+        if (_editTextHistoryTimer) { clearTimeout(_editTextHistoryTimer); _editTextHistoryTimer = null; }
+        pushHistory();
+        page.blocks = [];
+        page.usedCells = new Set();
+        page.locked = false;
+        resetActive();
+        editingBlockIdx = null;
+        tableSel = new Set();
+        save();
+        renderEditor();
+        renderView();
+        showToast('Page reset', 'info');
+    };
+
+    window.toggleEditBlock = function (idx) {
+        if (editingBlockIdx === idx) {
+            editingBlockIdx = null;
+            tableSel = new Set();
+            if (_editTextHistoryTimer) { clearTimeout(_editTextHistoryTimer); _editTextHistoryTimer = null; }
+        } else {
+            editingBlockIdx = idx;
+            tableSel = new Set();
+            if (_editTextHistoryTimer) { clearTimeout(_editTextHistoryTimer); _editTextHistoryTimer = null; }
+        }
+        renderEditor();
+        if (editingBlockIdx !== null) {
+            const editor = document.getElementById('editText');
+            if (editor) editor.focus();
+        }
+    };
+
+    // ========== VIEW ==========
+    function renderWorksheetPage(pageNumber) {
+        const pageEl = document.createElement('div');
+        pageEl.className = 'page';
+        pageEl.innerHTML = `<div class="page-actions no-print"><button type="button" class="export-btn" onclick="exportPage(this.closest('.page'))">📄 Export</button></div>`;
+        const card = document.createElement('div');
+        card.className = 'page-card';
+        card.style.position = 'relative';
+        const stage = document.createElement('div');
+        stage.className = 'grid-stage';
+        stage.style.cssText = 'position:absolute;top:64px;left:0;right:0;bottom:36px;padding:0;background:#fff;';
+        const linesContainer = document.createElement('div');
+        linesContainer.className = 'worksheet-lines';
+        const redMargin = document.createElement('div');
+        redMargin.className = 'red-margin';
+        linesContainer.appendChild(redMargin);
+        const lineCount = 20;
+        const spacing = 100 / (lineCount + 1);
+        for (let i = 1; i <= lineCount; i++) {
+            const line = document.createElement('div');
+            line.className = 'blue-line';
+            line.style.top = `${i * spacing}%`;
+            linesContainer.appendChild(line);
+        }
+        stage.appendChild(linesContainer);
+        card.appendChild(stage);
+        const pageNumberDiv = document.createElement('div');
+        pageNumberDiv.className = 'page-number';
+        pageNumberDiv.textContent = pageNumber;
+        card.appendChild(pageNumberDiv);
+        pageEl.appendChild(card);
+        return pageEl;
+    }
+
+    function renderView() {
+        const container = document.getElementById('viewContainer');
+        if (!container) return;
+        container.innerHTML = '';
+        const lesson = getCurrentLesson();
+        if (!lesson) return;
+
+        let globalPageNumber = 1;
+
+        lesson.pages.forEach((page, pIdx) => {
+            const pageEl = document.createElement('div');
+            pageEl.className = 'page';
+            pageEl.innerHTML = `<div class="page-actions no-print"><button type="button" class="export-btn" onclick="exportPage(this.closest('.page'))">📄 Export</button></div>`;
+            const card = document.createElement('div');
+            card.className = 'page-card';
+            card.innerHTML = `
+                <div class="page-header">
+                    <div class="page-header-left">
+                        <h1>${escapeHtml(page.title)}</h1>
+                        <div class="sub">${escapeHtml(page.subtitle)}</div>
+                    </div>
+                    <div class="page-header-right">
+                        <span class="lbl">LESSON</span>
+                        <span class="num">${page.lessonNumber}</span>
+                    </div>
+                </div>
+                <div class="grid-stage" id="stage-${pIdx}"></div>
+                <div class="page-number">${globalPageNumber}</div>
+            `;
+            pageEl.appendChild(card);
+            container.appendChild(pageEl);
+            globalPageNumber++;
+
+            const stage = card.querySelector('.grid-stage');
+            page.blocks.forEach(b => {
+                const el = document.createElement('div');
+                el.className = 'block' + (b.showBorder !== false ? ' has-border' : '');
+                el.style.gridRow = `${b.row + 1} / span ${b.rowSpan}`;
+                el.style.gridColumn = `${b.col + 1} / span ${b.colSpan}`;
+
+                if (b.type === 'text') {
+                    const vAlign = b.verticalAlign || 'center';
+                    el.style.display = 'flex';
+                    el.style.flexDirection = 'column';
+                    el.style.justifyContent = vAlign === 'top' ? 'flex-start' : vAlign === 'bottom' ? 'flex-end' : 'center';
+                    el.style.alignItems = 'stretch';
+                    const style = [
+                        `font-size:${b.fontSize || 18}px`,
+                        `color:${escapeStyle(b.color || '#1a1a1a')}`,
+                        `text-align:${b.textAlign || 'center'}`,
+                        b.bold ? 'font-weight:700' : 'font-weight:600',
+                        b.italic ? 'font-style:italic' : '',
+                        b.underline ? 'text-decoration:underline' : '',
+                        'width:100%', 'height:auto'
+                    ].filter(Boolean).join(';');
+                    const content = b.richText ? (b.text || '') : textToHtml(b.text || '');
+                    el.innerHTML = `<div class="block-text" style="${style}">${content}</div>`;
+                } else if (b.type === 'image' && b.imagePath) {
+                    const vAlign = b.imageVerticalAlign || 'center';
+                    const hAlign = b.imageAlign || 'center';
+                    el.style.alignItems = vAlign === 'top' ? 'flex-start' : vAlign === 'bottom' ? 'flex-end' : 'center';
+                    el.style.justifyContent = hAlign === 'left' ? 'flex-start' : hAlign === 'right' ? 'flex-end' : 'center';
+                    const fit = b.imageFit || 'contain';
+                    let imgStyle = 'border-radius:4px;';
+                    if (fit === 'contain') imgStyle += 'max-width:100%;max-height:100%;object-fit:contain;';
+                    else if (fit === 'cover') imgStyle += 'width:100%;height:100%;object-fit:cover;';
+                    else if (fit === 'scale') {
+                        const sc = (b.imageScale ?? 100) / 100;
+                        imgStyle += `max-width:${100 * sc}%;max-height:${100 * sc}%;object-fit:contain;`;
+                    }
+                    if (b.imageLabelOn && b.imageLabel) {
+                        let wrapperStyle = 'display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:100%;height:100%;';
+                        if (fit === 'contain') imgStyle = imgStyle.replace(/max-height:100%/, 'max-height:calc(100% - 1.6em)');
+                        else if (fit === 'scale') imgStyle = imgStyle.replace(/max-height:\d+%/, 'max-height:calc(100% - 1.6em)');
+                        else if (fit === 'cover') imgStyle = imgStyle.replace(/height:100%/, 'height:calc(100% - 1.6em)');
+                        el.innerHTML = `<div class="block-img-wrap" style="${wrapperStyle}">
+                            <img class="block-img" src="${escapeHtml(b.imagePath)}" style="${imgStyle}">
+                            <div class="block-img-label">${escapeHtml(b.imageLabel)}</div>
+                        </div>`;
+                    } else {
+                        el.innerHTML = `<img class="block-img" src="${escapeHtml(b.imagePath)}" style="${imgStyle}">`;
+                    }
+                } else if (b.type === 'trace') {
+                    el.style.alignItems = 'stretch';
+                    el.style.justifyContent = 'stretch';
+                    el.innerHTML = buildTraceHtml(b);
+                } else if (b.type === 'table') {
+                    el.style.alignItems = 'stretch';
+                    el.style.justifyContent = 'stretch';
+                    el.innerHTML = buildTableHtml(b);
+                }
+                stage.appendChild(el);
+            });
+
+            if (page.worksheetEnabled && page.worksheetCount > 0) {
+                for (let w = 0; w < page.worksheetCount; w++) {
+                    container.appendChild(renderWorksheetPage(globalPageNumber));
+                    globalPageNumber++;
+                }
+            }
+        });
+
+        const viewInfo = document.getElementById('viewInfo');
+        if (viewInfo) viewInfo.textContent = `${lessons.length} lesson(s) · Page ${currentPageIndex + 1} of ${lesson.pages.length}`;
+    }
+
+    function buildTableHtml(b) {
+        const rows = b.tableRows || (b.rowSpan * 2) || 1;
+        const cols = b.tableCols || b.colSpan || 1;
+        const cells = b.cells || [];
+        const showBorders = b.tableShowBorders !== false;
+        let html = `<div class="inner-table ${showBorders ? 'has-borders' : ''}" style="grid-template-columns:repeat(${cols},1fr);grid-template-rows:repeat(${rows},1fr);">`;
+        cells.forEach(cell => {
+            const style = [
+                `grid-row:${cell.r + 1} / span ${cell.rowSpan}`,
+                `grid-column:${cell.c + 1} / span ${cell.colSpan}`,
+                `background:${escapeStyle(cell.bg || '#f1f3f5')}`,
+                `font-size:${Math.min(22, cell.fontSize || 14)}px`,
+                cell.bold ? 'font-weight:700' : 'font-weight:600',
+                cell.italic ? 'font-style:italic' : '',
+                'color:#1a1a1a'
+            ].filter(Boolean).join(';');
+            html += `<div class="it-cell" style="${style}">${escapeHtml(cell.text || '')}</div>`;
+        });
+        html += '</div>';
+        return html;
+    }
+
+    function buildTraceHtml(b) {
+        const sets = Math.max(1, b.rowSpan || 1);
+        const target = String(b.traceTarget || '').trim();
+        const clones = Math.min(20, Math.max(1, parseInt(b.traceClones) || 5));
+        const style = b.traceStyle === 'solid' ? 'solid' : 'outlined';
+        const repeatAll = b.traceRepeatAll !== false;
+        let html = '<div class="trace-wrap">';
+        for (let s = 0; s < sets; s++) {
+            const showLetters = target && (repeatAll || s === 0);
+            html += '<div class="trace-set">';
+            html += '<div class="tline red" style="top:0;"></div>';
+            html += '<div class="tline blue" style="top:33.333%;"></div>';
+            html += '<div class="tline blue" style="top:66.667%;"></div>';
+            html += '<div class="tline red" style="top:100%;"></div>';
+            if (showLetters) {
+                let spans = '';
+                for (let c = 0; c < clones; c++) spans += `<span>${escapeHtml(target)}</span>`;
+                html += `<div class="trace-letters ${style === 'outlined' ? 'outlined' : ''}">${spans}</div>`;
+            }
+            html += '</div>';
+        }
+        html += '</div>';
+        return html;
+    }
+
+    window.exportPage = function (pageEl) {
+        const clone = pageEl.cloneNode(true);
+        clone.querySelector('.page-actions')?.remove();
+        const win = window.open('', '_blank');
+        const styles = document.querySelector('style').outerHTML;
+        win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Export</title>${styles}</head><body style="padding:0;margin:0;background:#fff;"><div class="view-container">${clone.outerHTML}</div></body></html>`);
+        win.document.close();
+        win.focus();
+        setTimeout(() => win.print(), 400);
+    };
+
+    // ========== LESSON MANAGEMENT ==========
+    function renderLessonList() {
+        const list = document.getElementById('lessonList');
+        if (!list) return;
+        list.innerHTML = lessons.map(l => `
+            <div class="lesson-item" style="${l.id === currentLessonId ? 'border-color:#F5A623;background:#fff;' : ''}">
+                <div class="info">
+                    <div class="title">${escapeHtml(l.title)}</div>
+                    <div class="sub">${l.pages.length} page(s)</div>
+                </div>
+                <div class="actions">
+                    <button type="button" class="btn btn-primary btn-xs" onclick="selectLesson('${l.id}')">Open</button>
+                    <button type="button" class="btn btn-danger btn-xs" onclick="deleteLesson('${l.id}')">🗑</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    window.selectLesson = function (id) {
+        currentLessonId = id;
+        currentPageIndex = 0;
+        history = []; historyIndex = -1;
+        editingBlockIdx = null;
+        tableSel = new Set();
+        if (_editTextHistoryTimer) { clearTimeout(_editTextHistoryTimer); _editTextHistoryTimer = null; }
+        resetActive();
+        pushHistory();
+        renderAll();
+        switchTab('edit');
+        showToast('Lesson opened', 'info');
+    };
+    window.addLesson = function () {
+        const l = defaultLesson();
+        lessons.push(l);
+        currentLessonId = l.id;
+        currentPageIndex = 0;
+        history = []; historyIndex = -1;
+        editingBlockIdx = null;
+        tableSel = new Set();
+        if (_editTextHistoryTimer) { clearTimeout(_editTextHistoryTimer); _editTextHistoryTimer = null; }
+        resetActive();
+        save().then(() => {
+            pushHistory();
+            renderAll();
+            switchTab('edit');
+            showToast('Lesson added', 'success');
+        });
+    };
+    window.exportLessonsJson = async function () {
+        try {
+            const payload = {
+                app: 'phonics-grid-publisher', version: 2,
+                exportedAt: new Date().toISOString(), nextId,
+                lessons: lessons.map(l => ({
+                    id: l.id, title: l.title, subtitle: l.subtitle,
+                    pages: l.pages.map(p => ({
+                        title: p.title, subtitle: p.subtitle, lessonNumber: p.lessonNumber,
+                        locked: !!p.locked, blocks: p.blocks || [],
+                        usedCells: Array.from(p.usedCells || []),
+                        worksheetEnabled: !!p.worksheetEnabled, worksheetCount: p.worksheetCount || 1
+                    }))
+                }))
+            };
+            const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'phonics-lessons-' + new Date().toISOString().slice(0, 10) + '.json';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+            showToast('Exported ' + lessons.length + ' lesson(s)', 'success');
+        } catch (e) {
+            showToast('Export failed', 'error');
+        }
+    };
+    window.importLessonsJson = function (event) {
+        const file = event.target.files && event.target.files[0];
+        event.target.value = '';
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function () {
+            try {
+                const data = JSON.parse(String(reader.result || ''));
+                if (!data || !Array.isArray(data.lessons)) return showToast('Invalid file: missing lessons array', 'error');
+                let added = 0;
+                data.lessons.forEach(src => {
+                    if (!src || typeof src !== 'object') return;
+                    const lesson = validateAndNormalizeLesson(src);
+                    lessons.push(lesson);
+                    added++;
+                });
+                if (!added) return showToast('No valid lessons found', 'warning');
+                const seenIds = new Set();
+                lessons.forEach(l => {
+                    while (seenIds.has(l.id)) l.id = generateUniqueId();
+                    seenIds.add(l.id);
+                });
+                save().then(() => {
+                    renderAll();
+                    showToast('Imported ' + added + ' lesson(s)', 'success');
+                });
+            } catch (e) {
+                console.error(e);
+                showToast('Import failed: invalid JSON', 'error');
+            }
+        };
+        reader.onerror = () => showToast('Could not read file', 'error');
+        reader.readAsText(file);
+    };
+    window.deleteLesson = function (id) {
+        if (lessons.length <= 1) return showToast('Need at least one lesson', 'warning');
+        if (!confirm('Delete this lesson?')) return;
+        lessons = lessons.filter(l => l.id !== id);
+        if (currentLessonId === id) {
+            currentLessonId = lessons[0].id;
+            currentPageIndex = 0;
+        }
+        history = []; historyIndex = -1;
+        editingBlockIdx = null;
+        tableSel = new Set();
+        if (_editTextHistoryTimer) { clearTimeout(_editTextHistoryTimer); _editTextHistoryTimer = null; }
+        resetActive();
+        save().then(() => {
+            pushHistory();
+            renderAll();
+            showToast('Lesson deleted', 'info');
+        });
+    };
+    window.addPage = function () {
+        const lesson = getCurrentLesson();
+        if (!lesson) return;
+        if (_editTextHistoryTimer) { clearTimeout(_editTextHistoryTimer); _editTextHistoryTimer = null; }
+        const p = defaultPage();
+        p.lessonNumber = lesson.pages.length + 1;
+        lesson.pages.push(p);
+        currentPageIndex = lesson.pages.length - 1;
+        history = []; historyIndex = -1;
+        editingBlockIdx = null;
+        tableSel = new Set();
+        resetActive();
+        save().then(() => {
+            pushHistory();
+            renderAll();
+            showToast('Page added', 'success');
+        });
+    };
+
+    // NEW: Duplicate current page
+    window.duplicatePage = function () {
+        const lesson = getCurrentLesson();
+        if (!lesson) return;
+        const currentPage = lesson.pages[currentPageIndex];
+        if (!currentPage) return;
+
+        // Deep clone the current page
+        const newPage = JSON.parse(JSON.stringify({
+            title: currentPage.title,
+            subtitle: currentPage.subtitle,
+            lessonNumber: currentPage.lessonNumber + 1, // or compute differently
+            locked: false, // always unlock the duplicate for editing
+            blocks: currentPage.blocks,
+            usedCells: [], // will rebuild
+            worksheetEnabled: currentPage.worksheetEnabled,
+            worksheetCount: currentPage.worksheetCount
+        }));
+        // Ensure usedCells is rebuilt from blocks
+        rebuildUsedCells(newPage);
+        // Insert duplicate after current page
+        lesson.pages.splice(currentPageIndex + 1, 0, newPage);
+        // Switch to the new page
+        currentPageIndex = currentPageIndex + 1;
+        history = []; historyIndex = -1;
+        editingBlockIdx = null;
+        tableSel = new Set();
+        if (_editTextHistoryTimer) { clearTimeout(_editTextHistoryTimer); _editTextHistoryTimer = null; }
+        resetActive();
+        save().then(() => {
+            pushHistory();
+            renderAll();
+            switchTab('edit');
+            showToast('Page duplicated', 'success');
+        });
+    };
+
+    // ========== TABS & INIT ==========
+    window.switchTab = function (tab) {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === tab + 'Panel'));
+        if (tab === 'view') renderView();
+        if (tab === 'edit') renderEditor();
+    };
+
+    function renderAll() {
+        renderLessonList();
+        renderEditor();
+        renderView();
+        const lesson = getCurrentLesson();
+        document.getElementById('lessonCount').textContent = lessons.length + ' lessons';
+        document.getElementById('pageSelect').innerHTML = (lesson ? lesson.pages : []).map((p, i) =>
+            `<option value="${i}" ${i === currentPageIndex ? 'selected' : ''}>Page ${i + 1}</option>`
+        ).join('');
+        const viewInfo = document.getElementById('viewInfo');
+        if (viewInfo) viewInfo.textContent = `${lessons.length} lesson(s) · Page ${currentPageIndex + 1} of ${lesson?.pages.length || 0}`;
+    }
+
+    window.changePage = function (idx) {
+        currentPageIndex = parseInt(idx);
+        history = []; historyIndex = -1;
+        editingBlockIdx = null;
+        tableSel = new Set();
+        if (_editTextHistoryTimer) { clearTimeout(_editTextHistoryTimer); _editTextHistoryTimer = null; }
+        resetActive();
+        pushHistory();
+        renderEditor();
+        renderView();
+    };
+
+    async function init() {
+        await load();
+        document.getElementById('app').innerHTML = `
+            <div class="app-header">
+                <h1>📚 Phonics Grid Publisher</h1>
+                <span class="badge" id="lessonCount">0</span>
+            </div>
+            <div class="tabs">
+                <button type="button" class="tab-btn active" data-tab="edit" onclick="switchTab('edit')">✏️ Build Pages</button>
+                <button type="button" class="tab-btn" data-tab="view" onclick="switchTab('view')">👁️ View / Print</button>
+                <button type="button" class="tab-btn" data-tab="lessons" onclick="switchTab('lessons')">📖 Lessons</button>
+            </div>
+            <div class="tab-panel active" id="editPanel">
+                <div style="display:flex;gap:12px;align-items:center;margin-bottom:14px;flex-wrap:wrap;">
+                    <label style="font-weight:700;font-size:13px;">Current page:</label>
+                    <select id="pageSelect" onchange="changePage(this.value)" style="padding:7px 12px;border:2px solid #dee2e6;border-radius:8px;font-size:13px;"></select>
+                    <button type="button" class="btn btn-outline btn-sm" onclick="addPage()">＋ Add Page</button>
+                    <button type="button" class="btn btn-outline btn-sm" onclick="duplicatePage()">⧉ Duplicate Page</button>
+                </div>
+                <div id="editorArea"></div>
+            </div>
+            <div class="tab-panel" id="viewPanel">
+                <div class="view-toolbar">
+                    <span class="info" id="viewInfo">Ready</span>
+                </div>
+                <div class="view-container" id="viewContainer"></div>
+            </div>
+            <div class="tab-panel" id="lessonsPanel">
+                <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:4px;">
+                    <button type="button" class="btn btn-primary" onclick="addLesson()">＋ New Lesson</button>
+                    <button type="button" class="btn btn-outline" onclick="exportLessonsJson()">⬇ Export JSON</button>
+                    <button type="button" class="btn btn-outline" onclick="document.getElementById('importJsonInput').click()">⬆ Import JSON</button>
+                    <input type="file" id="importJsonInput" accept="application/json,.json" style="display:none" onchange="importLessonsJson(event)">
+                </div>
+                <div class="lesson-list" id="lessonList"></div>
+            </div>
+        `;
+        pushHistory();
+        renderAll();
+    }
+
+    init().catch(err => {
+        console.error('Initialization failed:', err);
+        showToast('Failed to initialize app', 'error');
+    });
+})();
+</script>
+</body>
+</html>
