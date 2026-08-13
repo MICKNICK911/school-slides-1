@@ -54,7 +54,7 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
 .block-left input, .block-left textarea, .block-left select {
     width: 100%; padding: 8px 12px; border: 2px solid #dee2e6; border-radius: 8px; font-size: 13px; font-family: inherit;
 }
-.block-left textarea { min-height: 90px; resize: vertical; font-family: inherit; line-height: 1.4; }
+.block-left textarea { min-height: 120px; resize: vertical; font-family: inherit; line-height: 1.4; }
 .mode-toggle { display: flex; gap: 8px; margin-bottom: 6px; }
 .mode-toggle button {
     flex: 1; padding: 8px; border: 2px solid #dee2e6; border-radius: 8px; background: #fff;
@@ -1213,7 +1213,7 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
                         </div>
                         <div id="textFields" style="display:${window.activeMode==='text'?'block':'none'}">
                             <label>Text content</label>
-                            <textarea id="activeText" oninput="window.activeText=this.value">${escapeHtml(window.activeText)}</textarea>
+                            <textarea id="activeText" oninput="window.activeText=this.value" style="min-height:180px; resize:vertical;">${escapeHtml(window.activeText)}</textarea>
                             ${fmtToolbarHtml('active', activeState)}
                         </div>
                         <div id="imageFields" style="display:${window.activeMode==='image'?'block':'none'}">
@@ -1350,7 +1350,7 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
             return `
                 <div class="edit-panel">
                     <label style="font-weight:700;font-size:12px;">Text content</label>
-                    <textarea id="editText" oninput="updateEditText(${idx}, this.value)">${escapeHtml(b.text || '')}</textarea>
+                    <textarea id="editText" oninput="updateEditText(${idx}, this.value)" style="min-height:180px; resize:vertical;">${escapeHtml(b.text || '')}</textarea>
                     ${fmtToolbarHtml('edit', state)}
                     <label class="border-toggle" style="margin-top:10px;">
                         <input type="checkbox" ${b.showBorder !== false ? 'checked' : ''} onchange="toggleBlockBorder(${idx}, this.checked)">
@@ -2177,10 +2177,13 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
                 for (let c = 0; c < clones; c++) {
                     spans += `<span>${escapeHtml(target)}</span>`;
                 }
+                // Letters span full set height, sitting at bottom (descender line)
                 html += `<div class="trace-letters ${style === 'outlined' ? 'outlined' : ''}" style="
-                    top: 33.333%;
-                    height: 33.333%;
-                    font-size: clamp(12px, 1.8vw, 22px);
+                    top: 0;
+                    bottom: 0;
+                    height: 100%;
+                    align-items: flex-end;
+                    font-size: clamp(20px, 4vw, 48px);
                 ">${spans}</div>`;
             }
             html += '</div>';

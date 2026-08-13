@@ -54,7 +54,7 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
 .block-left input, .block-left textarea, .block-left select {
     width: 100%; padding: 8px 12px; border: 2px solid #dee2e6; border-radius: 8px; font-size: 13px; font-family: inherit;
 }
-.block-left textarea { min-height: 90px; resize: vertical; font-family: inherit; line-height: 1.4; }
+.block-left textarea { min-height: 120px; resize: vertical; font-family: inherit; line-height: 1.4; }
 .mode-toggle { display: flex; gap: 8px; margin-bottom: 6px; }
 .mode-toggle button {
     flex: 1; padding: 8px; border: 2px solid #dee2e6; border-radius: 8px; background: #fff;
@@ -135,6 +135,7 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
     border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.06);
     position: relative; page-break-after: always;
 }
+.view-container .page:last-child { page-break-after: auto; }
 .page-card {
     border: 4px solid #E2571C; border-radius: 12px;
     width: 100%; height: 1040px; position: relative; overflow: hidden;
@@ -220,18 +221,11 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
     pointer-events: none;
     font-family: 'Comic Sans MS', 'Chalkboard SE', 'Comic Neue', 'Segoe UI', Arial, sans-serif;
     font-weight: 400; line-height: 1;
-    color: #868e96; /* solid = soft gray model letters */
+    color: #868e96;
 }
 .block .trace-set .trace-letters.outlined {
     color: transparent;
     -webkit-text-stroke: 1.3px #868e96;
-}
-@media print {
-    .block .trace-set .trace-letters.outlined {
-        color: transparent;
-        -webkit-text-stroke: 1.1px #495057;
-    }
-    .block .trace-set .tline { border-top-width: 1.25px; }
 }
 /* Inner table block */
 .block .inner-table {
@@ -276,8 +270,13 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
     .app, .app-header, .tabs, .tab-panel, .view-toolbar, .no-print { display: none !important; }
     .view-container { overflow: visible !important; }
     .view-container .page { box-shadow: none !important; border-radius: 0 !important; margin: 0 !important; padding: 16px !important; page-break-after: always; }
+    .view-container .page:last-child { page-break-after: auto; }
     .view-container .page .page-actions { display: none !important; }
     .page-card, .page-header-right { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    .block .trace-set .trace-letters.outlined {
+        -webkit-text-stroke: 1.1px #495057;
+    }
+    .block .trace-set .tline { border-top-width: 1.25px; }
 }
 
 /* Lesson list */
@@ -296,13 +295,68 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
 
 <script>
 (function () {
-    const STORAGE_KEY = 'phonics_grid_v2';
-    const COLS = 8;
-    const ROWS = 12;
-    const TOTAL = COLS * ROWS;
+    // ========== INDEXEDDB STORAGE ==========
+    const DB_NAME = 'phonics_grid_db';
+    const DB_VERSION = 1;
+    const STORE_NAME = 'lessons';
+    let db = null;
 
+    function openDB() {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open(DB_NAME, DB_VERSION);
+            request.onupgradeneeded = (e) => {
+                const database = e.target.result;
+                if (!database.objectStoreNames.contains(STORE_NAME)) {
+                    database.createObjectStore(STORE_NAME, { keyPath: 'id' });
+                }
+            };
+            request.onsuccess = (e) => resolve(e.target.result);
+            request.onerror = (e) => reject(e.target.error);
+        });
+    }
+
+    async function saveToDB(data) {
+        if (!db) db = await openDB();
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction(STORE_NAME, 'readwrite');
+            const store = tx.objectStore(STORE_NAME);
+            const payload = {
+                id: 'app_data',
+                nextId: data.nextId,
+                lessons: data.lessons
+            };
+            store.put(payload);
+            tx.oncomplete = () => resolve();
+            tx.onerror = (e) => reject(e.target.error);
+        });
+    }
+
+    async function loadFromDB() {
+        if (!db) db = await openDB();
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction(STORE_NAME, 'readonly');
+            const store = tx.objectStore(STORE_NAME);
+            const request = store.get('app_data');
+            request.onsuccess = () => resolve(request.result || null);
+            request.onerror = (e) => reject(e.target.error);
+        });
+    }
+
+    // ========== UTILITIES ==========
     function escapeHtml(s) {
         return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+    }
+    function escapeStyle(s) {
+        return String(s).replace(/[&<>"'\\\n\r]/g, ch => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '\\"',
+            "'": "\\'",
+            '\\': '\\\\',
+            '\n': '\\A ',
+            '\r': '\\D '
+        }[ch] || ''));
     }
     function showToast(msg, type = 'info') {
         const t = document.createElement('div');
@@ -313,14 +367,26 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
     }
 
     // ========== DATA ==========
+    const COLS = 8;
+    const ROWS = 12;
+    const TOTAL = COLS * ROWS;
+
     let lessons = [];
     let currentLessonId = null;
     let currentPageIndex = 0;
     let history = [];
     let historyIndex = -1;
     let nextId = 1;
-    let editingBlockIdx = null; // which existing block is expanded for editing
+    let editingBlockIdx = null;
     let _editTextHistoryTimer = null;
+
+    function generateUniqueId() {
+        let id;
+        do {
+            id = 'l' + (nextId++);
+        } while (lessons.some(l => l.id === id));
+        return id;
+    }
 
     function defaultTextProps() {
         return {
@@ -339,8 +405,10 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
             imagePath: '',
             imageAlign: 'center',
             imageVerticalAlign: 'center',
-            imageFit: 'contain', // contain | cover | scale
-            imageScale: 100
+            imageFit: 'contain',
+            imageScale: 100,
+            imageLabelOn: false,
+            imageLabel: ''
         };
     }
 
@@ -357,118 +425,11 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
 
     function defaultLesson() {
         return {
-            id: 'l' + (nextId++),
+            id: generateUniqueId(),
             title: 'SHORT VOWEL CVC WORDS',
             subtitle: 'SHORT VOWEL',
             pages: [defaultPage()]
         };
-    }
-
-    function load() {
-        try {
-            const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('phonics_grid_v1');
-            if (raw) {
-                const data = JSON.parse(raw);
-                lessons = data.lessons || [];
-                nextId = data.nextId || lessons.length + 1;
-                lessons.forEach(l => l.pages.forEach(p => {
-                    p.usedCells = new Set(p.usedCells || []);
-                    // migrate old blocks
-                    p.blocks.forEach(b => {
-                        if (b.type === 'text') {
-                            b.bold = b.bold ?? false;
-                            b.italic = b.italic ?? false;
-                            b.underline = b.underline ?? false;
-                            b.color = b.color || '#1a1a1a';
-                            b.textAlign = b.textAlign || 'center';
-                            b.verticalAlign = b.verticalAlign || 'center';
-                        } else if (b.type === 'image') {
-                            b.imageAlign = b.imageAlign || 'center';
-                            b.imageVerticalAlign = b.imageVerticalAlign || 'center';
-                            b.imageFit = b.imageFit || 'contain';
-                            b.imageScale = b.imageScale ?? 100;
-                            b.imageLabelOn = b.imageLabelOn ?? false;
-                            b.imageLabel = b.imageLabel || '';
-                        } else if (b.type === 'trace') {
-                            b.traceTarget = b.traceTarget || '';
-                            b.traceStyle = b.traceStyle === 'solid' ? 'solid' : 'outlined';
-                            b.traceClones = b.traceClones ?? 5;
-                            b.traceRepeatAll = b.traceRepeatAll !== false;
-                        } else if (b.type === 'table') {
-                            b.tableRows = b.tableRows || (b.rowSpan * 2);
-                            b.tableCols = b.tableCols || b.colSpan;
-                            b.tableShowBorders = b.tableShowBorders !== false;
-                            if (!Array.isArray(b.cells) || !b.cells.length) {
-                                b.cells = initTableCells(b.tableRows, b.tableCols);
-                            } else {
-                                b.cells.forEach(c => {
-                                    c.bg = c.bg || '#f1f3f5';
-                                    c.fontSize = Math.min(22, Math.max(10, c.fontSize ?? 14));
-                                    c.bold = !!c.bold;
-                                    c.italic = !!c.italic;
-                                    c.text = c.text || '';
-                                    c.rowSpan = Math.max(1, c.rowSpan || 1);
-                                    c.colSpan = Math.max(1, c.colSpan || 1);
-                                });
-                                // Repair missing atomic coverage (corrupted saves)
-                                const covered = new Set();
-                                b.cells.forEach(cell => {
-                                    for (let r = cell.r; r < cell.r + cell.rowSpan; r++) {
-                                        for (let c = cell.c; c < cell.c + cell.colSpan; c++) {
-                                            covered.add(r + ',' + c);
-                                        }
-                                    }
-                                });
-                                for (let r = 0; r < b.tableRows; r++) {
-                                    for (let c = 0; c < b.tableCols; c++) {
-                                        if (!covered.has(r + ',' + c)) {
-                                            b.cells.push({
-                                                r, c, rowSpan: 1, colSpan: 1,
-                                                text: '', bg: '#f1f3f5',
-                                                fontSize: 14, bold: false, italic: false
-                                            });
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    });
-                }));
-                if (lessons.length) {
-                    currentLessonId = lessons[0].id;
-                    currentPageIndex = 0;
-                }
-                return;
-            }
-        } catch (e) {}
-        const l = defaultLesson();
-        lessons = [l];
-        currentLessonId = l.id;
-        currentPageIndex = 0;
-        save();
-    }
-    function save() {
-        try {
-            const toSave = {
-                nextId,
-                lessons: lessons.map(l => ({
-                    ...l,
-                    pages: l.pages.map(p => ({
-                        ...p,
-                        usedCells: Array.from(p.usedCells || [])
-                    }))
-                }))
-            };
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
-        } catch (e) { showToast('Storage full', 'error'); }
-    }
-
-    function getCurrentLesson() {
-        return lessons.find(l => l.id === currentLessonId);
-    }
-    function getCurrentPage() {
-        const l = getCurrentLesson();
-        return l ? l.pages[currentPageIndex] : null;
     }
 
     // ========== GRID HELPERS ==========
@@ -492,11 +453,234 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         return { minR, maxR, minC, maxC, rowSpan: maxR - minR + 1, colSpan: maxC - minC + 1 };
     }
 
+    // ========== TABLE HELPERS ==========
+    function tKey(r, c) { return r + ',' + c; }
+    function parseTKey(k) { const [r, c] = k.split(',').map(Number); return { r, c }; }
+
+    function initTableCells(tableRows, tableCols) {
+        const cells = [];
+        for (let r = 0; r < tableRows; r++) {
+            for (let c = 0; c < tableCols; c++) {
+                cells.push({
+                    r, c, rowSpan: 1, colSpan: 1,
+                    text: '',
+                    bg: '#f1f3f5',
+                    fontSize: 14,
+                    bold: false,
+                    italic: false
+                });
+            }
+        }
+        return cells;
+    }
+
+    function findTableCellAt(cells, r, c) {
+        for (const cell of cells) {
+            if (r >= cell.r && r < cell.r + cell.rowSpan &&
+                c >= cell.c && c < cell.c + cell.colSpan) {
+                return cell;
+            }
+        }
+        return null;
+    }
+
+    function coveredKeys(cell) {
+        const keys = [];
+        for (let r = cell.r; r < cell.r + cell.rowSpan; r++) {
+            for (let c = cell.c; c < cell.c + cell.colSpan; c++) {
+                keys.push(tKey(r, c));
+            }
+        }
+        return keys;
+    }
+
+    function isTableRect(selectedKeys) {
+        return isRectangle(selectedKeys);
+    }
+
+    // ========== STORAGE / LOAD / SAVE ==========
+    function rebuildUsedCells(page) {
+        const used = new Set();
+        (page.blocks || []).forEach(b => {
+            const row = Math.max(0, b.row || 0);
+            const col = Math.max(0, b.col || 0);
+            const rowSpan = Math.max(1, b.rowSpan || 1);
+            const colSpan = Math.max(1, b.colSpan || 1);
+            for (let r = row; r < row + rowSpan; r++) {
+                for (let c = col; c < col + colSpan; c++) {
+                    used.add(cellKey(r, c));
+                }
+            }
+        });
+        page.usedCells = used;
+    }
+
+    function validateAndNormalizeLesson(src) {
+        const lesson = {
+            id: src.id ? String(src.id) : generateUniqueId(),
+            title: (src.title || 'Untitled lesson') + '',
+            subtitle: (src.subtitle || '') + '',
+            pages: []
+        };
+        const pagesIn = Array.isArray(src.pages) ? src.pages : [];
+        pagesIn.forEach((p, i) => {
+            const page = {
+                title: p.title || 'UNTITLED',
+                subtitle: p.subtitle || '',
+                lessonNumber: (Number.isFinite(parseInt(p.lessonNumber, 10)) && parseInt(p.lessonNumber, 10) > 0) ? parseInt(p.lessonNumber, 10) : (i + 1),
+                locked: !!p.locked,
+                blocks: [],
+                usedCells: new Set()
+            };
+            if (Array.isArray(p.blocks)) {
+                p.blocks.forEach(b => {
+                    const nb = JSON.parse(JSON.stringify(b));
+                    nb.row = Math.max(0, parseInt(nb.row, 10) || 0);
+                    nb.col = Math.max(0, parseInt(nb.col, 10) || 0);
+                    nb.rowSpan = Math.max(1, parseInt(nb.rowSpan, 10) || 1);
+                    nb.colSpan = Math.max(1, parseInt(nb.colSpan, 10) || 1);
+                    if (!['text', 'image', 'trace', 'table'].includes(nb.type)) {
+                        nb.type = 'text';
+                        nb.text = nb.text || '';
+                    }
+                    if (nb.type === 'table') {
+                        nb.tableRows = Math.max(1, parseInt(nb.tableRows, 10) || (nb.rowSpan * 2));
+                        nb.tableCols = Math.max(1, parseInt(nb.tableCols, 10) || nb.colSpan);
+                        nb.tableShowBorders = nb.tableShowBorders !== false;
+                        if (!Array.isArray(nb.cells) || nb.cells.length === 0) {
+                            nb.cells = initTableCells(nb.tableRows, nb.tableCols);
+                        } else {
+                            const covered = new Set();
+                            const cleanedCells = [];
+                            nb.cells.forEach(cell => {
+                                cell.r = Math.max(0, parseInt(cell.r, 10) || 0);
+                                cell.c = Math.max(0, parseInt(cell.c, 10) || 0);
+                                cell.rowSpan = Math.max(1, parseInt(cell.rowSpan, 10) || 1);
+                                cell.colSpan = Math.max(1, parseInt(cell.colSpan, 10) || 1);
+                                cell.rowSpan = Math.min(cell.rowSpan, nb.tableRows - cell.r);
+                                cell.colSpan = Math.min(cell.colSpan, nb.tableCols - cell.c);
+                                if (cell.rowSpan < 1 || cell.colSpan < 1) return;
+                                cell.text = cell.text || '';
+                                cell.bg = cell.bg || '#f1f3f5';
+                                cell.fontSize = Math.min(22, Math.max(10, parseInt(cell.fontSize, 10) || 14));
+                                cell.bold = !!cell.bold;
+                                cell.italic = !!cell.italic;
+                                let overlap = false;
+                                for (let r = cell.r; r < cell.r + cell.rowSpan; r++) {
+                                    for (let c = cell.c; c < cell.c + cell.colSpan; c++) {
+                                        const key = tKey(r, c);
+                                        if (covered.has(key)) { overlap = true; break; }
+                                        covered.add(key);
+                                    }
+                                    if (overlap) break;
+                                }
+                                if (!overlap) cleanedCells.push(cell);
+                            });
+                            for (let r = 0; r < nb.tableRows; r++) {
+                                for (let c = 0; c < nb.tableCols; c++) {
+                                    if (!covered.has(tKey(r, c))) {
+                                        cleanedCells.push({
+                                            r, c, rowSpan: 1, colSpan: 1,
+                                            text: '', bg: '#f1f3f5',
+                                            fontSize: 14, bold: false, italic: false
+                                        });
+                                    }
+                                }
+                            }
+                            nb.cells = cleanedCells;
+                        }
+                    }
+                    if (nb.type === 'text') {
+                        nb.fontSize = Math.min(72, Math.max(10, parseInt(nb.fontSize, 10) || 18));
+                        nb.color = nb.color || '#1a1a1a';
+                        nb.textAlign = nb.textAlign || 'center';
+                        nb.verticalAlign = nb.verticalAlign || 'center';
+                        nb.bold = !!nb.bold;
+                        nb.italic = !!nb.italic;
+                        nb.underline = !!nb.underline;
+                    } else if (nb.type === 'image') {
+                        nb.imageAlign = nb.imageAlign || 'center';
+                        nb.imageVerticalAlign = nb.imageVerticalAlign || 'center';
+                        nb.imageFit = nb.imageFit || 'contain';
+                        nb.imageScale = Math.min(200, Math.max(10, parseInt(nb.imageScale, 10) || 100));
+                        nb.imageLabelOn = !!nb.imageLabelOn;
+                        nb.imageLabel = nb.imageLabel || '';
+                    } else if (nb.type === 'trace') {
+                        nb.traceTarget = nb.traceTarget || '';
+                        nb.traceStyle = nb.traceStyle === 'solid' ? 'solid' : 'outlined';
+                        nb.traceClones = Math.min(20, Math.max(1, parseInt(nb.traceClones, 10) || 5));
+                        nb.traceRepeatAll = nb.traceRepeatAll !== false;
+                    }
+                    page.blocks.push(nb);
+                });
+            }
+            rebuildUsedCells(page);
+            lesson.pages.push(page);
+        });
+        if (!lesson.pages.length) {
+            lesson.pages = [defaultPage()];
+        }
+        return lesson;
+    }
+
+    async function load() {
+        try {
+            const stored = await loadFromDB();
+            if (stored && Array.isArray(stored.lessons) && stored.lessons.length > 0) {
+                nextId = Number(stored.nextId) || 1;
+                lessons = stored.lessons.map(src => validateAndNormalizeLesson(src));
+                const seenIds = new Set();
+                lessons.forEach(l => {
+                    while (seenIds.has(l.id)) l.id = generateUniqueId();
+                    seenIds.add(l.id);
+                });
+                currentLessonId = lessons[0].id;
+                currentPageIndex = 0;
+                return;
+            }
+        } catch (e) {
+            console.warn('IndexedDB load failed, starting fresh.', e);
+        }
+        nextId = 1;
+        const l = defaultLesson();
+        lessons = [l];
+        currentLessonId = l.id;
+        currentPageIndex = 0;
+        await save();
+    }
+
+    async function save() {
+        try {
+            const toSave = {
+                nextId,
+                lessons: lessons.map(l => ({
+                    ...l,
+                    pages: l.pages.map(p => ({
+                        ...p,
+                        usedCells: Array.from(p.usedCells || [])
+                    }))
+                }))
+            };
+            await saveToDB(toSave);
+        } catch (e) {
+            console.error('Save failed:', e);
+            showToast('Storage error: could not save data', 'error');
+        }
+    }
+
     // ========== HISTORY ==========
     function pushHistory() {
         const page = getCurrentPage();
         if (!page) return;
+        if (_editTextHistoryTimer) {
+            clearTimeout(_editTextHistoryTimer);
+            _editTextHistoryTimer = null;
+        }
         const snapshot = JSON.parse(JSON.stringify({
+            title: page.title,
+            subtitle: page.subtitle,
+            lessonNumber: page.lessonNumber,
+            locked: page.locked,
             blocks: page.blocks,
             usedCells: Array.from(page.usedCells)
         }));
@@ -506,33 +690,45 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         if (history.length > 40) { history.shift(); historyIndex--; }
         updateUndoRedoButtons();
     }
+
     window.undo = function() {
         if (historyIndex <= 0) return;
         historyIndex--;
         applySnapshot(history[historyIndex]);
         editingBlockIdx = null;
         tableSel = new Set();
+        if (_editTextHistoryTimer) { clearTimeout(_editTextHistoryTimer); _editTextHistoryTimer = null; }
         updateUndoRedoButtons();
         renderEditor();
+        renderView();
         showToast('Undo', 'info');
     };
+
     window.redo = function() {
         if (historyIndex >= history.length - 1) return;
         historyIndex++;
         applySnapshot(history[historyIndex]);
         editingBlockIdx = null;
         tableSel = new Set();
+        if (_editTextHistoryTimer) { clearTimeout(_editTextHistoryTimer); _editTextHistoryTimer = null; }
         updateUndoRedoButtons();
         renderEditor();
+        renderView();
         showToast('Redo', 'info');
     };
+
     function applySnapshot(snap) {
         const page = getCurrentPage();
         if (!page || !snap) return;
+        page.title = snap.title ?? page.title;
+        page.subtitle = snap.subtitle ?? page.subtitle;
+        page.lessonNumber = snap.lessonNumber ?? page.lessonNumber;
+        page.locked = snap.locked ?? page.locked;
         page.blocks = JSON.parse(JSON.stringify(snap.blocks || []));
         page.usedCells = new Set(snap.usedCells || []);
         save();
     }
+
     function updateUndoRedoButtons() {
         const u = document.getElementById('btnUndo');
         const r = document.getElementById('btnRedo');
@@ -557,15 +753,12 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
     window.activeImageFit = 'contain';
     window.activeImageScale = 100;
     window.activeShowBorder = true;
-    // Image label
     window.activeImageLabelOn = false;
     window.activeImageLabel = '';
-    // Trace
     window.activeTraceTarget = '';
-    window.activeTraceStyle = 'outlined'; // outlined | solid
+    window.activeTraceStyle = 'outlined';
     window.activeTraceClones = 5;
-    window.activeTraceRepeatAll = true; // true = all line sets, false = first only
-    // Table
+    window.activeTraceRepeatAll = true;
     window.activeTableShowBorders = true;
 
     function resetActive() {
@@ -594,61 +787,13 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         window.activeTableShowBorders = true;
     }
 
-    // Table editing state (for open edit panel)
-    let tableSel = new Set(); // keys "r,c" of selected atomic cells in edit panel
+    let tableSel = new Set();
 
-    function tKey(r, c) { return r + ',' + c; }
-    function parseTKey(k) { const [r, c] = k.split(',').map(Number); return { r, c }; }
-
-    function initTableCells(tableRows, tableCols) {
-        const cells = [];
-        for (let r = 0; r < tableRows; r++) {
-            for (let c = 0; c < tableCols; c++) {
-                cells.push({
-                    r, c, rowSpan: 1, colSpan: 1,
-                    text: '',
-                    bg: '#f1f3f5',
-                    fontSize: 14,
-                    bold: false,
-                    italic: false
-                });
-            }
-        }
-        return cells;
-    }
-
-    /** Return the cell object that owns (covers) atomic position (r,c), or null */
-    function findTableCellAt(cells, r, c) {
-        for (const cell of cells) {
-            if (r >= cell.r && r < cell.r + cell.rowSpan &&
-                c >= cell.c && c < cell.c + cell.colSpan) {
-                return cell;
-            }
-        }
-        return null;
-    }
-
-    /** Atomic cells covered by a table cell region */
-    function coveredKeys(cell) {
-        const keys = [];
-        for (let r = cell.r; r < cell.r + cell.rowSpan; r++) {
-            for (let c = cell.c; c < cell.c + cell.colSpan; c++) {
-                keys.push(tKey(r, c));
-            }
-        }
-        return keys;
-    }
-
-    function isTableRect(selectedKeys) {
-        return isRectangle(selectedKeys); // same solid-rectangle rule
-    }
-
-    // ========== LIST HELPERS (plain text markers) ==========
+    // ========== TEXT HELPERS ==========
     function getLineInfo(textarea) {
         const val = textarea.value;
         const start = textarea.selectionStart;
         const end = textarea.selectionEnd;
-        // find line start/end for selection
         let lineStart = start;
         while (lineStart > 0 && val[lineStart - 1] !== '\n') lineStart--;
         let lineEnd = end;
@@ -659,13 +804,11 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
     }
 
     function toggleListMarkers(textarea, type) {
-        // type: 'ul' or 'ol'
         const info = getLineInfo(textarea);
         let { val, lineStart, lineEnd, lines } = info;
         const isBullet = type === 'ul';
         const markerRe = isBullet ? /^\s*[-*]\s+/ : /^\s*\d+\.\s+/;
 
-        // Empty textarea or empty selection → insert a single marker line
         if (!val || (lines.length === 1 && lines[0].trim() === '')) {
             const marker = isBullet ? '- ' : '1. ';
             const newText = val.slice(0, lineStart) + marker + val.slice(lineEnd);
@@ -676,13 +819,11 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
             return newText;
         }
 
-        // Only consider non-empty lines when deciding "all marked"
         const contentLines = lines.filter(l => l.trim() !== '');
         const allMarked = contentLines.length > 0 && contentLines.every(l => markerRe.test(l));
 
         let newLines;
         if (allMarked) {
-            // remove markers
             newLines = lines.map(l => l.replace(markerRe, ''));
         } else {
             if (isBullet) {
@@ -708,7 +849,6 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         return newText;
     }
 
-    // ========== RENDER TEXT TO HTML (for view) ==========
     function textToHtml(text) {
         if (!text) return '';
         const lines = String(text).split('\n');
@@ -737,7 +877,6 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
                 }
                 html += '</ol>';
             } else {
-                // normal paragraph (collect consecutive non-list lines)
                 let para = [];
                 while (i < lines.length) {
                     if (/^\s*[-*]\s+/.test(lines[i]) || /^\s*\d+\.\s+/.test(lines[i])) break;
@@ -754,7 +893,6 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
 
     // ========== FORMATTING TOOLBAR HTML ==========
     function fmtToolbarHtml(prefix, state) {
-        // prefix: 'active' or 'edit'
         const s = state;
         return `
             <div class="fmt-toolbar" id="${prefix}FmtToolbar">
@@ -769,7 +907,7 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
                 <input type="number" id="${prefix}FontSize" value="${s.fontSize}" min="10" max="72" style="width:56px;padding:4px 6px;border:1px solid #ced4da;border-radius:6px;font-size:12px;" onchange="updateFmtValue('${prefix}','fontSize',this.value)">
                 <div class="sep"></div>
                 <label>Color</label>
-                <input type="color" id="${prefix}Color" value="${s.color}" onchange="updateFmtValue('${prefix}','color',this.value)">
+                <input type="color" id="${prefix}Color" value="${escapeStyle(s.color)}" onchange="updateFmtValue('${prefix}','color',this.value)">
             </div>
             <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;">
                 <div>
@@ -918,6 +1056,7 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
             b[prop] = value;
             save();
             renderEditor();
+            renderView();
         }
     };
 
@@ -933,6 +1072,7 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
             pushHistory();
             b.imageScale = v;
             save();
+            renderView();
         }
     };
 
@@ -953,11 +1093,20 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
             if (page && page.blocks[editingBlockIdx]) {
                 page.blocks[editingBlockIdx].text = newVal;
                 save();
+                renderView();
             }
         }
     };
 
     // ========== RENDER EDITOR ==========
+    function getCurrentLesson() {
+        return lessons.find(l => l.id === currentLessonId);
+    }
+    function getCurrentPage() {
+        const l = getCurrentLesson();
+        return l ? l.pages[currentPageIndex] : null;
+    }
+
     function renderEditor() {
         const page = getCurrentPage();
         if (!page) return;
@@ -970,12 +1119,12 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         let html = `
             <div class="editor-toolbar">
                 <span class="info">Page ${currentPageIndex + 1} · ${page.blocks.length} block(s) · ${freeCount} free cells ${locked ? '· 🔒 Layout locked' : ''}</span>
-                <button class="btn btn-outline btn-sm" id="btnUndo" onclick="undo()" ${historyIndex<=0?'disabled':''}>↩ Undo</button>
-                <button class="btn btn-outline btn-sm" id="btnRedo" onclick="redo()" ${historyIndex>=history.length-1?'disabled':''}>↪ Redo</button>
-                <button class="btn btn-outline btn-sm" onclick="resetPage()">🗑 Reset Page</button>
+                <button type="button" class="btn btn-outline btn-sm" id="btnUndo" onclick="undo()" ${historyIndex<=0?'disabled':''}>↩ Undo</button>
+                <button type="button" class="btn btn-outline btn-sm" id="btnRedo" onclick="redo()" ${historyIndex>=history.length-1?'disabled':''}>↪ Redo</button>
+                <button type="button" class="btn btn-outline btn-sm" onclick="resetPage()" ${locked ? 'disabled title="Unlock to reset"' : ''}>🗑 Reset Page</button>
                 ${locked
-                    ? `<button class="btn btn-primary btn-sm" onclick="unlockPage()">🔓 Unlock Layout</button>`
-                    : `<button class="btn btn-success btn-sm" onclick="lockPage()" ${page.blocks.length===0?'disabled':''}>✅ Done (Lock Layout)</button>`
+                    ? `<button type="button" class="btn btn-primary btn-sm" onclick="unlockPage()">🔓 Unlock Layout</button>`
+                    : `<button type="button" class="btn btn-success btn-sm" onclick="lockPage()" ${page.blocks.length===0?'disabled':''}>✅ Done (Lock Layout)</button>`
                 }
             </div>
             <div class="form-group" style="margin-bottom:14px;display:grid;grid-template-columns:1fr 1fr 100px;gap:10px;">
@@ -988,7 +1137,6 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
             </div>
         `;
 
-        // Existing blocks
         page.blocks.forEach((b, idx) => {
             const isEditing = editingBlockIdx === idx;
             html += `
@@ -1030,14 +1178,13 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
                         <div class="radio-grid" id="grid-preview-${idx}"></div>
                     </div>
                     <div class="block-actions">
-                        <button class="btn btn-primary btn-xs" onclick="toggleEditBlock(${idx})">${isEditing ? '▲ Close' : '✏️ Edit content'}</button>
-                        ${!locked ? `<button class="btn btn-danger btn-xs" onclick="deleteBlock(${idx})">🗑 Remove block</button>` : ''}
+                        <button type="button" class="btn btn-primary btn-xs" onclick="toggleEditBlock(${idx})">${isEditing ? '▲ Close' : '✏️ Edit content'}</button>
+                        ${!locked ? `<button type="button" class="btn btn-danger btn-xs" onclick="deleteBlock(${idx})">🗑 Remove block</button>` : ''}
                     </div>
                     ${isEditing ? renderEditPanel(b, idx) : ''}
                 </div>`;
         });
 
-        // Active (new) card
         if (!locked && freeCount > 0) {
             const activeState = {
                 bold: window.activeBold,
@@ -1066,7 +1213,7 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
                         </div>
                         <div id="textFields" style="display:${window.activeMode==='text'?'block':'none'}">
                             <label>Text content</label>
-                            <textarea id="activeText" oninput="window.activeText=this.value">${escapeHtml(window.activeText)}</textarea>
+                            <textarea id="activeText" oninput="window.activeText=this.value" style="min-height:180px; resize:vertical;">${escapeHtml(window.activeText)}</textarea>
                             ${fmtToolbarHtml('active', activeState)}
                         </div>
                         <div id="imageFields" style="display:${window.activeMode==='image'?'block':'none'}">
@@ -1133,8 +1280,8 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
                         <div class="validation-msg" id="validationMsg"></div>
                     </div>
                     <div class="block-actions">
-                        <button class="btn btn-primary" id="btnSet" onclick="setBlock()" disabled>✔ Set Block</button>
-                        <button class="btn btn-outline" onclick="clearSelection()">Clear selection</button>
+                        <button type="button" class="btn btn-primary" id="btnSet" onclick="setBlock()" disabled>✔ Set Block</button>
+                        <button type="button" class="btn btn-outline" onclick="clearSelection()">Clear selection</button>
                     </div>
                 </div>`;
         } else if (!locked && freeCount === 0) {
@@ -1145,7 +1292,6 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
 
         container.innerHTML = html;
 
-        // Paint used cells on existing block previews
         page.blocks.forEach((b, idx) => {
             const grid = document.getElementById('grid-preview-' + idx);
             if (!grid) return;
@@ -1167,7 +1313,6 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
             }
         });
 
-        // Active grid
         const activeGrid = document.getElementById('activeGrid');
         if (activeGrid) {
             for (let r = 0; r < ROWS; r++) {
@@ -1187,6 +1332,8 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
             validateSelection();
         }
         updateUndoRedoButtons();
+        const viewInfo = document.getElementById('viewInfo');
+        if (viewInfo) viewInfo.textContent = `${lessons.length} lesson(s) · Page ${currentPageIndex + 1} of ${getCurrentLesson()?.pages.length || 0}`;
     }
 
     function renderEditPanel(b, idx) {
@@ -1203,14 +1350,14 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
             return `
                 <div class="edit-panel">
                     <label style="font-weight:700;font-size:12px;">Text content</label>
-                    <textarea id="editText" oninput="updateEditText(${idx}, this.value)">${escapeHtml(b.text || '')}</textarea>
+                    <textarea id="editText" oninput="updateEditText(${idx}, this.value)" style="min-height:180px; resize:vertical;">${escapeHtml(b.text || '')}</textarea>
                     ${fmtToolbarHtml('edit', state)}
                     <label class="border-toggle" style="margin-top:10px;">
                         <input type="checkbox" ${b.showBorder !== false ? 'checked' : ''} onchange="toggleBlockBorder(${idx}, this.checked)">
                         Show border on page
                     </label>
                     <div style="margin-top:10px;">
-                        <button class="btn btn-success btn-sm" onclick="toggleEditBlock(${idx})">✓ Done editing</button>
+                        <button type="button" class="btn btn-success btn-sm" onclick="toggleEditBlock(${idx})">✓ Done editing</button>
                     </div>
                 </div>`;
         } else if (b.type === 'image') {
@@ -1241,7 +1388,7 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
                         Show border on page
                     </label>
                     <div style="margin-top:10px;">
-                        <button class="btn btn-success btn-sm" onclick="toggleEditBlock(${idx})">✓ Done editing</button>
+                        <button type="button" class="btn btn-success btn-sm" onclick="toggleEditBlock(${idx})">✓ Done editing</button>
                     </div>
                 </div>`;
         } else if (b.type === 'trace') {
@@ -1253,8 +1400,8 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
                         <div>
                             <label style="font-size:11px;font-weight:700;color:#6c757d;">Style</label>
                             <div class="align-group">
-                                <button type="button" class="${(b.traceStyle||'outlined')==='outlined'?'active':''}" onclick="updateTraceField(${idx},'traceStyle','outlined')">Outlined</button>
-                                <button type="button" class="${b.traceStyle==='solid'?'active':''}" onclick="updateTraceField(${idx},'traceStyle','solid')">Solid</button>
+                                <button type="button" class="${b.traceStyle === 'solid' ? '' : 'active'}" onclick="updateTraceField(${idx},'traceStyle','outlined')">Outlined</button>
+                                <button type="button" class="${b.traceStyle === 'solid' ? 'active' : ''}" onclick="updateTraceField(${idx},'traceStyle','solid')">Solid</button>
                             </div>
                         </div>
                         <div>
@@ -1274,7 +1421,7 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
                         Show border on page
                     </label>
                     <div style="margin-top:10px;">
-                        <button class="btn btn-success btn-sm" onclick="toggleEditBlock(${idx})">✓ Done editing</button>
+                        <button type="button" class="btn btn-success btn-sm" onclick="toggleEditBlock(${idx})">✓ Done editing</button>
                     </div>
                 </div>`;
         } else if (b.type === 'table') {
@@ -1288,10 +1435,7 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         const cols = b.tableCols || b.colSpan;
         const cells = b.cells || [];
 
-        // Build occupancy map: atomic (r,c) -> cell object
         const rect = isTableRect(tableSel);
-
-        // Primary selected region (first selected cell's owner) for form defaults
         let primary = null;
         if (tableSel.size) {
             const first = parseTKey(Array.from(tableSel)[0]);
@@ -1299,7 +1443,6 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         }
 
         let mini = `<div class="mini-table" style="grid-template-columns:repeat(${cols},1fr);grid-template-rows:repeat(${rows},minmax(28px,auto));">`;
-        // Render only origin cells with span; mark covered atoms
         const originMap = {};
         cells.forEach(cell => { originMap[tKey(cell.r, cell.c)] = cell; });
 
@@ -1308,16 +1451,12 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
                 const k = tKey(r, c);
                 const owner = findTableCellAt(cells, r, c);
                 const isOrigin = owner && owner.r === r && owner.c === c;
-                if (!isOrigin) {
-                    // covered by a merge — skip painting a separate box (grid will span)
-                    // But CSS grid needs placeholders OR we use explicit placement only on origins
-                    continue;
-                }
+                if (!isOrigin) continue;
                 const selected = coveredKeys(owner).some(ck => tableSel.has(ck));
                 const style = [
                     `grid-row:${owner.r + 1}/span ${owner.rowSpan}`,
                     `grid-column:${owner.c + 1}/span ${owner.colSpan}`,
-                    `background:${owner.bg || '#f1f3f5'}`,
+                    `background:${escapeStyle(owner.bg || '#f1f3f5')}`,
                     owner.bold ? 'font-weight:700' : '',
                     owner.italic ? 'font-style:italic' : '',
                     `font-size:${Math.min(18, owner.fontSize || 14)}px`
@@ -1327,7 +1466,6 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         }
         mini += '</div>';
 
-        // Merge only if selection is a solid rectangle covering 2+ distinct cell regions
         let ownerCount = 0;
         if (rect && tableSel.size > 1) {
             const seen = new Set();
@@ -1339,7 +1477,6 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
             ownerCount = seen.size;
         }
         const canMerge = rect && ownerCount >= 2;
-        // Can unmerge if selection sits inside one multi-cell region
         const canUnmerge = primary && (primary.rowSpan > 1 || primary.colSpan > 1);
 
         return `
@@ -1347,17 +1484,17 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
                 <div style="font-size:12px;font-weight:700;color:#6c757d;margin-bottom:6px;">Click cells to select a rectangle · ${rows}×${cols} table</div>
                 ${mini}
                 <div class="block-actions" style="margin-top:8px;">
-                    <button class="btn btn-primary btn-xs" onclick="mergeTableCells(${idx})" ${canMerge ? '' : 'disabled'}>Merge</button>
-                    <button class="btn btn-outline btn-xs" onclick="unmergeTableCells(${idx})" ${canUnmerge ? '' : 'disabled'}>Unmerge</button>
-                    <button class="btn btn-outline btn-xs" onclick="clearTableSel()">Clear selection</button>
+                    <button type="button" class="btn btn-primary btn-xs" onclick="mergeTableCells(${idx})" ${canMerge ? '' : 'disabled'}>Merge</button>
+                    <button type="button" class="btn btn-outline btn-xs" onclick="unmergeTableCells(${idx})" ${canUnmerge ? '' : 'disabled'}>Unmerge</button>
+                    <button type="button" class="btn btn-outline btn-xs" onclick="clearTableSel()">Clear selection</button>
                 </div>
                 <div style="margin-top:10px;display:${tableSel.size ? 'block' : 'none'};">
-                    <label style="font-weight:700;font-size:12px;">Cell text</label>
+                    <label style="font-weight:700;font-size:12px;">Cell text (applies to all selected cells)</label>
                     <input id="tableCellText" value="${escapeHtml(primary ? (primary.text || '') : '')}" oninput="applyTableCellProp(${idx},'text',this.value)" placeholder="Centered text" style="width:100%;padding:8px 12px;border:2px solid #dee2e6;border-radius:8px;font-size:13px;">
                     <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;align-items:flex-end;">
                         <div>
                             <label style="font-size:11px;font-weight:700;color:#6c757d;">Background</label>
-                            <input type="color" value="${primary ? (primary.bg || '#f1f3f5') : '#f1f3f5'}" onchange="applyTableCellProp(${idx},'bg',this.value)" style="width:42px;height:32px;border:1px solid #ced4da;border-radius:6px;padding:2px;cursor:pointer;">
+                            <input type="color" value="${escapeStyle(primary ? (primary.bg || '#f1f3f5') : '#f1f3f5')}" onchange="applyTableCellProp(${idx},'bg',this.value)" style="width:42px;height:32px;border:1px solid #ced4da;border-radius:6px;padding:2px;cursor:pointer;">
                         </div>
                         <div>
                             <label style="font-size:11px;font-weight:700;color:#6c757d;">Font size</label>
@@ -1378,7 +1515,7 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
                     Show border on page
                 </label>
                 <div style="margin-top:10px;">
-                    <button class="btn btn-success btn-sm" onclick="toggleEditBlock(${idx})">✓ Done editing</button>
+                    <button type="button" class="btn btn-success btn-sm" onclick="toggleEditBlock(${idx})">✓ Done editing</button>
                 </div>
             </div>`;
     }
@@ -1394,8 +1531,6 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         const b = page.blocks[blockIdx];
         const owner = findTableCellAt(b.cells || [], r, c);
         if (!owner) return;
-
-        // Toggle all atomic keys belonging to this region
         const keys = coveredKeys(owner);
         const allOn = keys.every(k => tableSel.has(k));
         if (allOn) {
@@ -1414,8 +1549,6 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         if (!rect || tableSel.size < 2) {
             return showToast('Select a solid rectangle of 2+ cells to merge', 'warning');
         }
-
-        // Ensure selection doesn't partially cut existing merges — all atoms of any touched region must be selected
         const cells = b.cells || [];
         const ownersHit = new Set();
         for (const cell of cells) {
@@ -1430,16 +1563,11 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         if (ownersHit.size < 2) {
             return showToast('Select at least two separate cells/regions to merge', 'warning');
         }
-
         pushHistory();
-
-        // Remove all cells that overlap the selection
         const remaining = cells.filter(cell => {
             const keys = coveredKeys(cell);
             return !keys.some(k => tableSel.has(k));
         });
-
-        // Create one merged cell; inherit text/style from top-left owner if any
         const topLeft = findTableCellAt(cells, rect.minR, rect.minC);
         remaining.push({
             r: rect.minR,
@@ -1452,15 +1580,14 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
             bold: topLeft ? !!topLeft.bold : false,
             italic: topLeft ? !!topLeft.italic : false
         });
-
         b.cells = remaining;
-        // Keep selection as the merged region
         tableSel = new Set();
         for (let r = rect.minR; r <= rect.maxR; r++) {
             for (let c = rect.minC; c <= rect.maxC; c++) tableSel.add(tKey(r, c));
         }
         save();
         renderEditor();
+        renderView();
         showToast('Cells merged', 'success');
     };
 
@@ -1469,16 +1596,13 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         if (!page || !page.blocks[blockIdx] || page.blocks[blockIdx].type !== 'table') return;
         const b = page.blocks[blockIdx];
         if (!tableSel.size) return showToast('Select a merged cell first', 'warning');
-
         const first = parseTKey(Array.from(tableSel)[0]);
         const owner = findTableCellAt(b.cells || [], first.r, first.c);
         if (!owner || (owner.rowSpan === 1 && owner.colSpan === 1)) {
             return showToast('Selection is not a merged cell', 'warning');
         }
-
         pushHistory();
         const cells = (b.cells || []).filter(cell => !(cell.r === owner.r && cell.c === owner.c));
-        // Split back into 1×1 cells, copy style to each
         for (let r = owner.r; r < owner.r + owner.rowSpan; r++) {
             for (let c = owner.c; c < owner.c + owner.colSpan; c++) {
                 cells.push({
@@ -1492,8 +1616,10 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
             }
         }
         b.cells = cells;
+        tableSel = new Set();
         save();
         renderEditor();
+        renderView();
         showToast('Cell unmerged', 'info');
     };
 
@@ -1502,8 +1628,6 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         if (!page || !page.blocks[blockIdx] || page.blocks[blockIdx].type !== 'table') return;
         const b = page.blocks[blockIdx];
         if (!tableSel.size) return;
-
-        // Collect unique owner cells in selection
         const owners = new Map();
         for (const k of tableSel) {
             const { r, c } = parseTKey(k);
@@ -1511,7 +1635,6 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
             if (owner) owners.set(tKey(owner.r, owner.c), owner);
         }
         if (!owners.size) return;
-
         if (prop === 'text') {
             if (!_editTextHistoryTimer) pushHistory();
             clearTimeout(_editTextHistoryTimer);
@@ -1519,7 +1642,6 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         } else {
             pushHistory();
         }
-
         owners.forEach(owner => {
             if (prop === 'fontSize') {
                 owner.fontSize = Math.min(22, Math.max(10, parseInt(value, 10) || 14));
@@ -1530,7 +1652,12 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
             }
         });
         save();
-        if (prop !== 'text') renderEditor();
+        if (prop !== 'text') {
+            renderEditor();
+            renderView();
+        } else {
+            renderView();
+        }
     };
 
     window.toggleTableBorders = function(idx, val) {
@@ -1539,6 +1666,7 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         pushHistory();
         page.blocks[idx].tableShowBorders = !!val;
         save();
+        renderView();
     };
 
     window.updateImageLabelOn = function(idx, val) {
@@ -1548,6 +1676,7 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         page.blocks[idx].imageLabelOn = !!val;
         save();
         renderEditor();
+        renderView();
     };
     window.updateImageLabel = function(idx, val) {
         const page = getCurrentPage();
@@ -1557,23 +1686,25 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         _editTextHistoryTimer = setTimeout(() => { _editTextHistoryTimer = null; }, 800);
         page.blocks[idx].imageLabel = val;
         save();
+        renderView();
     };
     window.updateTraceField = function(idx, prop, val) {
         const page = getCurrentPage();
         if (!page || !page.blocks[idx] || page.blocks[idx].type !== 'trace') return;
         if (prop === 'traceTarget') {
-            // Debounced history for typing; no full re-render (keeps focus)
             if (!_editTextHistoryTimer) pushHistory();
             clearTimeout(_editTextHistoryTimer);
             _editTextHistoryTimer = setTimeout(() => { _editTextHistoryTimer = null; }, 800);
             page.blocks[idx][prop] = val;
             save();
+            renderView();
             return;
         }
         pushHistory();
         page.blocks[idx][prop] = val;
         save();
         renderEditor();
+        renderView();
     };
 
     window.toggleEditBlock = function(idx) {
@@ -1584,6 +1715,7 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         } else {
             editingBlockIdx = idx;
             tableSel = new Set();
+            if (_editTextHistoryTimer) { clearTimeout(_editTextHistoryTimer); _editTextHistoryTimer = null; }
         }
         renderEditor();
         if (editingBlockIdx !== null) {
@@ -1595,7 +1727,6 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
     window.updateEditText = function(idx, value) {
         const page = getCurrentPage();
         if (!page || !page.blocks[idx]) return;
-        // Debounced history: push once per typing burst, not every keystroke
         if (!_editTextHistoryTimer) {
             pushHistory();
         }
@@ -1603,6 +1734,7 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         _editTextHistoryTimer = setTimeout(() => { _editTextHistoryTimer = null; }, 800);
         page.blocks[idx].text = value;
         save();
+        renderView();
     };
 
     window.handleEditImage = function(e, idx) {
@@ -1618,6 +1750,7 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
             page.blocks[idx].imagePath = ev.target.result;
             save();
             renderEditor();
+            renderView();
             showToast('Image updated', 'success');
         };
         reader.onerror = () => showToast('Failed to read image', 'error');
@@ -1716,7 +1849,10 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         const page = getCurrentPage();
         if (!page || page.locked) return;
         syncActiveFromDom();
-
+        if (_editTextHistoryTimer) {
+            clearTimeout(_editTextHistoryTimer);
+            _editTextHistoryTimer = null;
+        }
         const rect = isRectangle(window.activeSelection);
         if (!rect) return showToast('Invalid rectangle — select a solid rectangle or square', 'error');
 
@@ -1799,6 +1935,7 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         editingBlockIdx = null;
         save();
         renderEditor();
+        renderView();
         showToast('Block set', 'success');
     };
 
@@ -1806,14 +1943,10 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         const page = getCurrentPage();
         if (!page || page.locked) return;
         if (idx < 0 || idx >= page.blocks.length) return;
+        if (_editTextHistoryTimer) { clearTimeout(_editTextHistoryTimer); _editTextHistoryTimer = null; }
         pushHistory();
         const b = page.blocks[idx];
         if (!b) return;
-        for (let r = b.row; r < b.row + b.rowSpan; r++) {
-            for (let c = b.col; c < b.col + b.colSpan; c++) {
-                page.usedCells.delete(cellKey(r, c));
-            }
-        }
         page.blocks.splice(idx, 1);
         if (editingBlockIdx === idx) {
             editingBlockIdx = null;
@@ -1821,8 +1954,10 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         } else if (editingBlockIdx > idx) {
             editingBlockIdx--;
         }
+        rebuildUsedCells(page);
         save();
         renderEditor();
+        renderView();
         showToast('Block removed', 'info');
     };
 
@@ -1833,6 +1968,7 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         pushHistory();
         page.blocks[idx].showBorder = val;
         save();
+        renderView();
     };
 
     window.updatePageMeta = function() {
@@ -1847,31 +1983,38 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
             const num = parseInt(n.value, 10);
             page.lessonNumber = Number.isFinite(num) && num > 0 ? num : 1;
         }
+        pushHistory();
         save();
+        renderView();
     };
 
     window.lockPage = function() {
         const page = getCurrentPage();
         if (!page) return;
+        pushHistory();
         page.locked = true;
         editingBlockIdx = null;
         tableSel = new Set();
         save();
         renderEditor();
+        renderView();
         showToast('Layout locked — content still editable', 'success');
     };
     window.unlockPage = function() {
         const page = getCurrentPage();
         if (!page) return;
+        pushHistory();
         page.locked = false;
         save();
         renderEditor();
+        renderView();
         showToast('Layout unlocked', 'info');
     };
     window.resetPage = function() {
-        if (!confirm('Clear all blocks on this page?')) return;
         const page = getCurrentPage();
-        if (!page) return;
+        if (!page || page.locked) return;
+        if (!confirm('Clear all blocks on this page?')) return;
+        if (_editTextHistoryTimer) { clearTimeout(_editTextHistoryTimer); _editTextHistoryTimer = null; }
         pushHistory();
         page.blocks = [];
         page.usedCells = new Set();
@@ -1881,6 +2024,7 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         tableSel = new Set();
         save();
         renderEditor();
+        renderView();
         showToast('Page reset', 'info');
     };
 
@@ -1895,7 +2039,7 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         lesson.pages.forEach((page, pIdx) => {
             const pageEl = document.createElement('div');
             pageEl.className = 'page';
-            pageEl.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportPage(this.closest('.page'))">📄 Export</button></div>`;
+            pageEl.innerHTML = `<div class="page-actions no-print"><button type="button" class="export-btn" onclick="exportPage(this.closest('.page'))">📄 Export</button></div>`;
 
             const card = document.createElement('div');
             card.className = 'page-card';
@@ -1925,16 +2069,19 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
 
                 if (b.type === 'text') {
                     const vAlign = b.verticalAlign || 'center';
-                    el.style.alignItems = vAlign === 'top' ? 'flex-start' : vAlign === 'bottom' ? 'flex-end' : 'center';
-                    el.style.justifyContent = 'stretch';
+                    el.style.display = 'flex';
+                    el.style.flexDirection = 'column';
+                    el.style.justifyContent = vAlign === 'top' ? 'flex-start' : vAlign === 'bottom' ? 'flex-end' : 'center';
+                    el.style.alignItems = 'stretch';
                     const style = [
                         `font-size:${b.fontSize || 18}px`,
-                        `color:${b.color || '#1a1a1a'}`,
+                        `color:${escapeStyle(b.color || '#1a1a1a')}`,
                         `text-align:${b.textAlign || 'center'}`,
                         b.bold ? 'font-weight:700' : 'font-weight:600',
                         b.italic ? 'font-style:italic' : '',
                         b.underline ? 'text-decoration:underline' : '',
-                        'width:100%'
+                        'width:100%',
+                        'height:auto'
                     ].filter(Boolean).join(';');
                     el.innerHTML = `<div class="block-text" style="${style}">${textToHtml(b.text || '')}</div>`;
                 } else if (b.type === 'image' && b.imagePath) {
@@ -1952,12 +2099,17 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
                         const sc = (b.imageScale ?? 100) / 100;
                         imgStyle += `max-width:${100 * sc}%;max-height:${100 * sc}%;object-fit:contain;`;
                     }
+
                     if (b.imageLabelOn && b.imageLabel) {
-                        // When label is on, constrain image so label fits
-                        if (fit === 'contain' || fit === 'scale') {
-                            imgStyle = imgStyle.replace(/max-height:100%/, 'max-height:78%');
+                        const wrapperStyle = 'display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:100%;height:100%;';
+                        if (fit === 'contain') {
+                            imgStyle = imgStyle.replace(/max-height:100%/, 'max-height:calc(100% - 1.6em)');
+                        } else if (fit === 'scale') {
+                            imgStyle = imgStyle.replace(/max-height:\d+%/, 'max-height:calc(100% - 1.6em)');
+                        } else if (fit === 'cover') {
+                            imgStyle = imgStyle.replace(/height:100%/, 'height:calc(100% - 1.6em)');
                         }
-                        el.innerHTML = `<div class="block-img-wrap">
+                        el.innerHTML = `<div class="block-img-wrap" style="${wrapperStyle}">
                             <img class="block-img" src="${escapeHtml(b.imagePath)}" style="${imgStyle}">
                             <div class="block-img-label">${escapeHtml(b.imageLabel)}</div>
                         </div>`;
@@ -1976,6 +2128,8 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
                 stage.appendChild(el);
             });
         });
+        const viewInfo = document.getElementById('viewInfo');
+        if (viewInfo) viewInfo.textContent = `${lessons.length} lesson(s) · Page ${currentPageIndex + 1} of ${lesson.pages.length}`;
     }
 
     function buildTableHtml(b) {
@@ -1986,12 +2140,11 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
 
         let html = `<div class="inner-table ${showBorders ? 'has-borders' : ''}" style="grid-template-columns:repeat(${cols},1fr);grid-template-rows:repeat(${rows},1fr);">`;
 
-        // Only paint origin cells with placement spans
         cells.forEach(cell => {
             const style = [
                 `grid-row:${cell.r + 1} / span ${cell.rowSpan}`,
                 `grid-column:${cell.c + 1} / span ${cell.colSpan}`,
-                `background:${cell.bg || '#f1f3f5'}`,
+                `background:${escapeStyle(cell.bg || '#f1f3f5')}`,
                 `font-size:${Math.min(22, cell.fontSize || 14)}px`,
                 cell.bold ? 'font-weight:700' : 'font-weight:600',
                 cell.italic ? 'font-style:italic' : '',
@@ -2004,12 +2157,6 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         return html;
     }
 
-    /**
-     * Build handwriting guideline sets for a trace block.
-     * - 1 grid row height = 1 line set (red-blue-blue-red, evenly spaced)
-     * - Letters centered in the band between the two blue lines
-     * - Desktop vs mobile: font-size uses relative units; positioning is % based so it scales
-     */
     function buildTraceHtml(b) {
         const sets = Math.max(1, b.rowSpan || 1);
         const target = String(b.traceTarget || '').trim();
@@ -2017,32 +2164,26 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         const style = b.traceStyle === 'solid' ? 'solid' : 'outlined';
         const repeatAll = b.traceRepeatAll !== false;
 
-        // Evenly spaced 4 lines → positions at 0%, 33.33%, 66.67%, 100% of set height
-        // Letters sit in exact middle of the two blue lines → 50% of set height
-        // Font size: scale with set height. On typical page a row is ~70-80px;
-        // we use a clamp so it works on desktop print and narrower mobile preview.
         let html = '<div class="trace-wrap">';
         for (let s = 0; s < sets; s++) {
             const showLetters = target && (repeatAll || s === 0);
             html += '<div class="trace-set">';
-            // Four guideline lines (evenly spaced)
             html += '<div class="tline red" style="top:0;"></div>';
             html += '<div class="tline blue" style="top:33.333%;"></div>';
             html += '<div class="tline blue" style="top:66.667%;"></div>';
             html += '<div class="tline red" style="top:100%;"></div>';
             if (showLetters) {
-                // Letters sit in the exact middle of the space between the 2 blue lines
-                // (band from 33.333% to 66.667% of set height).
-                // Desktop vs mobile: percentage positioning scales with cell height;
-                // font-size uses clamp so print (wide) and mobile preview both look balanced.
                 let spans = '';
                 for (let c = 0; c < clones; c++) {
                     spans += `<span>${escapeHtml(target)}</span>`;
                 }
+                // Letters span full set height, sitting at bottom (descender line)
                 html += `<div class="trace-letters ${style === 'outlined' ? 'outlined' : ''}" style="
-                    top: 33.333%;
-                    height: 33.333%;
-                    font-size: clamp(16px, 2.8vw, 32px);
+                    top: 0;
+                    bottom: 0;
+                    height: 100%;
+                    align-items: flex-end;
+                    font-size: clamp(20px, 4vw, 48px);
                 ">${spans}</div>`;
             }
             html += '</div>';
@@ -2073,9 +2214,8 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
                     <div class="sub">${l.pages.length} page(s)</div>
                 </div>
                 <div class="actions">
-                    <button class="btn btn-primary btn-xs" onclick="selectLesson('${l.id}')">Open</button>
-                    <button class="btn btn-outline btn-xs" onclick="duplicateLesson('${l.id}')" title="Duplicate lesson">⧉ Duplicate</button>
-                    <button class="btn btn-danger btn-xs" onclick="deleteLesson('${l.id}')">🗑</button>
+                    <button type="button" class="btn btn-primary btn-xs" onclick="selectLesson('${l.id}')">Open</button>
+                    <button type="button" class="btn btn-danger btn-xs" onclick="deleteLesson('${l.id}')">🗑</button>
                 </div>
             </div>
         `).join('');
@@ -2091,56 +2231,8 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         resetActive();
         pushHistory();
         renderAll();
-        // Switch to Edit tab so the opened lesson is ready for manipulation
         switchTab('edit');
         showToast('Lesson opened', 'info');
-    };
-
-    window.duplicateLesson = function(id) {
-        const source = lessons.find(l => l.id === id);
-        if (!source) return;
-
-        // Full deep clone so nested table cells / image data are not shared
-        const raw = JSON.parse(JSON.stringify({
-            title: source.title,
-            subtitle: source.subtitle,
-            pages: source.pages.map(p => ({
-                title: p.title,
-                subtitle: p.subtitle,
-                lessonNumber: p.lessonNumber,
-                locked: !!p.locked,
-                blocks: p.blocks || [],
-                usedCells: Array.from(p.usedCells || [])
-            }))
-        }));
-
-        const copy = {
-            id: 'l' + (nextId++),
-            title: (raw.title || 'Untitled') + ' (copy)',
-            subtitle: raw.subtitle || '',
-            pages: (raw.pages || []).map((p, i) => ({
-                title: p.title,
-                subtitle: p.subtitle,
-                lessonNumber: i + 1,
-                locked: !!p.locked,
-                blocks: (p.blocks || []).map(b => {
-                    const nb = JSON.parse(JSON.stringify(b));
-                    nb.id = 'b' + Date.now() + Math.random().toString(36).slice(2, 8);
-                    return nb;
-                }),
-                usedCells: new Set(p.usedCells || [])
-            }))
-        };
-
-        if (!copy.pages.length) {
-            copy.pages = [defaultPage()];
-        }
-
-        lessons.push(copy);
-        save();
-        renderLessonList();
-        document.getElementById('lessonCount').textContent = lessons.length + ' lessons';
-        showToast('Lesson duplicated', 'success');
     };
 
     window.addLesson = function() {
@@ -2151,14 +2243,17 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         history = []; historyIndex = -1;
         editingBlockIdx = null;
         tableSel = new Set();
+        if (_editTextHistoryTimer) { clearTimeout(_editTextHistoryTimer); _editTextHistoryTimer = null; }
         resetActive();
-        save();
-        renderAll();
-        switchTab('edit');
-        showToast('Lesson added', 'success');
+        save().then(() => {
+            pushHistory();
+            renderAll();
+            switchTab('edit');
+            showToast('Lesson added', 'success');
+        });
     };
 
-    window.exportLessonsJson = function() {
+    window.exportLessonsJson = async function() {
         try {
             const payload = {
                 app: 'phonics-grid-publisher',
@@ -2196,7 +2291,7 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
 
     window.importLessonsJson = function(event) {
         const file = event.target.files && event.target.files[0];
-        event.target.value = ''; // allow re-importing same file
+        event.target.value = '';
         if (!file) return;
 
         const reader = new FileReader();
@@ -2210,43 +2305,7 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
                 let added = 0;
                 data.lessons.forEach(src => {
                     if (!src || typeof src !== 'object') return;
-                    const pagesIn = Array.isArray(src.pages) ? src.pages : [];
-                    const lesson = {
-                        id: 'l' + (nextId++),
-                        title: (src.title || 'Imported lesson') + '',
-                        subtitle: (src.subtitle || '') + '',
-                        pages: pagesIn.map((p, i) => {
-                            const blocks = Array.isArray(p.blocks)
-                                ? p.blocks.map(b => {
-                                    const nb = JSON.parse(JSON.stringify(b));
-                                    nb.id = 'b' + Date.now() + Math.random().toString(36).slice(2, 8);
-                                    return nb;
-                                })
-                                : [];
-                            // Rebuild usedCells from blocks if missing/invalid
-                            let used = Array.isArray(p.usedCells) ? p.usedCells.slice() : [];
-                            if (!used.length && blocks.length) {
-                                blocks.forEach(b => {
-                                    for (let r = b.row; r < b.row + (b.rowSpan || 1); r++) {
-                                        for (let c = b.col; c < b.col + (b.colSpan || 1); c++) {
-                                            used.push(r + ',' + c);
-                                        }
-                                    }
-                                });
-                            }
-                            return {
-                                title: p.title || 'UNTITLED',
-                                subtitle: p.subtitle || '',
-                                lessonNumber: i + 1,
-                                locked: !!p.locked,
-                                blocks,
-                                usedCells: new Set(used)
-                            };
-                        })
-                    };
-                    if (!lesson.pages.length) {
-                        lesson.pages = [defaultPage()];
-                    }
+                    const lesson = validateAndNormalizeLesson(src);
                     lessons.push(lesson);
                     added++;
                 });
@@ -2255,10 +2314,20 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
                     return showToast('No valid lessons found in file', 'warning');
                 }
 
-                save();
-                renderAll();
-                showToast('Imported ' + added + ' lesson(s) (merged)', 'success');
+                const seenIds = new Set();
+                lessons.forEach(l => {
+                    while (seenIds.has(l.id)) {
+                        l.id = generateUniqueId();
+                    }
+                    seenIds.add(l.id);
+                });
+
+                save().then(() => {
+                    renderAll();
+                    showToast('Imported ' + added + ' lesson(s) (merged)', 'success');
+                });
             } catch (e) {
+                console.error(e);
                 showToast('Import failed: invalid JSON', 'error');
             }
         };
@@ -2267,6 +2336,7 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         };
         reader.readAsText(file);
     };
+
     window.deleteLesson = function(id) {
         if (lessons.length <= 1) return showToast('Need at least one lesson', 'warning');
         if (!confirm('Delete this lesson?')) return;
@@ -2275,23 +2345,35 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
             currentLessonId = lessons[0].id;
             currentPageIndex = 0;
         }
-        save();
-        renderAll();
+        history = []; historyIndex = -1;
+        editingBlockIdx = null;
+        tableSel = new Set();
+        if (_editTextHistoryTimer) { clearTimeout(_editTextHistoryTimer); _editTextHistoryTimer = null; }
+        resetActive();
+        save().then(() => {
+            pushHistory();
+            renderAll();
+            showToast('Lesson deleted', 'info');
+        });
     };
+
     window.addPage = function() {
         const lesson = getCurrentLesson();
         if (!lesson) return;
+        if (_editTextHistoryTimer) { clearTimeout(_editTextHistoryTimer); _editTextHistoryTimer = null; }
         const p = defaultPage();
         p.lessonNumber = lesson.pages.length + 1;
         lesson.pages.push(p);
         currentPageIndex = lesson.pages.length - 1;
         history = []; historyIndex = -1;
         editingBlockIdx = null;
+        tableSel = new Set();
         resetActive();
-        pushHistory();
-        save();
-        renderAll();
-        showToast('Page added', 'success');
+        save().then(() => {
+            pushHistory();
+            renderAll();
+            showToast('Page added', 'success');
+        });
     };
 
     // ========== TABS & INIT ==========
@@ -2311,6 +2393,8 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         document.getElementById('pageSelect').innerHTML = (lesson ? lesson.pages : []).map((p, i) =>
             `<option value="${i}" ${i===currentPageIndex?'selected':''}>Page ${i+1}</option>`
         ).join('');
+        const viewInfo = document.getElementById('viewInfo');
+        if (viewInfo) viewInfo.textContent = `${lessons.length} lesson(s) · Page ${currentPageIndex + 1} of ${lesson?.pages.length || 0}`;
     }
 
     window.changePage = function(idx) {
@@ -2325,43 +2409,50 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         renderView();
     };
 
-    load();
-    document.getElementById('app').innerHTML = `
-        <div class="app-header">
-            <h1>📚 Phonics Grid Publisher</h1>
-            <span class="badge" id="lessonCount">0</span>
-        </div>
-        <div class="tabs">
-            <button class="tab-btn active" data-tab="edit" onclick="switchTab('edit')">✏️ Build Pages</button>
-            <button class="tab-btn" data-tab="view" onclick="switchTab('view')">👁️ View / Print</button>
-            <button class="tab-btn" data-tab="lessons" onclick="switchTab('lessons')">📖 Lessons</button>
-        </div>
-        <div class="tab-panel active" id="editPanel">
-            <div style="display:flex;gap:12px;align-items:center;margin-bottom:14px;flex-wrap:wrap;">
-                <label style="font-weight:700;font-size:13px;">Current page:</label>
-                <select id="pageSelect" onchange="changePage(this.value)" style="padding:7px 12px;border:2px solid #dee2e6;border-radius:8px;font-size:13px;"></select>
-                <button class="btn btn-outline btn-sm" onclick="addPage()">＋ Add Page</button>
+    async function init() {
+        await load();
+        document.getElementById('app').innerHTML = `
+            <div class="app-header">
+                <h1>📚 Phonics Grid Publisher</h1>
+                <span class="badge" id="lessonCount">0</span>
             </div>
-            <div id="editorArea"></div>
-        </div>
-        <div class="tab-panel" id="viewPanel">
-            <div class="view-toolbar">
-                <span class="info" id="viewInfo">Ready</span>
+            <div class="tabs">
+                <button type="button" class="tab-btn active" data-tab="edit" onclick="switchTab('edit')">✏️ Build Pages</button>
+                <button type="button" class="tab-btn" data-tab="view" onclick="switchTab('view')">👁️ View / Print</button>
+                <button type="button" class="tab-btn" data-tab="lessons" onclick="switchTab('lessons')">📖 Lessons</button>
             </div>
-            <div class="view-container" id="viewContainer"></div>
-        </div>
-        <div class="tab-panel" id="lessonsPanel">
-            <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:4px;">
-                <button class="btn btn-primary" onclick="addLesson()">＋ New Lesson</button>
-                <button class="btn btn-outline" onclick="exportLessonsJson()">⬇ Export JSON</button>
-                <button class="btn btn-outline" onclick="document.getElementById('importJsonInput').click()">⬆ Import JSON</button>
-                <input type="file" id="importJsonInput" accept="application/json,.json" style="display:none" onchange="importLessonsJson(event)">
+            <div class="tab-panel active" id="editPanel">
+                <div style="display:flex;gap:12px;align-items:center;margin-bottom:14px;flex-wrap:wrap;">
+                    <label style="font-weight:700;font-size:13px;">Current page:</label>
+                    <select id="pageSelect" onchange="changePage(this.value)" style="padding:7px 12px;border:2px solid #dee2e6;border-radius:8px;font-size:13px;"></select>
+                    <button type="button" class="btn btn-outline btn-sm" onclick="addPage()">＋ Add Page</button>
+                </div>
+                <div id="editorArea"></div>
             </div>
-            <div class="lesson-list" id="lessonList"></div>
-        </div>
-    `;
-    pushHistory();
-    renderAll();
+            <div class="tab-panel" id="viewPanel">
+                <div class="view-toolbar">
+                    <span class="info" id="viewInfo">Ready</span>
+                </div>
+                <div class="view-container" id="viewContainer"></div>
+            </div>
+            <div class="tab-panel" id="lessonsPanel">
+                <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:4px;">
+                    <button type="button" class="btn btn-primary" onclick="addLesson()">＋ New Lesson</button>
+                    <button type="button" class="btn btn-outline" onclick="exportLessonsJson()">⬇ Export JSON</button>
+                    <button type="button" class="btn btn-outline" onclick="document.getElementById('importJsonInput').click()">⬆ Import JSON</button>
+                    <input type="file" id="importJsonInput" accept="application/json,.json" style="display:none" onchange="importLessonsJson(event)">
+                </div>
+                <div class="lesson-list" id="lessonList"></div>
+            </div>
+        `;
+        pushHistory();
+        renderAll();
+    }
+
+    init().catch(err => {
+        console.error('Initialization failed:', err);
+        showToast('Failed to initialize app', 'error');
+    });
 })();
 </script>
 </body>
