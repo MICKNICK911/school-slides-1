@@ -812,8 +812,14 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
                 <label>Size</label>
                 <input type="number" id="${prefix}FontSize" value="${state.fontSize}" min="1" style="width:56px;padding:4px 6px;border:1px solid #ced4da;border-radius:6px;font-size:12px;" onchange="updateFmtValue('${prefix}','fontSize',this.value)">
                 <div class="sep"></div>
-                <label>Color</label>
+                <label>Block Color</label>
                 <input type="color" id="${prefix}Color" value="${escapeStyle(state.color)}" onchange="updateFmtValue('${prefix}','color',this.value)">
+                <div class="sep"></div>
+                <label>Inline Color</label>
+                <input type="color" id="${prefix}InlineColor" value="${escapeStyle(state.color)}" style="width:28px;height:28px;border:none;padding:0;background:none;cursor:pointer;">
+                <button type="button" class="fmt-btn" title="Apply color to selection" onclick="execInline('${prefix}','foreColor', document.getElementById('${prefix}InlineColor').value)">
+                    <span style="display:inline-block;width:16px;height:16px;border-radius:3px;border:1px solid #ccc;background:${escapeStyle(state.color)};"></span>
+                </button>
             </div>
             <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;">
                 <div>
@@ -2102,29 +2108,25 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         });
     };
 
-    // NEW: Duplicate current page
+    // Duplicate current page
     window.duplicatePage = function () {
         const lesson = getCurrentLesson();
         if (!lesson) return;
         const currentPage = lesson.pages[currentPageIndex];
         if (!currentPage) return;
 
-        // Deep clone the current page
         const newPage = JSON.parse(JSON.stringify({
             title: currentPage.title,
             subtitle: currentPage.subtitle,
-            lessonNumber: currentPage.lessonNumber + 1, // or compute differently
-            locked: false, // always unlock the duplicate for editing
+            lessonNumber: currentPage.lessonNumber + 1,
+            locked: false,
             blocks: currentPage.blocks,
-            usedCells: [], // will rebuild
+            usedCells: [],
             worksheetEnabled: currentPage.worksheetEnabled,
             worksheetCount: currentPage.worksheetCount
         }));
-        // Ensure usedCells is rebuilt from blocks
         rebuildUsedCells(newPage);
-        // Insert duplicate after current page
         lesson.pages.splice(currentPageIndex + 1, 0, newPage);
-        // Switch to the new page
         currentPageIndex = currentPageIndex + 1;
         history = []; historyIndex = -1;
         editingBlockIdx = null;
@@ -2139,7 +2141,7 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         });
     };
 
-    // NEW: Delete current page
+    // Delete current page
     window.deletePage = function () {
         const lesson = getCurrentLesson();
         if (!lesson) return;
@@ -2150,7 +2152,6 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         if (!confirm('Delete current page? This cannot be undone.')) return;
         if (_editTextHistoryTimer) { clearTimeout(_editTextHistoryTimer); _editTextHistoryTimer = null; }
         lesson.pages.splice(currentPageIndex, 1);
-        // Adjust index if we removed the last page
         if (currentPageIndex >= lesson.pages.length) {
             currentPageIndex = lesson.pages.length - 1;
         }
