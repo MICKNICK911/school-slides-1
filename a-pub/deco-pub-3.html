@@ -192,15 +192,70 @@
     .parent-table th { background: #b91c1c; color: #fff; font-weight: 800; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .parent-table td:first-child { font-weight: 700; text-align: left; background: #fdfdfd; }
 
+    /* Page 2 specific styles */
     .comp-section { margin: 15px 0; flex-shrink: 0; }
+    .comp-section.last-section { flex: 1; display: flex; flex-direction: column; }
+    .comp-section.last-section .activity-blank-large { flex: 1; min-height: 120px; }
     .comp-header { background: #b91c1c; color: #fff; border-radius: 12px; padding: 7px 18px; font-size: 16px; font-weight: 700; display: inline-block; margin-bottom: 10px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .comp-q { margin-bottom: 18px; }
     .comp-q .qtext { font-weight: 700; font-size: 17px; margin-bottom: 5px; }
     .comp-q .opt { display: flex; align-items: center; gap: 12px; font-size: 16px; padding: 2px 0; }
     .comp-q .box-check { display: inline-block; width: 20px; height: 20px; border: 2px solid #b91c1c; border-radius: 4px; background: #fff; flex-shrink: 0; }
+    .theory-answer { border-bottom: 2px solid #b91c1c; height: 30px; margin-top: 8px; }
     .activity-blank-large { flex: 0 0 auto; min-height: 120px; border: 3px solid #8B4513; border-radius: 16px; margin: 10px 0 18px 0; background: #fff; width: 100%; overflow: hidden; }
-    .writing-line { border-bottom: 2px dashed #8B4513; height: 40px; margin: 10px 0 15px 0; width: 100%; }
+    .writing-line { border-bottom: 2px dashed #8B4513; height: 40px; margin: 10px 0 15px 0; width: 100%; display: flex; align-items: flex-end; }
+    .writing-line .line-number { font-weight: 800; color: #8B4513; margin-right: 8px; font-size: 16px; }
     .comp-inst { font-size: 15px; color: #334155; margin-bottom: 5px; line-height: 1.55; }
+
+    /* Full-page image placeholder */
+    .image-only-page { display: flex; flex-direction: column; }
+    .image-only-page .image-full-placeholder {
+      flex: 1;
+      border: 3px solid #f59e0b;
+      border-radius: 16px;
+      background: #f8fafc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    .image-only-page .image-full-placeholder img { width: 100%; height: 100%; object-fit: contain; display: block; }
+    .image-only-page .image-full-placeholder .placeholder-text {
+      font-size: 24px;
+      font-weight: 700;
+      color: #94a3b8;
+    }
+    .image-only-page .image-full-label {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0,0,0,0.65);
+      color: #fff;
+      text-align: center;
+      padding: 8px 10px;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+      z-index: 1;
+    }
+    .image-only-page .page-footer-red { margin-top: auto; }
+
+    /* Form question card styles */
+    .question-card { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; margin-bottom: 10px; }
+    .question-card .q-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .question-card .q-header .q-title { font-weight: 700; font-size: 14px; }
+    .question-card .q-controls { display: flex; gap: 4px; }
+    .question-card .q-controls .btn { padding: 4px 8px; font-size: 12px; }
+    .option-row { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; }
+    .option-row input { flex: 1; }
+    .option-row .btn { padding: 4px 8px; font-size: 12px; }
+    .add-option-btn { margin-top: 6px; }
 
     .view-toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
     .view-toolbar .info { font-weight: 600; color: var(--text-secondary); font-size: 13px; margin-right: auto; background: var(--surface-alt); padding: 6px 12px; border-radius: 20px; border: 1px solid var(--border); }
@@ -242,6 +297,10 @@
       .view-container .card, .view-container .header-lesson, .view-container .header-title, .view-container .header-grade, .view-container .pc-header, .view-container .comp-header, .view-container .page-footer-red, .view-container .parent-table th, .view-container .target-pill, .view-container .story-img-placeholder, .view-container .parent-corner, .view-container .pc-body, .view-container .story-img-label { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
       .cover-card, .toc-card { border-radius: 0 !important; min-height: 1010px !important; height: 1010px !important; border: 3px solid #f59e0b !important; }
       .cover-line, .cover-title, .cover-subtitle { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      .comp-section.last-section { flex: 1 !important; }
+      .comp-section.last-section .activity-blank-large { flex: 1 !important; }
+      .image-only-page .image-full-placeholder { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      .image-only-page .image-full-label { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
     }
 
     @media (max-width: 900px) {
@@ -270,10 +329,12 @@
 
   <script>
     (function() {
-      const STORAGE_KEY = 'decodable_readers_v3';
+      const STORAGE_KEY = 'decodable_readers_v6';
       const MAX_IMAGE_SIZE = 2 * 1024 * 1024;
       const MAX_TOC_PER_PAGE = 20;
       const DEFAULT_IMAGE_LABEL = "Let's read together!";
+      const DEFAULT_IMAGE_PAGE_LABEL = "Picture Page";
+      const MAX_OPTIONS = 5;
 
       function escapeHtml(str) { return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
       function showToast(msg, type='info') {
@@ -296,10 +357,96 @@
       }
       function countWords(sentence) { return sentence.trim().split(/\s+/).filter(w => w).length; }
 
+      function generateQuestionId() { return 'q' + Math.random().toString(36).substring(2, 9); }
+
+      function getDefaultPage2() {
+        return {
+          comprehension: {
+            enabled: true,
+            questions: [
+              {
+                id: generateQuestionId(),
+                type: 'objective',
+                question: '',
+                options: ['', '', '']
+              }
+            ]
+          },
+          findSound: {
+            enabled: true,
+            instruction: 'Find and list all the words in the story with the target sound.'
+          },
+          sentenceWriting: {
+            enabled: true,
+            instruction: 'Write any one sentence from the story.',
+            numberOfLines: 1
+          }
+        };
+      }
+
+      function migrateLesson(l) {
+        if (!l.page2) {
+          const oldComprehension = Array.isArray(l.comprehension) ? l.comprehension : [];
+          const questions = oldComprehension.map(q => ({
+            id: generateQuestionId(),
+            type: 'objective',
+            question: q.question || '',
+            options: q.options && q.options.length ? q.options.slice(0, MAX_OPTIONS) : ['', '', '']
+          }));
+          if (questions.length === 0) {
+            questions.push({
+              id: generateQuestionId(),
+              type: 'objective',
+              question: '',
+              options: ['', '', '']
+            });
+          }
+          l.page2 = {
+            comprehension: {
+              enabled: true,
+              questions: questions
+            },
+            findSound: {
+              enabled: true,
+              instruction: 'Find and list all the words in the story with the target sound.'
+            },
+            sentenceWriting: {
+              enabled: true,
+              instruction: 'Write any one sentence from the story.',
+              numberOfLines: 1
+            }
+          };
+          delete l.comprehension;
+        } else {
+          if (!l.page2.comprehension) l.page2.comprehension = { enabled: true, questions: [] };
+          if (!l.page2.comprehension.questions) l.page2.comprehension.questions = [];
+          if (!l.page2.findSound) l.page2.findSound = { enabled: true, instruction: 'Find and list all the words in the story with the target sound.' };
+          if (!l.page2.sentenceWriting) l.page2.sentenceWriting = { enabled: true, instruction: 'Write any one sentence from the story.', numberOfLines: 1 };
+        }
+        l.page2.comprehension.questions.forEach(q => {
+          if (!q.id) q.id = generateQuestionId();
+          if (q.type !== 'objective' && q.type !== 'theory') q.type = 'objective';
+          if (q.type === 'objective') {
+            if (!Array.isArray(q.options)) q.options = ['', '', ''];
+            if (q.options.length < 2) {
+              while (q.options.length < 2) q.options.push('');
+            }
+            if (q.options.length > MAX_OPTIONS) q.options = q.options.slice(0, MAX_OPTIONS);
+          } else {
+            delete q.options;
+          }
+        });
+        l.page2.sentenceWriting.numberOfLines = parseInt(l.page2.sentenceWriting.numberOfLines) || 1;
+        if (typeof l.showImagePage !== 'boolean') l.showImagePage = false;
+        if (typeof l.imagePageLabel !== 'string') l.imagePageLabel = DEFAULT_IMAGE_PAGE_LABEL;
+        return l;
+      }
+
       const DEFAULT_LESSONS = [{
         id: 'r1', lessonNumber: 1, imageUrl: "", title: "Ben's Camping Trip",
         targetSound: "short e (/ɛ/)",
         imageLabel: DEFAULT_IMAGE_LABEL,
+        imagePageLabel: DEFAULT_IMAGE_PAGE_LABEL,
         storyLines: [
           { sentence: "Ben went on a camping trip with Dad." },
           { sentence: "They set up the tent near the lake." },
@@ -316,7 +463,8 @@
           { question: "Where did Ben and his Dad set up the tent?", options: ["by the river","near the lake","in the forest"] },
           { question: "What did Ben and his Dad cook over the fire?", options: ["pizza and cookies","hot dogs and bread","fish and rice"] },
           { question: "How did Ben feel about the trip?", options: ["tired and bored","sad and cold","happy and glad"] }
-        ]
+        ],
+        showImagePage: false
       }];
 
       let lessons = [], editingId = null, nextId = 1;
@@ -328,17 +476,25 @@
           const raw = localStorage.getItem(STORAGE_KEY);
           if (raw) {
             const parsed = JSON.parse(raw);
-            lessons = Array.isArray(parsed.lessons) ? parsed.lessons.map(l => ({
-              id: String(l.id || ''),
-              lessonNumber: typeof l.lessonNumber === 'number' ? l.lessonNumber : 0,
-              imageUrl: String(l.imageUrl || ''),
-              title: String(l.title || 'Untitled'),
-              targetSound: String(l.targetSound || ''),
-              imageLabel: String(l.imageLabel ?? DEFAULT_IMAGE_LABEL),
-              storyLines: (Array.isArray(l.storyLines) ? l.storyLines : []).map(sl => ({ sentence: String(sl.sentence || '') })).filter(sl => sl.sentence.trim() !== ''),
-              comprehension: (Array.isArray(l.comprehension) ? l.comprehension : []).map(q => ({ question: String(q.question || ''), options: Array.isArray(q.options) ? q.options.slice(0,3).map(String) : ['','',''] })).filter(q => q.question.trim() !== '')
-            })).filter(l => l.id) : [];
-            if (lessons.length === 0) lessons = JSON.parse(JSON.stringify(DEFAULT_LESSONS));
+            lessons = Array.isArray(parsed.lessons) ? parsed.lessons.map(l => {
+              const migrated = migrateLesson({
+                id: String(l.id || ''),
+                lessonNumber: typeof l.lessonNumber === 'number' ? l.lessonNumber : 0,
+                imageUrl: String(l.imageUrl || ''),
+                title: String(l.title || 'Untitled'),
+                targetSound: String(l.targetSound || ''),
+                imageLabel: String(l.imageLabel ?? DEFAULT_IMAGE_LABEL),
+                imagePageLabel: String(l.imagePageLabel ?? DEFAULT_IMAGE_PAGE_LABEL),
+                storyLines: (Array.isArray(l.storyLines) ? l.storyLines : []).map(sl => ({ sentence: String(sl.sentence || '') })).filter(sl => sl.sentence.trim() !== ''),
+                comprehension: Array.isArray(l.comprehension) ? l.comprehension : [],
+                showImagePage: typeof l.showImagePage === 'boolean' ? l.showImagePage : false,
+                page2: l.page2
+              });
+              return migrated;
+            }).filter(l => l.id) : [];
+            if (lessons.length === 0) {
+              lessons = JSON.parse(JSON.stringify(DEFAULT_LESSONS)).map(l => migrateLesson(l));
+            }
             bookMeta = parsed.bookMeta || { title: 'Decodable Readers', subtitle: 'Grade 1', grade: '1', showToc: true };
             bookMeta.grade = String(bookMeta.grade || '1');
             bookMeta.showToc = (typeof bookMeta.showToc === 'boolean') ? bookMeta.showToc : true;
@@ -347,8 +503,10 @@
             saveData();
             return;
           }
-        } catch(e) {}
-        lessons = JSON.parse(JSON.stringify(DEFAULT_LESSONS));
+        } catch(e) {
+          console.warn('Error loading data, using defaults', e);
+        }
+        lessons = JSON.parse(JSON.stringify(DEFAULT_LESSONS)).map(l => migrateLesson(l));
         bookMeta = { title: 'Decodable Readers', subtitle: 'Grade 1', grade: '1', showToc: true };
         nextId = lessons.length + 1;
         renumberByOrder(lessons);
@@ -364,6 +522,7 @@
 
       function getDefaultImageHTML() { return '<img src="./read.png" alt="Story Image">'; }
 
+      // ---------- Build View Pages ----------
       function buildPageOne(lesson, pageNum) {
         const page = document.createElement('div'); page.className = 'page';
         page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export Page</button></div>`;
@@ -392,20 +551,56 @@
         page.appendChild(card);
         return page;
       }
+
       function buildPageTwo(lesson, pageNum) {
         const page = document.createElement('div'); page.className = 'page';
         page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export Page</button></div>`;
         const card = document.createElement('div'); card.className = 'card';
         const inner = document.createElement('div'); inner.className = 'inner-pad';
-        let html = `<div class="header-row"><div class="header-lesson">LESSON <span>${escapeHtml(lesson.lessonNumber)}</span></div><div class="header-title">Comprehension &amp; Phonics</div><div class="header-grade">Grade ${escapeHtml(bookMeta.grade)}</div></div>
-        <div class="comp-section"><div class="comp-header">A. Comprehension – Choose the best answer.</div>`;
-        lesson.comprehension.forEach((q, idx) => {
-          html += `<div class="comp-q"><div class="qtext">${idx+1}. ${escapeHtml(q.question)}</div>`;
-          q.options.forEach(opt => html += `<div class="opt"><span class="box-check"></span> ${escapeHtml(opt)}</div>`);
+
+        const compEnabled = lesson.page2.comprehension.enabled && lesson.page2.comprehension.questions.length > 0;
+        const findSoundEnabled = lesson.page2.findSound.enabled;
+        const sentenceEnabled = lesson.page2.sentenceWriting.enabled;
+
+        const sectionArray = [compEnabled, findSoundEnabled, sentenceEnabled];
+        const lastEnabledIndex = sectionArray.lastIndexOf(true);
+        const findSoundIsLast = lastEnabledIndex === 1;
+
+        let html = `<div class="header-row"><div class="header-lesson">LESSON <span>${escapeHtml(lesson.lessonNumber)}</span></div><div class="header-title">Comprehension &amp; Phonics</div><div class="header-grade">Grade ${escapeHtml(bookMeta.grade)}</div></div>`;
+
+        if (compEnabled) {
+          html += `<div class="comp-section"><div class="comp-header">A. Comprehension – Choose the best answer.</div>`;
+          lesson.page2.comprehension.questions.forEach((q, idx) => {
+            html += `<div class="comp-q"><div class="qtext">${idx+1}. ${escapeHtml(q.question)}</div>`;
+            if (q.type === 'objective') {
+              q.options.forEach(opt => {
+                html += `<div class="opt"><span class="box-check"></span> ${escapeHtml(opt)}</div>`;
+              });
+            } else {
+              html += `<div class="theory-answer"></div>`;
+            }
+            html += `</div>`;
+          });
           html += `</div>`;
-        });
-        html += `</div><div class="comp-section"><div class="comp-header">B. Find the Target Sound</div><div class="comp-inst">Find and list all the words in the story with the ${escapeHtml(lesson.targetSound)} sound. Write them in the box below.</div><div class="activity-blank-large"></div></div>
-        <div class="comp-section"><div class="comp-header">C. Write One Sentence from the Story</div><div class="comp-inst">Write any one sentence from the story.</div><div class="writing-line" style="height:56px;"></div></div>`;
+        }
+
+        if (findSoundEnabled) {
+          html += `<div class="comp-section ${findSoundIsLast ? 'last-section' : ''}"><div class="comp-header">B. Find the Target Sound</div>`;
+          html += `<div class="comp-inst">${escapeHtml(lesson.page2.findSound.instruction)}</div>`;
+          html += `<div class="activity-blank-large"></div>`;
+          html += `</div>`;
+        }
+
+        if (sentenceEnabled) {
+          html += `<div class="comp-section"><div class="comp-header">C. Write One Sentence from the Story</div>`;
+          html += `<div class="comp-inst">${escapeHtml(lesson.page2.sentenceWriting.instruction)}</div>`;
+          const numLines = parseInt(lesson.page2.sentenceWriting.numberOfLines) || 1;
+          for (let i = 1; i <= numLines; i++) {
+            html += `<div class="writing-line"><span class="line-number">${i}.</span></div>`;
+          }
+          html += `</div>`;
+        }
+
         inner.innerHTML = html;
         card.appendChild(inner);
         const footer = document.createElement('div'); footer.className = 'page-footer-red'; footer.textContent = pageNum;
@@ -413,6 +608,34 @@
         page.appendChild(card);
         return page;
       }
+
+      function buildImagePage(lesson, pageNum) {
+        const page = document.createElement('div'); page.className = 'page image-only-page';
+        page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export Page</button></div>`;
+        const card = document.createElement('div'); card.className = 'card image-only-page';
+        card.style.justifyContent = 'center';
+        card.style.alignItems = 'center';
+        const imagePlaceholder = document.createElement('div');
+        imagePlaceholder.className = 'image-full-placeholder';
+        if (lesson.imageUrl) {
+          imagePlaceholder.innerHTML = `<img src="${escapeHtml(lesson.imageUrl)}" alt="Full Page Image">`;
+        } else {
+          imagePlaceholder.innerHTML = `<div class="placeholder-text">🖼️ Image Placeholder</div>`;
+        }
+        // Add label overlay if label is not empty
+        if (lesson.imagePageLabel && lesson.imagePageLabel.trim() !== '') {
+          const label = document.createElement('div');
+          label.className = 'image-full-label';
+          label.textContent = lesson.imagePageLabel.trim();
+          imagePlaceholder.appendChild(label);
+        }
+        card.appendChild(imagePlaceholder);
+        const footer = document.createElement('div'); footer.className = 'page-footer-red'; footer.textContent = pageNum;
+        card.appendChild(footer);
+        page.appendChild(card);
+        return page;
+      }
+
       function buildCoverPage() {
         const page = document.createElement('div'); page.className = 'page';
         page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export Page</button></div>`;
@@ -438,26 +661,36 @@
         container.appendChild(buildCoverPage());
         if (!lessons.length) return;
         const activeLessons = lessons.filter(l => l.title.trim());
-        const lessonPagesEach = 2;
+
+        let pageNum = 1;
         const tocPageCount = (bookMeta.showToc && activeLessons.length) ? Math.ceil(activeLessons.length / MAX_TOC_PER_PAGE) : 0;
-        const firstLessonPage = 1 + tocPageCount + 1;
+        pageNum += tocPageCount;
+        const firstLessonPage = pageNum + 1;
         const tocEntries = [];
         let runningPage = firstLessonPage;
-        activeLessons.forEach((l, idx) => {
-          tocEntries.push({ lessonNumber: l.lessonNumber, title: l.title, firstPage: runningPage });
-          runningPage += lessonPagesEach;
+
+        activeLessons.forEach((l) => {
+          const entry = { lessonNumber: l.lessonNumber, title: l.title, firstPage: runningPage };
+          tocEntries.push(entry);
+          if (l.showImagePage) runningPage += 3;
+          else runningPage += 2;
         });
+
         if (bookMeta.showToc) {
           for (let p = 0; p < tocPageCount; p++) {
             const slice = tocEntries.slice(p * MAX_TOC_PER_PAGE, (p + 1) * MAX_TOC_PER_PAGE);
             container.appendChild(buildTocPage(p + 2, slice));
           }
         }
-        let pageNum = firstLessonPage;
+
+        let currentPage = firstLessonPage;
         activeLessons.forEach(l => {
           const spread = document.createElement('div'); spread.className = 'lesson-spread';
-          spread.appendChild(buildPageOne(l, pageNum++));
-          spread.appendChild(buildPageTwo(l, pageNum++));
+          if (l.showImagePage) {
+            spread.appendChild(buildImagePage(l, currentPage++));
+          }
+          spread.appendChild(buildPageOne(l, currentPage++));
+          spread.appendChild(buildPageTwo(l, currentPage++));
           container.appendChild(spread);
         });
       }
@@ -480,49 +713,78 @@
         win.document.close(); win.focus(); setTimeout(() => win.print(), 500);
       };
 
+      // ---------- Form Handling ----------
+      let tempPage2 = null;
+      let tempShowImagePage = false;
+      let tempImagePageLabel = DEFAULT_IMAGE_PAGE_LABEL;
+
       function getFormData() {
         const storyRaw = document.getElementById('fStory').value;
         const lines = storyRaw.split('\n').map(s => s.trim()).filter(Boolean);
         const storyLines = lines.map(s => ({ sentence: s }));
-        const comp = [];
-        for (let i=1; i<=3; i++) {
-          const q = document.getElementById('fQ'+i).value.trim();
-          const o1 = document.getElementById('fQ'+i+'O1').value.trim();
-          const o2 = document.getElementById('fQ'+i+'O2').value.trim();
-          const o3 = document.getElementById('fQ'+i+'O3').value.trim();
-          if (q && o1 && o2 && o3) comp.push({ question: q, options: [o1, o2, o3] });
-        }
+
+        const page2 = JSON.parse(JSON.stringify(tempPage2));
+        page2.comprehension.questions.forEach(q => {
+          if (q.type === 'objective') {
+            q.options = q.options.map(o => o.trim()).filter(o => o !== '');
+            if (q.options.length < 2) {
+              q.options.push('');
+            }
+            if (q.options.length > MAX_OPTIONS) q.options = q.options.slice(0, MAX_OPTIONS);
+          } else {
+            delete q.options;
+          }
+        });
+
         return {
           title: document.getElementById('fTitle').value.trim(),
           lessonNumber: parseInt(document.getElementById('fLessonNumber').value)||1,
           imageUrl: document.getElementById('fImageUrl').value.trim(),
           imageLabel: document.getElementById('fImageLabel').value.trim() || DEFAULT_IMAGE_LABEL,
+          imagePageLabel: document.getElementById('fImagePageLabel').value.trim() || DEFAULT_IMAGE_PAGE_LABEL,
           targetSound: document.getElementById('fTargetSound').value.trim(),
           storyLines,
-          comprehension: comp
+          page2,
+          showImagePage: tempShowImagePage
         };
       }
+
       function updateImagePreview(src) {
         const img = document.getElementById('imagePreview'), ph = document.getElementById('imagePreviewPlaceholder');
         if (src) { img.src = src; img.style.display = 'block'; ph.style.display = 'none'; }
         else { img.src = ''; img.style.display = 'none'; ph.style.display = 'flex'; }
       }
+
       function fillForm(lesson) {
         document.getElementById('fTitle').value = lesson.title || '';
         document.getElementById('fLessonNumber').value = lesson.lessonNumber || '';
         document.getElementById('fImageUrl').value = lesson.imageUrl || '';
         document.getElementById('fImageLabel').value = lesson.imageLabel || DEFAULT_IMAGE_LABEL;
+        document.getElementById('fImagePageLabel').value = lesson.imagePageLabel || DEFAULT_IMAGE_PAGE_LABEL;
         document.getElementById('fTargetSound').value = lesson.targetSound || '';
         document.getElementById('fStory').value = lesson.storyLines.map(l => l.sentence).join('\n');
         updateImagePreview(lesson.imageUrl || '');
-        for (let i=0; i<3; i++) {
-          const q = lesson.comprehension[i] || { question: '', options: ['','',''] };
-          document.getElementById('fQ'+(i+1)).value = q.question || '';
-          document.getElementById('fQ'+(i+1)+'O1').value = q.options[0] || '';
-          document.getElementById('fQ'+(i+1)+'O2').value = q.options[1] || '';
-          document.getElementById('fQ'+(i+1)+'O3').value = q.options[2] || '';
-        }
+
+        tempPage2 = JSON.parse(JSON.stringify(lesson.page2 || getDefaultPage2()));
+        if (!tempPage2.comprehension) tempPage2.comprehension = { enabled: true, questions: [] };
+        if (!tempPage2.comprehension.questions) tempPage2.comprehension.questions = [];
+        if (!tempPage2.findSound) tempPage2.findSound = { enabled: true, instruction: 'Find and list all the words in the story with the target sound.' };
+        if (!tempPage2.sentenceWriting) tempPage2.sentenceWriting = { enabled: true, instruction: 'Write any one sentence from the story.', numberOfLines: 1 };
+
+        tempShowImagePage = !!lesson.showImagePage;
+        tempImagePageLabel = lesson.imagePageLabel || DEFAULT_IMAGE_PAGE_LABEL;
+
+        document.getElementById('compToggle').checked = tempPage2.comprehension.enabled;
+        document.getElementById('findSoundToggle').checked = tempPage2.findSound.enabled;
+        document.getElementById('sentenceToggle').checked = tempPage2.sentenceWriting.enabled;
+        document.getElementById('findSoundInstruction').value = tempPage2.findSound.instruction;
+        document.getElementById('sentenceInstruction').value = tempPage2.sentenceWriting.instruction;
+        document.getElementById('sentenceLines').value = tempPage2.sentenceWriting.numberOfLines;
+        document.getElementById('imagePageToggle').checked = tempShowImagePage;
+
+        renderQuestionList();
       }
+
       function resetForm() {
         editingId = null;
         document.getElementById('formTitle').innerHTML = '<span class="dot"></span> Add New Reader';
@@ -530,19 +792,169 @@
         document.getElementById('fLessonNumber').value = lessons.length + 1;
         document.getElementById('fImageUrl').value = '';
         document.getElementById('fImageLabel').value = DEFAULT_IMAGE_LABEL;
+        document.getElementById('fImagePageLabel').value = DEFAULT_IMAGE_PAGE_LABEL;
         document.getElementById('fTargetSound').value = '';
         document.getElementById('fStory').value = '';
         updateImagePreview('');
-        for (let i=1; i<=3; i++) {
-          document.getElementById('fQ'+i).value = '';
-          document.getElementById('fQ'+i+'O1').value = '';
-          document.getElementById('fQ'+i+'O2').value = '';
-          document.getElementById('fQ'+i+'O3').value = '';
-        }
+
+        tempPage2 = getDefaultPage2();
+        tempShowImagePage = false;
+        tempImagePageLabel = DEFAULT_IMAGE_PAGE_LABEL;
+
+        document.getElementById('compToggle').checked = true;
+        document.getElementById('findSoundToggle').checked = true;
+        document.getElementById('sentenceToggle').checked = true;
+        document.getElementById('findSoundInstruction').value = tempPage2.findSound.instruction;
+        document.getElementById('sentenceInstruction').value = tempPage2.sentenceWriting.instruction;
+        document.getElementById('sentenceLines').value = 1;
+        document.getElementById('imagePageToggle').checked = false;
+
+        renderQuestionList();
+
         document.getElementById('saveBtn').textContent = '💾 Save Lesson';
         document.getElementById('cancelBtn').style.display = 'none';
       }
 
+      function renderQuestionList() {
+        const container = document.getElementById('compQuestionsContainer');
+        if (!container) return;
+        if (!tempPage2 || !tempPage2.comprehension) return;
+        const questions = tempPage2.comprehension.questions;
+        let html = '';
+        questions.forEach((q, idx) => {
+          html += `<div class="question-card" data-index="${idx}">
+            <div class="q-header">
+              <span class="q-title">Question ${idx+1}</span>
+              <div class="q-controls">
+                <button class="btn btn-outline btn-xs" onclick="moveQuestion(${idx}, -1)" ${idx === 0 ? 'disabled' : ''} title="Move up">▲</button>
+                <button class="btn btn-outline btn-xs" onclick="moveQuestion(${idx}, 1)" ${idx === questions.length-1 ? 'disabled' : ''} title="Move down">▼</button>
+                <button class="btn btn-danger btn-xs" onclick="deleteQuestion(${idx})" title="Delete">🗑️</button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Type</label>
+              <select onchange="changeQuestionType(${idx}, this.value)">
+                <option value="objective" ${q.type === 'objective' ? 'selected' : ''}>Objective (Multiple Choice)</option>
+                <option value="theory" ${q.type === 'theory' ? 'selected' : ''}>Theory (Open Ended)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Question Text</label>
+              <input type="text" value="${escapeHtml(q.question)}" onchange="updateQuestionText(${idx}, this.value)">
+            </div>`;
+          if (q.type === 'objective') {
+            html += `<div class="form-group">
+              <label>Options (2-5)</label>`;
+            q.options.forEach((opt, optIdx) => {
+              html += `<div class="option-row">
+                <input type="text" value="${escapeHtml(opt)}" placeholder="Option ${optIdx+1}" onchange="updateOption(${idx}, ${optIdx}, this.value)">
+                <button class="btn btn-danger btn-xs" onclick="deleteOption(${idx}, ${optIdx})" ${q.options.length <= 2 ? 'disabled' : ''}>✕</button>
+              </div>`;
+            });
+            html += `<button class="btn btn-outline btn-xs add-option-btn" onclick="addOption(${idx})" ${q.options.length >= MAX_OPTIONS ? 'disabled' : ''}>+ Add Option</button>
+            </div>`;
+          }
+          html += `</div>`;
+        });
+        if (questions.length === 0) {
+          html = '<p style="color:#94a3b8; text-align:center; padding:12px;">No questions yet. Click "Add Question" to create.</p>';
+        }
+        container.innerHTML = html;
+      }
+
+      window.addQuestion = function() {
+        if (!tempPage2) return;
+        tempPage2.comprehension.questions.push({
+          id: generateQuestionId(),
+          type: 'objective',
+          question: '',
+          options: ['', '', '']
+        });
+        renderQuestionList();
+      };
+      window.deleteQuestion = function(idx) {
+        if (!tempPage2) return;
+        tempPage2.comprehension.questions.splice(idx, 1);
+        renderQuestionList();
+      };
+      window.moveQuestion = function(idx, dir) {
+        if (!tempPage2) return;
+        const arr = tempPage2.comprehension.questions;
+        const newIdx = idx + dir;
+        if (newIdx < 0 || newIdx >= arr.length) return;
+        const temp = arr[idx];
+        arr[idx] = arr[newIdx];
+        arr[newIdx] = temp;
+        renderQuestionList();
+      };
+      window.changeQuestionType = function(idx, type) {
+        if (!tempPage2) return;
+        const q = tempPage2.comprehension.questions[idx];
+        if (!q) return;
+        q.type = type;
+        if (type === 'objective' && !q.options) {
+          q.options = ['', '', ''];
+        } else if (type === 'theory') {
+          delete q.options;
+        }
+        renderQuestionList();
+      };
+      window.updateQuestionText = function(idx, value) {
+        if (!tempPage2) return;
+        const q = tempPage2.comprehension.questions[idx];
+        if (!q) return;
+        q.question = value.trim();
+      };
+      window.updateOption = function(qIdx, optIdx, value) {
+        if (!tempPage2) return;
+        const q = tempPage2.comprehension.questions[qIdx];
+        if (!q || !q.options) return;
+        q.options[optIdx] = value.trim();
+        renderQuestionList();
+      };
+      window.addOption = function(qIdx) {
+        if (!tempPage2) return;
+        const q = tempPage2.comprehension.questions[qIdx];
+        if (!q || !q.options) return;
+        if (q.options.length < MAX_OPTIONS) {
+          q.options.push('');
+          renderQuestionList();
+        }
+      };
+      window.deleteOption = function(qIdx, optIdx) {
+        if (!tempPage2) return;
+        const q = tempPage2.comprehension.questions[qIdx];
+        if (!q || !q.options) return;
+        if (q.options.length > 2) {
+          q.options.splice(optIdx, 1);
+          renderQuestionList();
+        }
+      };
+
+      window.toggleSection = function(section, checked) {
+        if (!tempPage2) return;
+        if (section === 'comp') tempPage2.comprehension.enabled = checked;
+        else if (section === 'findSound') tempPage2.findSound.enabled = checked;
+        else if (section === 'sentence') tempPage2.sentenceWriting.enabled = checked;
+        renderQuestionList();
+      };
+      window.updateFindSoundInstruction = function(value) {
+        if (!tempPage2) return;
+        tempPage2.findSound.instruction = value;
+      };
+      window.updateSentenceInstruction = function(value) {
+        if (!tempPage2) return;
+        tempPage2.sentenceWriting.instruction = value;
+      };
+      window.updateSentenceLines = function(value) {
+        if (!tempPage2) return;
+        tempPage2.sentenceWriting.numberOfLines = parseInt(value) || 1;
+      };
+      window.toggleImagePage = function(checked) {
+        tempShowImagePage = checked;
+      };
+
+      // ---------- Save / Edit / Delete etc ----------
       window.handleImageUpload = function(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -570,8 +982,8 @@
       window.cancelEdit = function() { resetForm(); showToast('Edit cancelled.', 'info'); };
       window.saveLesson = function() {
         const data = getFormData();
-        if (!data.title || !data.targetSound || data.storyLines.length < 5 || data.comprehension.length < 3) {
-          return showToast('Please fill all required fields.', 'error');
+        if (!data.title || !data.targetSound || data.storyLines.length < 5 || data.page2.comprehension.questions.length === 0) {
+          return showToast('Please fill all required fields (title, target sound, at least 5 story lines, and at least 1 comprehension question).', 'error');
         }
         if (editingId) {
           const idx = lessons.findIndex(l => l.id === editingId);
@@ -616,15 +1028,18 @@
             const data = JSON.parse(e.target.result);
             if (!data || typeof data !== 'object') throw new Error('Invalid');
             const importedLessons = Array.isArray(data.lessons) ? data.lessons : [];
-            const validated = importedLessons.map(l => ({
+            const validated = importedLessons.map(l => migrateLesson({
               id: String(l.id || ''),
               lessonNumber: typeof l.lessonNumber === 'number' ? l.lessonNumber : 0,
               imageUrl: String(l.imageUrl || ''),
               title: String(l.title || 'Untitled'),
               targetSound: String(l.targetSound || ''),
               imageLabel: String(l.imageLabel ?? DEFAULT_IMAGE_LABEL),
+              imagePageLabel: String(l.imagePageLabel ?? DEFAULT_IMAGE_PAGE_LABEL),
               storyLines: (Array.isArray(l.storyLines) ? l.storyLines : []).map(sl => ({ sentence: String(sl.sentence || '') })).filter(sl => sl.sentence.trim() !== ''),
-              comprehension: (Array.isArray(l.comprehension) ? l.comprehension : []).map(q => ({ question: String(q.question || ''), options: Array.isArray(q.options) ? q.options.slice(0,3).map(String) : ['','',''] })).filter(q => q.question.trim() !== '')
+              comprehension: Array.isArray(l.comprehension) ? l.comprehension : [],
+              showImagePage: typeof l.showImagePage === 'boolean' ? l.showImagePage : false,
+              page2: l.page2
             })).filter(l => l.id);
             if (validated.length === 0) throw new Error('No valid lessons');
             confirmDialog('Replace all lessons with imported data?', () => {
@@ -657,13 +1072,13 @@
       function renderEditList() {
         const container = document.getElementById('lessonList');
         const q = (window.searchQuery||'').toLowerCase();
-        const filtered = lessons.filter(l => !q || l.title.toLowerCase().includes(q) || l.targetSound.toLowerCase().includes(q) || l.storyLines.some(sl => sl.sentence.toLowerCase().includes(q)) || l.comprehension.some(c => c.question.toLowerCase().includes(q) || c.options.some(o => o.toLowerCase().includes(q))));
+        const filtered = lessons.filter(l => !q || l.title.toLowerCase().includes(q) || l.targetSound.toLowerCase().includes(q) || l.storyLines.some(sl => sl.sentence.toLowerCase().includes(q)) || (l.page2?.comprehension?.questions || []).some(c => c.question.toLowerCase().includes(q) || (c.options || []).some(o => o.toLowerCase().includes(q))));
         container.innerHTML = filtered.length ? filtered.map(l => `
           <div class="lesson-item" draggable="true" data-id="${l.id}">
             <span class="drag-handle" title="Drag to reorder">⋮⋮</span>
             <div class="info">
               <div class="title">Lesson ${l.lessonNumber} — ${escapeHtml(l.title)}</div>
-              <div class="sub">🎯 ${escapeHtml(l.targetSound)} · 📝 ${l.storyLines.length} lines · 🏫 Grade ${escapeHtml(bookMeta.grade)} · 🖼️ ${escapeHtml(l.imageLabel || DEFAULT_IMAGE_LABEL)}</div>
+              <div class="sub">🎯 ${escapeHtml(l.targetSound)} · 📝 ${l.storyLines.length} lines · 🏫 Grade ${escapeHtml(bookMeta.grade)} · 🖼️ ${escapeHtml(l.imageLabel || DEFAULT_IMAGE_LABEL)} · 📚 ${l.page2?.comprehension?.questions?.length || 0} questions ${l.showImagePage ? '· 🖼️ Image Page' : ''}</div>
             </div>
             <div class="actions">
               <button class="btn btn-primary btn-xs" onclick="editLesson('${l.id}')" title="Edit">✏️</button>
@@ -678,7 +1093,10 @@
         document.getElementById('lessonCount').textContent = lessons.length + ' lessons';
         const activeLessons = lessons.filter(l => l.title.trim());
         const tocPages = (bookMeta.showToc && activeLessons.length) ? Math.ceil(activeLessons.length / MAX_TOC_PER_PAGE) : 0;
-        const lessonPages = activeLessons.length * 2;
+        let lessonPages = 0;
+        activeLessons.forEach(l => {
+          lessonPages += l.showImagePage ? 3 : 2;
+        });
         const totalPages = 1 + tocPages + lessonPages;
         document.getElementById('viewInfo').textContent = `📄 ${lessons.length} lessons · ${totalPages} pages (Grade ${bookMeta.grade})`;
       }
@@ -702,7 +1120,7 @@
         let html = '<ul style="list-style:none;padding:0;margin:0;">';
         activeLessons.forEach(l => {
           html += `<li style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #e2e8f0;"><span>Lesson ${l.lessonNumber}: ${escapeHtml(l.title)}</span><span style="color:#b91c1c;font-weight:700;">Page ${runningPage}</span></li>`;
-          runningPage += 2;
+          runningPage += l.showImagePage ? 3 : 2;
         });
         html += '</ul>';
         tocPreview.innerHTML = html;
@@ -723,7 +1141,9 @@
         updateCounts();
       };
 
+      // ---------- Initialization ----------
       loadData();
+
       document.getElementById('app').innerHTML = `
         <div class="app-header"><h1><span class="icon">📖</span> Decodable Reader Publisher</h1><span class="badge" id="lessonCount">0</span></div>
         <div class="tabs">
@@ -748,19 +1168,43 @@
                 </div>
               </div>
               <div class="form-group"><label>Image Label (overlay on image)</label><input id="fImageLabel" placeholder="e.g. Let's read together!" value="${escapeHtml(DEFAULT_IMAGE_LABEL)}"></div>
+              <div class="form-group"><label>Full-Page Image Label (overlay on image page)</label><input id="fImagePageLabel" placeholder="e.g. Picture Page" value="${escapeHtml(DEFAULT_IMAGE_PAGE_LABEL)}"></div>
               <div class="form-group"><label>Target Sound <span class="req">*</span></label><input id="fTargetSound" placeholder="short e (/ɛ/)"></div>
               <div class="form-group"><label>Story Text <span class="req">*</span></label><textarea id="fStory" rows="8" placeholder="One sentence per line..."></textarea></div>
+              <div class="form-group" style="display:flex;align-items:center;gap:10px;margin-top:16px;">
+                <input type="checkbox" id="imagePageToggle" onchange="toggleImagePage(this.checked)" style="width:18px;height:18px;accent-color:#f59e0b;">
+                <label for="imagePageToggle" style="margin:0;font-weight:600;">Include full-page image placeholder before reading page</label>
+              </div>
               <hr style="margin:16px 0;border-color:#e2e8f0;">
-              <h4 style="margin-bottom:12px;">📋 Comprehension (3 required)</h4>
-              ${[1,2,3].map(i => `
-                <div style="background:#fff;padding:12px;border-radius:10px;border:1px solid #e2e8f0;margin-bottom:10px;">
-                  <div class="form-group"><label>Question ${i} <span class="req">*</span></label><input id="fQ${i}" placeholder="Question"></div>
-                  <div class="form-row">
-                    <div class="form-group"><label>Option A</label><input id="fQ${i}O1"></div>
-                    <div class="form-group"><label>Option B</label><input id="fQ${i}O2"></div>
-                    <div class="form-group"><label>Option C</label><input id="fQ${i}O3"></div>
-                  </div>
-                </div>`).join('')}
+              <h4 style="margin-bottom:12px;">📋 Page 2 Activities</h4>
+              <div class="form-group" style="display:flex;align-items:center;gap:10px;">
+                <input type="checkbox" id="compToggle" onchange="toggleSection('comp', this.checked)" style="width:18px;height:18px;accent-color:#f59e0b;">
+                <label for="compToggle" style="margin:0;font-weight:600;">Comprehension Section</label>
+              </div>
+              <div id="compQuestionsContainer" style="margin-bottom:16px;"></div>
+              <button class="btn btn-outline btn-sm" onclick="addQuestion()">+ Add Question</button>
+              <hr style="margin:16px 0;border-color:#e2e8f0;">
+              <div class="form-group" style="display:flex;align-items:center;gap:10px;">
+                <input type="checkbox" id="findSoundToggle" onchange="toggleSection('findSound', this.checked)" style="width:18px;height:18px;accent-color:#f59e0b;">
+                <label for="findSoundToggle" style="margin:0;font-weight:600;">Find Sound Section</label>
+              </div>
+              <div class="form-group">
+                <label>Find Sound Instruction</label>
+                <textarea id="findSoundInstruction" rows="2" onchange="updateFindSoundInstruction(this.value)"></textarea>
+              </div>
+              <hr style="margin:16px 0;border-color:#e2e8f0;">
+              <div class="form-group" style="display:flex;align-items:center;gap:10px;">
+                <input type="checkbox" id="sentenceToggle" onchange="toggleSection('sentence', this.checked)" style="width:18px;height:18px;accent-color:#f59e0b;">
+                <label for="sentenceToggle" style="margin:0;font-weight:600;">Sentence Writing Section</label>
+              </div>
+              <div class="form-group">
+                <label>Sentence Writing Instruction</label>
+                <textarea id="sentenceInstruction" rows="2" onchange="updateSentenceInstruction(this.value)"></textarea>
+              </div>
+              <div class="form-group">
+                <label>Number of Lines</label>
+                <input type="number" id="sentenceLines" min="1" max="10" value="1" onchange="updateSentenceLines(this.value)">
+              </div>
               <div class="form-actions">
                 <button class="btn btn-primary" id="saveBtn" onclick="saveLesson()">💾 Save Lesson</button>
                 <button class="btn btn-outline" id="cancelBtn" onclick="cancelEdit()" style="display:none">Cancel</button>
@@ -813,7 +1257,6 @@
       updateCounts();
       renderTocPreview();
 
-      // Drag-and-drop reorder
       const list = document.getElementById('lessonList');
       list.addEventListener('dragstart', e => {
         const item = e.target.closest('.lesson-item');
