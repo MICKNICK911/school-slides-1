@@ -701,6 +701,44 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         }
     };
 
+    // NEW: Inline font size handler
+    window.execInlineSize = function (prefix) {
+        const editor = (prefix === 'active') ? document.getElementById('activeText') : document.getElementById('editText');
+        if (!editor) return;
+        const sizeInput = document.getElementById(prefix + 'InlineSize');
+        const size = sizeInput ? parseInt(sizeInput.value) : 18;
+        if (!size || size < 1) return showToast('Invalid size', 'error');
+
+        editor.focus();
+        const selection = window.getSelection();
+        if (!selection.rangeCount || selection.isCollapsed) {
+            return showToast('Select text first', 'warning');
+        }
+        const range = selection.getRangeAt(0);
+        const selectedHtml = range.extractContents();
+        const span = document.createElement('span');
+        span.style.fontSize = size + 'px';
+        span.appendChild(selectedHtml);
+        range.insertNode(span);
+        selection.removeAllRanges();
+
+        if (prefix === 'active') {
+            window.activeText = sanitizeHTML(editor.innerHTML);
+            window.activeRichText = true;
+            updatePreview('active');
+        } else if (prefix === 'edit' && editingBlockIdx !== null) {
+            const page = getCurrentPage();
+            if (page && page.blocks[editingBlockIdx]) {
+                pushHistory();
+                page.blocks[editingBlockIdx].text = sanitizeHTML(editor.innerHTML);
+                page.blocks[editingBlockIdx].richText = true;
+                save();
+                updatePreview('edit');
+                renderView();
+            }
+        }
+    };
+
     window.applyList = function (prefix, type) {
         let editor;
         if (prefix === 'active') editor = document.getElementById('activeText');
@@ -819,6 +857,12 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
                 <input type="color" id="${prefix}InlineColor" value="${escapeStyle(state.color)}" style="width:28px;height:28px;border:none;padding:0;background:none;cursor:pointer;">
                 <button type="button" class="fmt-btn" title="Apply color to selection" onclick="execInline('${prefix}','foreColor', document.getElementById('${prefix}InlineColor').value)">
                     <span style="display:inline-block;width:16px;height:16px;border-radius:3px;border:1px solid #ccc;background:${escapeStyle(state.color)};"></span>
+                </button>
+                <div class="sep"></div>
+                <label>Inline Size</label>
+                <input type="number" id="${prefix}InlineSize" value="18" min="1" style="width:50px;padding:4px 6px;border:1px solid #ced4da;border-radius:6px;font-size:12px;">
+                <button type="button" class="fmt-btn" title="Apply font size to selection" onclick="execInlineSize('${prefix}')">
+                    <span style="font-size:12px;">Aa</span>
                 </button>
             </div>
             <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;">

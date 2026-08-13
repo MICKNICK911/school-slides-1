@@ -170,6 +170,25 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
 }
 .block .trace-set .trace-letters.outlined { color: transparent; -webkit-text-stroke: 1.3px #868e96; }
 
+/* Trace text positioning – sits exactly on second blue line */
+.block .trace-set .trace-letters {
+    top: 33.333%;
+    bottom: 33.333%;
+    left: 0;
+    right: 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 12px;
+    font-size: 36px;
+}
+@media screen and (max-width: 768px) {
+    .block .trace-set .trace-letters {
+        font-size: 24px;
+        gap: 8px;
+    }
+}
+
 .block .inner-table { width: 100%; height: 100%; display: grid; gap: 0; box-sizing: border-box; }
 .block .inner-table .it-cell {
     display: flex; align-items: center; justify-content: center; text-align: center;
@@ -217,26 +236,6 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
 .lesson-item .title { font-weight: 700; font-size: 14px; }
 .lesson-item .sub { font-size: 12px; color: #6c757d; }
 .lesson-item .actions { display: flex; gap: 4px; }
-.block .trace-set .trace-letters {
-    top: 33.333%;
-    bottom: 33.333%;
-    left: 0;
-    right: 0;
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-    font-size: 36px;
-    gap: 12px;
-}
-
-@media screen and (max-width: 768px) {
-    .block .trace-set .trace-letters {
-        font-size: 24px;
-        gap: 8px;
-    }
-}
-
-
 </style>
 </head>
 <body>
@@ -462,7 +461,7 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
                         }
                     }
                     if (nb.type === 'text') {
-                        nb.fontSize = Math.min(72, Math.max(10, parseInt(nb.fontSize) || 18));
+                        nb.fontSize = Math.max(1, parseInt(nb.fontSize) || 18);
                         nb.color = nb.color || '#1a1a1a';
                         nb.textAlign = nb.textAlign || 'center';
                         nb.verticalAlign = nb.verticalAlign || 'center';
@@ -702,6 +701,44 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         }
     };
 
+    // NEW: Inline font size handler
+    window.execInlineSize = function (prefix) {
+        const editor = (prefix === 'active') ? document.getElementById('activeText') : document.getElementById('editText');
+        if (!editor) return;
+        const sizeInput = document.getElementById(prefix + 'InlineSize');
+        const size = sizeInput ? parseInt(sizeInput.value) : 18;
+        if (!size || size < 1) return showToast('Invalid size', 'error');
+
+        editor.focus();
+        const selection = window.getSelection();
+        if (!selection.rangeCount || selection.isCollapsed) {
+            return showToast('Select text first', 'warning');
+        }
+        const range = selection.getRangeAt(0);
+        const selectedHtml = range.extractContents();
+        const span = document.createElement('span');
+        span.style.fontSize = size + 'px';
+        span.appendChild(selectedHtml);
+        range.insertNode(span);
+        selection.removeAllRanges();
+
+        if (prefix === 'active') {
+            window.activeText = sanitizeHTML(editor.innerHTML);
+            window.activeRichText = true;
+            updatePreview('active');
+        } else if (prefix === 'edit' && editingBlockIdx !== null) {
+            const page = getCurrentPage();
+            if (page && page.blocks[editingBlockIdx]) {
+                pushHistory();
+                page.blocks[editingBlockIdx].text = sanitizeHTML(editor.innerHTML);
+                page.blocks[editingBlockIdx].richText = true;
+                save();
+                updatePreview('edit');
+                renderView();
+            }
+        }
+    };
+
     window.applyList = function (prefix, type) {
         let editor;
         if (prefix === 'active') editor = document.getElementById('activeText');
@@ -727,7 +764,7 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
 
     window.updateFmtValue = function (prefix, prop, value) {
         if (prefix === 'active') {
-            if (prop === 'fontSize') window.activeFontSize = Math.min(72, Math.max(10, parseInt(value) || 18));
+            if (prop === 'fontSize') window.activeFontSize = Math.max(1, parseInt(value) || 18);
             if (prop === 'color') window.activeColor = value;
             updatePreview('active');
         } else if (prefix === 'edit' && editingBlockIdx !== null) {
@@ -736,7 +773,7 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
             const b = page.blocks[editingBlockIdx];
             if (!b || b.type !== 'text') return;
             pushHistory();
-            if (prop === 'fontSize') b.fontSize = Math.min(72, Math.max(10, parseInt(value) || 18));
+            if (prop === 'fontSize') b.fontSize = Math.max(1, parseInt(value) || 18);
             if (prop === 'color') b.color = value;
             save();
             updatePreview('edit');
@@ -811,10 +848,22 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
                 <button type="button" class="fmt-btn" title="Numbered list" onclick="applyList('${prefix}','ol')">1.</button>
                 <div class="sep"></div>
                 <label>Size</label>
-                <input type="number" id="${prefix}FontSize" value="${state.fontSize}" min="10" max="72" style="width:56px;padding:4px 6px;border:1px solid #ced4da;border-radius:6px;font-size:12px;" onchange="updateFmtValue('${prefix}','fontSize',this.value)">
+                <input type="number" id="${prefix}FontSize" value="${state.fontSize}" min="1" style="width:56px;padding:4px 6px;border:1px solid #ced4da;border-radius:6px;font-size:12px;" onchange="updateFmtValue('${prefix}','fontSize',this.value)">
                 <div class="sep"></div>
-                <label>Color</label>
+                <label>Block Color</label>
                 <input type="color" id="${prefix}Color" value="${escapeStyle(state.color)}" onchange="updateFmtValue('${prefix}','color',this.value)">
+                <div class="sep"></div>
+                <label>Inline Color</label>
+                <input type="color" id="${prefix}InlineColor" value="${escapeStyle(state.color)}" style="width:28px;height:28px;border:none;padding:0;background:none;cursor:pointer;">
+                <button type="button" class="fmt-btn" title="Apply color to selection" onclick="execInline('${prefix}','foreColor', document.getElementById('${prefix}InlineColor').value)">
+                    <span style="display:inline-block;width:16px;height:16px;border-radius:3px;border:1px solid #ccc;background:${escapeStyle(state.color)};"></span>
+                </button>
+                <div class="sep"></div>
+                <label>Inline Size</label>
+                <input type="number" id="${prefix}InlineSize" value="18" min="1" style="width:50px;padding:4px 6px;border:1px solid #ced4da;border-radius:6px;font-size:12px;">
+                <button type="button" class="fmt-btn" title="Apply font size to selection" onclick="execInlineSize('${prefix}')">
+                    <span style="font-size:12px;">Aa</span>
+                </button>
             </div>
             <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;">
                 <div>
@@ -1499,7 +1548,7 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
             window.activeRichText = true;
         }
         const fs = document.getElementById('activeFontSize');
-        if (fs) window.activeFontSize = Math.min(72, Math.max(10, parseInt(fs.value) || 18));
+        if (fs) window.activeFontSize = Math.max(1, parseInt(fs.value) || 18);
         const col = document.getElementById('activeColor');
         if (col) window.activeColor = col.value;
         const br = document.getElementById('activeBorder');
@@ -2103,6 +2152,64 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
         });
     };
 
+    // Duplicate current page
+    window.duplicatePage = function () {
+        const lesson = getCurrentLesson();
+        if (!lesson) return;
+        const currentPage = lesson.pages[currentPageIndex];
+        if (!currentPage) return;
+
+        const newPage = JSON.parse(JSON.stringify({
+            title: currentPage.title,
+            subtitle: currentPage.subtitle,
+            lessonNumber: currentPage.lessonNumber + 1,
+            locked: false,
+            blocks: currentPage.blocks,
+            usedCells: [],
+            worksheetEnabled: currentPage.worksheetEnabled,
+            worksheetCount: currentPage.worksheetCount
+        }));
+        rebuildUsedCells(newPage);
+        lesson.pages.splice(currentPageIndex + 1, 0, newPage);
+        currentPageIndex = currentPageIndex + 1;
+        history = []; historyIndex = -1;
+        editingBlockIdx = null;
+        tableSel = new Set();
+        if (_editTextHistoryTimer) { clearTimeout(_editTextHistoryTimer); _editTextHistoryTimer = null; }
+        resetActive();
+        save().then(() => {
+            pushHistory();
+            renderAll();
+            switchTab('edit');
+            showToast('Page duplicated', 'success');
+        });
+    };
+
+    // Delete current page
+    window.deletePage = function () {
+        const lesson = getCurrentLesson();
+        if (!lesson) return;
+        if (lesson.pages.length <= 1) {
+            showToast('Cannot delete the only page', 'warning');
+            return;
+        }
+        if (!confirm('Delete current page? This cannot be undone.')) return;
+        if (_editTextHistoryTimer) { clearTimeout(_editTextHistoryTimer); _editTextHistoryTimer = null; }
+        lesson.pages.splice(currentPageIndex, 1);
+        if (currentPageIndex >= lesson.pages.length) {
+            currentPageIndex = lesson.pages.length - 1;
+        }
+        history = []; historyIndex = -1;
+        editingBlockIdx = null;
+        tableSel = new Set();
+        resetActive();
+        save().then(() => {
+            pushHistory();
+            renderAll();
+            showToast('Page deleted', 'info');
+        });
+    };
+
     // ========== TABS & INIT ==========
     window.switchTab = function (tab) {
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
@@ -2153,6 +2260,8 @@ body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f0f2f
                     <label style="font-weight:700;font-size:13px;">Current page:</label>
                     <select id="pageSelect" onchange="changePage(this.value)" style="padding:7px 12px;border:2px solid #dee2e6;border-radius:8px;font-size:13px;"></select>
                     <button type="button" class="btn btn-outline btn-sm" onclick="addPage()">＋ Add Page</button>
+                    <button type="button" class="btn btn-outline btn-sm" onclick="duplicatePage()">⧉ Duplicate Page</button>
+                    <button type="button" class="btn btn-outline btn-sm" onclick="deletePage()" id="btnDeletePage">🗑 Delete Page</button>
                 </div>
                 <div id="editorArea"></div>
             </div>
