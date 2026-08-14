@@ -70,14 +70,6 @@
         .image-upload-wrap .preview { width: 56px; height: 56px; border-radius: 8px; object-fit: cover; border: 2px solid #dee2e6; }
         .image-upload-wrap .preview-ph { width: 56px; height: 56px; border-radius: 8px; border: 2px dashed #dee2e6; display: flex; align-items: center; justify-content: center; font-size: 22px; color: #adb5bd; background: #f8f9fa; }
 
-        /* Custom boxes form card */
-        .custom-box-card { background: #fff; border: 2px solid #e9ecef; border-radius: 12px; padding: 10px; margin-bottom: 8px; }
-        .custom-box-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
-        .custom-box-header .custom-box-title { font-weight: 700; font-size: 13px; flex: 1; }
-        .custom-box-header input[type="checkbox"] { width: 18px; height: 18px; accent-color: #F5A623; cursor: pointer; }
-        .custom-box-card textarea { width: 100%; min-height: 60px; border: 2px solid #dee2e6; border-radius: 8px; padding: 6px; font-size: 13px; font-family: inherit; }
-        .custom-box-actions { display: flex; gap: 4px; justify-content: flex-end; }
-
         /* Section Builder Styles */
         .section-builder-item { background: #fff; border: 2px solid #dee2e6; border-radius: 12px; padding: 12px; margin-bottom: 10px; }
         .section-builder-item .sb-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
@@ -214,11 +206,44 @@
             .view-container .section-header .circle, .custom-text-box, .cvc-intro-box { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
         }
 
-        /* Thumbnail styles */
-        .thumbnail-wrapper { margin-bottom: 16px; }
-        .thumbnail-wrapper .thumb-label { font-size: 13px; font-weight: 700; margin-bottom: 6px; color: #495057; }
-        .thumbnail-container { width: 255px; height: 324px; border: 2px solid #dee2e6; border-radius: 8px; overflow: hidden; background: #fff; position: relative; }
-        .thumbnail-container .page { transform: scale(0.3); transform-origin: top left; position: absolute; top: 0; left: 0; }
+        /* Thumbnail styles - centered */
+        .thumbnail-wrapper {
+            margin-bottom: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .thumbnail-wrapper .thumb-label {
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            color: #495057;
+            text-align: center;
+        }
+        .thumbnail-container {
+            width: 255px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #fff;
+            position: relative;
+            /* height set dynamically */
+        }
+        .thumbnail-container .page {
+            transform: scale(0.3);
+            transform-origin: top left;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 850px;
+            min-width: 850px;
+            min-height: 1080px;
+            padding: 24px 32px;
+            margin: 0;
+            border-radius: 0;
+            box-shadow: none;
+            page-break-after: auto;
+        }
     </style>
 </head>
 <body>
@@ -628,17 +653,25 @@
             function renderThumbnail() {
                 const container = document.getElementById('thumbnailContainer');
                 if (!container) return;
+
                 const mainTitle = document.getElementById('fMainTitle')?.value || 'Untitled';
                 const subtitle = document.getElementById('fSubtitle')?.value || 'SHORT VOWEL';
                 const lessonNumber = parseInt(document.getElementById('fLessonNumber')?.value) || 1;
+
                 const tempLesson = {
                     mainTitle,
                     subtitle,
                     lessonNumber,
                     sections: JSON.parse(JSON.stringify(tempSections))
                 };
+
+                // Build the full lesson page
                 const pageEl = buildLessonPage(tempLesson, 1);
-                pageEl.classList.add('page-thumb');
+
+                // Remove export button/page-actions from thumbnail only
+                pageEl.querySelector('.page-actions')?.remove();
+
+                // Apply thumbnail-specific styles
                 pageEl.style.transform = 'scale(0.3)';
                 pageEl.style.transformOrigin = 'top left';
                 pageEl.style.position = 'absolute';
@@ -652,8 +685,15 @@
                 pageEl.style.borderRadius = '0';
                 pageEl.style.boxShadow = 'none';
                 pageEl.style.pageBreakAfter = 'auto';
+
+                // Clear and append
                 container.innerHTML = '';
                 container.appendChild(pageEl);
+
+                // Adjust container height to show the entire page (including page number)
+                const actualHeight = pageEl.offsetHeight;
+                const scale = 0.3;
+                container.style.height = (actualHeight * scale) + 'px';
             }
 
             // ---------- Build View Page ----------
