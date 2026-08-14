@@ -129,10 +129,8 @@
         .custom-text-box p { margin: 0; font-size: 13px; line-height: 1.4; color: #1a1a1a; font-weight: 500; }
         .custom-text-box .highlight { color: #E2571C; font-weight: 700; }
 
-        .word-grid { display: grid; grid-template-columns: repeat(4, 1fr); border: 2px solid #E2571C; border-radius: 10px; overflow: hidden; background: #fff; }
+        .word-grid { display: grid; border: 2px solid #E2571C; border-radius: 10px; overflow: hidden; background: #fff; }
         .word-cell { border-right: 1px solid #f0c9a8; border-bottom: 1px solid #f0c9a8; padding: 9px 4px; text-align: center; font-size: 23px; font-weight: 600; color: #1a1a1a; min-height: 40px; display: flex; align-items: center; justify-content: center; background: #fff; }
-        .word-cell:nth-child(4n) { border-right: none; }
-        .word-cell:nth-last-child(-n+4) { border-bottom: none; }
         .word-cell.empty { background: #faf7f4; color: transparent; }
 
         .act-box { border: 2px solid #E2571C; border-radius: 12px; padding: 12px 16px; background: #fff; }
@@ -140,8 +138,8 @@
         .act-box .sentence { font-size: 17px; font-weight: 600; color: #E2571C; margin: 3px 0; line-height: 1.35; }
 
         .fill-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-        .fill-item { border: 2px solid #F5A623; border-radius: 10px; padding: 8px 6px; text-align: center; font-size: 21px; font-weight: 700; color: #E2571C; background: #fffaf0; display: flex; align-items: center; justify-content: center; gap: 2px; min-height: 42px; }
-        .fill-item .blank-sq { display: inline-block; width: 22px; height: 26px; border: 2px solid #1a1a1a; border-radius: 4px; background: #fff; vertical-align: middle; }
+        .fill-item { border: 2px solid #F5A623; border-radius: 10px; padding: 10px 8px; text-align: center; font-size: 24px; font-weight: 700; color: #E2571C; background: #fffaf0; display: flex; align-items: center; justify-content: center; gap: 2px; min-height: 48px; overflow: hidden; word-break: break-word; }
+        .fill-item .blank-sq { display: inline-block; width: 24px; height: 30px; border: 2px solid #1a1a1a; border-radius: 4px; background: #fff; vertical-align: middle; }
 
         .sent-lines { margin-top: 4px; }
         .sent-line { border-bottom: 1.5px solid #999; padding: 12px 0 4px; font-size: 14px; color: #666; font-weight: 600; }
@@ -313,7 +311,7 @@
                 tile: { label: 'Letter/Image Tile', defaultWidth: 'full', fields: ['tileMode','letterTile','letterFontSize','imagePath','imageCaption'] },
                 introText: { label: 'Intro Text', defaultWidth: 'full', fields: ['text'] },
                 instruction: { label: 'Instruction', defaultWidth: 'full', fields: ['text'] },
-                wordGrid: { label: 'Word Grid', defaultWidth: 'full', fields: ['words'] },
+                wordGrid: { label: 'Word Grid', defaultWidth: 'full', fields: ['words','columns','rows'] },
                 decodable: { label: 'Decodable Reading', defaultWidth: 'full', fields: ['instruction','sentences'] },
                 fillBlanks: { label: 'Fill-in-Blanks', defaultWidth: 'full', fields: ['title','items'] },
                 sentenceWriting: { label: 'Sentence Writing', defaultWidth: 'full', fields: ['title','lines'] },
@@ -330,19 +328,17 @@
                     case 'tile':
                         return { ...base, tileMode: 'letter', letterTile: 'Aa', letterFontSize: 56, imagePath: '', imageCaption: "TODAY'S SOUND" };
                     case 'introText':
-                        return { ...base, text: '' };
                     case 'instruction':
+                    case 'customText':
                         return { ...base, text: '' };
                     case 'wordGrid':
-                        return { ...base, words: [] };
+                        return { ...base, words: [], columns: 4, rows: 3 };
                     case 'decodable':
                         return { ...base, instruction: 'Read ALOUD and circle all words with the target sound', sentences: [] };
                     case 'fillBlanks':
                         return { ...base, title: 'A. Fill in the missing letters and say the word', items: [] };
                     case 'sentenceWriting':
                         return { ...base, title: 'C. Choose any word and form 2 sentences', lines: 2 };
-                    case 'customText':
-                        return { ...base, text: '' };
                     case 'writingLines':
                         return { ...base, fillRemaining: true };
                     default:
@@ -363,7 +359,9 @@
                     sections.push({ id: generateSectionId(), type: 'instruction', width: 'full', text: lesson.instruction });
                 }
                 if (lesson.showGrid !== false && lesson.words && lesson.words.length > 0) {
-                    sections.push({ id: generateSectionId(), type: 'wordGrid', width: 'full', words: lesson.words });
+                    sections.push({ id: generateSectionId(), type: 'wordGrid', width: 'full', words: lesson.words, columns: 4, rows: Math.ceil(lesson.words.length / 4) || 3 });
+                } else if (lesson.showGrid !== false && (!lesson.words || lesson.words.length === 0)) {
+                    sections.push({ id: generateSectionId(), type: 'wordGrid', width: 'full', words: [], columns: 4, rows: 3 });
                 }
                 if (lesson.showDecodable === true) {
                     sections.push({ id: generateSectionId(), type: 'decodable', width: 'full', instruction: lesson.decodableInstruction || 'Read ALOUD and circle all words with the target sound', sentences: lesson.decodableSentences || [] });
@@ -398,7 +396,7 @@
                         { id: generateSectionId(), type: 'tile', width: 'full', tileMode: 'letter', letterTile: 'Aa', letterFontSize: 56, imagePath: '', imageCaption: "TODAY'S SOUND" },
                         { id: generateSectionId(), type: 'introText', width: 'full', text: 'Short a says /a/ like in <b>apple</b> — when a single vowel is boxed in between two consonants, it usually keeps this quick, clipped sound.' },
                         { id: generateSectionId(), type: 'instruction', width: 'full', text: 'Say each picture word out loud and listen for this pattern.' },
-                        { id: generateSectionId(), type: 'wordGrid', width: 'full', words: ['bag','cat','mat','hat','rat','bat','sat','pat','fat','man','van','map'] },
+                        { id: generateSectionId(), type: 'wordGrid', width: 'full', words: ['bag','cat','mat','hat','rat','bat','sat','pat','fat','man','van','map'], columns: 4, rows: 3 },
                         { id: generateSectionId(), type: 'decodable', width: 'full', instruction: 'Read ALOUD and circle all words with the target sound', sentences: ['I see a bag.','Look at the cat and the mat.','Is this a hat?','I like my rat.','We have a bat.'] },
                         { id: generateSectionId(), type: 'fillBlanks', width: 'full', title: 'A. Fill in the missing letters and say the word', items: ['b_g','c_t','m_t','h_t','r_t','b_t','s_t','p_t','f_t'] },
                         { id: generateSectionId(), type: 'sentenceWriting', width: 'full', title: 'C. Choose any word and form 2 sentences', lines: 2 },
@@ -532,7 +530,18 @@
                         html = `<textarea rows="3" oninput="updateSectionData('${section.id}', 'text', this.value)">${escapeHtml(section.text || '')}</textarea>`;
                         break;
                     case 'wordGrid':
-                        html = `<textarea rows="3" placeholder="Comma separated words" oninput="updateSectionData('${section.id}', 'words', this.value.split(',').map(s=>s.trim()).filter(Boolean))">${(section.words || []).join(', ')}</textarea>`;
+                        html = `
+                            <div class="form-row" style="display:flex; gap:10px;">
+                                <div class="form-group" style="flex:1;">
+                                    <label>Columns</label>
+                                    <input type="number" value="${section.columns || 4}" min="1" max="8" onchange="updateSectionData('${section.id}', 'columns', parseInt(this.value))">
+                                </div>
+                                <div class="form-group" style="flex:1;">
+                                    <label>Rows</label>
+                                    <input type="number" value="${section.rows || 3}" min="1" max="12" onchange="updateSectionData('${section.id}', 'rows', parseInt(this.value))">
+                                </div>
+                            </div>
+                            <textarea rows="3" placeholder="Comma separated words (optional)" oninput="updateSectionData('${section.id}', 'words', this.value.split(',').map(s=>s.trim()).filter(Boolean))">${(section.words || []).join(', ')}</textarea>`;
                         break;
                     case 'decodable':
                         html = `
@@ -590,6 +599,8 @@
                 if (!section) return;
                 section[field] = value;
                 if (field === 'lines') section.lines = parseInt(value) || 2;
+                if (field === 'columns') section.columns = parseInt(value) || 4;
+                if (field === 'rows') section.rows = parseInt(value) || 3;
                 renderThumbnail();
             };
 
@@ -627,7 +638,6 @@
 
                 container.innerHTML = '';
                 container.appendChild(pageEl);
-                // Fixed height to avoid 0 when hidden
                 container.style.height = '324px';
             }
 
@@ -699,12 +709,23 @@
                     case 'customText':
                         return `<div class="custom-text-box"><p>${formatTextWithHighlight(section.text || '')}</p></div>`;
                     case 'wordGrid': {
-                        const words = (section.words || []).filter(w => w && String(w).trim()).slice(0, MAX_GRID_WORDS);
-                        if (!words.length) return '';
-                        const display = [...words];
-                        while (display.length % 4 !== 0) display.push('');
-                        const cells = display.map(w => `<div class="word-cell${w ? '' : ' empty'}">${escapeHtml(w || '')}</div>`).join('');
-                        return `<div class="word-grid">${cells}</div>`;
+                        const columns = Math.max(1, section.columns || 4);
+                        const rows = Math.max(1, section.rows || 3);
+                        const words = (section.words || []).slice(0, columns * rows);
+                        const totalCells = columns * rows;
+                        let cellsHtml = '';
+                        for (let i = 0; i < totalCells; i++) {
+                            const word = words[i] || '';
+                            const isLastCol = (i % columns) === columns - 1;
+                            const isLastRow = i >= totalCells - columns;
+                            let cellStyle = '';
+                            if (!isLastCol) cellStyle += 'border-right:1px solid #f0c9a8;';
+                            else cellStyle += 'border-right:none;';
+                            if (!isLastRow) cellStyle += 'border-bottom:1px solid #f0c9a8;';
+                            else cellStyle += 'border-bottom:none;';
+                            cellsHtml += `<div class="word-cell${word ? '' : ' empty'}" style="${cellStyle}">${escapeHtml(word || '')}</div>`;
+                        }
+                        return `<div class="word-grid" style="grid-template-columns:repeat(${columns},1fr);">${cellsHtml}</div>`;
                     }
                     case 'decodable': {
                         const sents = (section.sentences || []).filter(Boolean);
