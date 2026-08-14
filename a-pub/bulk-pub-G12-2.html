@@ -1,0 +1,1380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>📚 Phonics Lesson Publisher v8 — Full Single Page</title>
+    <style>
+        /* same as previous, no changes needed for CSS */
+        @page { size: 850px 1100px; margin: 0; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f5f7fa; color: #1a1a1a; padding: 20px; }
+        .app { max-width: 1500px; margin: 0 auto; background: #fff; border-radius: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.08); overflow: hidden; }
+        .app-header { background: #1a1a2e; color: #fff; padding: 20px 32px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+        .app-header h1 { font-size: 24px; font-weight: 800; }
+        .app-header .badge { background: #F5A623; color: #1a1a1a; padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 700; }
+        .tabs { display: flex; border-bottom: 2px solid #e9ecef; background: #fafbfc; padding: 0 32px; gap: 4px; }
+        .tab-btn { padding: 16px 28px; border: none; background: transparent; font-size: 17px; font-weight: 700; color: #6c757d; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.2s; font-family: inherit; touch-action: manipulation; }
+        .tab-btn.active { color: #1a1a2e; border-bottom-color: #F5A623; }
+        .tab-panel { display: none; padding: 24px 32px 32px; }
+        .tab-panel.active { display: block; }
+        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; max-width: 420px; width: 100%; pointer-events: none; }
+        .toast { padding: 14px 20px; border-radius: 12px; color: #fff; font-weight: 600; font-size: 14px; box-shadow: 0 8px 30px rgba(0,0,0,0.15); animation: slideIn 0.3s ease; display: flex; align-items: center; gap: 10px; pointer-events: auto; }
+        .toast.success { background: #2d7d46; } .toast.error { background: #dc3545; } .toast.warning { background: #e67e22; } .toast.info { background: #2c7be5; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        .edit-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+        @media (max-width: 1200px) { .edit-layout { grid-template-columns: 1fr; } }
+        .form-section { background: #f8f9fa; border-radius: 16px; padding: 24px; border: 2px solid #e9ecef; position: sticky; top: 20px; max-height: calc(100vh - 160px); overflow-y: auto; }
+        .form-section h2 { font-size: 21px; margin-bottom: 16px; }
+        .form-group { margin-bottom: 14px; }
+        .form-group label { display: block; font-weight: 700; font-size: 13px; color: #495057; margin-bottom: 4px; }
+        .form-group label .req { color: #dc3545; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px 14px; border: 2px solid #dee2e6; border-radius: 10px; font-size: 14px; font-family: inherit; transition: border 0.2s; background: #fff; }
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus { outline: none; border-color: #F5A623; box-shadow: 0 0 0 3px rgba(245,166,35,0.15); }
+        .form-group textarea { resize: vertical; min-height: 50px; }
+        .form-actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+        .btn { padding: 10px 22px; border: none; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; transition: background 0.2s, transform 0.15s; font-family: inherit; display: inline-flex; align-items: center; gap: 6px; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn:active:not(:disabled) { transform: scale(0.97); }
+        .btn-primary { background: #F5A623; color: #1a1a1a; }
+        .btn-success { background: #2d7d46; color: #fff; }
+        .btn-danger { background: #dc3545; color: #fff; }
+        .btn-outline { background: transparent; border: 2px solid #dee2e6; color: #495057; }
+        .btn-sm { padding: 6px 14px; font-size: 12px; }
+        .btn-xs { padding: 4px 10px; font-size: 11px; border-radius: 6px; }
+        .btn-warning { background: #e67e22; color: #fff; }
+        .list-section { min-height: 400px; }
+        .list-toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 2px solid #e9ecef; }
+        .search-box { flex: 1; min-width: 180px; padding: 10px 16px; border: 2px solid #dee2e6; border-radius: 10px; font-size: 14px; font-family: inherit; }
+        .search-box:focus { outline: none; border-color: #F5A623; }
+        .list-toolbar .count { font-weight: 700; color: #6c757d; font-size: 14px; white-space: nowrap; }
+        .lesson-list { display: flex; flex-direction: column; gap: 8px; }
+        .lesson-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #f8f9fa; border-radius: 12px; border: 2px solid transparent; transition: background 0.2s, border-color 0.2s; }
+        .lesson-item:active { border-color: #F5A623; background: #fff; }
+        .lesson-item .thumb { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; background: #e9ecef; border: 1px solid #dee2e6; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 21px; }
+        .lesson-item .info { flex: 1; min-width: 0; }
+        .lesson-item .info .title { font-weight: 700; font-size: 17px; }
+        .lesson-item .info .sub { font-size: 12px; color: #6c757d; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .lesson-item .actions { display: flex; gap: 4px; flex-shrink: 0; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 9998; }
+        .modal-overlay .modal { background: #fff; border-radius: 20px; padding: 32px; max-width: 440px; width: 90%; box-shadow: 0 30px 60px rgba(0,0,0,0.2); }
+        .modal-overlay .modal h3 { margin-bottom: 8px; }
+        .modal-overlay .modal p { color: #6c757d; margin-bottom: 20px; font-size: 17px; }
+        .modal-overlay .modal .actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+        .toggle-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; padding: 10px 14px; background: #fff; border: 2px solid #e9ecef; border-radius: 12px; flex-wrap: wrap; }
+        .toggle-row label { margin: 0; font-weight: 700; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+        .toggle-row input[type="checkbox"] { width: 18px; height: 18px; accent-color: #F5A623; cursor: pointer; }
+        .toggle-row .size-input { width: 70px; padding: 5px 8px; border: 2px solid #dee2e6; border-radius: 8px; font-size: 13px; }
+        .section-card { background: #fff; border: 2px solid #e9ecef; border-radius: 12px; padding: 14px; margin-bottom: 12px; }
+        .section-card h4 { font-size: 14px; margin-bottom: 10px; color: #E2571C; }
+        .image-upload-wrap { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .image-upload-wrap .preview { width: 56px; height: 56px; border-radius: 8px; object-fit: cover; border: 2px solid #dee2e6; }
+        .image-upload-wrap .preview-ph { width: 56px; height: 56px; border-radius: 8px; border: 2px dashed #dee2e6; display: flex; align-items: center; justify-content: center; font-size: 22px; color: #adb5bd; background: #f8f9fa; }
+
+        /* Custom boxes form card */
+        .custom-box-card { background: #fff; border: 2px solid #e9ecef; border-radius: 12px; padding: 10px; margin-bottom: 8px; }
+        .custom-box-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+        .custom-box-header .custom-box-title { font-weight: 700; font-size: 13px; flex: 1; }
+        .custom-box-header input[type="checkbox"] { width: 18px; height: 18px; accent-color: #F5A623; cursor: pointer; }
+        .custom-box-card textarea { width: 100%; min-height: 60px; border: 2px solid #dee2e6; border-radius: 8px; padding: 6px; font-size: 13px; font-family: inherit; }
+        .custom-box-actions { display: flex; gap: 4px; justify-content: flex-end; }
+
+        @media (hover: hover) {
+            .tab-btn:hover { color: #1a1a2e; }
+            .btn-primary:hover:not(:disabled) { background: #e0950f; transform: translateY(-1px); }
+            .btn-success:hover:not(:disabled) { background: #1f5f34; }
+            .btn-danger:hover:not(:disabled) { background: #b02a37; }
+            .btn-outline:hover:not(:disabled) { background: #f1f3f5; }
+            .btn-warning:hover:not(:disabled) { background: #d35400; }
+            .lesson-item:hover { border-color: #F5A623; background: #fff; }
+        }
+
+        /* ----- VIEW ----- */
+        .view-container { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 8px; }
+        .view-container .page { width: 850px; min-width: 850px; min-height: 1080px; padding: 24px 32px; position: relative; page-break-after: always; margin: 0 auto 30px; background: #fff; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+        .view-container .page:last-child { margin-bottom: 0; }
+
+        .view-container .card {
+            border: 4px solid #E2571C;
+            border-radius: 12px;
+            min-height: 1030px;
+            padding: 0;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            background: #fff;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        .cvc-header {
+            display: flex;
+            align-items: stretch;
+            border-bottom: 3px solid #E2571C;
+            min-height: 68px;
+            flex-shrink: 0;
+        }
+        .cvc-header-left {
+            flex: 1;
+            padding: 12px 22px 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .cvc-main-title {
+            font-size: 28px;
+            font-weight: 800;
+            color: #E2571C;
+            letter-spacing: 0.4px;
+            line-height: 1.1;
+            margin: 0;
+        }
+        .cvc-subtitle {
+            font-size: 13px;
+            font-weight: 700;
+            color: #c45a12;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            margin-top: 2px;
+        }
+        .cvc-header-right {
+            background: #E2571C;
+            color: #fff;
+            min-width: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 18px;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        .cvc-header-right .lesson-label { font-size: 13px; font-weight: 600; opacity: 0.95; margin-right: 6px; }
+        .cvc-header-right .lesson-num { font-size: 26px; font-weight: 800; line-height: 1; }
+
+        .cvc-body {
+            padding: 14px 22px 8px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            gap: 10px;
+        }
+
+        .cvc-top-row {
+            display: flex;
+            gap: 14px;
+            align-items: stretch;
+            flex-shrink: 0;
+        }
+        .todays-sound-card {
+            background: #fff;
+            border: 2px solid #F5A623;
+            border-radius: 12px;
+            width: 140px;
+            flex-shrink: 0;
+            overflow: hidden;
+            box-shadow: 0 2px 6px rgba(226,87,28,0.1);
+            display: flex;
+            flex-direction: column;
+        }
+        .todays-sound-card.full-width {
+            width: 100%;
+            max-width: 100%;
+        }
+        .todays-sound-header {
+            background: #E2571C;
+            color: #fff;
+            text-align: center;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            padding: 5px 4px;
+            text-transform: uppercase;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        .todays-sound-body {
+            padding: 8px 6px 12px;
+            text-align: center;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .todays-sound-stars { color: #F5A623; font-size: 12px; letter-spacing: 3px; margin-bottom: 2px; }
+        .todays-sound-letter { font-weight: 800; color: #E2571C; line-height: 1; letter-spacing: -1px; }
+        .todays-sound-img { max-width: 90%; max-height: 90px; object-fit: contain; border-radius: 6px; }
+
+        .cvc-intro-stack {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-width: 0;
+        }
+        .cvc-intro-box {
+            border: 2px dashed #E2571C;
+            border-radius: 10px;
+            padding: 10px 14px;
+            background: #fff8f3;
+            flex: 1;
+        }
+        .cvc-intro-box p { margin: 0; font-size: 13px; line-height: 1.4; color: #1a1a1a; font-weight: 500; }
+        .cvc-intro-box .highlight { color: #E2571C; font-weight: 700; }
+        .cvc-instruction-box {
+            border: 2px solid #F5A623;
+            border-radius: 10px;
+            padding: 9px 14px;
+            background: #fffaf0;
+            flex: 1;
+        }
+        .cvc-instruction-box p { margin: 0; font-size: 13px; font-weight: 700; color: #1a1a2e; line-height: 1.35; }
+
+        /* Custom boxes on page */
+        .custom-text-box {
+            border: 2px dashed #E2571C;
+            border-radius: 10px;
+            padding: 10px 14px;
+            background: #fff8f3;
+            flex-shrink: 0;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .custom-text-box p { margin: 0; font-size: 13px; line-height: 1.4; color: #1a1a1a; font-weight: 500; }
+        .custom-text-box .highlight { color: #E2571C; font-weight: 700; }
+
+        .cvc-word-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            border: 2px solid #E2571C;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #fff;
+            flex-shrink: 0;
+        }
+        .cvc-word-cell {
+            border-right: 1px solid #f0c9a8;
+            border-bottom: 1px solid #f0c9a8;
+            padding: 9px 4px;
+            text-align: center;
+            font-size: 23px;
+            font-weight: 600;
+            color: #1a1a1a;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #fff;
+        }
+        .cvc-word-cell:nth-child(4n) { border-right: none; }
+        .cvc-word-cell:nth-last-child(-n+4) { border-bottom: none; }
+        .cvc-word-cell.empty { background: #faf7f4; color: transparent; }
+
+        /* Activity boxes */
+        .act-box {
+            border: 2px solid #E2571C;
+            border-radius: 12px;
+            padding: 12px 16px;
+            background: #fff;
+            flex-shrink: 0;
+        }
+        .act-box .act-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 8px;
+        }
+        .act-box .sentence {
+            font-size: 17px;
+            font-weight: 600;
+            color: #E2571C;
+            margin: 3px 0;
+            line-height: 1.35;
+        }
+
+        .fill-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+        .fill-item {
+            border: 2px solid #F5A623;
+            border-radius: 10px;
+            padding: 8px 6px;
+            text-align: center;
+            font-size: 21px;
+            font-weight: 700;
+            color: #E2571C;
+            background: #fffaf0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            min-height: 42px;
+        }
+        .fill-item .blank-sq {
+            display: inline-block;
+            width: 22px;
+            height: 26px;
+            border: 2px solid #1a1a1a;
+            border-radius: 4px;
+            background: #fff;
+            vertical-align: middle;
+        }
+
+        .sent-lines { margin-top: 4px; }
+        .sent-line {
+            border-bottom: 1.5px solid #999;
+            padding: 12px 0 4px;
+            font-size: 14px;
+            color: #666;
+            font-weight: 600;
+        }
+
+        .cvc-writing-area {
+            flex: 1 1 auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-evenly;
+            min-height: 0;
+            padding-bottom: 26px;
+        }
+        .writing-set {
+            position: relative;
+            height: 46px;
+            width: 100%;
+            flex: 0 0 auto;
+        }
+        .writing-set .line {
+            position: absolute;
+            left: 0; right: 0;
+            height: 0;
+            border-top-width: 1.8px;
+            border-top-style: solid;
+        }
+        .writing-set .line.l1 { top: 0;    border-top-color: #E2571C; }
+        .writing-set .line.l2 { top: 15px; border-top-color: #2c7be5; }
+        .writing-set .line.l3 { top: 30px; border-top-color: #2c7be5; }
+        .writing-set .line.l4 { top: 45px; border-top-color: #E2571C; }
+
+        .cvc-page-number {
+            position: absolute;
+            bottom: 10px;
+            left: 0; right: 0;
+            text-align: center;
+            font-weight: 700;
+            font-size: 14px;
+            color: #6c757d;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .cover-card { display: flex; flex-direction: column; justify-content: center; align-items: center; font-family: 'Times New Roman', Times, serif; min-height: 1000px; border: 3px solid #F5A623; border-radius: 28px; }
+        .cover-text-block { text-align: center; padding: 0 40px; }
+        .cover-line { width: 120px; height: 4px; background-color: #F5A623; margin: 30px auto; border-radius: 2px; }
+        .cover-title { font-size: 60px; font-weight: 800; color: #1a1a2e; letter-spacing: 2px; margin: 0; }
+        .cover-subtitle { font-size: 32px; font-weight: 400; color: #E2571C; margin-top: 14px; letter-spacing: 1px; font-style: italic; }
+
+        .toc-card { border: 3px solid #F5A623; border-radius: 28px; min-height: 1000px; padding: 30px 40px; position: relative; font-family: 'Times New Roman', Times, serif; }
+        .toc-title { font-size: 28px; font-weight: 800; color: #1a1a2e; text-align: center; margin-bottom: 20px; border-bottom: 4px solid #F5A623; padding-bottom: 10px; }
+        .toc-list { list-style: none; padding: 0; margin: 0; }
+        .toc-item { display: flex; justify-content: space-between; align-items: baseline; padding: 7px 6px; border-bottom: 1px dashed #dee2e6; font-size: 14px; font-weight: 600; line-height: 1.3; }
+        .toc-item .toc-page-num { font-weight: 800; color: #E2571C; min-width: 60px; text-align: right; }
+        .toc-card .page-number { position: absolute; bottom: 16px; right: 24px; font-weight: 800; font-size: 14px; font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; }
+
+        .sight-words-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-top: 8px; padding: 0 12px; }
+        .sight-word-pill {
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px; font-weight: 800; color: #E2571C; background: #fff;
+            border: 3px solid #F5A623; border-radius: 14px; padding: 16px 6px; min-height: 76px;
+            text-align: center; word-break: break-word;
+            -webkit-print-color-adjust: exact; print-color-adjust: exact;
+        }
+        .view-container .card.sight-card { border: 3px solid #F5A623; border-radius: 28px; min-height: 1000px; padding: 24px 32px; }
+        .view-container .title { font-size: 28px; font-weight: 800; color: #1a1a1a; letter-spacing: 0.5px; margin: 4px 0 16px 0; }
+        .view-container .section-header { display: flex; align-items: center; margin-bottom: 10px; margin-top: 10px; }
+        .view-container .section-header .circle { background: #F5A623; color: #fff; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 16px; margin-right: 12px; flex-shrink: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .view-container .section-header .label-box { flex: 1; border: 3px dashed #E2571C; border-radius: 12px; padding: 7px 16px; font-weight: 800; font-size: 17px; color: #1a1a1a; }
+
+        .view-toolbar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 2px solid #e9ecef; }
+        .view-toolbar .info { font-weight: 700; color: #6c757d; font-size: 14px; margin-right: auto; }
+        .page-actions { text-align: right; margin-bottom: 8px; }
+        .export-btn { background: #E2571C; color: #fff; border: none; border-radius: 8px; padding: 8px 16px; font-weight: 700; font-size: 13px; font-family: inherit; cursor: pointer; }
+
+        @media print {
+            body { padding: 0; background: #fff; }
+            .app, .app-header, .tabs, .tab-panel, .view-toolbar, .no-print { display: none !important; }
+            .view-container { overflow-x: visible !important; }
+            .view-container .page { box-shadow: none !important; border-radius: 0 !important; margin: 0 auto !important; padding: 18px !important; width: 850px !important; min-width: 850px !important; min-height: 1080px !important; page-break-after: always; background: #fff !important; }
+            .view-container .page .page-actions { display: none !important; }
+            .view-container .page:last-child { page-break-after: auto; }
+            .view-container .card, .todays-sound-header, .cvc-header-right, .sight-word-pill, .toc-card, .cover-card,
+            .view-container .section-header .circle, .custom-text-box, .cvc-intro-box { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        }
+    </style>
+</head>
+<body>
+    <div id="app"></div>
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        (function () {
+            // ---------- Storage Configuration ----------
+            const IDB_NAME = 'phonics_lessons_db';
+            const IDB_STORE = 'app_data';
+            const LEGACY_STORAGE_KEY = 'phonics_lessons_v8';
+            const MAX_TOC_PER_PAGE = 20;
+            const MAX_SIGHT_WORDS_PER_PAGE = 50;
+            const MAX_GRID_WORDS = 24;
+            const MAX_FILL_ITEMS = 18;
+
+            // ---------- IndexedDB Utility ----------
+            let dbPromise = null;
+            function getDB() {
+                if (!dbPromise) {
+                    dbPromise = new Promise((resolve, reject) => {
+                        const request = indexedDB.open(IDB_NAME, 1);
+                        request.onupgradeneeded = (e) => {
+                            const db = e.target.result;
+                            if (!db.objectStoreNames.contains(IDB_STORE)) {
+                                db.createObjectStore(IDB_STORE);
+                            }
+                        };
+                        request.onsuccess = () => resolve(request.result);
+                        request.onerror = () => reject(request.error);
+                    });
+                }
+                return dbPromise;
+            }
+
+            async function idbSet(data) {
+                try {
+                    const db = await getDB();
+                    return new Promise((resolve, reject) => {
+                        const tx = db.transaction(IDB_STORE, 'readwrite');
+                        const store = tx.objectStore(IDB_STORE);
+                        store.put(data, 'appData');
+                        tx.oncomplete = () => resolve();
+                        tx.onerror = () => reject(tx.error);
+                    });
+                } catch (e) {
+                    localStorage.setItem(LEGACY_STORAGE_KEY, JSON.stringify(data));
+                }
+            }
+
+            async function idbGet() {
+                try {
+                    const db = await getDB();
+                    return new Promise((resolve, reject) => {
+                        const tx = db.transaction(IDB_STORE, 'readonly');
+                        const store = tx.objectStore(IDB_STORE);
+                        const request = store.get('appData');
+                        request.onsuccess = () => resolve(request.result);
+                        request.onerror = () => reject(request.error);
+                    });
+                } catch (e) {
+                    return null;
+                }
+            }
+
+            // ---------- Helper: Rich Text Sanitizer ----------
+            function sanitizeRichText(text) {
+                if (!text) return '';
+                let esc = escapeHtml(text);
+                // Allow basic formatting tags
+                esc = esc
+                    .replace(/&lt;b&gt;/g, '<b>').replace(/&lt;\/b&gt;/g, '</b>')
+                    .replace(/&lt;i&gt;/g, '<i>').replace(/&lt;\/i&gt;/g, '</i>')
+                    .replace(/&lt;u&gt;/g, '<u>').replace(/&lt;\/u&gt;/g, '</u>')
+                    .replace(/&lt;strong&gt;/g, '<strong>').replace(/&lt;\/strong&gt;/g, '</strong>')
+                    .replace(/&lt;em&gt;/g, '<em>').replace(/&lt;\/em&gt;/g, '</em>')
+                    .replace(/&lt;span class=&quot;highlight&quot;&gt;/g, '<span class="highlight">')
+                    .replace(/&lt;span class="highlight"&gt;/g, '<span class="highlight">')
+                    .replace(/&lt;\/span&gt;/g, '</span>');
+                return esc;
+            }
+
+            function formatTextWithHighlight(text) {
+                const formatted = sanitizeRichText(text);
+                return formatted.replace(/\b(apple|egg|igloo|octopus|umbrella)\b/gi, m => `<span class="highlight">${m}</span>`);
+            }
+
+            function flattenWords(arr) {
+                if (!Array.isArray(arr)) return [];
+                let r = [];
+                for (let row of arr) {
+                    if (Array.isArray(row)) r = r.concat(row);
+                    else r.push(row);
+                }
+                return r;
+            }
+            function escapeHtml(str) {
+                return String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+            }
+            function showToast(msg, type = 'info') {
+                const t = document.createElement('div');
+                t.className = 'toast ' + type;
+                t.innerHTML = `<span>${type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️'}</span> ${escapeHtml(msg)}`;
+                document.getElementById('toastContainer').appendChild(t);
+                setTimeout(() => t.remove(), 3500);
+            }
+            function confirmDialog(msg, cb) {
+                const o = document.createElement('div');
+                o.className = 'modal-overlay';
+                o.innerHTML = `<div class="modal"><h3>⚠️ Confirm</h3><p>${msg}</p><div class="actions"><button class="btn btn-outline cancel">Cancel</button><button class="btn btn-danger confirm">Yes</button></div></div>`;
+                document.body.appendChild(o);
+                o.querySelector('.cancel').onclick = () => o.remove();
+                o.querySelector('.confirm').onclick = () => { o.remove(); cb(); };
+            }
+
+            // ---------- Default data ----------
+            const DEFAULT_LESSONS = [
+                {
+                    id: 'l1',
+                    mainTitle: 'SHORT VOWEL CVC WORDS',
+                    subtitle: 'SHORT VOWEL',
+                    lessonNumber: 1,
+                    tileMode: 'letter',
+                    letterTile: 'Aa',
+                    letterFontSize: 56,
+                    imagePath: '',
+                    imageCaption: "TODAY'S SOUND",
+                    showIntro: true,
+                    introText: 'Short a says /a/ like in <b>apple</b> — when a single vowel is boxed in between two consonants, it usually keeps this quick, clipped sound.',
+                    showInstruction: true,
+                    instruction: 'Say each picture word out loud and listen for this pattern.',
+                    showGrid: true,
+                    words: ['bag','cat','mat','hat','rat','bat','sat','pat','fat','man','van','map'],
+                    showDecodable: true,
+                    decodableInstruction: 'Read ALOUD and circle all words with the target sound',
+                    decodableSentences: ['I see a bag.','Look at the cat and the mat.','Is this a hat?','I like my rat.','We have a bat.'],
+                    showFillBlanks: true,
+                    fillTitle: 'A. Fill in the missing letters and say the word',
+                    fillItems: ['b_g','c_t','m_t','h_t','r_t','b_t','s_t','p_t','f_t'],
+                    showSentenceWrite: true,
+                    sentenceTitle: 'C. Choose any word and form 2 sentences',
+                    sentenceLines: 2,
+                    showWritingLines: false,
+                    customBoxes: []   // <-- new
+                }
+            ];
+            const DEFAULT_SIGHT_WORDS = ['the','of','and','a','to','in','is','you','that','it','he','was','for','on','are','as','with','his','they','I','at','be','this','have','from','or','one','had','by','but','not','what','all','were','we','when','your','can','said','there','use','an','each','which','she','do','how','their','if','will','up','other','about','out','many','then','them','these','so','some','her','would','make','like','him','into','time','has','look','two','more','write','go','see','no','way','could','people','my','than','first','water','been','called','who','am','its','now','find','long','down','day','did','get','come','made','may','part'];
+            const DEFAULT_COVER = { title: 'Crystal Phonics', subtitle: 'Grade 1' };
+
+            let lessons = [];
+            let sightWords = [];
+            let coverData = { ...DEFAULT_COVER };
+            let editingId = null;
+            let nextId = 1;
+            window.searchQuery = '';
+
+            // Temp form state for custom boxes
+            let tempCustomBoxes = [];
+
+            // ---------- Data Loading / Saving ----------
+            async function loadData() {
+                let data = null;
+                try { data = await idbGet(); } catch (e) { data = null; }
+                if (!data || !data.lessons) {
+                    try {
+                        const raw = localStorage.getItem(LEGACY_STORAGE_KEY);
+                        if (raw) data = JSON.parse(raw);
+                    } catch (e) {}
+                }
+                if (data && data.lessons) {
+                    lessons = data.lessons || [];
+                    sightWords = data.sightWords || [...DEFAULT_SIGHT_WORDS];
+                    coverData = data.coverData || { ...DEFAULT_COVER };
+                    if (lessons.length) {
+                        let maxId = 0;
+                        lessons.forEach(l => {
+                            if (!l.words && l.activities?.lookAndSay?.words) l.words = flattenWords(l.activities.lookAndSay.words);
+                            if (!l.tileMode) l.tileMode = 'letter';
+                            if (!l.letterFontSize) l.letterFontSize = 56;
+                            if (!l.imageCaption) l.imageCaption = "TODAY'S SOUND";
+                            if (typeof l.showIntro === 'undefined') l.showIntro = true;
+                            if (typeof l.showInstruction === 'undefined') l.showInstruction = true;
+                            if (typeof l.showGrid === 'undefined') l.showGrid = true;
+                            if (typeof l.showDecodable === 'undefined') l.showDecodable = false;
+                            if (typeof l.showFillBlanks === 'undefined') l.showFillBlanks = false;
+                            if (typeof l.showSentenceWrite === 'undefined') l.showSentenceWrite = false;
+                            if (typeof l.showWritingLines === 'undefined') l.showWritingLines = true;
+                            if (!l.decodableInstruction) l.decodableInstruction = 'Read ALOUD and circle all words with the target sound';
+                            if (!l.fillTitle) l.fillTitle = 'A. Fill in the missing letters and say the word';
+                            if (!l.sentenceTitle) l.sentenceTitle = 'C. Choose any word and form 2 sentences';
+                            if (!l.sentenceLines) l.sentenceLines = 2;
+                            if (!Array.isArray(l.customBoxes)) l.customBoxes = [];
+                            if (!l.id) l.id = 'l' + Date.now() + Math.random().toString(36).slice(2, 6);
+                            const num = parseInt(String(l.id).replace('l', '')) || 0;
+                            if (num > maxId) maxId = num;
+                        });
+                        nextId = maxId + 1;
+                    } else {
+                        lessons = JSON.parse(JSON.stringify(DEFAULT_LESSONS));
+                        nextId = lessons.length + 1;
+                    }
+                    renumberByOrder(lessons);
+                } else {
+                    lessons = JSON.parse(JSON.stringify(DEFAULT_LESSONS));
+                    sightWords = [...DEFAULT_SIGHT_WORDS];
+                    coverData = { ...DEFAULT_COVER };
+                    nextId = lessons.length + 1;
+                    renumberByOrder(lessons);
+                }
+                await saveData();
+            }
+
+            async function saveData() {
+                const payload = { lessons, sightWords, coverData };
+                await idbSet(payload);
+                try {
+                    localStorage.setItem(LEGACY_STORAGE_KEY, JSON.stringify(payload));
+                } catch (e) {}
+            }
+
+            function generateId() { return 'l' + (nextId++); }
+            function resyncNextId() {
+                let maxId = 0;
+                lessons.forEach(l => {
+                    const num = parseInt(String(l.id).replace('l', '')) || 0;
+                    if (num > maxId) maxId = num;
+                });
+                nextId = maxId + 1;
+            }
+            function renumberByOrder(arr) {
+                arr.forEach((lesson, idx) => lesson.lessonNumber = idx + 1);
+            }
+
+            // ---------- Custom Boxes Functions ----------
+            function generateCustomBoxId() {
+                return 'cb' + Date.now() + Math.random().toString(36).slice(2, 7);
+            }
+
+            function renderCustomBoxes() {
+                const container = document.getElementById('customBoxesContainer');
+                if (!container) return;
+                if (!tempCustomBoxes.length) {
+                    container.innerHTML = '<div style="color:#6c757d;font-size:12px;padding:8px 0;">No custom boxes added.</div>';
+                    return;
+                }
+                let html = '';
+                tempCustomBoxes.forEach((box, idx) => {
+                    html += `<div class="custom-box-card" data-id="${box.id}">
+                        <div class="custom-box-header">
+                            <input type="checkbox" ${box.enabled ? 'checked' : ''} onchange="toggleCustomBox('${box.id}', this.checked)">
+                            <span class="custom-box-title">Box ${idx + 1}</span>
+                            <div class="custom-box-actions">
+                                <button class="btn btn-outline btn-xs" onclick="moveCustomBox('${box.id}', -1)" ${idx === 0 ? 'disabled' : ''}>▲</button>
+                                <button class="btn btn-outline btn-xs" onclick="moveCustomBox('${box.id}', 1)" ${idx === tempCustomBoxes.length-1 ? 'disabled' : ''}>▼</button>
+                                <button class="btn btn-danger btn-xs" onclick="deleteCustomBox('${box.id}')">🗑️</button>
+                            </div>
+                        </div>
+                        <textarea onchange="updateCustomBoxText('${box.id}', this.value)">${escapeHtml(box.text || '')}</textarea>
+                    </div>`;
+                });
+                container.innerHTML = html;
+            }
+
+            window.addCustomBox = function() {
+                tempCustomBoxes.push({ id: generateCustomBoxId(), text: '', enabled: true });
+                renderCustomBoxes();
+            };
+            window.deleteCustomBox = function(id) {
+                tempCustomBoxes = tempCustomBoxes.filter(b => b.id !== id);
+                renderCustomBoxes();
+            };
+            window.moveCustomBox = function(id, dir) {
+                const idx = tempCustomBoxes.findIndex(b => b.id === id);
+                if (idx === -1) return;
+                const newIdx = idx + dir;
+                if (newIdx < 0 || newIdx >= tempCustomBoxes.length) return;
+                const temp = tempCustomBoxes[idx];
+                tempCustomBoxes[idx] = tempCustomBoxes[newIdx];
+                tempCustomBoxes[newIdx] = temp;
+                renderCustomBoxes();
+            };
+            window.updateCustomBoxText = function(id, value) {
+                const box = tempCustomBoxes.find(b => b.id === id);
+                if (box) box.text = value;
+            };
+            window.toggleCustomBox = function(id, checked) {
+                const box = tempCustomBoxes.find(b => b.id === id);
+                if (box) box.enabled = checked;
+            };
+
+            // ---------- Build View Pages ----------
+            function buildLessonPage(lesson, pageNum) {
+                const page = document.createElement('div');
+                page.className = 'page';
+                page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
+                const card = document.createElement('div');
+                card.className = 'card';
+
+                const showIntro = lesson.showIntro !== false;
+                const showInstr = lesson.showInstruction !== false;
+                const showGrid = lesson.showGrid !== false;
+                const showDec = lesson.showDecodable === true;
+                const showFill = lesson.showFillBlanks === true;
+                const showSent = lesson.showSentenceWrite === true;
+                const showLines = lesson.showWritingLines === true;
+                const tileMode = lesson.tileMode || 'letter';
+                const hasTile = tileMode === 'letter' || tileMode === 'image';
+                const fontSize = lesson.letterFontSize || 56;
+
+                let topRowHtml = '';
+                if (hasTile || showIntro || showInstr) {
+                    let tileHtml = '';
+                    if (tileMode === 'letter') {
+                        const alone = !showIntro && !showInstr;
+                        tileHtml = `
+                            <div class="todays-sound-card${alone ? ' full-width' : ''}">
+                                <div class="todays-sound-header">TODAY'S SOUND</div>
+                                <div class="todays-sound-body">
+                                    <div class="todays-sound-stars">★ ★ ★</div>
+                                    <div class="todays-sound-letter" style="font-size:${fontSize}px">${escapeHtml(lesson.letterTile || 'Aa')}</div>
+                                </div>
+                            </div>`;
+                    } else if (tileMode === 'image') {
+                        const alone = !showIntro && !showInstr;
+                        const cap = escapeHtml(lesson.imageCaption || "TODAY'S SOUND");
+                        const img = lesson.imagePath
+                            ? `<img class="todays-sound-img" src="${escapeHtml(lesson.imagePath)}" />`
+                            : `<div style="font-size:32px;opacity:0.4">🖼️</div>`;
+                        tileHtml = `
+                            <div class="todays-sound-card${alone ? ' full-width' : ''}">
+                                <div class="todays-sound-header">${cap}</div>
+                                <div class="todays-sound-body">${img}</div>
+                            </div>`;
+                    }
+
+                    let stackHtml = '';
+                    if (showIntro || showInstr) {
+                        let parts = '';
+                        if (showIntro) {
+                            const formatted = formatTextWithHighlight(lesson.introText || '');
+                            parts += `<div class="cvc-intro-box"><p>${formatted}</p></div>`;
+                        }
+                        if (showInstr) {
+                            parts += `<div class="cvc-instruction-box"><p>${escapeHtml(lesson.instruction || '')}</p></div>`;
+                        }
+                        stackHtml = `<div class="cvc-intro-stack">${parts}</div>`;
+                    }
+
+                    if (tileHtml && stackHtml) {
+                        topRowHtml = `<div class="cvc-top-row">${tileHtml}${stackHtml}</div>`;
+                    } else if (tileHtml) {
+                        topRowHtml = `<div class="cvc-top-row" style="justify-content:center">${tileHtml}</div>`;
+                    } else {
+                        topRowHtml = `<div class="cvc-top-row"><div class="cvc-intro-stack" style="width:100%">${stackHtml.replace('cvc-intro-stack','')}</div></div>`;
+                    }
+                }
+
+                // Custom boxes (enabled)
+                let customBoxesHtml = '';
+                const enabledCustom = (lesson.customBoxes || []).filter(b => b.enabled && b.text && b.text.trim() !== '');
+                if (enabledCustom.length) {
+                    customBoxesHtml = enabledCustom.map(b => {
+                        const formatted = formatTextWithHighlight(b.text);
+                        return `<div class="custom-text-box"><p>${formatted}</p></div>`;
+                    }).join('');
+                }
+
+                let gridHtml = '';
+                if (showGrid) {
+                    const words = (lesson.words || []).filter(w => w && String(w).trim()).slice(0, MAX_GRID_WORDS);
+                    const display = [...words];
+                    if (display.length) {
+                        while (display.length % 4 !== 0) display.push('');
+                        const cells = display.map(w => `<div class="cvc-word-cell${w ? '' : ' empty'}">${escapeHtml(w || '')}</div>`).join('');
+                        gridHtml = `<div class="cvc-word-grid">${cells}</div>`;
+                    }
+                }
+
+                let decHtml = '';
+                if (showDec) {
+                    const sents = (lesson.decodableSentences || []).filter(Boolean);
+                    const lines = sents.map((s, i) => `<div class="sentence">${i + 1}. ${escapeHtml(s)}</div>`).join('');
+                    decHtml = `<div class="act-box"><div class="act-title">${escapeHtml(lesson.decodableInstruction || 'Read ALOUD and circle all words with the target sound')}</div>${lines}</div>`;
+                }
+
+                let fillHtml = '';
+                if (showFill) {
+                    const items = (lesson.fillItems || []).filter(Boolean).slice(0, MAX_FILL_ITEMS);
+                    const cells = items.map(item => {
+                        let html = '';
+                        for (const ch of String(item)) {
+                            if (ch === '_') html += '<span class="blank-sq"></span>';
+                            else html += `<span>${escapeHtml(ch)}</span>`;
+                        }
+                        return `<div class="fill-item">${html}</div>`;
+                    }).join('');
+                    fillHtml = `<div class="act-box"><div class="act-title">${escapeHtml(lesson.fillTitle || 'A. Fill in the missing letters and say the word')}</div><div class="fill-grid">${cells}</div></div>`;
+                }
+
+                let sentHtml = '';
+                if (showSent) {
+                    const n = Math.max(1, Math.min(8, lesson.sentenceLines || 2));
+                    let lines = '';
+                    for (let i = 0; i < n; i++) lines += `<div class="sent-line">${i + 1}.</div>`;
+                    sentHtml = `<div class="act-box"><div class="act-title">${escapeHtml(lesson.sentenceTitle || 'C. Choose any word and form 2 sentences')}</div><div class="sent-lines">${lines}</div></div>`;
+                }
+
+                card.innerHTML = `
+                    <div class="cvc-header">
+                        <div class="cvc-header-left">
+                            <h1 class="cvc-main-title">${escapeHtml(lesson.mainTitle || 'CVC WORDS')}</h1>
+                            <div class="cvc-subtitle">${escapeHtml(lesson.subtitle || 'SHORT VOWEL')}</div>
+                        </div>
+                        <div class="cvc-header-right">
+                            <span class="lesson-label">LESSON</span>
+                            <span class="lesson-num">${lesson.lessonNumber}</span>
+                        </div>
+                    </div>
+                    <div class="cvc-body">
+                        ${topRowHtml}
+                        ${customBoxesHtml}
+                        ${gridHtml}
+                        ${decHtml}
+                        ${fillHtml}
+                        ${sentHtml}
+                    </div>
+                `;
+
+                if (showLines) {
+                    const writing = createWritingSets(calcWritingSets(lesson));
+                    card.querySelector('.cvc-body').appendChild(writing);
+                }
+
+                const pn = document.createElement('div');
+                pn.className = 'cvc-page-number';
+                pn.textContent = pageNum;
+                card.appendChild(pn);
+                page.appendChild(card);
+                return page;
+            }
+
+            // ---- Rest unchanged ----
+            function createWritingSets(count) {
+                let html = '';
+                for (let i = 0; i < count; i++) {
+                    html += `<div class="writing-set"><div class="line l1"></div><div class="line l2"></div><div class="line l3"></div><div class="line l4"></div></div>`;
+                }
+                const el = document.createElement('div');
+                el.className = 'cvc-writing-area';
+                el.innerHTML = html;
+                return el;
+            }
+
+            function calcWritingSets(l) {
+                let base = 10;
+                if (l.showGrid) {
+                    const rows = Math.ceil(Math.min((l.words||[]).length, MAX_GRID_WORDS) / 4) || 0;
+                    base -= Math.min(rows, 5);
+                }
+                if (l.showDecodable) base -= 2;
+                if (l.showFillBlanks) {
+                    const rows = Math.ceil(Math.min((l.fillItems||[]).length, MAX_FILL_ITEMS) / 3) || 0;
+                    base -= Math.min(rows, 3);
+                }
+                if (l.showSentenceWrite) base -= 1;
+                if (l.showIntro || l.showInstruction || l.tileMode) base -= 1;
+                // Custom boxes also take space? We'll not subtract extra, just allow them to consume.
+                return Math.max(3, Math.min(11, base));
+            }
+
+            function buildTocPage(pageNum, entries) {
+                const page = document.createElement('div'); page.className = 'page';
+                page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
+                const card = document.createElement('div'); card.className = 'toc-card';
+                card.innerHTML = `<div class="toc-title">Table of Contents</div><ul class="toc-list">` +
+                    entries.map(e => `<li class="toc-item"><span>Lesson ${e.lessonNumber}: ${escapeHtml(e.mainTitle)}${e.letterTile ? ' — ' + escapeHtml(e.letterTile) : ''}</span><span class="toc-page-num">Page ${e.firstPage}</span></li>`).join('') +
+                    `</ul><div class="page-number">${pageNum}</div>`;
+                page.appendChild(card); return page;
+            }
+
+            function buildSightWordsPage(pageNum, words) {
+                const page = document.createElement('div'); page.className = 'page';
+                page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
+                const card = document.createElement('div'); card.className = 'card sight-card';
+                card.innerHTML = `<div class="title">Sight Words Practice</div><div class="section-header"><div class="circle">★</div><div class="label-box">Read and say each word</div></div>`;
+                const grid = document.createElement('div'); grid.className = 'sight-words-grid';
+                words.forEach(w => { if (!w) return; const c = document.createElement('div'); c.className = 'sight-word-pill'; c.textContent = w; grid.appendChild(c); });
+                card.appendChild(grid);
+                const pn = document.createElement('div'); pn.className = 'page-number'; pn.style.cssText = 'position:absolute;bottom:18px;right:28px;font-weight:800;font-size:15px;'; pn.textContent = pageNum;
+                card.appendChild(pn); page.appendChild(card); return page;
+            }
+
+            function buildCoverPage() {
+                const page = document.createElement('div'); page.className = 'page';
+                page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
+                const card = document.createElement('div'); card.className = 'card cover-card';
+                card.innerHTML = `<div class="cover-text-block"><div class="cover-line"></div><div class="cover-title">${escapeHtml(coverData.title)}</div><div class="cover-subtitle">${escapeHtml(coverData.subtitle)}</div><div class="cover-line"></div></div>`;
+                page.appendChild(card); return page;
+            }
+
+            window.exportSinglePage = function(pageEl) {
+                const clone = pageEl.cloneNode(true);
+                clone.querySelector('.page-actions')?.remove();
+                const win = window.open('', '_blank');
+                const styles = document.querySelector('style').outerHTML;
+                win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Export</title>${styles}</head><body style="padding:0;background:#fff;margin:0;"><div class="view-container" style="overflow:visible;">${clone.outerHTML}</div></body></html>`);
+                win.document.close(); win.focus(); setTimeout(() => win.print(), 400);
+            };
+            window.exportAllPages = function() {
+                if (!lessons.length && !sightWords.length) return showToast('No lessons or sight words.', 'warning');
+                const container = document.querySelector('.view-container').cloneNode(true);
+                container.querySelectorAll('.page-actions').forEach(el => el.remove());
+                const win = window.open('', '_blank');
+                const styles = document.querySelector('style').outerHTML;
+                win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>All Pages</title>${styles}</head><body style="padding:0;background:#fff;margin:0;"><div class="view-container" style="overflow:visible;">${container.outerHTML}</div></body></html>`);
+                win.document.close(); win.focus(); setTimeout(() => win.print(), 400);
+            };
+
+            function renderAllView() {
+                const container = document.getElementById('viewContainer');
+                container.innerHTML = '';
+                container.appendChild(buildCoverPage());
+                if (!lessons.length && !sightWords.length) return;
+                const swPages = Math.ceil(sightWords.length / MAX_SIGHT_WORDS_PER_PAGE) || 0;
+                const tocPages = lessons.length ? Math.ceil(lessons.length / MAX_TOC_PER_PAGE) : 0;
+                const lessonStart = tocPages + swPages + 1;
+                let running = lessonStart;
+                const tocEntries = lessons.map(l => {
+                    const e = { lessonNumber: l.lessonNumber, mainTitle: l.mainTitle, letterTile: l.letterTile, firstPage: running };
+                    running += 1; return e;
+                });
+                for (let p = 0; p < tocPages; p++) container.appendChild(buildTocPage(p + 1, tocEntries.slice(p * MAX_TOC_PER_PAGE, (p + 1) * MAX_TOC_PER_PAGE)));
+                let pageNum = tocPages + 1;
+                for (let p = 0; p < swPages; p++) {
+                    container.appendChild(buildSightWordsPage(pageNum++, sightWords.slice(p * MAX_SIGHT_WORDS_PER_PAGE, (p + 1) * MAX_SIGHT_WORDS_PER_PAGE)));
+                }
+                pageNum = lessonStart;
+                lessons.forEach(l => container.appendChild(buildLessonPage(l, pageNum++)));
+            }
+
+            // ---------- FORM ----------
+            function getFormData() {
+                const words = document.getElementById('fWords').value.split(',').map(s => s.trim()).filter(Boolean).slice(0, MAX_GRID_WORDS);
+                const fills = document.getElementById('fFillItems').value.split(',').map(s => s.trim()).filter(Boolean).slice(0, MAX_FILL_ITEMS);
+                const sents = document.getElementById('fDecSents').value.split(',').map(s => s.trim()).filter(Boolean);
+                return {
+                    mainTitle: document.getElementById('fMainTitle').value.trim(),
+                    subtitle: document.getElementById('fSubtitle').value.trim() || 'SHORT VOWEL',
+                    lessonNumber: parseInt(document.getElementById('fLessonNumber').value) || 0,
+                    tileMode: document.getElementById('fTileMode').value,
+                    letterTile: document.getElementById('fLetterTile').value.trim(),
+                    letterFontSize: parseInt(document.getElementById('fLetterSize').value) || 56,
+                    imagePath: document.getElementById('fImagePath').value || '',
+                    imageCaption: document.getElementById('fImageCaption').value.trim() || "TODAY'S SOUND",
+                    showIntro: document.getElementById('fShowIntro').checked,
+                    introText: document.getElementById('fIntroText').value.trim(),
+                    showInstruction: document.getElementById('fShowInstr').checked,
+                    instruction: document.getElementById('fInstruction').value.trim(),
+                    showGrid: document.getElementById('fShowGrid').checked,
+                    words,
+                    showDecodable: document.getElementById('fShowDec').checked,
+                    decodableInstruction: document.getElementById('fDecInstr').value.trim(),
+                    decodableSentences: sents,
+                    showFillBlanks: document.getElementById('fShowFill').checked,
+                    fillTitle: document.getElementById('fFillTitle').value.trim(),
+                    fillItems: fills,
+                    showSentenceWrite: document.getElementById('fShowSent').checked,
+                    sentenceTitle: document.getElementById('fSentTitle').value.trim(),
+                    sentenceLines: parseInt(document.getElementById('fSentLines').value) || 2,
+                    showWritingLines: document.getElementById('fShowLines').checked,
+                    customBoxes: tempCustomBoxes  // <-- include custom boxes
+                };
+            }
+
+            function fillForm(lesson) {
+                document.getElementById('fMainTitle').value = lesson.mainTitle || '';
+                document.getElementById('fSubtitle').value = lesson.subtitle || 'SHORT VOWEL';
+                document.getElementById('fLessonNumber').value = lesson.lessonNumber || '';
+                document.getElementById('fTileMode').value = lesson.tileMode || 'letter';
+                document.getElementById('fLetterTile').value = lesson.letterTile || '';
+                document.getElementById('fLetterSize').value = lesson.letterFontSize || 56;
+                document.getElementById('fImagePath').value = lesson.imagePath || '';
+                document.getElementById('fImageCaption').value = lesson.imageCaption || "TODAY'S SOUND";
+                const img = document.getElementById('imgPreview'), ph = document.getElementById('imgPreviewPh');
+                if (lesson.imagePath) { img.src = lesson.imagePath; img.style.display = 'block'; ph.style.display = 'none'; }
+                else { img.src = ''; img.style.display = 'none'; ph.style.display = 'flex'; }
+                document.getElementById('fShowIntro').checked = lesson.showIntro !== false;
+                document.getElementById('fIntroText').value = lesson.introText || '';
+                document.getElementById('fShowInstr').checked = lesson.showInstruction !== false;
+                document.getElementById('fInstruction').value = lesson.instruction || '';
+                document.getElementById('fShowGrid').checked = lesson.showGrid !== false;
+                document.getElementById('fWords').value = (lesson.words || []).join(', ');
+                document.getElementById('fShowDec').checked = !!lesson.showDecodable;
+                document.getElementById('fDecInstr').value = lesson.decodableInstruction || 'Read ALOUD and circle all words with the target sound';
+                document.getElementById('fDecSents').value = (lesson.decodableSentences || []).join(', ');
+                document.getElementById('fShowFill').checked = !!lesson.showFillBlanks;
+                document.getElementById('fFillTitle').value = lesson.fillTitle || 'A. Fill in the missing letters and say the word';
+                document.getElementById('fFillItems').value = (lesson.fillItems || []).join(', ');
+                document.getElementById('fShowSent').checked = !!lesson.showSentenceWrite;
+                document.getElementById('fSentTitle').value = lesson.sentenceTitle || 'C. Choose any word and form 2 sentences';
+                document.getElementById('fSentLines').value = lesson.sentenceLines || 2;
+                document.getElementById('fShowLines').checked = lesson.showWritingLines !== false;
+
+                // Set custom boxes temp
+                tempCustomBoxes = JSON.parse(JSON.stringify(lesson.customBoxes || []));
+                renderCustomBoxes();
+
+                toggleFields();
+            }
+
+            function resetForm() {
+                editingId = null;
+                document.getElementById('formTitle').textContent = '➕ Add New Lesson';
+                document.getElementById('fMainTitle').value = 'SHORT VOWEL CVC WORDS';
+                document.getElementById('fSubtitle').value = 'SHORT VOWEL';
+                document.getElementById('fLessonNumber').value = lessons.length + 1;
+                document.getElementById('fTileMode').value = 'letter';
+                document.getElementById('fLetterTile').value = '';
+                document.getElementById('fLetterSize').value = 56;
+                document.getElementById('fImagePath').value = '';
+                document.getElementById('fImageCaption').value = "TODAY'S SOUND";
+                document.getElementById('imgPreview').style.display = 'none';
+                document.getElementById('imgPreviewPh').style.display = 'flex';
+                document.getElementById('fShowIntro').checked = true;
+                document.getElementById('fIntroText').value = '';
+                document.getElementById('fShowInstr').checked = true;
+                document.getElementById('fInstruction').value = 'Say each picture word out loud and listen for this pattern.';
+                document.getElementById('fShowGrid').checked = true;
+                document.getElementById('fWords').value = '';
+                document.getElementById('fShowDec').checked = false;
+                document.getElementById('fDecInstr').value = 'Read ALOUD and circle all words with the target sound';
+                document.getElementById('fDecSents').value = '';
+                document.getElementById('fShowFill').checked = false;
+                document.getElementById('fFillTitle').value = 'A. Fill in the missing letters and say the word';
+                document.getElementById('fFillItems').value = '';
+                document.getElementById('fShowSent').checked = false;
+                document.getElementById('fSentTitle').value = 'C. Choose any word and form 2 sentences';
+                document.getElementById('fSentLines').value = 2;
+                document.getElementById('fShowLines').checked = true;
+
+                tempCustomBoxes = [];
+                renderCustomBoxes();
+
+                toggleFields();
+                document.getElementById('saveBtn').textContent = '💾 Save Lesson';
+                document.getElementById('cancelBtn').style.display = 'none';
+            }
+
+            window.toggleFields = function() {
+                const mode = document.getElementById('fTileMode').value;
+                document.getElementById('letterFields').style.display = mode === 'letter' ? 'block' : 'none';
+                document.getElementById('imageFields').style.display = mode === 'image' ? 'block' : 'none';
+                document.getElementById('introFields').style.display = document.getElementById('fShowIntro').checked ? 'block' : 'none';
+                document.getElementById('instrFields').style.display = document.getElementById('fShowInstr').checked ? 'block' : 'none';
+                document.getElementById('wordsGroup').style.display = document.getElementById('fShowGrid').checked ? 'block' : 'none';
+                document.getElementById('decFields').style.display = document.getElementById('fShowDec').checked ? 'block' : 'none';
+                document.getElementById('fillFields').style.display = document.getElementById('fShowFill').checked ? 'block' : 'none';
+                document.getElementById('sentFields').style.display = document.getElementById('fShowSent').checked ? 'block' : 'none';
+            };
+
+            window.handleImageUpload = function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                if (file.size > 2 * 1024 * 1024) return showToast('Image must be < 2MB.', 'error');
+                if (!file.type.startsWith('image/')) return showToast('Please select an image.', 'error');
+                const reader = new FileReader();
+                reader.onload = ev => {
+                    document.getElementById('fImagePath').value = ev.target.result;
+                    const img = document.getElementById('imgPreview'), ph = document.getElementById('imgPreviewPh');
+                    img.src = ev.target.result; img.style.display = 'block'; ph.style.display = 'none';
+                    showToast('Image uploaded.', 'success');
+                };
+                reader.readAsDataURL(file);
+            };
+
+            window.editLesson = function(id) {
+                const lesson = lessons.find(l => l.id === id);
+                if (!lesson) return showToast('Lesson not found.', 'error');
+                editingId = id;
+                document.getElementById('formTitle').textContent = '✏️ Edit Lesson';
+                fillForm(lesson);
+                document.getElementById('saveBtn').textContent = '💾 Update Lesson';
+                document.getElementById('cancelBtn').style.display = 'inline-block';
+                document.querySelector('.form-section').scrollIntoView({ behavior: 'smooth' });
+            };
+            window.cancelEdit = function() { resetForm(); showToast('Edit cancelled.', 'info'); };
+
+            window.saveLesson = function() {
+                const data = getFormData();
+                if (!data.mainTitle) return showToast('Main Title is required.', 'error');
+                if (data.tileMode === 'letter' && !data.letterTile) return showToast('Letter Tile is required in Letter mode.', 'error');
+                if (data.showIntro && !data.introText) return showToast('Intro Text is required when enabled.', 'error');
+                if (data.showGrid && data.words.length < 1) return showToast('Word Grid needs at least 1 word when enabled.', 'error');
+                if (data.showFillBlanks && data.fillItems.length < 1) return showToast('Fill-blanks needs at least 1 item when enabled.', 'error');
+
+                if (editingId) {
+                    const idx = lessons.findIndex(l => l.id === editingId);
+                    if (idx === -1) return showToast('Lesson not found.', 'error');
+                    data.lessonNumber = idx + 1;
+                    lessons[idx] = { ...lessons[idx], ...data, id: editingId };
+                } else {
+                    data.lessonNumber = lessons.length + 1;
+                    lessons.push({ ...data, id: generateId() });
+                }
+                renumberByOrder(lessons);
+                saveData();
+                resetForm();
+                refreshUI();
+                showToast('Lesson saved.', 'success');
+            };
+
+            window.deleteLesson = function(id) {
+                const lesson = lessons.find(l => l.id === id);
+                if (!lesson) return;
+                confirmDialog(`Delete Lesson ${lesson.lessonNumber}?`, () => {
+                    lessons = lessons.filter(l => l.id !== id);
+                    if (editingId === id) resetForm();
+                    renumberByOrder(lessons);
+                    saveData();
+                    refreshUI();
+                });
+            };
+            window.duplicateLesson = function(id) {
+                const lesson = lessons.find(l => l.id === id);
+                if (!lesson) return;
+                const copy = JSON.parse(JSON.stringify(lesson));
+                delete copy.id; copy.id = generateId();
+                lessons.push(copy);
+                renumberByOrder(lessons);
+                saveData();
+                refreshUI();
+                showToast('Lesson duplicated.', 'success');
+            };
+
+            window.exportJSON = function() {
+                const blob = new Blob([JSON.stringify({ lessons, sightWords, coverData }, null, 2)], { type: 'application/json' });
+                const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'lessons_v8.json'; a.click();
+            };
+            window.importJSON = function(input) {
+                const file = input.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = e => {
+                    try {
+                        const data = JSON.parse(e.target.result);
+                        if (!data || typeof data !== 'object') throw new Error('Invalid');
+                        confirmDialog('Replace all data with imported file? Lesson numbers will be renumbered.', () => {
+                            if (Array.isArray(data.lessons)) {
+                                lessons = data.lessons.map((l, i) => {
+                                    if (!l.id) l.id = '__import' + i;
+                                    if (!l.words && l.activities?.lookAndSay?.words) l.words = flattenWords(l.activities.lookAndSay.words);
+                                    if (!l.tileMode) l.tileMode = 'letter';
+                                    if (!Array.isArray(l.customBoxes)) l.customBoxes = [];
+                                    return l;
+                                });
+                                resyncNextId();
+                                lessons.forEach(l => { if (String(l.id).startsWith('__import')) l.id = generateId(); });
+                                resyncNextId();
+                            } else {
+                                lessons = JSON.parse(JSON.stringify(DEFAULT_LESSONS));
+                                resyncNextId();
+                            }
+                            sightWords = Array.isArray(data.sightWords) ? [...data.sightWords] : [...DEFAULT_SIGHT_WORDS];
+                            coverData = data.coverData || { ...DEFAULT_COVER };
+                            renumberByOrder(lessons);
+                            saveData();
+                            resetForm();
+                            refreshUI();
+                            showToast('Data imported.', 'success');
+                        });
+                    } catch (err) { showToast('Invalid JSON file.', 'error'); }
+                };
+                reader.readAsText(file);
+                input.value = '';
+            };
+
+            window.saveSightWords = function() {
+                sightWords = document.getElementById('fSightWords').value.split(',').map(s => s.trim()).filter(Boolean);
+                saveData(); refreshUI(); showToast('Sight words saved.', 'success');
+            };
+            window.saveCover = function() {
+                coverData = {
+                    title: document.getElementById('coverTitleInput').value.trim() || DEFAULT_COVER.title,
+                    subtitle: document.getElementById('coverSubtitleInput').value.trim() || DEFAULT_COVER.subtitle
+                };
+                saveData(); renderAllView(); showToast('Cover updated.', 'success');
+            };
+
+            function refreshUI() { renderEditList(); renderAllView(); updateCounts(); }
+
+            function renderEditList() {
+                const container = document.getElementById('lessonList');
+                const q = (window.searchQuery || '').toLowerCase();
+                const filtered = lessons.filter(l => {
+                    if (!q) return true;
+                    return String(l.lessonNumber).includes(q) || (l.mainTitle || '').toLowerCase().includes(q) ||
+                           (l.letterTile || '').toLowerCase().includes(q) || (l.introText || '').toLowerCase().includes(q);
+                });
+                container.innerHTML = filtered.length ? filtered.map(l => {
+                    return `<div class="lesson-item" data-id="${l.id}">
+                        <div class="thumb">📄</div>
+                        <div class="info">
+                            <div class="title">Lesson ${l.lessonNumber} — ${escapeHtml(l.mainTitle)} ${l.letterTile ? '· ' + escapeHtml(l.letterTile) : ''}</div>
+                            <div class="sub">1 page · ${l.tileMode || 'letter'} mode</div>
+                        </div>
+                        <div class="actions">
+                            <button class="btn btn-primary btn-xs" onclick="editLesson('${l.id}')">✏️</button>
+                            <button class="btn btn-warning btn-xs" onclick="duplicateLesson('${l.id}')">📋</button>
+                            <button class="btn btn-danger btn-xs" onclick="deleteLesson('${l.id}')">🗑️</button>
+                        </div>
+                    </div>`;
+                }).join('') : '<div style="text-align:center;padding:40px;color:#6c757d;">No lessons found.</div>';
+                document.getElementById('listCount').textContent = filtered.length + ' / ' + lessons.length;
+                const sp = document.getElementById('sightWordsPreview');
+                if (sp) sp.innerHTML = sightWords.length ? sightWords.map(w => `<span style="display:inline-block;margin:3px;padding:5px 10px;background:#E2571C;color:#fff;border-radius:8px;font-weight:600;font-size:13px;">${escapeHtml(w)}</span>`).join('') : '<span style="color:#6c757d;">No sight words yet.</span>';
+            }
+
+            function updateCounts() {
+                document.getElementById('lessonCount').textContent = lessons.length + ' lessons, ' + sightWords.length + ' sight words';
+                const tocPages = lessons.length ? Math.ceil(lessons.length / MAX_TOC_PER_PAGE) : 0;
+                const swPages = Math.ceil(sightWords.length / MAX_SIGHT_WORDS_PER_PAGE) || 0;
+                document.getElementById('viewInfo').textContent = `📄 ${lessons.length} lessons · ${1 + tocPages + swPages + lessons.length} pages`;
+            }
+
+            window.switchTab = function(tab) {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+                document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === tab + 'Panel'));
+                if (tab === 'edit') renderEditList();
+                if (tab === 'view') renderAllView();
+                updateCounts();
+            };
+
+            // ---------- Initialization (async) ----------
+            async function initApp() {
+                await loadData();
+                document.getElementById('app').innerHTML = `
+                    <div class="app-header"><h1>📚 Phonics Lesson Publisher v8</h1><span class="badge" id="lessonCount">0</span></div>
+                    <div class="tabs">
+                        <button class="tab-btn active" data-tab="edit" onclick="switchTab('edit')">✏️ Edit</button>
+                        <button class="tab-btn" data-tab="view" onclick="switchTab('view')">👁️ View</button>
+                    </div>
+                    <div class="tab-panel active" id="editPanel">
+                        <div class="edit-layout">
+                            <div class="form-section">
+                                <h2 id="formTitle">➕ Add New Lesson</h2>
+                                <div class="form-group"><label>Main Title <span class="req">*</span></label><input id="fMainTitle" value="SHORT VOWEL CVC WORDS"></div>
+                                <div class="form-group"><label>Subtitle</label><input id="fSubtitle" value="SHORT VOWEL"></div>
+                                <div class="form-group"><label>Lesson Number (auto)</label><input id="fLessonNumber" readonly style="background:#f0f0f0;"></div>
+
+                                <div class="section-card">
+                                    <h4>Letter / Image Tile</h4>
+                                    <div class="form-group"><label>Mode</label>
+                                        <select id="fTileMode" onchange="toggleFields()">
+                                            <option value="letter">Letter</option>
+                                            <option value="image">Image</option>
+                                            <option value="none">None (hide)</option>
+                                        </select>
+                                    </div>
+                                    <div id="letterFields">
+                                        <div class="form-group"><label>Letter Tile</label><input id="fLetterTile" placeholder="Aa"></div>
+                                        <div class="form-group"><label>Font size (px)</label><input type="number" id="fLetterSize" value="56" min="24" max="96"></div>
+                                    </div>
+                                    <div id="imageFields" style="display:none">
+                                        <div class="form-group"><label>Caption (replaces TODAY'S SOUND)</label><input id="fImageCaption" value="TODAY'S SOUND"></div>
+                                        <div class="form-group"><label>Image</label>
+                                            <div class="image-upload-wrap">
+                                                <img id="imgPreview" class="preview" style="display:none">
+                                                <div id="imgPreviewPh" class="preview-ph">🖼️</div>
+                                                <input type="file" accept="image/*" onchange="handleImageUpload(event)">
+                                                <input type="hidden" id="fImagePath">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="toggle-row"><label><input type="checkbox" id="fShowIntro" checked onchange="toggleFields()"> Show Intro Text</label></div>
+                                <div id="introFields"><div class="form-group"><textarea id="fIntroText" rows="2" placeholder="Short a says /a/ like in apple..."></textarea></div></div>
+
+                                <div class="toggle-row"><label><input type="checkbox" id="fShowInstr" checked onchange="toggleFields()"> Show Instruction</label></div>
+                                <div id="instrFields"><div class="form-group"><textarea id="fInstruction" rows="2">Say each picture word out loud and listen for this pattern.</textarea></div></div>
+
+                                <div class="toggle-row"><label><input type="checkbox" id="fShowGrid" checked onchange="toggleFields()"> Show Word Grid (max 24)</label></div>
+                                <div id="wordsGroup" class="form-group"><textarea id="fWords" rows="2" placeholder="bag, cat, mat, hat..."></textarea></div>
+
+                                <div class="toggle-row"><label><input type="checkbox" id="fShowDec" onchange="toggleFields()"> Show Decodable Reading</label></div>
+                                <div id="decFields" style="display:none" class="section-card">
+                                    <div class="form-group"><label>Instruction</label><input id="fDecInstr" value="Read ALOUD and circle all words with the target sound"></div>
+                                    <div class="form-group"><label>Sentences (comma separated)</label><textarea id="fDecSents" rows="2" placeholder="I see a bag., Look at the cat..."></textarea></div>
+                                </div>
+
+                                <div class="toggle-row"><label><input type="checkbox" id="fShowFill" onchange="toggleFields()"> Show Fill-in-the-Blanks (max 18)</label></div>
+                                <div id="fillFields" style="display:none" class="section-card">
+                                    <div class="form-group"><label>Title</label><input id="fFillTitle" value="A. Fill in the missing letters and say the word"></div>
+                                    <div class="form-group"><label>Items (use _ for blank, e.g. b_g, c_t)</label><textarea id="fFillItems" rows="2" placeholder="b_g, c_t, m_t, h_t..."></textarea></div>
+                                </div>
+
+                                <div class="toggle-row"><label><input type="checkbox" id="fShowSent" onchange="toggleFields()"> Show Sentence Writing</label></div>
+                                <div id="sentFields" style="display:none" class="section-card">
+                                    <div class="form-group"><label>Title</label><input id="fSentTitle" value="C. Choose any word and form 2 sentences"></div>
+                                    <div class="form-group"><label>Number of lines</label><input type="number" id="fSentLines" value="2" min="1" max="8"></div>
+                                </div>
+
+                                <div class="toggle-row"><label><input type="checkbox" id="fShowLines" checked> Show Writing Lines (fills remaining space)</label></div>
+
+                                <!-- New Custom Boxes Section -->
+                                <div class="section-card">
+                                    <h4>Custom Text Boxes</h4>
+                                    <p style="font-size:12px;color:#6c757d;margin-bottom:8px;">Add multiple full‑width boxes that appear after the intro/instruction block.</p>
+                                    <button class="btn btn-outline btn-sm" onclick="addCustomBox()">+ Add Text Box</button>
+                                    <div id="customBoxesContainer" style="margin-top:8px;"></div>
+                                </div>
+
+                                <div class="form-actions">
+                                    <button class="btn btn-primary" id="saveBtn" onclick="saveLesson()">💾 Save Lesson</button>
+                                    <button class="btn btn-outline" id="cancelBtn" onclick="cancelEdit()" style="display:none">Cancel</button>
+                                </div>
+                            </div>
+                            <div class="list-section">
+                                <div style="margin-bottom:20px;border-bottom:2px solid #e9ecef;padding-bottom:20px;">
+                                    <h3>📘 Cover Page</h3>
+                                    <div class="form-group"><label>Cover Title</label><input id="coverTitleInput" value="${escapeHtml(coverData.title)}"></div>
+                                    <div class="form-group"><label>Cover Subtitle</label><input id="coverSubtitleInput" value="${escapeHtml(coverData.subtitle)}"></div>
+                                    <button class="btn btn-success btn-sm" onclick="saveCover()">💾 Save Cover</button>
+                                </div>
+                                <h2>📖 All Lessons</h2>
+                                <div class="list-toolbar">
+                                    <input class="search-box" placeholder="🔍 Search..." oninput="window.searchQuery=this.value;window.renderEditList()">
+                                    <span class="count" id="listCount">0/0</span>
+                                    <button class="btn btn-success btn-sm" onclick="exportJSON()">📤 Export</button>
+                                    <button class="btn btn-outline btn-sm" onclick="document.getElementById('importFile').click()">📥 Import</button>
+                                    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(this)">
+                                </div>
+                                <div class="lesson-list" id="lessonList"></div>
+                                <div style="margin-top:28px;border-top:2px solid #e9ecef;padding-top:20px;">
+                                    <h3>📝 Sight Words</h3>
+                                    <div class="form-group"><textarea id="fSightWords" rows="3"></textarea></div>
+                                    <button class="btn btn-success btn-sm" onclick="saveSightWords()">💾 Save Sight Words</button>
+                                    <div style="margin-top:10px;"><strong>Preview:</strong><div id="sightWordsPreview" style="margin-top:6px;"></div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-panel" id="viewPanel">
+                        <div class="view-toolbar">
+                            <span class="info" id="viewInfo">0 lessons · 0 pages</span>
+                            <button class="btn btn-success" onclick="exportAllPages()">⬇ Export All</button>
+                        </div>
+                        <div class="view-container" id="viewContainer"></div>
+                    </div>`;
+
+                document.getElementById('fSightWords').value = sightWords.join(', ');
+                resetForm();
+                renderEditList();
+                renderAllView();
+                updateCounts();
+                window.renderEditList = renderEditList;
+            }
+
+            initApp();
+        })();
+    </script>
+</body>
+</html>
