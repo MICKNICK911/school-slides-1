@@ -400,11 +400,64 @@
 
     <script>
         (function () {
-            const STORAGE_KEY = 'phonics_lessons_v8';
+            // ---------- Storage Configuration ----------
+            const IDB_NAME = 'phonics_lessons_db';
+            const IDB_STORE = 'app_data';
+            const LEGACY_STORAGE_KEY = 'phonics_lessons_v8';
             const MAX_TOC_PER_PAGE = 20;
             const MAX_SIGHT_WORDS_PER_PAGE = 50;
             const MAX_GRID_WORDS = 24;
             const MAX_FILL_ITEMS = 18;
+
+            // ---------- IndexedDB Utility ----------
+            let dbPromise = null;
+            function getDB() {
+                if (!dbPromise) {
+                    dbPromise = new Promise((resolve, reject) => {
+                        const request = indexedDB.open(IDB_NAME, 1);
+                        request.onupgradeneeded = (e) => {
+                            const db = e.target.result;
+                            if (!db.objectStoreNames.contains(IDB_STORE)) {
+                                db.createObjectStore(IDB_STORE);
+                            }
+                        };
+                        request.onsuccess = () => resolve(request.result);
+                        request.onerror = () => reject(request.error);
+                    });
+                }
+                return dbPromise;
+            }
+
+            async function idbSet(data) {
+                try {
+                    const db = await getDB();
+                    return new Promise((resolve, reject) => {
+                        const tx = db.transaction(IDB_STORE, 'readwrite');
+                        const store = tx.objectStore(IDB_STORE);
+                        store.put(data, 'appData');
+                        tx.oncomplete = () => resolve();
+                        tx.onerror = () => reject(tx.error);
+                    });
+                } catch (e) {
+                    // Fallback to localStorage
+                    localStorage.setItem(LEGACY_STORAGE_KEY, JSON.stringify(data));
+                }
+            }
+
+            async function idbGet() {
+                try {
+                    const db = await getDB();
+                    return new Promise((resolve, reject) => {
+                        const tx = db.transaction(IDB_STORE, 'readonly');
+                        const store = tx.objectStore(IDB_STORE);
+                        const request = store.get('appData');
+                        request.onsuccess = () => resolve(request.result);
+                        request.onerror = () => reject(request.error);
+                    });
+                } catch (e) {
+                    return null;
+                }
+            }
 
             function flattenWords(arr) {
                 if (!Array.isArray(arr)) return [];
@@ -440,13 +493,11 @@
                     mainTitle: 'SHORT VOWEL CVC WORDS',
                     subtitle: 'SHORT VOWEL',
                     lessonNumber: 1,
-                    // Letter / Image mutual
-                    tileMode: 'letter', // 'letter' | 'image'
+                    tileMode: 'letter',
                     letterTile: 'Aa',
                     letterFontSize: 56,
                     imagePath: '',
                     imageCaption: "TODAY'S SOUND",
-                    // Toggles
                     showIntro: true,
                     introText: 'Short a says /a/ like in apple — when a single vowel is boxed in between two consonants, it usually keeps this quick, clipped sound.',
                     showInstruction: true,
@@ -475,58 +526,73 @@
             let nextId = 1;
             window.searchQuery = '';
 
-            function loadData() {
+            async function loadData() {
+                let data = null;
                 try {
-                    const raw = localStorage.getItem(STORAGE_KEY);
-                    if (raw) {
-                        const parsed = JSON.parse(raw);
-                        lessons = parsed.lessons || [];
-                        sightWords = parsed.sightWords || [...DEFAULT_SIGHT_WORDS];
-                        coverData = parsed.coverData || { ...DEFAULT_COVER };
-                        if (lessons.length) {
-                            let maxId = 0;
-                            lessons.forEach(l => {
-                                // migrations
-                                if (!l.words && l.activities?.lookAndSay?.words) l.words = flattenWords(l.activities.lookAndSay.words);
-                                if (!l.tileMode) l.tileMode = 'letter';
-                                if (!l.letterFontSize) l.letterFontSize = 56;
-                                if (!l.imageCaption) l.imageCaption = "TODAY'S SOUND";
-                                if (typeof l.showIntro === 'undefined') l.showIntro = true;
-                                if (typeof l.showInstruction === 'undefined') l.showInstruction = true;
-                                if (typeof l.showGrid === 'undefined') l.showGrid = true;
-                                if (typeof l.showDecodable === 'undefined') l.showDecodable = false;
-                                if (typeof l.showFillBlanks === 'undefined') l.showFillBlanks = false;
-                                if (typeof l.showSentenceWrite === 'undefined') l.showSentenceWrite = false;
-                                if (typeof l.showWritingLines === 'undefined') l.showWritingLines = true;
-                                if (!l.decodableInstruction) l.decodableInstruction = 'Read ALOUD and circle all words with the target sound';
-                                if (!l.fillTitle) l.fillTitle = 'A. Fill in the missing letters and say the word';
-                                if (!l.sentenceTitle) l.sentenceTitle = 'C. Choose any word and form 2 sentences';
-                                if (!l.sentenceLines) l.sentenceLines = 2;
-                                if (!l.id) l.id = 'l' + Date.now() + Math.random().toString(36).slice(2, 6);
-                                const num = parseInt(String(l.id).replace('l', '')) || 0;
-                                if (num > maxId) maxId = num;
-                            });
-                            nextId = maxId + 1;
-                        } else {
-                            lessons = JSON.parse(JSON.stringify(DEFAULT_LESSONS));
-                            nextId = lessons.length + 1;
+                    data = await idbGet();
+                } catch (e) {
+                    data = null;
+                }
+                if (!data || !data.lessons) {
+                    // Fallback to legacy localStorage
+                    try {
+                        const raw = localStorage.getItem(LEGACY_STORAGE_KEY);
+                        if (raw) {
+                            data = JSON.parse(raw);
                         }
-                        renumberByOrder(lessons);
-                        saveData();
-                        return;
+                    } catch (e) {}
+                }
+                if (data && data.lessons) {
+                    lessons = data.lessons || [];
+                    sightWords = data.sightWords || [...DEFAULT_SIGHT_WORDS];
+                    coverData = data.coverData || { ...DEFAULT_COVER };
+                    if (lessons.length) {
+                        let maxId = 0;
+                        lessons.forEach(l => {
+                            if (!l.words && l.activities?.lookAndSay?.words) l.words = flattenWords(l.activities.lookAndSay.words);
+                            if (!l.tileMode) l.tileMode = 'letter';
+                            if (!l.letterFontSize) l.letterFontSize = 56;
+                            if (!l.imageCaption) l.imageCaption = "TODAY'S SOUND";
+                            if (typeof l.showIntro === 'undefined') l.showIntro = true;
+                            if (typeof l.showInstruction === 'undefined') l.showInstruction = true;
+                            if (typeof l.showGrid === 'undefined') l.showGrid = true;
+                            if (typeof l.showDecodable === 'undefined') l.showDecodable = false;
+                            if (typeof l.showFillBlanks === 'undefined') l.showFillBlanks = false;
+                            if (typeof l.showSentenceWrite === 'undefined') l.showSentenceWrite = false;
+                            if (typeof l.showWritingLines === 'undefined') l.showWritingLines = true;
+                            if (!l.decodableInstruction) l.decodableInstruction = 'Read ALOUD and circle all words with the target sound';
+                            if (!l.fillTitle) l.fillTitle = 'A. Fill in the missing letters and say the word';
+                            if (!l.sentenceTitle) l.sentenceTitle = 'C. Choose any word and form 2 sentences';
+                            if (!l.sentenceLines) l.sentenceLines = 2;
+                            if (!l.id) l.id = 'l' + Date.now() + Math.random().toString(36).slice(2, 6);
+                            const num = parseInt(String(l.id).replace('l', '')) || 0;
+                            if (num > maxId) maxId = num;
+                        });
+                        nextId = maxId + 1;
+                    } else {
+                        lessons = JSON.parse(JSON.stringify(DEFAULT_LESSONS));
+                        nextId = lessons.length + 1;
                     }
+                    renumberByOrder(lessons);
+                } else {
+                    lessons = JSON.parse(JSON.stringify(DEFAULT_LESSONS));
+                    sightWords = [...DEFAULT_SIGHT_WORDS];
+                    coverData = { ...DEFAULT_COVER };
+                    nextId = lessons.length + 1;
+                    renumberByOrder(lessons);
+                }
+                await saveData(); // Persist migrated data
+            }
+
+            async function saveData() {
+                const payload = { lessons, sightWords, coverData };
+                await idbSet(payload);
+                // Fallback to localStorage too (optional, but helpful)
+                try {
+                    localStorage.setItem(LEGACY_STORAGE_KEY, JSON.stringify(payload));
                 } catch (e) {}
-                lessons = JSON.parse(JSON.stringify(DEFAULT_LESSONS));
-                sightWords = [...DEFAULT_SIGHT_WORDS];
-                coverData = { ...DEFAULT_COVER };
-                nextId = lessons.length + 1;
-                renumberByOrder(lessons);
-                saveData();
             }
-            function saveData() {
-                try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ lessons, sightWords, coverData })); }
-                catch (e) { showToast('Storage full – delete some lessons.', 'error'); }
-            }
+
             function generateId() { return 'l' + (nextId++); }
             function resyncNextId() {
                 let maxId = 0;
@@ -585,7 +651,6 @@
                 const hasTile = tileMode === 'letter' || tileMode === 'image';
                 const fontSize = lesson.letterFontSize || 56;
 
-                // --- Top row (tile + intro + instruction) ---
                 let topRowHtml = '';
                 if (hasTile || showIntro || showInstr) {
                     let tileHtml = '';
@@ -635,7 +700,6 @@
                     }
                 }
 
-                // --- Word Grid ---
                 let gridHtml = '';
                 if (showGrid) {
                     const words = (lesson.words || []).filter(w => w && String(w).trim()).slice(0, MAX_GRID_WORDS);
@@ -647,7 +711,6 @@
                     }
                 }
 
-                // --- Decodable ---
                 let decHtml = '';
                 if (showDec) {
                     const sents = (lesson.decodableSentences || []).filter(Boolean);
@@ -655,7 +718,6 @@
                     decHtml = `<div class="act-box"><div class="act-title">${escapeHtml(lesson.decodableInstruction || 'Read ALOUD and circle all words with the target sound')}</div>${lines}</div>`;
                 }
 
-                // --- Fill blanks ---
                 let fillHtml = '';
                 if (showFill) {
                     const items = (lesson.fillItems || []).filter(Boolean).slice(0, MAX_FILL_ITEMS);
@@ -670,7 +732,6 @@
                     fillHtml = `<div class="act-box"><div class="act-title">${escapeHtml(lesson.fillTitle || 'A. Fill in the missing letters and say the word')}</div><div class="fill-grid">${cells}</div></div>`;
                 }
 
-                // --- Sentence writing ---
                 let sentHtml = '';
                 if (showSent) {
                     const n = Math.max(1, Math.min(8, lesson.sentenceLines || 2));
@@ -1063,120 +1124,125 @@
                 updateCounts();
             };
 
-            loadData();
-            document.getElementById('app').innerHTML = `
-                <div class="app-header"><h1>📚 Phonics Lesson Publisher v8</h1><span class="badge" id="lessonCount">0</span></div>
-                <div class="tabs">
-                    <button class="tab-btn active" data-tab="edit" onclick="switchTab('edit')">✏️ Edit</button>
-                    <button class="tab-btn" data-tab="view" onclick="switchTab('view')">👁️ View</button>
-                </div>
-                <div class="tab-panel active" id="editPanel">
-                    <div class="edit-layout">
-                        <div class="form-section">
-                            <h2 id="formTitle">➕ Add New Lesson</h2>
-                            <div class="form-group"><label>Main Title <span class="req">*</span></label><input id="fMainTitle" value="SHORT VOWEL CVC WORDS"></div>
-                            <div class="form-group"><label>Subtitle</label><input id="fSubtitle" value="SHORT VOWEL"></div>
-                            <div class="form-group"><label>Lesson Number (auto)</label><input id="fLessonNumber" readonly style="background:#f0f0f0;"></div>
+            // ---------- Initialization (async) ----------
+            async function initApp() {
+                await loadData();
+                document.getElementById('app').innerHTML = `
+                    <div class="app-header"><h1>📚 Phonics Lesson Publisher v8</h1><span class="badge" id="lessonCount">0</span></div>
+                    <div class="tabs">
+                        <button class="tab-btn active" data-tab="edit" onclick="switchTab('edit')">✏️ Edit</button>
+                        <button class="tab-btn" data-tab="view" onclick="switchTab('view')">👁️ View</button>
+                    </div>
+                    <div class="tab-panel active" id="editPanel">
+                        <div class="edit-layout">
+                            <div class="form-section">
+                                <h2 id="formTitle">➕ Add New Lesson</h2>
+                                <div class="form-group"><label>Main Title <span class="req">*</span></label><input id="fMainTitle" value="SHORT VOWEL CVC WORDS"></div>
+                                <div class="form-group"><label>Subtitle</label><input id="fSubtitle" value="SHORT VOWEL"></div>
+                                <div class="form-group"><label>Lesson Number (auto)</label><input id="fLessonNumber" readonly style="background:#f0f0f0;"></div>
 
-                            <div class="section-card">
-                                <h4>Letter / Image Tile</h4>
-                                <div class="form-group"><label>Mode</label>
-                                    <select id="fTileMode" onchange="toggleFields()">
-                                        <option value="letter">Letter</option>
-                                        <option value="image">Image</option>
-                                        <option value="none">None (hide)</option>
-                                    </select>
-                                </div>
-                                <div id="letterFields">
-                                    <div class="form-group"><label>Letter Tile</label><input id="fLetterTile" placeholder="Aa"></div>
-                                    <div class="form-group"><label>Font size (px)</label><input type="number" id="fLetterSize" value="56" min="24" max="96"></div>
-                                </div>
-                                <div id="imageFields" style="display:none">
-                                    <div class="form-group"><label>Caption (replaces TODAY'S SOUND)</label><input id="fImageCaption" value="TODAY'S SOUND"></div>
-                                    <div class="form-group"><label>Image</label>
-                                        <div class="image-upload-wrap">
-                                            <img id="imgPreview" class="preview" style="display:none">
-                                            <div id="imgPreviewPh" class="preview-ph">🖼️</div>
-                                            <input type="file" accept="image/*" onchange="handleImageUpload(event)">
-                                            <input type="hidden" id="fImagePath">
+                                <div class="section-card">
+                                    <h4>Letter / Image Tile</h4>
+                                    <div class="form-group"><label>Mode</label>
+                                        <select id="fTileMode" onchange="toggleFields()">
+                                            <option value="letter">Letter</option>
+                                            <option value="image">Image</option>
+                                            <option value="none">None (hide)</option>
+                                        </select>
+                                    </div>
+                                    <div id="letterFields">
+                                        <div class="form-group"><label>Letter Tile</label><input id="fLetterTile" placeholder="Aa"></div>
+                                        <div class="form-group"><label>Font size (px)</label><input type="number" id="fLetterSize" value="56" min="24" max="96"></div>
+                                    </div>
+                                    <div id="imageFields" style="display:none">
+                                        <div class="form-group"><label>Caption (replaces TODAY'S SOUND)</label><input id="fImageCaption" value="TODAY'S SOUND"></div>
+                                        <div class="form-group"><label>Image</label>
+                                            <div class="image-upload-wrap">
+                                                <img id="imgPreview" class="preview" style="display:none">
+                                                <div id="imgPreviewPh" class="preview-ph">🖼️</div>
+                                                <input type="file" accept="image/*" onchange="handleImageUpload(event)">
+                                                <input type="hidden" id="fImagePath">
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
+
+                                <div class="toggle-row"><label><input type="checkbox" id="fShowIntro" checked onchange="toggleFields()"> Show Intro Text</label></div>
+                                <div id="introFields"><div class="form-group"><textarea id="fIntroText" rows="2" placeholder="Short a says /a/ like in apple..."></textarea></div></div>
+
+                                <div class="toggle-row"><label><input type="checkbox" id="fShowInstr" checked onchange="toggleFields()"> Show Instruction</label></div>
+                                <div id="instrFields"><div class="form-group"><textarea id="fInstruction" rows="2">Say each picture word out loud and listen for this pattern.</textarea></div></div>
+
+                                <div class="toggle-row"><label><input type="checkbox" id="fShowGrid" checked onchange="toggleFields()"> Show Word Grid (max 24)</label></div>
+                                <div id="wordsGroup" class="form-group"><textarea id="fWords" rows="2" placeholder="bag, cat, mat, hat..."></textarea></div>
+
+                                <div class="toggle-row"><label><input type="checkbox" id="fShowDec" onchange="toggleFields()"> Show Decodable Reading</label></div>
+                                <div id="decFields" style="display:none" class="section-card">
+                                    <div class="form-group"><label>Instruction</label><input id="fDecInstr" value="Read ALOUD and circle all words with the target sound"></div>
+                                    <div class="form-group"><label>Sentences (comma separated)</label><textarea id="fDecSents" rows="2" placeholder="I see a bag., Look at the cat..."></textarea></div>
+                                </div>
+
+                                <div class="toggle-row"><label><input type="checkbox" id="fShowFill" onchange="toggleFields()"> Show Fill-in-the-Blanks (max 18)</label></div>
+                                <div id="fillFields" style="display:none" class="section-card">
+                                    <div class="form-group"><label>Title</label><input id="fFillTitle" value="A. Fill in the missing letters and say the word"></div>
+                                    <div class="form-group"><label>Items (use _ for blank, e.g. b_g, c_t)</label><textarea id="fFillItems" rows="2" placeholder="b_g, c_t, m_t, h_t..."></textarea></div>
+                                </div>
+
+                                <div class="toggle-row"><label><input type="checkbox" id="fShowSent" onchange="toggleFields()"> Show Sentence Writing</label></div>
+                                <div id="sentFields" style="display:none" class="section-card">
+                                    <div class="form-group"><label>Title</label><input id="fSentTitle" value="C. Choose any word and form 2 sentences"></div>
+                                    <div class="form-group"><label>Number of lines</label><input type="number" id="fSentLines" value="2" min="1" max="8"></div>
+                                </div>
+
+                                <div class="toggle-row"><label><input type="checkbox" id="fShowLines" checked> Show Writing Lines (fills remaining space)</label></div>
+
+                                <div class="form-actions">
+                                    <button class="btn btn-primary" id="saveBtn" onclick="saveLesson()">💾 Save Lesson</button>
+                                    <button class="btn btn-outline" id="cancelBtn" onclick="cancelEdit()" style="display:none">Cancel</button>
+                                </div>
                             </div>
-
-                            <div class="toggle-row"><label><input type="checkbox" id="fShowIntro" checked onchange="toggleFields()"> Show Intro Text</label></div>
-                            <div id="introFields"><div class="form-group"><textarea id="fIntroText" rows="2" placeholder="Short a says /a/ like in apple..."></textarea></div></div>
-
-                            <div class="toggle-row"><label><input type="checkbox" id="fShowInstr" checked onchange="toggleFields()"> Show Instruction</label></div>
-                            <div id="instrFields"><div class="form-group"><textarea id="fInstruction" rows="2">Say each picture word out loud and listen for this pattern.</textarea></div></div>
-
-                            <div class="toggle-row"><label><input type="checkbox" id="fShowGrid" checked onchange="toggleFields()"> Show Word Grid (max 24)</label></div>
-                            <div id="wordsGroup" class="form-group"><textarea id="fWords" rows="2" placeholder="bag, cat, mat, hat..."></textarea></div>
-
-                            <div class="toggle-row"><label><input type="checkbox" id="fShowDec" onchange="toggleFields()"> Show Decodable Reading</label></div>
-                            <div id="decFields" style="display:none" class="section-card">
-                                <div class="form-group"><label>Instruction</label><input id="fDecInstr" value="Read ALOUD and circle all words with the target sound"></div>
-                                <div class="form-group"><label>Sentences (comma separated)</label><textarea id="fDecSents" rows="2" placeholder="I see a bag., Look at the cat..."></textarea></div>
-                            </div>
-
-                            <div class="toggle-row"><label><input type="checkbox" id="fShowFill" onchange="toggleFields()"> Show Fill-in-the-Blanks (max 18)</label></div>
-                            <div id="fillFields" style="display:none" class="section-card">
-                                <div class="form-group"><label>Title</label><input id="fFillTitle" value="A. Fill in the missing letters and say the word"></div>
-                                <div class="form-group"><label>Items (use _ for blank, e.g. b_g, c_t)</label><textarea id="fFillItems" rows="2" placeholder="b_g, c_t, m_t, h_t..."></textarea></div>
-                            </div>
-
-                            <div class="toggle-row"><label><input type="checkbox" id="fShowSent" onchange="toggleFields()"> Show Sentence Writing</label></div>
-                            <div id="sentFields" style="display:none" class="section-card">
-                                <div class="form-group"><label>Title</label><input id="fSentTitle" value="C. Choose any word and form 2 sentences"></div>
-                                <div class="form-group"><label>Number of lines</label><input type="number" id="fSentLines" value="2" min="1" max="8"></div>
-                            </div>
-
-                            <div class="toggle-row"><label><input type="checkbox" id="fShowLines" checked> Show Writing Lines (fills remaining space)</label></div>
-
-                            <div class="form-actions">
-                                <button class="btn btn-primary" id="saveBtn" onclick="saveLesson()">💾 Save Lesson</button>
-                                <button class="btn btn-outline" id="cancelBtn" onclick="cancelEdit()" style="display:none">Cancel</button>
-                            </div>
-                        </div>
-                        <div class="list-section">
-                            <div style="margin-bottom:20px;border-bottom:2px solid #e9ecef;padding-bottom:20px;">
-                                <h3>📘 Cover Page</h3>
-                                <div class="form-group"><label>Cover Title</label><input id="coverTitleInput" value="${escapeHtml(coverData.title)}"></div>
-                                <div class="form-group"><label>Cover Subtitle</label><input id="coverSubtitleInput" value="${escapeHtml(coverData.subtitle)}"></div>
-                                <button class="btn btn-success btn-sm" onclick="saveCover()">💾 Save Cover</button>
-                            </div>
-                            <h2>📖 All Lessons</h2>
-                            <div class="list-toolbar">
-                                <input class="search-box" placeholder="🔍 Search..." oninput="window.searchQuery=this.value;window.renderEditList()">
-                                <span class="count" id="listCount">0/0</span>
-                                <button class="btn btn-success btn-sm" onclick="exportJSON()">📤 Export</button>
-                                <button class="btn btn-outline btn-sm" onclick="document.getElementById('importFile').click()">📥 Import</button>
-                                <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(this)">
-                            </div>
-                            <div class="lesson-list" id="lessonList"></div>
-                            <div style="margin-top:28px;border-top:2px solid #e9ecef;padding-top:20px;">
-                                <h3>📝 Sight Words</h3>
-                                <div class="form-group"><textarea id="fSightWords" rows="3"></textarea></div>
-                                <button class="btn btn-success btn-sm" onclick="saveSightWords()">💾 Save Sight Words</button>
-                                <div style="margin-top:10px;"><strong>Preview:</strong><div id="sightWordsPreview" style="margin-top:6px;"></div></div>
+                            <div class="list-section">
+                                <div style="margin-bottom:20px;border-bottom:2px solid #e9ecef;padding-bottom:20px;">
+                                    <h3>📘 Cover Page</h3>
+                                    <div class="form-group"><label>Cover Title</label><input id="coverTitleInput" value="${escapeHtml(coverData.title)}"></div>
+                                    <div class="form-group"><label>Cover Subtitle</label><input id="coverSubtitleInput" value="${escapeHtml(coverData.subtitle)}"></div>
+                                    <button class="btn btn-success btn-sm" onclick="saveCover()">💾 Save Cover</button>
+                                </div>
+                                <h2>📖 All Lessons</h2>
+                                <div class="list-toolbar">
+                                    <input class="search-box" placeholder="🔍 Search..." oninput="window.searchQuery=this.value;window.renderEditList()">
+                                    <span class="count" id="listCount">0/0</span>
+                                    <button class="btn btn-success btn-sm" onclick="exportJSON()">📤 Export</button>
+                                    <button class="btn btn-outline btn-sm" onclick="document.getElementById('importFile').click()">📥 Import</button>
+                                    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(this)">
+                                </div>
+                                <div class="lesson-list" id="lessonList"></div>
+                                <div style="margin-top:28px;border-top:2px solid #e9ecef;padding-top:20px;">
+                                    <h3>📝 Sight Words</h3>
+                                    <div class="form-group"><textarea id="fSightWords" rows="3"></textarea></div>
+                                    <button class="btn btn-success btn-sm" onclick="saveSightWords()">💾 Save Sight Words</button>
+                                    <div style="margin-top:10px;"><strong>Preview:</strong><div id="sightWordsPreview" style="margin-top:6px;"></div></div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="tab-panel" id="viewPanel">
-                    <div class="view-toolbar">
-                        <span class="info" id="viewInfo">0 lessons · 0 pages</span>
-                        <button class="btn btn-success" onclick="exportAllPages()">⬇ Export All</button>
-                    </div>
-                    <div class="view-container" id="viewContainer"></div>
-                </div>`;
+                    <div class="tab-panel" id="viewPanel">
+                        <div class="view-toolbar">
+                            <span class="info" id="viewInfo">0 lessons · 0 pages</span>
+                            <button class="btn btn-success" onclick="exportAllPages()">⬇ Export All</button>
+                        </div>
+                        <div class="view-container" id="viewContainer"></div>
+                    </div>`;
 
-            document.getElementById('fSightWords').value = sightWords.join(', ');
-            resetForm();
-            renderEditList();
-            renderAllView();
-            updateCounts();
-            window.renderEditList = renderEditList;
+                document.getElementById('fSightWords').value = sightWords.join(', ');
+                resetForm();
+                renderEditList();
+                renderAllView();
+                updateCounts();
+                window.renderEditList = renderEditList;
+            }
+
+            initApp();
         })();
     </script>
 </body>
