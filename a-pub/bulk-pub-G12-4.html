@@ -58,15 +58,8 @@
         .modal-overlay .modal p { color: #6c757d; margin-bottom: 20px; font-size: 17px; }
         .modal-overlay .modal .actions { display: flex; gap: 10px; justify-content: flex-end; }
 
-        .toggle-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; padding: 10px 14px; background: #fff; border: 2px solid #e9ecef; border-radius: 12px; flex-wrap: wrap; }
-        .toggle-row label { margin: 0; font-weight: 700; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 8px; }
-        .toggle-row input[type="checkbox"] { width: 18px; height: 18px; accent-color: #F5A623; cursor: pointer; }
         .section-card { background: #fff; border: 2px solid #e9ecef; border-radius: 12px; padding: 14px; margin-bottom: 12px; }
         .section-card h4 { font-size: 14px; margin-bottom: 10px; color: #E2571C; }
-        .image-upload-wrap { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-        .image-upload-wrap .preview { width: 56px; height: 56px; border-radius: 8px; object-fit: cover; border: 2px solid #dee2e6; }
-        .image-upload-wrap .preview-ph { width: 56px; height: 56px; border-radius: 8px; border: 2px dashed #dee2e6; display: flex; align-items: center; justify-content: center; font-size: 22px; color: #adb5bd; background: #f8f9fa; }
-
         .section-builder-item { background: #fff; border: 2px solid #dee2e6; border-radius: 12px; padding: 12px; margin-bottom: 10px; }
         .section-builder-item .sb-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
         .section-builder-item .sb-header .sb-title { font-weight: 700; font-size: 14px; flex: 1; }
@@ -85,6 +78,7 @@
             .lesson-item:hover { border-color: #F5A623; background: #fff; }
         }
 
+        /* ----- VIEW ----- */
         .view-container { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 8px; }
         .view-container .page { width: 850px; min-width: 850px; min-height: 1080px; padding: 24px 32px; position: relative; page-break-after: always; margin: 0 auto 30px; background: #fff; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
         .view-container .page:last-child { margin-bottom: 0; }
@@ -201,7 +195,7 @@
 
         .thumbnail-wrapper { margin-bottom: 16px; display: flex; flex-direction: column; align-items: center; }
         .thumbnail-wrapper .thumb-label { font-size: 13px; font-weight: 700; margin-bottom: 6px; color: #495057; text-align: center; }
-        .thumbnail-container { width: 255px; border: 2px solid #dee2e6; border-radius: 8px; overflow: hidden; background: #fff; position: relative; }
+        .thumbnail-container { width: 255px; height: 324px; border: 2px solid #dee2e6; border-radius: 8px; overflow: hidden; background: #fff; position: relative; }
         .thumbnail-container .page { transform: scale(0.3); transform-origin: top left; position: absolute; top: 0; left: 0; width: 850px; min-width: 850px; min-height: 1080px; padding: 24px 32px; margin: 0; border-radius: 0; box-shadow: none; page-break-after: auto; }
     </style>
 </head>
@@ -633,9 +627,8 @@
 
                 container.innerHTML = '';
                 container.appendChild(pageEl);
-
-                const actualHeight = pageEl.offsetHeight;
-                container.style.height = (actualHeight * 0.3) + 'px';
+                // Fixed height to avoid 0 when hidden
+                container.style.height = '324px';
             }
 
             function buildLessonPage(lesson, pageNum) {
@@ -867,7 +860,6 @@
                 document.getElementById('saveBtn').textContent = '💾 Update Lesson';
                 document.getElementById('cancelBtn').style.display = 'inline-block';
                 switchTab('edit');
-                document.querySelector('.form-section').scrollIntoView({ behavior: 'smooth' });
             };
             window.cancelEdit = function() { resetForm(); switchTab('lessons'); showToast('Edit cancelled.', 'info'); };
 
@@ -1006,7 +998,7 @@
                 document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
                 document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === tab + 'Panel'));
                 if (tab === 'edit') {
-                    // nothing extra
+                    renderThumbnail();
                 }
                 if (tab === 'lessons') {
                     renderEditList();
