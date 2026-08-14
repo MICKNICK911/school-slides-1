@@ -86,25 +86,50 @@
         .section-builder-item .sb-body { display: flex; flex-direction: column; gap: 8px; }
         .section-builder-item .sb-body textarea, .section-builder-item .sb-body input, .section-builder-item .sb-body select { width: 100%; padding: 6px 10px; border: 2px solid #dee2e6; border-radius: 8px; font-size: 13px; font-family: inherit; }
         .section-builder-item .sb-actions { display: flex; gap: 4px; justify-content: flex-end; }
-        .font-controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; background: #f8f9fa; border-radius: 8px; padding: 8px; margin-top: 6px; }
-        .font-controls label { font-size: 12px; font-weight: 600; margin-right: 4px; }
-        .font-controls select, .font-controls input[type="number"] { width: auto; padding: 4px 6px; border: 2px solid #dee2e6; border-radius: 6px; font-size: 12px; }
-        .font-controls input[type="checkbox"] { width: 16px; height: 16px; accent-color: #F5A623; }
 
-        /* Desktop split layout */
-        .desktop-left-tabs { display: none; }
-        @media (min-width: 1200px) {
-            .tabs { display: none; }
-            .desktop-left-tabs { display: flex; border-bottom: 2px solid #e9ecef; background: #fafbfc; padding: 0 16px; gap: 4px; margin-bottom: 16px; }
-            .desktop-left-tabs .tab-btn { padding: 12px 20px; font-size: 15px; }
-            .panels-container { display: flex; align-items: flex-start; gap: 0; }
-            .panels-container .left-pane { flex: 1; max-width: 50%; border-right: 2px solid #e9ecef; padding: 16px; }
-            .panels-container .right-pane { flex: 1; max-width: 50%; padding: 16px; overflow-y: auto; height: calc(100vh - 140px); }
-            .panels-container .left-pane .tab-panel { display: none !important; padding: 0; }
-            .panels-container .left-pane .tab-panel.active { display: block !important; }
-            .edit-layout { grid-template-columns: 1fr; }
-            .form-section { position: static; max-height: none; overflow-y: visible; }
+        @media (hover: hover) {
+            .tab-btn:hover { color: #1a1a2e; }
+            .btn-primary:hover:not(:disabled) { background: #e0950f; transform: translateY(-1px); }
+            .btn-success:hover:not(:disabled) { background: #1f5f34; }
+            .btn-danger:hover:not(:disabled) { background: #b02a37; }
+            .btn-outline:hover:not(:disabled) { background: #f1f3f5; }
+            .btn-warning:hover:not(:disabled) { background: #d35400; }
+            .lesson-item:hover { border-color: #F5A623; background: #fff; }
         }
+
+        /* ----- VIEW ----- */
+        .view-container { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 8px; }
+        .view-container .page { width: 850px; min-width: 850px; min-height: 1080px; padding: 24px 32px; position: relative; page-break-after: always; margin: 0 auto 30px; background: #fff; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+        .view-container .page:last-child { margin-bottom: 0; }
+
+        .view-container .card {
+            border: 4px solid #E2571C;
+            border-radius: 12px;
+            min-height: 1030px;
+            padding: 0;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            background: #fff;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        .cvc-header { display: flex; align-items: stretch; border-bottom: 3px solid #E2571C; min-height: 68px; flex-shrink: 0; }
+        .cvc-header-left { flex: 1; padding: 12px 22px 8px; display: flex; flex-direction: column; justify-content: center; }
+        .cvc-main-title { font-size: 28px; font-weight: 800; color: #E2571C; letter-spacing: 0.4px; line-height: 1.1; margin: 0; }
+        .cvc-subtitle { font-size: 13px; font-weight: 700; color: #c45a12; letter-spacing: 1.2px; text-transform: uppercase; margin-top: 2px; }
+        .cvc-header-right { background: #E2571C; color: #fff; min-width: 150px; display: flex; align-items: center; justify-content: center; padding: 10px 18px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .cvc-header-right .lesson-label { font-size: 13px; font-weight: 600; opacity: 0.95; margin-right: 6px; }
+        .cvc-header-right .lesson-num { font-size: 26px; font-weight: 800; line-height: 1; }
+
+        .lesson-sections-container { display: flex; flex-wrap: wrap; gap: 10px; padding: 14px 22px 8px; flex: 1; align-content: flex-start; min-height: 0; }
+        .section-item { flex: 0 0 auto; }
+        .w-full { width: 100%; }
+        .w-half { width: calc(50% - 5px); }
+        .w-quarter { width: calc(25% - 7.5px); }
+        .w-threequarter { width: calc(75% - 2.5px); }
 
         /* Reusable component styles inside sections */
         .todays-sound-card { background: #fff; border: 2px solid #F5A623; border-radius: 12px; width: 100%; overflow: hidden; box-shadow: 0 2px 6px rgba(226,87,28,0.1); display: flex; flex-direction: column; }
@@ -180,14 +205,40 @@
         /* ---------- Print Rules ---------- */
         @media print {
             body { padding: 0; background: #fff; }
-            .app-header, .tabs, .desktop-left-tabs, .left-pane, .edit-panel, .book-panel, .toast-container, .modal-overlay, .no-print, .page-actions, .view-toolbar { display: none !important; }
-            .panels-container { display: block !important; }
-            .right-pane { overflow: visible !important; height: auto !important; max-width: 100% !important; padding: 0 !important; border: none !important; }
+            .app-header, .tabs, .tab-panel, .edit-layout, .form-section, .list-section, .view-toolbar, .no-print, .page-actions, .thumbnail-wrapper, .modal-overlay, .toast-container { display: none !important; }
             .view-container { overflow: visible !important; display: block !important; }
             .view-container .page { box-shadow: none !important; border-radius: 0 !important; margin: 0 auto !important; padding: 18px !important; width: 850px !important; min-width: 850px !important; min-height: 1080px !important; page-break-after: always; background: #fff !important; }
+            .view-container .page .page-actions { display: none !important; }
             .view-container .page:last-child { page-break-after: auto; }
             .view-container .card, .todays-sound-header, .cvc-header-right, .sight-word-pill, .toc-card, .cover-card,
             .view-container .section-header .circle, .custom-text-box, .cvc-intro-box { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        }
+
+        /* Thumbnail styles */
+        .thumbnail-wrapper {
+            margin-bottom: 16px;
+        }
+        .thumbnail-wrapper .thumb-label {
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            color: #495057;
+        }
+        .thumbnail-container {
+            width: 255px;
+            height: 324px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #fff;
+            position: relative;
+        }
+        .thumbnail-container .page {
+            transform: scale(0.3);
+            transform-origin: top left;
+            position: absolute;
+            top: 0;
+            left: 0;
         }
     </style>
 </head>
@@ -205,7 +256,6 @@
             const MAX_SIGHT_WORDS_PER_PAGE = 50;
             const MAX_GRID_WORDS = 24;
             const MAX_FILL_ITEMS = 18;
-            const FONT_FAMILIES = ['Poppins', 'Arial', 'Georgia', 'Courier New'];
 
             // ---------- IndexedDB Utility ----------
             let dbPromise = null;
@@ -307,29 +357,28 @@
 
             // ---------- Section Types Definitions ----------
             const SECTION_TYPES = {
-                tile: { label: 'Letter/Image Tile', defaultWidth: 'full', defaultFont: { family: 'Poppins', size: 56, bold: true, italic: false } },
-                introText: { label: 'Intro Text', defaultWidth: 'full', defaultFont: { family: 'Poppins', size: 13, bold: false, italic: false } },
-                instruction: { label: 'Instruction', defaultWidth: 'full', defaultFont: { family: 'Poppins', size: 13, bold: true, italic: false } },
-                wordGrid: { label: 'Word Grid', defaultWidth: 'full', defaultFont: { family: 'Poppins', size: 23, bold: false, italic: false } },
-                decodable: { label: 'Decodable Reading', defaultWidth: 'full', defaultFont: { family: 'Poppins', size: 17, bold: false, italic: false } },
-                fillBlanks: { label: 'Fill-in-Blanks', defaultWidth: 'full', defaultFont: { family: 'Poppins', size: 21, bold: true, italic: false } },
-                sentenceWriting: { label: 'Sentence Writing', defaultWidth: 'full', defaultFont: { family: 'Poppins', size: 14, bold: false, italic: false } },
-                customText: { label: 'Custom Text', defaultWidth: 'full', defaultFont: { family: 'Poppins', size: 13, bold: false, italic: false } },
-                writingLines: { label: 'Writing Lines (expandable)', defaultWidth: 'full', defaultFont: { family: 'Poppins', size: 14, bold: false, italic: false } }
+                tile: { label: 'Letter/Image Tile', defaultWidth: 'full', fields: ['tileMode','letterTile','letterFontSize','imagePath','imageCaption'] },
+                introText: { label: 'Intro Text', defaultWidth: 'full', fields: ['text'] },
+                instruction: { label: 'Instruction', defaultWidth: 'full', fields: ['text'] },
+                wordGrid: { label: 'Word Grid', defaultWidth: 'full', fields: ['words'] },
+                decodable: { label: 'Decodable Reading', defaultWidth: 'full', fields: ['instruction','sentences'] },
+                fillBlanks: { label: 'Fill-in-Blanks', defaultWidth: 'full', fields: ['title','items'] },
+                sentenceWriting: { label: 'Sentence Writing', defaultWidth: 'full', fields: ['title','lines'] },
+                customText: { label: 'Custom Text', defaultWidth: 'full', fields: ['text'] },
+                writingLines: { label: 'Writing Lines (expandable)', defaultWidth: 'full', fields: ['fillRemaining'] }
             };
 
             function generateSectionId() { return 'sec' + Date.now() + Math.random().toString(36).slice(2, 7); }
 
             function createDefaultSection(type) {
                 const id = generateSectionId();
-                const typeInfo = SECTION_TYPES[type];
-                const base = { id, type, width: typeInfo.defaultWidth, font: { ...typeInfo.defaultFont } };
+                const base = { id, type, width: SECTION_TYPES[type].defaultWidth };
                 switch (type) {
                     case 'tile':
                         return { ...base, tileMode: 'letter', letterTile: 'Aa', letterFontSize: 56, imagePath: '', imageCaption: "TODAY'S SOUND" };
                     case 'introText':
+                        return { ...base, text: '' };
                     case 'instruction':
-                    case 'customText':
                         return { ...base, text: '' };
                     case 'wordGrid':
                         return { ...base, words: [] };
@@ -339,6 +388,8 @@
                         return { ...base, title: 'A. Fill in the missing letters and say the word', items: [] };
                     case 'sentenceWriting':
                         return { ...base, title: 'C. Choose any word and form 2 sentences', lines: 2 };
+                    case 'customText':
+                        return { ...base, text: '' };
                     case 'writingLines':
                         return { ...base, fillRemaining: true };
                     default:
@@ -346,54 +397,37 @@
                 }
             }
 
-            function hasCustomFont(section) {
-                const def = SECTION_TYPES[section.type]?.defaultFont;
-                if (!section.font || !def) return false;
-                return section.font.family !== def.family ||
-                       section.font.size !== def.size ||
-                       section.font.bold !== def.bold ||
-                       section.font.italic !== def.italic;
-            }
-
-            // Migration: add font object to existing sections if missing
+            // Migration: convert old flat fields to sections array
             function migrateToSections(lesson) {
-                if (Array.isArray(lesson.sections) && lesson.sections.length > 0) {
-                    lesson.sections.forEach(section => {
-                        if (!section.font) {
-                            section.font = { ...(SECTION_TYPES[section.type]?.defaultFont || { family: 'Poppins', size: 13, bold: false, italic: false }) };
-                        }
-                    });
-                    return lesson;
-                }
-                // fallback to old conversion if no sections
+                if (Array.isArray(lesson.sections) && lesson.sections.length > 0) return lesson;
                 const sections = [];
                 if (lesson.tileMode && lesson.tileMode !== 'none') {
-                    sections.push({ id: generateSectionId(), type: 'tile', width: 'full', tileMode: lesson.tileMode, letterTile: lesson.letterTile || '', letterFontSize: lesson.letterFontSize || 56, imagePath: lesson.imagePath || '', imageCaption: lesson.imageCaption || "TODAY'S SOUND", font: { ...SECTION_TYPES.tile.defaultFont } });
+                    sections.push({ id: generateSectionId(), type: 'tile', width: 'full', tileMode: lesson.tileMode, letterTile: lesson.letterTile || '', letterFontSize: lesson.letterFontSize || 56, imagePath: lesson.imagePath || '', imageCaption: lesson.imageCaption || "TODAY'S SOUND" });
                 }
                 if (lesson.showIntro !== false && lesson.introText) {
-                    sections.push({ id: generateSectionId(), type: 'introText', width: 'full', text: lesson.introText, font: { ...SECTION_TYPES.introText.defaultFont } });
+                    sections.push({ id: generateSectionId(), type: 'introText', width: 'full', text: lesson.introText });
                 }
                 if (lesson.showInstruction !== false && lesson.instruction) {
-                    sections.push({ id: generateSectionId(), type: 'instruction', width: 'full', text: lesson.instruction, font: { ...SECTION_TYPES.instruction.defaultFont } });
+                    sections.push({ id: generateSectionId(), type: 'instruction', width: 'full', text: lesson.instruction });
                 }
                 if (lesson.showGrid !== false && lesson.words && lesson.words.length > 0) {
-                    sections.push({ id: generateSectionId(), type: 'wordGrid', width: 'full', words: lesson.words, font: { ...SECTION_TYPES.wordGrid.defaultFont } });
+                    sections.push({ id: generateSectionId(), type: 'wordGrid', width: 'full', words: lesson.words });
                 }
                 if (lesson.showDecodable === true) {
-                    sections.push({ id: generateSectionId(), type: 'decodable', width: 'full', instruction: lesson.decodableInstruction || 'Read ALOUD and circle all words with the target sound', sentences: lesson.decodableSentences || [], font: { ...SECTION_TYPES.decodable.defaultFont } });
+                    sections.push({ id: generateSectionId(), type: 'decodable', width: 'full', instruction: lesson.decodableInstruction || 'Read ALOUD and circle all words with the target sound', sentences: lesson.decodableSentences || [] });
                 }
                 if (lesson.showFillBlanks === true) {
-                    sections.push({ id: generateSectionId(), type: 'fillBlanks', width: 'full', title: lesson.fillTitle || 'A. Fill in the missing letters and say the word', items: lesson.fillItems || [], font: { ...SECTION_TYPES.fillBlanks.defaultFont } });
+                    sections.push({ id: generateSectionId(), type: 'fillBlanks', width: 'full', title: lesson.fillTitle || 'A. Fill in the missing letters and say the word', items: lesson.fillItems || [] });
                 }
                 if (lesson.showSentenceWrite === true) {
-                    sections.push({ id: generateSectionId(), type: 'sentenceWriting', width: 'full', title: lesson.sentenceTitle || 'C. Choose any word and form 2 sentences', lines: lesson.sentenceLines || 2, font: { ...SECTION_TYPES.sentenceWriting.defaultFont } });
+                    sections.push({ id: generateSectionId(), type: 'sentenceWriting', width: 'full', title: lesson.sentenceTitle || 'C. Choose any word and form 2 sentences', lines: lesson.sentenceLines || 2 });
                 }
                 if (lesson.showWritingLines !== false) {
-                    sections.push({ id: generateSectionId(), type: 'writingLines', width: 'full', fillRemaining: true, font: { ...SECTION_TYPES.writingLines.defaultFont } });
+                    sections.push({ id: generateSectionId(), type: 'writingLines', width: 'full', fillRemaining: true });
                 }
                 if (Array.isArray(lesson.customBoxes)) {
                     lesson.customBoxes.forEach(cb => {
-                        if (cb.enabled && cb.text) sections.push({ id: generateSectionId(), type: 'customText', width: 'full', text: cb.text, font: { ...SECTION_TYPES.customText.defaultFont } });
+                        if (cb.enabled && cb.text) sections.push({ id: generateSectionId(), type: 'customText', width: 'full', text: cb.text });
                     });
                 }
                 lesson.sections = sections;
@@ -410,14 +444,14 @@
                 (() => {
                     const l = { id: 'l1', mainTitle: 'SHORT VOWEL CVC WORDS', subtitle: 'SHORT VOWEL', lessonNumber: 1 };
                     l.sections = [
-                        { id: generateSectionId(), type: 'tile', width: 'full', tileMode: 'letter', letterTile: 'Aa', letterFontSize: 56, imagePath: '', imageCaption: "TODAY'S SOUND", font: { ...SECTION_TYPES.tile.defaultFont } },
-                        { id: generateSectionId(), type: 'introText', width: 'full', text: 'Short a says /a/ like in <b>apple</b> — when a single vowel is boxed in between two consonants, it usually keeps this quick, clipped sound.', font: { ...SECTION_TYPES.introText.defaultFont } },
-                        { id: generateSectionId(), type: 'instruction', width: 'full', text: 'Say each picture word out loud and listen for this pattern.', font: { ...SECTION_TYPES.instruction.defaultFont } },
-                        { id: generateSectionId(), type: 'wordGrid', width: 'full', words: ['bag','cat','mat','hat','rat','bat','sat','pat','fat','man','van','map'], font: { ...SECTION_TYPES.wordGrid.defaultFont } },
-                        { id: generateSectionId(), type: 'decodable', width: 'full', instruction: 'Read ALOUD and circle all words with the target sound', sentences: ['I see a bag.','Look at the cat and the mat.','Is this a hat?','I like my rat.','We have a bat.'], font: { ...SECTION_TYPES.decodable.defaultFont } },
-                        { id: generateSectionId(), type: 'fillBlanks', width: 'full', title: 'A. Fill in the missing letters and say the word', items: ['b_g','c_t','m_t','h_t','r_t','b_t','s_t','p_t','f_t'], font: { ...SECTION_TYPES.fillBlanks.defaultFont } },
-                        { id: generateSectionId(), type: 'sentenceWriting', width: 'full', title: 'C. Choose any word and form 2 sentences', lines: 2, font: { ...SECTION_TYPES.sentenceWriting.defaultFont } },
-                        { id: generateSectionId(), type: 'writingLines', width: 'full', fillRemaining: true, font: { ...SECTION_TYPES.writingLines.defaultFont } }
+                        { id: generateSectionId(), type: 'tile', width: 'full', tileMode: 'letter', letterTile: 'Aa', letterFontSize: 56, imagePath: '', imageCaption: "TODAY'S SOUND" },
+                        { id: generateSectionId(), type: 'introText', width: 'full', text: 'Short a says /a/ like in <b>apple</b> — when a single vowel is boxed in between two consonants, it usually keeps this quick, clipped sound.' },
+                        { id: generateSectionId(), type: 'instruction', width: 'full', text: 'Say each picture word out loud and listen for this pattern.' },
+                        { id: generateSectionId(), type: 'wordGrid', width: 'full', words: ['bag','cat','mat','hat','rat','bat','sat','pat','fat','man','van','map'] },
+                        { id: generateSectionId(), type: 'decodable', width: 'full', instruction: 'Read ALOUD and circle all words with the target sound', sentences: ['I see a bag.','Look at the cat and the mat.','Is this a hat?','I like my rat.','We have a bat.'] },
+                        { id: generateSectionId(), type: 'fillBlanks', width: 'full', title: 'A. Fill in the missing letters and say the word', items: ['b_g','c_t','m_t','h_t','r_t','b_t','s_t','p_t','f_t'] },
+                        { id: generateSectionId(), type: 'sentenceWriting', width: 'full', title: 'C. Choose any word and form 2 sentences', lines: 2 },
+                        { id: generateSectionId(), type: 'writingLines', width: 'full', fillRemaining: true }
                     ];
                     return l;
                 })()
@@ -429,11 +463,18 @@
             let editingId = null, nextId = 1, tempSections = [];
             window.searchQuery = '';
 
+            // Temp form state for sections
+            let tempSections = [];
+
+            // ---------- Data Loading / Saving ----------
             async function loadData() {
                 let data = null;
                 try { data = await idbGet(); } catch (e) { data = null; }
                 if (!data || !data.lessons) {
-                    try { const raw = localStorage.getItem(LEGACY_STORAGE_KEY); if (raw) data = JSON.parse(raw); } catch (e) {}
+                    try {
+                        const raw = localStorage.getItem(LEGACY_STORAGE_KEY);
+                        if (raw) data = JSON.parse(raw);
+                    } catch (e) {}
                 }
                 if (data && data.lessons) {
                     lessons = data.lessons.map(l => migrateToSections(l));
@@ -448,7 +489,8 @@
                         });
                         nextId = maxId + 1;
                     } else {
-                        lessons = JSON.parse(JSON.stringify(DEFAULT_LESSONS)); nextId = lessons.length + 1;
+                        lessons = JSON.parse(JSON.stringify(DEFAULT_LESSONS));
+                        nextId = lessons.length + 1;
                     }
                     renumberByOrder(lessons);
                 } else {
@@ -469,7 +511,12 @@
 
             function generateId() { return 'l' + (nextId++); }
             function resyncNextId() {
-                let maxId = 0; lessons.forEach(l => { const num = parseInt(String(l.id).replace('l','')) || 0; if (num > maxId) maxId = num; }); nextId = maxId + 1;
+                let maxId = 0;
+                lessons.forEach(l => {
+                    const num = parseInt(String(l.id).replace('l', '')) || 0;
+                    if (num > maxId) maxId = num;
+                });
+                nextId = maxId + 1;
             }
             function renumberByOrder(arr) { arr.forEach((lesson, idx) => lesson.lessonNumber = idx + 1); }
 
@@ -477,7 +524,10 @@
             function renderSectionsBuilder() {
                 const container = document.getElementById('sectionsContainer');
                 if (!container) return;
-                if (!tempSections.length) { container.innerHTML = '<div style="color:#6c757d;font-size:12px;padding:8px 0;">No sections added.</div>'; return; }
+                if (!tempSections.length) {
+                    container.innerHTML = '<div style="color:#6c757d;font-size:12px;padding:8px 0;">No sections added.</div>';
+                    return;
+                }
                 let html = '';
                 tempSections.forEach((section, idx) => {
                     const typeInfo = SECTION_TYPES[section.type];
@@ -504,20 +554,6 @@
                 container.innerHTML = html;
             }
 
-            function renderFontControls(section) {
-                const f = section.font || SECTION_TYPES[section.type].defaultFont;
-                return `<div class="font-controls">
-                    <label>Font:</label>
-                    <select onchange="updateSectionFont('${section.id}', 'family', this.value)">
-                        ${FONT_FAMILIES.map(fam => `<option value="${fam}" ${f.family === fam ? 'selected' : ''}>${fam}</option>`).join('')}
-                    </select>
-                    <label>Size:</label>
-                    <input type="number" value="${f.size}" min="6" max="100" onchange="updateSectionFont('${section.id}', 'size', parseInt(this.value))">
-                    <label><input type="checkbox" ${f.bold ? 'checked' : ''} onchange="updateSectionFont('${section.id}', 'bold', this.checked)"> Bold</label>
-                    <label><input type="checkbox" ${f.italic ? 'checked' : ''} onchange="updateSectionFont('${section.id}', 'italic', this.checked)"> Italic</label>
-                </div>`;
-            }
-
             function renderSectionFields(section) {
                 let html = '';
                 switch (section.type) {
@@ -532,257 +568,219 @@
                                 <input value="${escapeHtml(section.letterTile || '')}" onchange="updateSectionData('${section.id}', 'letterTile', this.value)">
                             </div>
                             <div class="form-group">
+                                <label>Font size (px)</label>
+                                <input type="number" value="${section.letterFontSize || 56}" min="24" max="96" onchange="updateSectionData('${section.id}', 'letterFontSize', this.value)">
+                            </div>
+                            <div class="form-group">
                                 <label>Caption (for image mode)</label>
                                 <input value="${escapeHtml(section.imageCaption || "TODAY'S SOUND")}" onchange="updateSectionData('${section.id}', 'imageCaption', this.value)">
                             </div>
                             <div class="form-group">
-                                <label>Image Upload</label>
-                                <div class="image-upload-wrap">
-                                    <img id="sectionImgPreview_${section.id}" class="preview" style="${section.imagePath ? 'display:block' : 'display:none'}" src="${escapeHtml(section.imagePath || '')}">
-                                    <div id="sectionImgPh_${section.id}" class="preview-ph" style="${section.imagePath ? 'display:none' : 'display:flex'}">🖼️</div>
-                                    <input type="file" accept="image/*" onchange="handleSectionImageUpload('${section.id}', event)">
-                                    <input type="hidden" id="sectionImagePath_${section.id}" value="${escapeHtml(section.imagePath || '')}">
-                                </div>
-                            </div>
-                            ${renderFontControls(section)}`;
+                                <label>Image Path</label>
+                                <input value="${escapeHtml(section.imagePath || '')}" onchange="updateSectionData('${section.id}', 'imagePath', this.value)">
+                            </div>`;
                         break;
                     case 'introText':
                     case 'instruction':
                     case 'customText':
-                        html = `
-                            <textarea rows="3" oninput="updateSectionData('${section.id}', 'text', this.value)">${escapeHtml(section.text || '')}</textarea>
-                            ${renderFontControls(section)}`;
+                        html = `<textarea rows="3" oninput="updateSectionData('${section.id}', 'text', this.value)">${escapeHtml(section.text || '')}</textarea>`;
                         break;
                     case 'wordGrid':
-                        html = `
-                            <textarea rows="3" placeholder="Comma separated words" oninput="updateSectionData('${section.id}', 'words', this.value.split(',').map(s=>s.trim()).filter(Boolean))">${(section.words || []).join(', ')}</textarea>
-                            ${renderFontControls(section)}`;
+                        html = `<textarea rows="3" placeholder="Comma separated words" oninput="updateSectionData('${section.id}', 'words', this.value.split(',').map(s=>s.trim()).filter(Boolean))">${(section.words || []).join(', ')}</textarea>`;
                         break;
                     case 'decodable':
                         html = `
                             <input value="${escapeHtml(section.instruction || '')}" onchange="updateSectionData('${section.id}', 'instruction', this.value)">
-                            <textarea rows="3" placeholder="Sentences, comma separated" oninput="updateSectionData('${section.id}', 'sentences', this.value.split(',').map(s=>s.trim()).filter(Boolean))">${(section.sentences || []).join(', ')}</textarea>
-                            ${renderFontControls(section)}`;
+                            <textarea rows="3" placeholder="Sentences, comma separated" oninput="updateSectionData('${section.id}', 'sentences', this.value.split(',').map(s=>s.trim()).filter(Boolean))">${(section.sentences || []).join(', ')}</textarea>`;
                         break;
                     case 'fillBlanks':
                         html = `
                             <input value="${escapeHtml(section.title || '')}" onchange="updateSectionData('${section.id}', 'title', this.value)">
-                            <textarea rows="3" placeholder="Items, comma separated (use _ for blank)" oninput="updateSectionData('${section.id}', 'items', this.value.split(',').map(s=>s.trim()).filter(Boolean))">${(section.items || []).join(', ')}</textarea>
-                            ${renderFontControls(section)}`;
+                            <textarea rows="3" placeholder="Items, comma separated (use _ for blank)" oninput="updateSectionData('${section.id}', 'items', this.value.split(',').map(s=>s.trim()).filter(Boolean))">${(section.items || []).join(', ')}</textarea>`;
                         break;
                     case 'sentenceWriting':
                         html = `
                             <input value="${escapeHtml(section.title || '')}" onchange="updateSectionData('${section.id}', 'title', this.value)">
-                            <input type="number" value="${section.lines || 2}" min="1" max="8" onchange="updateSectionData('${section.id}', 'lines', parseInt(this.value))">
-                            ${renderFontControls(section)}`;
+                            <input type="number" value="${section.lines || 2}" min="1" max="8" onchange="updateSectionData('${section.id}', 'lines', parseInt(this.value))">`;
                         break;
                     case 'writingLines':
-                        html = `
-                            <label><input type="checkbox" ${section.fillRemaining ? 'checked' : ''} onchange="updateSectionData('${section.id}', 'fillRemaining', this.checked)"> Fill remaining height</label>
-                            ${renderFontControls(section)}`;
+                        html = `<label><input type="checkbox" ${section.fillRemaining ? 'checked' : ''} onchange="updateSectionData('${section.id}', 'fillRemaining', this.checked)"> Fill remaining height</label>`;
                         break;
-                    default: html = '';
+                    default:
+                        html = '';
                 }
                 return html;
             }
 
-            // Section CRUD
+            // Section CRUD for tempSections
             window.addSection = function(type) {
                 const newSection = createDefaultSection(type);
                 tempSections.push(newSection);
                 renderSectionsBuilder();
-                schedulePreviewUpdate();
+                renderThumbnail();
             };
             window.deleteSection = function(id) {
                 tempSections = tempSections.filter(s => s.id !== id);
                 renderSectionsBuilder();
-                schedulePreviewUpdate();
+                renderThumbnail();
             };
             window.moveSection = function(id, dir) {
                 const idx = tempSections.findIndex(s => s.id === id);
                 if (idx === -1) return;
                 const newIdx = idx + dir;
                 if (newIdx < 0 || newIdx >= tempSections.length) return;
-                [tempSections[idx], tempSections[newIdx]] = [tempSections[newIdx], tempSections[idx]];
+                const temp = tempSections[idx];
+                tempSections[idx] = tempSections[newIdx];
+                tempSections[newIdx] = temp;
                 renderSectionsBuilder();
-                schedulePreviewUpdate();
+                renderThumbnail();
             };
             window.updateSectionWidth = function(id, width) {
                 const section = tempSections.find(s => s.id === id);
                 if (section) section.width = width;
-                schedulePreviewUpdate();
+                renderThumbnail();
             };
             window.updateSectionData = function(id, field, value) {
                 const section = tempSections.find(s => s.id === id);
                 if (!section) return;
                 section[field] = value;
                 if (field === 'lines') section.lines = parseInt(value) || 2;
-                schedulePreviewUpdate();
-            };
-            window.updateSectionFont = function(id, field, value) {
-                const section = tempSections.find(s => s.id === id);
-                if (!section) return;
-                if (!section.font) section.font = { ...SECTION_TYPES[section.type].defaultFont };
-                section.font[field] = value;
-                if (field === 'size') section.font.size = parseInt(value) || 12;
-                if (section.type === 'tile') section.letterFontSize = section.font.size;
-                schedulePreviewUpdate();
+                renderThumbnail();
             };
 
-            // Image upload handler
-            window.handleSectionImageUpload = function(sectionId, event) {
-                const file = event.target.files[0];
-                if (!file) return;
-                if (file.size > 2 * 1024 * 1024) { showToast('Image must be < 2MB.', 'error'); event.target.value=''; return; }
-                if (!file.type.startsWith('image/')) { showToast('Please select an image file.', 'error'); event.target.value=''; return; }
-                const reader = new FileReader();
-                reader.onload = ev => {
-                    const dataUrl = ev.target.result;
-                    const section = tempSections.find(s => s.id === sectionId);
-                    if (section) {
-                        section.imagePath = dataUrl;
-                        const img = document.getElementById('sectionImgPreview_' + sectionId);
-                        const ph = document.getElementById('sectionImgPh_' + sectionId);
-                        if (img) { img.src = dataUrl; img.style.display = 'block'; }
-                        if (ph) ph.style.display = 'none';
-                        schedulePreviewUpdate();
-                        showToast('Image uploaded.', 'success');
-                    }
-                };
-                reader.readAsDataURL(file);
-            };
-
-            // ---------- Preview Scheduling ----------
-            let previewTimer = null;
-            function schedulePreviewUpdate() {
-                clearTimeout(previewTimer);
-                previewTimer = setTimeout(renderLivePreview, 250);
-            }
-
-            function getDisplayLessons() {
-                const display = lessons.map(l => ({ ...l, sections: l.sections.map(s => ({ ...s })) }));
+            // ---------- Thumbnail rendering ----------
+            function renderThumbnail() {
+                const container = document.getElementById('thumbnailContainer');
+                if (!container) return;
+                const mainTitle = document.getElementById('fMainTitle')?.value || 'Untitled';
+                const subtitle = document.getElementById('fSubtitle')?.value || 'SHORT VOWEL';
+                const lessonNumber = parseInt(document.getElementById('fLessonNumber')?.value) || 1;
                 const tempLesson = {
-                    mainTitle: document.getElementById('fMainTitle')?.value || 'Untitled',
-                    subtitle: document.getElementById('fSubtitle')?.value || 'SHORT VOWEL',
-                    lessonNumber: editingId ? (lessons.findIndex(l => l.id === editingId) + 1) : (lessons.length + 1),
-                    id: editingId || 'temp',
+                    mainTitle,
+                    subtitle,
+                    lessonNumber,
                     sections: JSON.parse(JSON.stringify(tempSections))
                 };
-                if (editingId) {
-                    const idx = lessons.findIndex(l => l.id === editingId);
-                    if (idx !== -1) display[idx] = tempLesson;
-                } else {
-                    display.push(tempLesson);
-                }
-                return display;
+                // Build a page element
+                const pageEl = buildLessonPage(tempLesson, 1);
+                pageEl.classList.add('page-thumb');
+                pageEl.style.transform = 'scale(0.3)';
+                pageEl.style.transformOrigin = 'top left';
+                pageEl.style.position = 'absolute';
+                pageEl.style.top = '0';
+                pageEl.style.left = '0';
+                pageEl.style.width = '850px';
+                pageEl.style.minWidth = '850px';
+                pageEl.style.minHeight = '1080px';
+                pageEl.style.padding = '24px 32px';
+                pageEl.style.margin = '0';
+                pageEl.style.borderRadius = '8px';
+                pageEl.style.boxShadow = 'none';
+                pageEl.style.pageBreakAfter = 'auto';
+                container.innerHTML = '';
+                container.appendChild(pageEl);
             }
 
-            function renderLivePreview() {
-                const container = document.getElementById('viewContainer');
-                if (!container) return;
-                container.innerHTML = renderFullBookHTML();
-            }
+            // ---------- Build View Page ----------
+            function buildLessonPage(lesson, pageNum) {
+                const page = document.createElement('div');
+                page.className = 'page';
+                page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
+                const card = document.createElement('div');
+                card.className = 'card';
 
-            function renderFullBookHTML() {
-                const displayLessons = getDisplayLessons();
-                let html = '';
-                html += `<div class="page"><div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div><div class="card cover-card"><div class="cover-text-block"><div class="cover-line"></div><div class="cover-title">${escapeHtml(coverData.title)}</div><div class="cover-subtitle">${escapeHtml(coverData.subtitle)}</div><div class="cover-line"></div></div></div></div>`;
-                if (!displayLessons.length && !sightWords.length) return html;
-                const swPages = Math.ceil(sightWords.length / MAX_SIGHT_WORDS_PER_PAGE) || 0;
-                const tocPages = displayLessons.length ? Math.ceil(displayLessons.length / MAX_TOC_PER_PAGE) : 0;
-                const lessonStart = tocPages + swPages + 1;
-                let running = lessonStart;
-                const tocEntries = displayLessons.map(l => ({ lessonNumber: l.lessonNumber, mainTitle: l.mainTitle, firstPage: running++ }));
-                for (let p = 0; p < tocPages; p++) {
-                    const entries = tocEntries.slice(p * MAX_TOC_PER_PAGE, (p + 1) * MAX_TOC_PER_PAGE);
-                    html += `<div class="page"><div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div><div class="toc-card"><div class="toc-title">Table of Contents</div><ul class="toc-list">${entries.map(e => `<li class="toc-item"><span>Lesson ${e.lessonNumber}: ${escapeHtml(e.mainTitle)}</span><span class="toc-page-num">Page ${e.firstPage}</span></li>`).join('')}</ul><div class="page-number">${p+1}</div></div></div>`;
-                }
-                let pageNum = tocPages + 1;
-                for (let p = 0; p < swPages; p++) {
-                    const words = sightWords.slice(p * MAX_SIGHT_WORDS_PER_PAGE, (p + 1) * MAX_SIGHT_WORDS_PER_PAGE);
-                    const wordPills = words.map(w => `<div class="sight-word-pill">${escapeHtml(w)}</div>`).join('');
-                    html += `<div class="page"><div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div><div class="card sight-card"><div class="title">Sight Words Practice</div><div class="section-header"><div class="circle">★</div><div class="label-box">Read and say each word</div></div><div class="sight-words-grid">${wordPills}</div><div class="page-number" style="position:absolute;bottom:18px;right:28px;">${pageNum}</div></div></div>`;
-                    pageNum++;
-                }
-                pageNum = lessonStart;
-                displayLessons.forEach(l => {
-                    html += buildLessonPageHTML(l, pageNum++);
-                });
-                return html;
-            }
+                card.innerHTML = `
+                    <div class="cvc-header">
+                        <div class="cvc-header-left">
+                            <h1 class="cvc-main-title">${escapeHtml(lesson.mainTitle || 'CVC WORDS')}</h1>
+                            <div class="cvc-subtitle">${escapeHtml(lesson.subtitle || 'SHORT VOWEL')}</div>
+                        </div>
+                        <div class="cvc-header-right">
+                            <span class="lesson-label">LESSON</span>
+                            <span class="lesson-num">${lesson.lessonNumber}</span>
+                        </div>
+                    </div>
+                `;
 
-            function buildLessonPageHTML(lesson, pageNum) {
-                let header = `<div class="cvc-header"><div class="cvc-header-left"><h1 class="cvc-main-title">${escapeHtml(lesson.mainTitle || 'CVC WORDS')}</h1><div class="cvc-subtitle">${escapeHtml(lesson.subtitle || 'SHORT VOWEL')}</div></div><div class="cvc-header-right"><span class="lesson-label">LESSON</span><span class="lesson-num">${lesson.lessonNumber}</span></div></div>`;
-                let sectionsHTML = '<div class="lesson-sections-container">';
+                const sectionsContainer = document.createElement('div');
+                sectionsContainer.className = 'lesson-sections-container';
+
                 (lesson.sections || []).forEach(section => {
-                    sectionsHTML += `<div class="section-item w-${section.width}">${renderSectionContentHTML(section)}</div>`;
+                    const sectionEl = document.createElement('div');
+                    sectionEl.className = `section-item w-${section.width}`;
+                    sectionEl.innerHTML = renderSectionContent(section);
+                    sectionsContainer.appendChild(sectionEl);
                 });
-                sectionsHTML += '</div>';
-                return `<div class="page"><div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div><div class="card">${header}${sectionsHTML}<div class="cvc-page-number">${pageNum}</div></div></div>`;
+
+                card.appendChild(sectionsContainer);
+                page.appendChild(card);
+
+                const pn = document.createElement('div');
+                pn.className = 'cvc-page-number';
+                pn.textContent = pageNum;
+                card.appendChild(pn);
+                return page;
             }
 
-            function renderSectionContentHTML(section) {
-                const hasCustom = hasCustomFont(section);
-                const fontStyle = hasCustom
-                    ? `style="font-family:${section.font.family};font-size:${section.font.size}px;font-weight:${section.font.bold ? 'bold' : 'normal'};font-style:${section.font.italic ? 'italic' : 'normal'};"`
-                    : '';
+            function renderSectionContent(section) {
                 switch (section.type) {
                     case 'tile': {
                         const tileMode = section.tileMode || 'letter';
                         if (tileMode === 'letter') {
-                            const letterDiv = `<div class="todays-sound-letter" ${fontStyle}>${escapeHtml(section.letterTile || 'Aa')}</div>`;
-                            return `<div class="todays-sound-card"><div class="todays-sound-header">TODAY'S SOUND</div><div class="todays-sound-body"><div class="todays-sound-stars">★ ★ ★</div>${letterDiv}</div></div>`;
-                        } else {
+                            return `<div class="todays-sound-card">
+                                <div class="todays-sound-header">TODAY'S SOUND</div>
+                                <div class="todays-sound-body">
+                                    <div class="todays-sound-stars">★ ★ ★</div>
+                                    <div class="todays-sound-letter" style="font-size:${section.letterFontSize || 56}px">${escapeHtml(section.letterTile || 'Aa')}</div>
+                                </div>
+                            </div>`;
+                        } else if (tileMode === 'image') {
                             const img = section.imagePath ? `<img class="todays-sound-img" src="${escapeHtml(section.imagePath)}" />` : `<div style="font-size:32px;opacity:0.4">🖼️</div>`;
-                            return `<div class="todays-sound-card"><div class="todays-sound-header">${escapeHtml(section.imageCaption || "TODAY'S SOUND")}</div><div class="todays-sound-body">${img}</div></div>`;
+                            return `<div class="todays-sound-card">
+                                <div class="todays-sound-header">${escapeHtml(section.imageCaption || "TODAY'S SOUND")}</div>
+                                <div class="todays-sound-body">${img}</div>
+                            </div>`;
                         }
+                        return '';
                     }
                     case 'introText':
-                    case 'customText': {
-                        const p = `<p ${fontStyle}>${formatTextWithHighlight(section.text || '')}</p>`;
-                        return `<div class="cvc-intro-box">${p}</div>`;
-                    }
-                    case 'instruction': {
-                        const p = `<p ${fontStyle}>${escapeHtml(section.text || '')}</p>`;
-                        return `<div class="cvc-instruction-box">${p}</div>`;
-                    }
+                        return `<div class="cvc-intro-box"><p>${formatTextWithHighlight(section.text || '')}</p></div>`;
+                    case 'instruction':
+                        return `<div class="cvc-instruction-box"><p>${escapeHtml(section.text || '')}</p></div>`;
+                    case 'customText':
+                        return `<div class="custom-text-box"><p>${formatTextWithHighlight(section.text || '')}</p></div>`;
                     case 'wordGrid': {
                         const words = (section.words || []).filter(w => w && String(w).trim()).slice(0, MAX_GRID_WORDS);
                         if (!words.length) return '';
                         const display = [...words];
                         while (display.length % 4 !== 0) display.push('');
-                        const cells = display.map(w => `<div class="word-cell${w ? '' : ' empty'}" ${fontStyle}>${escapeHtml(w || '')}</div>`).join('');
+                        const cells = display.map(w => `<div class="word-cell${w ? '' : ' empty'}">${escapeHtml(w || '')}</div>`).join('');
                         return `<div class="word-grid">${cells}</div>`;
                     }
                     case 'decodable': {
                         const sents = (section.sentences || []).filter(Boolean);
                         if (!sents.length) return '';
-                        const lines = sents.map((s, i) => `<div class="sentence" ${fontStyle}>${i + 1}. ${escapeHtml(s)}</div>`).join('');
-                        const title = `<div class="act-title" ${fontStyle}>${escapeHtml(section.instruction || '')}</div>`;
-                        return `<div class="act-box">${title}${lines}</div>`;
+                        const lines = sents.map((s, i) => `<div class="sentence">${i + 1}. ${escapeHtml(s)}</div>`).join('');
+                        return `<div class="act-box"><div class="act-title">${escapeHtml(section.instruction || '')}</div>${lines}</div>`;
                     }
                     case 'fillBlanks': {
                         const items = (section.items || []).filter(Boolean).slice(0, MAX_FILL_ITEMS);
                         if (!items.length) return '';
                         const cells = items.map(item => {
-                            let inner = '';
+                            let html = '';
                             for (const ch of String(item)) {
-                                if (ch === '_') inner += '<span class="blank-sq"></span>';
-                                else inner += `<span>${escapeHtml(ch)}</span>`;
+                                if (ch === '_') html += '<span class="blank-sq"></span>';
+                                else html += `<span>${escapeHtml(ch)}</span>`;
                             }
-                            return `<div class="fill-item" ${fontStyle}>${inner}</div>`;
+                            return `<div class="fill-item">${html}</div>`;
                         }).join('');
-                        const title = `<div class="act-title" ${fontStyle}>${escapeHtml(section.title || '')}</div>`;
-                        return `<div class="act-box">${title}<div class="fill-grid">${cells}</div></div>`;
+                        return `<div class="act-box"><div class="act-title">${escapeHtml(section.title || '')}</div><div class="fill-grid">${cells}</div></div>`;
                     }
                     case 'sentenceWriting': {
                         const n = Math.max(1, Math.min(8, section.lines || 2));
                         let lines = '';
-                        for (let i = 0; i < n; i++) {
-                            lines += `<div class="sent-line" ${fontStyle}>${i + 1}.</div>`;
-                        }
-                        const title = `<div class="act-title" ${fontStyle}>${escapeHtml(section.title || '')}</div>`;
-                        return `<div class="act-box">${title}<div class="sent-lines">${lines}</div></div>`;
+                        for (let i = 0; i < n; i++) lines += `<div class="sent-line">${i + 1}.</div>`;
+                        return `<div class="act-box"><div class="act-title">${escapeHtml(section.title || '')}</div><div class="sent-lines">${lines}</div></div>`;
                     }
                     case 'writingLines': {
                         const count = 3;
@@ -792,8 +790,80 @@
                         }
                         return `<div class="writing-lines-area">${lines}</div>`;
                     }
-                    default: return '';
+                    default:
+                        return '';
                 }
+            }
+
+            // ---------- Rest of functions (buildTocPage, buildSightWordsPage, buildCoverPage, etc.) ----------
+            function buildTocPage(pageNum, entries) {
+                const page = document.createElement('div'); page.className = 'page';
+                page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
+                const card = document.createElement('div'); card.className = 'toc-card';
+                card.innerHTML = `<div class="toc-title">Table of Contents</div><ul class="toc-list">` +
+                    entries.map(e => `<li class="toc-item"><span>Lesson ${e.lessonNumber}: ${escapeHtml(e.mainTitle)}${e.sections?.[0]?.letterTile ? ' — ' + escapeHtml(e.sections[0].letterTile) : ''}</span><span class="toc-page-num">Page ${e.firstPage}</span></li>`).join('') +
+                    `</ul><div class="page-number">${pageNum}</div>`;
+                page.appendChild(card); return page;
+            }
+
+            function buildSightWordsPage(pageNum, words) {
+                const page = document.createElement('div'); page.className = 'page';
+                page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
+                const card = document.createElement('div'); card.className = 'card sight-card';
+                card.innerHTML = `<div class="title">Sight Words Practice</div><div class="section-header"><div class="circle">★</div><div class="label-box">Read and say each word</div></div>`;
+                const grid = document.createElement('div'); grid.className = 'sight-words-grid';
+                words.forEach(w => { if (!w) return; const c = document.createElement('div'); c.className = 'sight-word-pill'; c.textContent = w; grid.appendChild(c); });
+                card.appendChild(grid);
+                const pn = document.createElement('div'); pn.className = 'page-number'; pn.style.cssText = 'position:absolute;bottom:18px;right:28px;font-weight:800;font-size:15px;'; pn.textContent = pageNum;
+                card.appendChild(pn); page.appendChild(card); return page;
+            }
+
+            function buildCoverPage() {
+                const page = document.createElement('div'); page.className = 'page';
+                page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
+                const card = document.createElement('div'); card.className = 'card cover-card';
+                card.innerHTML = `<div class="cover-text-block"><div class="cover-line"></div><div class="cover-title">${escapeHtml(coverData.title)}</div><div class="cover-subtitle">${escapeHtml(coverData.subtitle)}</div><div class="cover-line"></div></div>`;
+                page.appendChild(card); return page;
+            }
+
+            window.exportSinglePage = function(pageEl) {
+                const clone = pageEl.cloneNode(true);
+                clone.querySelector('.page-actions')?.remove();
+                const win = window.open('', '_blank');
+                const styles = document.querySelector('style').outerHTML;
+                win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Export</title>${styles}</head><body style="padding:0;background:#fff;margin:0;display:flex;justify-content:center;"><div class="view-container" style="overflow:visible;display:flex;flex-direction:column;align-items:center;">${clone.outerHTML}</div></body></html>`);
+                win.document.close(); win.focus(); setTimeout(() => win.print(), 400);
+            };
+            window.exportAllPages = function() {
+                if (!lessons.length && !sightWords.length) return showToast('No lessons or sight words.', 'warning');
+                const container = document.querySelector('.view-container').cloneNode(true);
+                container.querySelectorAll('.page-actions').forEach(el => el.remove());
+                const win = window.open('', '_blank');
+                const styles = document.querySelector('style').outerHTML;
+                win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>All Pages</title>${styles}</head><body style="padding:0;background:#fff;margin:0;"><div class="view-container" style="overflow:visible;display:block;">${container.outerHTML}</div></body></html>`);
+                win.document.close(); win.focus(); setTimeout(() => win.print(), 400);
+            };
+
+            function renderAllView() {
+                const container = document.getElementById('viewContainer');
+                container.innerHTML = '';
+                container.appendChild(buildCoverPage());
+                if (!lessons.length && !sightWords.length) return;
+                const swPages = Math.ceil(sightWords.length / MAX_SIGHT_WORDS_PER_PAGE) || 0;
+                const tocPages = lessons.length ? Math.ceil(lessons.length / MAX_TOC_PER_PAGE) : 0;
+                const lessonStart = tocPages + swPages + 1;
+                let running = lessonStart;
+                const tocEntries = lessons.map(l => {
+                    const e = { lessonNumber: l.lessonNumber, mainTitle: l.mainTitle, firstPage: running };
+                    running += 1; return e;
+                });
+                for (let p = 0; p < tocPages; p++) container.appendChild(buildTocPage(p + 1, tocEntries.slice(p * MAX_TOC_PER_PAGE, (p + 1) * MAX_TOC_PER_PAGE)));
+                let pageNum = tocPages + 1;
+                for (let p = 0; p < swPages; p++) {
+                    container.appendChild(buildSightWordsPage(pageNum++, sightWords.slice(p * MAX_SIGHT_WORDS_PER_PAGE, (p + 1) * MAX_SIGHT_WORDS_PER_PAGE)));
+                }
+                pageNum = lessonStart;
+                lessons.forEach(l => container.appendChild(buildLessonPage(l, pageNum++)));
             }
 
             // ---------- Form Handling ----------
@@ -801,11 +871,9 @@
                 document.getElementById('fMainTitle').value = lesson.mainTitle || '';
                 document.getElementById('fSubtitle').value = lesson.subtitle || 'SHORT VOWEL';
                 document.getElementById('fLessonNumber').value = lesson.lessonNumber || '';
-                tempMainTitle = lesson.mainTitle || '';
-                tempSubtitle = lesson.subtitle || 'SHORT VOWEL';
                 tempSections = JSON.parse(JSON.stringify(lesson.sections || []));
                 renderSectionsBuilder();
-                schedulePreviewUpdate();
+                renderThumbnail();
             }
 
             function resetForm() {
@@ -814,14 +882,28 @@
                 document.getElementById('fMainTitle').value = 'SHORT VOWEL CVC WORDS';
                 document.getElementById('fSubtitle').value = 'SHORT VOWEL';
                 document.getElementById('fLessonNumber').value = lessons.length + 1;
-                tempMainTitle = 'SHORT VOWEL CVC WORDS';
-                tempSubtitle = 'SHORT VOWEL';
                 tempSections = JSON.parse(JSON.stringify(DEFAULT_LESSONS[0].sections || []));
                 renderSectionsBuilder();
+                renderThumbnail();
                 document.getElementById('saveBtn').textContent = '💾 Save Lesson';
                 document.getElementById('cancelBtn').style.display = 'none';
-                schedulePreviewUpdate();
             }
+
+            window.toggleFields = function() { /* no longer used */ };
+
+            window.handleImageUpload = function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                if (file.size > 2 * 1024 * 1024) return showToast('Image must be < 2MB.', 'error');
+                if (!file.type.startsWith('image/')) return showToast('Please select an image.', 'error');
+                const reader = new FileReader();
+                reader.onload = ev => {
+                    const dataUrl = ev.target.result;
+                    // We'll store it in a hidden field, but for now just show toast
+                    showToast('Image uploaded. Use path field in tile section for now.', 'info');
+                };
+                reader.readAsDataURL(file);
+            };
 
             window.editLesson = function(id) {
                 const lesson = lessons.find(l => l.id === id);
@@ -831,10 +913,7 @@
                 fillForm(lesson);
                 document.getElementById('saveBtn').textContent = '💾 Update Lesson';
                 document.getElementById('cancelBtn').style.display = 'inline-block';
-                switchDesktopTab('edit');
-                switchTab('edit');
                 document.querySelector('.form-section').scrollIntoView({ behavior: 'smooth' });
-                schedulePreviewUpdate();
             };
             window.cancelEdit = function() { resetForm(); showToast('Edit cancelled.', 'info'); };
 
@@ -926,14 +1005,10 @@
                     title: document.getElementById('coverTitleInput').value.trim() || DEFAULT_COVER.title,
                     subtitle: document.getElementById('coverSubtitleInput').value.trim() || DEFAULT_COVER.subtitle
                 };
-                saveData(); schedulePreviewUpdate(); showToast('Cover updated.', 'success');
+                saveData(); renderAllView(); showToast('Cover updated.', 'success');
             };
 
-            function refreshUI() {
-                renderEditList();
-                schedulePreviewUpdate();
-                updateCounts();
-            }
+            function refreshUI() { renderEditList(); renderAllView(); updateCounts(); }
 
             function renderEditList() {
                 const container = document.getElementById('lessonList');
@@ -971,85 +1046,52 @@
                 document.getElementById('viewInfo').textContent = `📄 ${lessons.length} lessons · ${1 + tocPages + swPages + lessons.length} pages`;
             }
 
-            // Export functions - exactly as pasted code sequence
-            window.exportSinglePage = function(pageEl) {
-                const clone = pageEl.cloneNode(true);
-                clone.querySelector('.page-actions')?.remove();
-                const win = window.open('', '_blank');
-                const styles = document.querySelector('style').outerHTML;
-                win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Export</title>${styles}</head><body style="padding:0;background:#fff;margin:0;display:flex;justify-content:center;"><div class="view-container" style="overflow:visible;display:flex;flex-direction:column;align-items:center;">${clone.outerHTML}</div></body></html>`);
-                win.document.close(); win.focus(); setTimeout(() => win.print(), 400);
-            };
-            window.exportAllPages = function() {
-                if (!lessons.length && !sightWords.length) return showToast('No lessons or sight words.', 'warning');
-                const container = document.querySelector('.view-container').cloneNode(true);
-                container.querySelectorAll('.page-actions').forEach(el => el.remove());
-                const win = window.open('', '_blank');
-                const styles = document.querySelector('style').outerHTML;
-                win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>All Pages</title>${styles}</head><body style="padding:0;background:#fff;margin:0;"><div class="view-container" style="overflow:visible;display:block;">${container.innerHTML}</div></body></html>`);
-                win.document.close(); win.focus(); setTimeout(() => win.print(), 400);
-            };
-
-            // Tab switching
             window.switchTab = function(tab) {
-                document.querySelectorAll('.tabs .tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
                 document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === tab + 'Panel'));
                 if (tab === 'edit') renderEditList();
-                if (tab === 'view') renderLivePreview();
+                if (tab === 'view') renderAllView();
                 updateCounts();
             };
 
-            window.switchDesktopTab = function(tab) {
-                document.querySelectorAll('.desktop-left-tabs .tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
-                document.querySelectorAll('.left-pane .tab-panel').forEach(p => p.classList.toggle('active', p.id === tab + 'Panel'));
-                if (tab === 'edit') renderEditList();
-                if (tab === 'book') {
-                    document.getElementById('coverTitleInput').value = coverData.title;
-                    document.getElementById('coverSubtitleInput').value = coverData.subtitle;
-                }
-            };
-
-            // ---------- Initialization ----------
+            // ---------- Initialization (async) ----------
             async function initApp() {
                 await loadData();
                 document.getElementById('app').innerHTML = `
                     <div class="app-header"><h1>📚 Phonics Lesson Publisher v8</h1><span class="badge" id="lessonCount">0</span></div>
                     <div class="tabs">
                         <button class="tab-btn active" data-tab="edit" onclick="switchTab('edit')">✏️ Edit</button>
-                        <button class="tab-btn" data-tab="book" onclick="switchTab('book')">📘 Book</button>
                         <button class="tab-btn" data-tab="view" onclick="switchTab('view')">👁️ View</button>
                     </div>
-                    <div class="panels-container">
-                        <div class="left-pane">
-                            <div class="desktop-left-tabs">
-                                <button class="tab-btn active" data-tab="edit" onclick="switchDesktopTab('edit')">✏️ Lesson</button>
-                                <button class="tab-btn" data-tab="book" onclick="switchDesktopTab('book')">📘 Cover & Lists</button>
-                            </div>
-                            <div class="tab-panel active" id="editPanel">
-                                <div class="edit-layout">
-                                    <div class="form-section">
-                                        <h2 id="formTitle">➕ Add New Lesson</h2>
-                                        <div class="form-group"><label>Main Title</label><input id="fMainTitle" value="SHORT VOWEL CVC WORDS"></div>
-                                        <div class="form-group"><label>Subtitle</label><input id="fSubtitle" value="SHORT VOWEL"></div>
-                                        <div class="form-group"><label>Lesson Number (auto)</label><input id="fLessonNumber" readonly style="background:#f0f0f0;"></div>
+                    <div class="tab-panel active" id="editPanel">
+                        <div class="edit-layout">
+                            <div class="form-section">
+                                <h2 id="formTitle">➕ Add New Lesson</h2>
+                                <div class="form-group"><label>Main Title</label><input id="fMainTitle" value="SHORT VOWEL CVC WORDS"></div>
+                                <div class="form-group"><label>Subtitle</label><input id="fSubtitle" value="SHORT VOWEL"></div>
+                                <div class="form-group"><label>Lesson Number (auto)</label><input id="fLessonNumber" readonly style="background:#f0f0f0;"></div>
 
-                                        <div class="section-card">
-                                            <h4>Page Sections</h4>
-                                            <p style="font-size:12px;color:#6c757d;margin-bottom:8px;">Add sections and choose their width, font, and style.</p>
-                                            <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;">
-                                                ${Object.keys(SECTION_TYPES).map(type => `<button class="btn btn-outline btn-sm" onclick="addSection('${type}')">+ ${SECTION_TYPES[type].label}</button>`).join('')}
-                                            </div>
-                                            <div id="sectionsContainer"></div>
-                                        </div>
+                                <!-- Thumbnail preview -->
+                                <div class="thumbnail-wrapper">
+                                    <div class="thumb-label">📄 Live Page Preview</div>
+                                    <div class="thumbnail-container" id="thumbnailContainer"></div>
+                                </div>
 
-                                        <div class="form-actions">
-                                            <button class="btn btn-primary" id="saveBtn" onclick="saveLesson()">💾 Save Lesson</button>
-                                            <button class="btn btn-outline" id="cancelBtn" onclick="cancelEdit()" style="display:none">Cancel</button>
-                                        </div>
+                                <div class="section-card">
+                                    <h4>Page Sections</h4>
+                                    <p style="font-size:12px;color:#6c757d;margin-bottom:8px;">Add sections and choose their width.</p>
+                                    <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;">
+                                        ${Object.keys(SECTION_TYPES).map(type => `<button class="btn btn-outline btn-sm" onclick="addSection('${type}')">+ ${SECTION_TYPES[type].label}</button>`).join('')}
                                     </div>
+                                    <div id="sectionsContainer"></div>
+                                </div>
+
+                                <div class="form-actions">
+                                    <button class="btn btn-primary" id="saveBtn" onclick="saveLesson()">💾 Save Lesson</button>
+                                    <button class="btn btn-outline" id="cancelBtn" onclick="cancelEdit()" style="display:none">Cancel</button>
                                 </div>
                             </div>
-                            <div class="tab-panel" id="bookPanel">
+                            <div class="list-section">
                                 <div style="margin-bottom:20px;border-bottom:2px solid #e9ecef;padding-bottom:20px;">
                                     <h3>📘 Cover Page</h3>
                                     <div class="form-group"><label>Cover Title</label><input id="coverTitleInput" value="${escapeHtml(coverData.title)}"></div>
@@ -1073,25 +1115,21 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="right-pane">
-                            <div class="view-toolbar">
-                                <span class="info" id="viewInfo">0 lessons · 0 pages</span>
-                                <button class="btn btn-success" onclick="exportAllPages()">⬇ Export All</button>
-                            </div>
-                            <div class="view-container" id="viewContainer"></div>
+                    </div>
+                    <div class="tab-panel" id="viewPanel">
+                        <div class="view-toolbar">
+                            <span class="info" id="viewInfo">0 lessons · 0 pages</span>
+                            <button class="btn btn-success" onclick="exportAllPages()">⬇ Export All</button>
                         </div>
+                        <div class="view-container" id="viewContainer"></div>
                     </div>`;
 
                 document.getElementById('fSightWords').value = sightWords.join(', ');
                 resetForm();
                 renderEditList();
-                schedulePreviewUpdate();
+                renderAllView();
                 updateCounts();
                 window.renderEditList = renderEditList;
-                switchDesktopTab('edit');
-                if (window.innerWidth < 1200) {
-                    switchTab('edit');
-                }
             }
 
             initApp();
