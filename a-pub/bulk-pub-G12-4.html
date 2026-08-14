@@ -21,13 +21,10 @@
         .toast { padding: 14px 20px; border-radius: 12px; color: #fff; font-weight: 600; font-size: 14px; box-shadow: 0 8px 30px rgba(0,0,0,0.15); animation: slideIn 0.3s ease; display: flex; align-items: center; gap: 10px; pointer-events: auto; }
         .toast.success { background: #2d7d46; } .toast.error { background: #dc3545; } .toast.warning { background: #e67e22; } .toast.info { background: #2c7be5; }
         @keyframes slideIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
-        .edit-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
-        @media (max-width: 1200px) { .edit-layout { grid-template-columns: 1fr; } }
-        .form-section { background: #f8f9fa; border-radius: 16px; padding: 24px; border: 2px solid #e9ecef; position: sticky; top: 20px; max-height: calc(100vh - 160px); overflow-y: auto; }
+        .form-section { background: #f8f9fa; border-radius: 16px; padding: 24px; border: 2px solid #e9ecef; }
         .form-section h2 { font-size: 21px; margin-bottom: 16px; }
         .form-group { margin-bottom: 14px; }
         .form-group label { display: block; font-weight: 700; font-size: 13px; color: #495057; margin-bottom: 4px; }
-        .form-group label .req { color: #dc3545; }
         .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px 14px; border: 2px solid #dee2e6; border-radius: 10px; font-size: 14px; font-family: inherit; transition: border 0.2s; background: #fff; }
         .form-group input:focus, .form-group textarea:focus, .form-group select:focus { outline: none; border-color: #F5A623; box-shadow: 0 0 0 3px rgba(245,166,35,0.15); }
         .form-group textarea { resize: vertical; min-height: 50px; }
@@ -70,7 +67,6 @@
         .image-upload-wrap .preview { width: 56px; height: 56px; border-radius: 8px; object-fit: cover; border: 2px solid #dee2e6; }
         .image-upload-wrap .preview-ph { width: 56px; height: 56px; border-radius: 8px; border: 2px dashed #dee2e6; display: flex; align-items: center; justify-content: center; font-size: 22px; color: #adb5bd; background: #f8f9fa; }
 
-        /* Section Builder Styles */
         .section-builder-item { background: #fff; border: 2px solid #dee2e6; border-radius: 12px; padding: 12px; margin-bottom: 10px; }
         .section-builder-item .sb-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
         .section-builder-item .sb-header .sb-title { font-weight: 700; font-size: 14px; flex: 1; }
@@ -89,7 +85,6 @@
             .lesson-item:hover { border-color: #F5A623; background: #fff; }
         }
 
-        /* ----- VIEW ----- */
         .view-container { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 8px; }
         .view-container .page { width: 850px; min-width: 850px; min-height: 1080px; padding: 24px 32px; position: relative; page-break-after: always; margin: 0 auto 30px; background: #fff; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
         .view-container .page:last-child { margin-bottom: 0; }
@@ -123,7 +118,6 @@
         .w-quarter { width: calc(25% - 7.5px); }
         .w-threequarter { width: calc(75% - 2.5px); }
 
-        /* Reusable component styles inside sections */
         .todays-sound-card { background: #fff; border: 2px solid #F5A623; border-radius: 12px; width: 100%; overflow: hidden; box-shadow: 0 2px 6px rgba(226,87,28,0.1); display: flex; flex-direction: column; }
         .todays-sound-header { background: #E2571C; color: #fff; text-align: center; font-size: 11px; font-weight: 800; letter-spacing: 1px; padding: 5px 4px; text-transform: uppercase; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         .todays-sound-body { padding: 8px 6px 12px; text-align: center; flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; }
@@ -194,7 +188,6 @@
         .page-actions { text-align: right; margin-bottom: 8px; }
         .export-btn { background: #E2571C; color: #fff; border: none; border-radius: 8px; padding: 8px 16px; font-weight: 700; font-size: 13px; font-family: inherit; cursor: pointer; }
 
-        /* ---------- Print Rules ---------- */
         @media print {
             body { padding: 0; background: #fff; }
             .app-header, .tabs, .tab-panel, .edit-layout, .form-section, .list-section, .view-toolbar, .no-print, .page-actions, .thumbnail-wrapper, .modal-overlay, .toast-container { display: none !important; }
@@ -206,44 +199,10 @@
             .view-container .section-header .circle, .custom-text-box, .cvc-intro-box { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
         }
 
-        /* Thumbnail styles - centered */
-        .thumbnail-wrapper {
-            margin-bottom: 16px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .thumbnail-wrapper .thumb-label {
-            font-size: 13px;
-            font-weight: 700;
-            margin-bottom: 6px;
-            color: #495057;
-            text-align: center;
-        }
-        .thumbnail-container {
-            width: 255px;
-            border: 2px solid #dee2e6;
-            border-radius: 8px;
-            overflow: hidden;
-            background: #fff;
-            position: relative;
-            /* height set dynamically */
-        }
-        .thumbnail-container .page {
-            transform: scale(0.3);
-            transform-origin: top left;
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 850px;
-            min-width: 850px;
-            min-height: 1080px;
-            padding: 24px 32px;
-            margin: 0;
-            border-radius: 0;
-            box-shadow: none;
-            page-break-after: auto;
-        }
+        .thumbnail-wrapper { margin-bottom: 16px; display: flex; flex-direction: column; align-items: center; }
+        .thumbnail-wrapper .thumb-label { font-size: 13px; font-weight: 700; margin-bottom: 6px; color: #495057; text-align: center; }
+        .thumbnail-container { width: 255px; border: 2px solid #dee2e6; border-radius: 8px; overflow: hidden; background: #fff; position: relative; }
+        .thumbnail-container .page { transform: scale(0.3); transform-origin: top left; position: absolute; top: 0; left: 0; width: 850px; min-width: 850px; min-height: 1080px; padding: 24px 32px; margin: 0; border-radius: 0; box-shadow: none; page-break-after: auto; }
     </style>
 </head>
 <body>
@@ -252,7 +211,6 @@
 
     <script>
         (function () {
-            // ---------- Storage Configuration ----------
             const IDB_NAME = 'phonics_lessons_db';
             const IDB_STORE = 'app_data';
             const LEGACY_STORAGE_KEY = 'phonics_lessons_v8';
@@ -261,7 +219,6 @@
             const MAX_GRID_WORDS = 24;
             const MAX_FILL_ITEMS = 18;
 
-            // ---------- IndexedDB Utility ----------
             let dbPromise = null;
             function getDB() {
                 if (!dbPromise) {
@@ -310,7 +267,6 @@
                 }
             }
 
-            // ---------- Helper Functions ----------
             function sanitizeRichText(text) {
                 if (!text) return '';
                 let esc = escapeHtml(text);
@@ -359,7 +315,6 @@
                 o.querySelector('.confirm').onclick = () => { o.remove(); cb(); };
             }
 
-            // ---------- Section Types Definitions ----------
             const SECTION_TYPES = {
                 tile: { label: 'Letter/Image Tile', defaultWidth: 'full', fields: ['tileMode','letterTile','letterFontSize','imagePath','imageCaption'] },
                 introText: { label: 'Intro Text', defaultWidth: 'full', fields: ['text'] },
@@ -401,7 +356,6 @@
                 }
             }
 
-            // Migration: convert old flat fields to sections array
             function migrateToSections(lesson) {
                 if (Array.isArray(lesson.sections) && lesson.sections.length > 0) return lesson;
                 const sections = [];
@@ -443,7 +397,6 @@
                 return lesson;
             }
 
-            // ---------- Default data ----------
             const DEFAULT_LESSONS = [
                 (() => {
                     const l = { id: 'l1', mainTitle: 'SHORT VOWEL CVC WORDS', subtitle: 'SHORT VOWEL', lessonNumber: 1 };
@@ -467,7 +420,6 @@
             let editingId = null, nextId = 1, tempSections = [];
             window.searchQuery = '';
 
-            // ---------- Data Loading / Saving ----------
             async function loadData() {
                 let data = null;
                 try { data = await idbGet(); } catch (e) { data = null; }
@@ -521,7 +473,6 @@
             }
             function renumberByOrder(arr) { arr.forEach((lesson, idx) => lesson.lessonNumber = idx + 1); }
 
-            // ---------- Section Builder UI ----------
             function renderSectionsBuilder() {
                 const container = document.getElementById('sectionsContainer');
                 if (!container) return;
@@ -613,7 +564,6 @@
                 return html;
             }
 
-            // Section CRUD
             window.addSection = function(type) {
                 const newSection = createDefaultSection(type);
                 tempSections.push(newSection);
@@ -649,7 +599,6 @@
                 renderThumbnail();
             };
 
-            // ---------- Thumbnail rendering ----------
             function renderThumbnail() {
                 const container = document.getElementById('thumbnailContainer');
                 if (!container) return;
@@ -665,13 +614,9 @@
                     sections: JSON.parse(JSON.stringify(tempSections))
                 };
 
-                // Build the full lesson page
                 const pageEl = buildLessonPage(tempLesson, 1);
-
-                // Remove export button/page-actions from thumbnail only
                 pageEl.querySelector('.page-actions')?.remove();
 
-                // Apply thumbnail-specific styles
                 pageEl.style.transform = 'scale(0.3)';
                 pageEl.style.transformOrigin = 'top left';
                 pageEl.style.position = 'absolute';
@@ -686,17 +631,13 @@
                 pageEl.style.boxShadow = 'none';
                 pageEl.style.pageBreakAfter = 'auto';
 
-                // Clear and append
                 container.innerHTML = '';
                 container.appendChild(pageEl);
 
-                // Adjust container height to show the entire page (including page number)
                 const actualHeight = pageEl.offsetHeight;
-                const scale = 0.3;
-                container.style.height = (actualHeight * scale) + 'px';
+                container.style.height = (actualHeight * 0.3) + 'px';
             }
 
-            // ---------- Build View Page ----------
             function buildLessonPage(lesson, pageNum) {
                 const page = document.createElement('div');
                 page.className = 'page';
@@ -810,7 +751,6 @@
                 }
             }
 
-            // ---------- Rest of functions ----------
             function buildTocPage(pageNum, entries) {
                 const page = document.createElement('div'); page.className = 'page';
                 page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
@@ -881,7 +821,6 @@
                 lessons.forEach(l => container.appendChild(buildLessonPage(l, pageNum++)));
             }
 
-            // ---------- Form Handling ----------
             function fillForm(lesson) {
                 document.getElementById('fMainTitle').value = lesson.mainTitle || '';
                 document.getElementById('fSubtitle').value = lesson.subtitle || 'SHORT VOWEL';
@@ -904,7 +843,7 @@
                 document.getElementById('cancelBtn').style.display = 'none';
             }
 
-            window.toggleFields = function() { /* no longer used */ };
+            window.toggleFields = function() {};
 
             window.handleImageUpload = function(e) {
                 const file = e.target.files[0];
@@ -914,7 +853,6 @@
                 const reader = new FileReader();
                 reader.onload = ev => {
                     const dataUrl = ev.target.result;
-                    // For now, just show toast
                     showToast('Image uploaded. Use path field in tile section for now.', 'info');
                 };
                 reader.readAsDataURL(file);
@@ -928,9 +866,10 @@
                 fillForm(lesson);
                 document.getElementById('saveBtn').textContent = '💾 Update Lesson';
                 document.getElementById('cancelBtn').style.display = 'inline-block';
+                switchTab('edit');
                 document.querySelector('.form-section').scrollIntoView({ behavior: 'smooth' });
             };
-            window.cancelEdit = function() { resetForm(); showToast('Edit cancelled.', 'info'); };
+            window.cancelEdit = function() { resetForm(); switchTab('lessons'); showToast('Edit cancelled.', 'info'); };
 
             window.saveLesson = function() {
                 const mainTitle = document.getElementById('fMainTitle').value.trim();
@@ -951,6 +890,7 @@
                 saveData();
                 resetForm();
                 refreshUI();
+                switchTab('lessons');
                 showToast('Lesson saved.', 'success');
             };
 
@@ -1027,6 +967,7 @@
 
             function renderEditList() {
                 const container = document.getElementById('lessonList');
+                if (!container) return;
                 const q = (window.searchQuery || '').toLowerCase();
                 const filtered = lessons.filter(l => {
                     if (!q) return true;
@@ -1064,70 +1005,76 @@
             window.switchTab = function(tab) {
                 document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
                 document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === tab + 'Panel'));
-                if (tab === 'edit') renderEditList();
-                if (tab === 'view') renderAllView();
+                if (tab === 'edit') {
+                    // nothing extra
+                }
+                if (tab === 'lessons') {
+                    renderEditList();
+                }
+                if (tab === 'view') {
+                    renderAllView();
+                }
                 updateCounts();
             };
 
-            // ---------- Initialization (async) ----------
             async function initApp() {
                 await loadData();
                 document.getElementById('app').innerHTML = `
                     <div class="app-header"><h1>📚 Phonics Lesson Publisher v8</h1><span class="badge" id="lessonCount">0</span></div>
                     <div class="tabs">
                         <button class="tab-btn active" data-tab="edit" onclick="switchTab('edit')">✏️ Edit</button>
+                        <button class="tab-btn" data-tab="lessons" onclick="switchTab('lessons')">📖 Lessons</button>
                         <button class="tab-btn" data-tab="view" onclick="switchTab('view')">👁️ View</button>
                     </div>
                     <div class="tab-panel active" id="editPanel">
-                        <div class="edit-layout">
-                            <div class="form-section">
-                                <h2 id="formTitle">➕ Add New Lesson</h2>
-                                <div class="form-group"><label>Main Title</label><input id="fMainTitle" value="SHORT VOWEL CVC WORDS" oninput="renderThumbnail()"></div>
-                                <div class="form-group"><label>Subtitle</label><input id="fSubtitle" value="SHORT VOWEL" oninput="renderThumbnail()"></div>
-                                <div class="form-group"><label>Lesson Number (auto)</label><input id="fLessonNumber" readonly style="background:#f0f0f0;"></div>
+                        <div class="form-section">
+                            <h2 id="formTitle">➕ Add New Lesson</h2>
+                            <div class="form-group"><label>Main Title</label><input id="fMainTitle" value="SHORT VOWEL CVC WORDS" oninput="renderThumbnail()"></div>
+                            <div class="form-group"><label>Subtitle</label><input id="fSubtitle" value="SHORT VOWEL" oninput="renderThumbnail()"></div>
+                            <div class="form-group"><label>Lesson Number (auto)</label><input id="fLessonNumber" readonly style="background:#f0f0f0;"></div>
 
-                                <!-- Thumbnail preview -->
-                                <div class="thumbnail-wrapper">
-                                    <div class="thumb-label">📄 Live Page Preview</div>
-                                    <div class="thumbnail-container" id="thumbnailContainer"></div>
-                                </div>
-
-                                <div class="section-card">
-                                    <h4>Page Sections</h4>
-                                    <p style="font-size:12px;color:#6c757d;margin-bottom:8px;">Add sections and choose their width.</p>
-                                    <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;">
-                                        ${Object.keys(SECTION_TYPES).map(type => `<button class="btn btn-outline btn-sm" onclick="addSection('${type}')">+ ${SECTION_TYPES[type].label}</button>`).join('')}
-                                    </div>
-                                    <div id="sectionsContainer"></div>
-                                </div>
-
-                                <div class="form-actions">
-                                    <button class="btn btn-primary" id="saveBtn" onclick="saveLesson()">💾 Save Lesson</button>
-                                    <button class="btn btn-outline" id="cancelBtn" onclick="cancelEdit()" style="display:none">Cancel</button>
-                                </div>
+                            <div class="thumbnail-wrapper">
+                                <div class="thumb-label">📄 Live Page Preview</div>
+                                <div class="thumbnail-container" id="thumbnailContainer"></div>
                             </div>
-                            <div class="list-section">
-                                <div style="margin-bottom:20px;border-bottom:2px solid #e9ecef;padding-bottom:20px;">
-                                    <h3>📘 Cover Page</h3>
-                                    <div class="form-group"><label>Cover Title</label><input id="coverTitleInput" value="${escapeHtml(coverData.title)}"></div>
-                                    <div class="form-group"><label>Cover Subtitle</label><input id="coverSubtitleInput" value="${escapeHtml(coverData.subtitle)}"></div>
-                                    <button class="btn btn-success btn-sm" onclick="saveCover()">💾 Save Cover</button>
+
+                            <div class="section-card">
+                                <h4>Page Sections</h4>
+                                <p style="font-size:12px;color:#6c757d;margin-bottom:8px;">Add sections and choose their width.</p>
+                                <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;">
+                                    ${Object.keys(SECTION_TYPES).map(type => `<button class="btn btn-outline btn-sm" onclick="addSection('${type}')">+ ${SECTION_TYPES[type].label}</button>`).join('')}
                                 </div>
-                                <h2>📖 All Lessons</h2>
-                                <div class="list-toolbar">
-                                    <input class="search-box" placeholder="🔍 Search..." oninput="window.searchQuery=this.value;window.renderEditList()">
-                                    <span class="count" id="listCount">0/0</span>
-                                    <button class="btn btn-success btn-sm" onclick="exportJSON()">📤 Export</button>
-                                    <button class="btn btn-outline btn-sm" onclick="document.getElementById('importFile').click()">📥 Import</button>
-                                    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(this)">
-                                </div>
-                                <div class="lesson-list" id="lessonList"></div>
-                                <div style="margin-top:28px;border-top:2px solid #e9ecef;padding-top:20px;">
-                                    <h3>📝 Sight Words</h3>
-                                    <div class="form-group"><textarea id="fSightWords" rows="3"></textarea></div>
-                                    <button class="btn btn-success btn-sm" onclick="saveSightWords()">💾 Save Sight Words</button>
-                                    <div style="margin-top:10px;"><strong>Preview:</strong><div id="sightWordsPreview" style="margin-top:6px;"></div></div>
-                                </div>
+                                <div id="sectionsContainer"></div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button class="btn btn-primary" id="saveBtn" onclick="saveLesson()">💾 Save Lesson</button>
+                                <button class="btn btn-outline" id="cancelBtn" onclick="cancelEdit()" style="display:none">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-panel" id="lessonsPanel">
+                        <div class="list-section">
+                            <div style="margin-bottom:20px;border-bottom:2px solid #e9ecef;padding-bottom:20px;">
+                                <h3>📘 Cover Page</h3>
+                                <div class="form-group"><label>Cover Title</label><input id="coverTitleInput" value="${escapeHtml(coverData.title)}"></div>
+                                <div class="form-group"><label>Cover Subtitle</label><input id="coverSubtitleInput" value="${escapeHtml(coverData.subtitle)}"></div>
+                                <button class="btn btn-success btn-sm" onclick="saveCover()">💾 Save Cover</button>
+                            </div>
+                            <h2>📖 All Lessons</h2>
+                            <div class="list-toolbar">
+                                <input class="search-box" placeholder="🔍 Search..." oninput="window.searchQuery=this.value;window.renderEditList()">
+                                <span class="count" id="listCount">0/0</span>
+                                <button class="btn btn-success btn-sm" onclick="exportJSON()">📤 Export</button>
+                                <button class="btn btn-outline btn-sm" onclick="document.getElementById('importFile').click()">📥 Import</button>
+                                <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(this)">
+                            </div>
+                            <div class="lesson-list" id="lessonList"></div>
+                            <div style="margin-top:28px;border-top:2px solid #e9ecef;padding-top:20px;">
+                                <h3>📝 Sight Words</h3>
+                                <div class="form-group"><textarea id="fSightWords" rows="3"></textarea></div>
+                                <button class="btn btn-success btn-sm" onclick="saveSightWords()">💾 Save Sight Words</button>
+                                <div style="margin-top:10px;"><strong>Preview:</strong><div id="sightWordsPreview" style="margin-top:6px;"></div></div>
                             </div>
                         </div>
                     </div>
@@ -1145,6 +1092,7 @@
                 renderAllView();
                 updateCounts();
                 window.renderEditList = renderEditList;
+                switchTab('edit');
             }
 
             initApp();
