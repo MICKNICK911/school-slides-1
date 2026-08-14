@@ -142,9 +142,8 @@
     /* ========== VIEW TAB – EXACT 850×1080 LAYOUT ========== */
     .view-container { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 8px; display: flex; flex-direction: column; align-items: center; gap: 24px; }
     .lesson-spread { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; width: 100%; }
-    @media print { .lesson-spread { gap: 0; page-break-after: always; } .lesson-spread:last-child { page-break-after: auto; } }
 
-    .view-container .page { width: 850px; min-width: 850px; min-height: 1080px; height: 1080px; padding: 30px 35px; position: relative; page-break-after: always; margin: 0 auto; background: #fff; border-radius: 10px; box-shadow: 0 2px 16px rgba(0,0,0,0.07); box-sizing: border-box; overflow: hidden; flex-shrink: 0; }
+    .view-container .page { width: 850px; min-width: 850px; min-height: 1080px; height: 1080px; padding: 30px 35px; position: relative; margin: 0 auto; background: #fff; border-radius: 10px; box-shadow: 0 2px 16px rgba(0,0,0,0.07); box-sizing: border-box; overflow: hidden; flex-shrink: 0; }
     .view-container .page:last-child { page-break-after: auto; }
 
     .view-container .card { border: 3px solid #f59e0b; border-radius: 26px; min-height: 1010px; height: 1010px; padding: 0; position: relative; display: flex; flex-direction: column; overflow: hidden; -webkit-print-color-adjust: exact; print-color-adjust: exact; background: #fff; }
@@ -293,10 +292,10 @@
       body { padding: 0 !important; background: #fff !important; margin: 0 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
       .app, .app-header, .tabs, .tab-panel, .view-toolbar, .no-print, .page-actions, .toast-container, .modal-overlay { display: none !important; }
       .view-container { overflow-x: visible !important; display: block !important; padding: 0 !important; gap: 0 !important; }
-      .view-container .page { box-shadow: none !important; border-radius: 0 !important; margin: 0 auto !important; padding: 30px 35px !important; width: 850px !important; min-width: 850px !important; min-height: 1080px !important; height: 1080px !important; page-break-after: always !important; background: #fff !important; transform: scale(1) !important; overflow: hidden !important; }
-      .view-container .page:last-child { page-break-after: auto !important; }
+      .view-container .page { box-shadow: none !important; border-radius: 0 !important; margin: 0 auto !important; padding: 30px 35px !important; width: 850px !important; min-width: 850px !important; min-height: 1080px !important; height: 1080px !important; page-break-after: auto !important; background: #fff !important; transform: scale(1) !important; overflow: hidden !important; }
       .lesson-spread { page-break-after: always !important; gap: 0 !important; display: block !important; }
       .lesson-spread:last-child { page-break-after: auto !important; }
+      .lesson-spread > .page:not(:last-child) { page-break-after: always !important; }
       .view-container .card { border-radius: 0 !important; min-height: 1010px !important; height: 1010px !important; border: 3px solid #f59e0b !important; overflow: hidden !important; }
       .inner-pad { padding: 20px 28px 0 28px !important; }
       .page-footer-red { border-radius: 0 !important; height: 26px !important; }
@@ -336,13 +335,66 @@
 
   <script>
     (function() {
-      const STORAGE_KEY = 'decodable_readers_v9';
+      // ---------- Storage Configuration ----------
+      const IDB_NAME = 'DecodableReadersDB';
+      const IDB_STORE = 'appData';
+      const LEGACY_LOCAL_STORAGE_KEYS = ['decodable_readers_v9', 'decodable_readers_v8', 'decodable_readers_v7', 'decodable_readers_v6', 'decodable_readers_v5', 'decodable_readers_v4', 'decodable_readers_v3'];
       const MAX_IMAGE_SIZE = 2 * 1024 * 1024;
       const MAX_TOC_PER_PAGE = 20;
       const DEFAULT_IMAGE_PAGE_LABEL = "Picture Page";
-      const DEFAULT_IMAGE_PATH = "./read.png"; // default image in root
+      const DEFAULT_IMAGE_PATH = "./read.png";
       const MAX_OPTIONS = 5;
 
+      // ---------- IndexedDB Utility ----------
+      let dbPromise = null;
+      function getDB() {
+        if (!dbPromise) {
+          dbPromise = new Promise((resolve, reject) => {
+            const request = indexedDB.open(IDB_NAME, 1);
+            request.onupgradeneeded = (e) => {
+              const db = e.target.result;
+              if (!db.objectStoreNames.contains(IDB_STORE)) {
+                db.createObjectStore(IDB_STORE);
+              }
+            };
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
+          });
+        }
+        return dbPromise;
+      }
+
+      async function idbSet(data) {
+        try {
+          const db = await getDB();
+          return new Promise((resolve, reject) => {
+            const tx = db.transaction(IDB_STORE, 'readwrite');
+            const store = tx.objectStore(IDB_STORE);
+            store.put(data, 'appData');
+            tx.oncomplete = () => resolve();
+            tx.onerror = () => reject(tx.error);
+          });
+        } catch (e) {
+          localStorage.setItem(LEGACY_LOCAL_STORAGE_KEYS[0], JSON.stringify(data));
+        }
+      }
+
+      async function idbGet() {
+        try {
+          const db = await getDB();
+          return new Promise((resolve, reject) => {
+            const tx = db.transaction(IDB_STORE, 'readonly');
+            const store = tx.objectStore(IDB_STORE);
+            const request = store.get('appData');
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
+          });
+        } catch (e) {
+          return null;
+        }
+      }
+
+      // ---------- Helper Functions ----------
       function escapeHtml(str) { return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
       function showToast(msg, type='info') {
         const c = document.getElementById('toastContainer');
@@ -363,7 +415,6 @@
         ov.addEventListener('click', (e) => { if (e.target === ov) ov.remove(); });
       }
       function countWords(sentence) { return sentence.trim().split(/\s+/).filter(w => w).length; }
-
       function generateQuestionId() { return 'q' + Math.random().toString(36).substring(2, 9); }
 
       function getDefaultPage2() {
@@ -371,12 +422,7 @@
           comprehension: {
             enabled: true,
             questions: [
-              {
-                id: generateQuestionId(),
-                type: 'objective',
-                question: '',
-                options: ['', '', '']
-              }
+              { id: generateQuestionId(), type: 'objective', question: '', options: ['', '', ''] }
             ]
           },
           findSound: {
@@ -401,27 +447,12 @@
             options: q.options && q.options.length ? q.options.slice(0, MAX_OPTIONS) : ['', '', '']
           }));
           if (questions.length === 0) {
-            questions.push({
-              id: generateQuestionId(),
-              type: 'objective',
-              question: '',
-              options: ['', '', '']
-            });
+            questions.push({ id: generateQuestionId(), type: 'objective', question: '', options: ['', '', ''] });
           }
           l.page2 = {
-            comprehension: {
-              enabled: true,
-              questions: questions
-            },
-            findSound: {
-              enabled: true,
-              instruction: 'Find and list all the words in the story with the target sound.'
-            },
-            sentenceWriting: {
-              enabled: true,
-              instruction: 'Write any one sentence from the story.',
-              numberOfLines: 1
-            }
+            comprehension: { enabled: true, questions },
+            findSound: { enabled: true, instruction: 'Find and list all the words in the story with the target sound.' },
+            sentenceWriting: { enabled: true, instruction: 'Write any one sentence from the story.', numberOfLines: 1 }
           };
           delete l.comprehension;
         } else {
@@ -435,9 +466,7 @@
           if (q.type !== 'objective' && q.type !== 'theory') q.type = 'objective';
           if (q.type === 'objective') {
             if (!Array.isArray(q.options)) q.options = ['', '', ''];
-            if (q.options.length < 2) {
-              while (q.options.length < 2) q.options.push('');
-            }
+            if (q.options.length < 2) while (q.options.length < 2) q.options.push('');
             if (q.options.length > MAX_OPTIONS) q.options = q.options.slice(0, MAX_OPTIONS);
           } else {
             delete q.options;
@@ -477,51 +506,52 @@
       let bookMeta = { title: 'Decodable Readers', subtitle: 'Grade 1', grade: '1', showToc: true };
       window.searchQuery = '';
 
-      function loadData() {
-        try {
-          const raw = localStorage.getItem(STORAGE_KEY);
-          if (raw) {
-            const parsed = JSON.parse(raw);
-            lessons = Array.isArray(parsed.lessons) ? parsed.lessons.map(l => {
-              const migrated = migrateLesson({
-                id: String(l.id || ''),
-                lessonNumber: typeof l.lessonNumber === 'number' ? l.lessonNumber : 0,
-                imageUrl: String(l.imageUrl || ''),
-                title: String(l.title || 'Untitled'),
-                targetSound: String(l.targetSound || ''),
-                imagePageLabel: String(l.imagePageLabel ?? DEFAULT_IMAGE_PAGE_LABEL),
-                storyLines: (Array.isArray(l.storyLines) ? l.storyLines : []).map(sl => ({ sentence: String(sl.sentence || '') })).filter(sl => sl.sentence.trim() !== ''),
-                comprehension: Array.isArray(l.comprehension) ? l.comprehension : [],
-                showImagePage: typeof l.showImagePage === 'boolean' ? l.showImagePage : false,
-                page2: l.page2
-              });
-              return migrated;
-            }).filter(l => l.id) : [];
-            if (lessons.length === 0) {
-              lessons = JSON.parse(JSON.stringify(DEFAULT_LESSONS)).map(l => migrateLesson(l));
-            }
-            bookMeta = parsed.bookMeta || { title: 'Decodable Readers', subtitle: 'Grade 1', grade: '1', showToc: true };
-            bookMeta.grade = String(bookMeta.grade || '1');
-            bookMeta.showToc = (typeof bookMeta.showToc === 'boolean') ? bookMeta.showToc : true;
-            renumberByOrder(lessons);
-            nextId = Math.max(...lessons.map(l => parseInt(l.id.replace('r','')) || 0), 0) + 1;
-            saveData();
-            return;
+      // ---------- Data Loading / Saving ----------
+      async function loadData() {
+        let data = null;
+        try { data = await idbGet(); } catch (e) { data = null; }
+        if (!data || !data.lessons) {
+          for (const key of LEGACY_LOCAL_STORAGE_KEYS) {
+            try {
+              const raw = localStorage.getItem(key);
+              if (raw) {
+                const parsed = JSON.parse(raw);
+                if (parsed.lessons) { data = parsed; break; }
+              }
+            } catch (e) {}
           }
-        } catch(e) {
-          console.warn('Error loading data, using defaults', e);
         }
-        lessons = JSON.parse(JSON.stringify(DEFAULT_LESSONS)).map(l => migrateLesson(l));
-        bookMeta = { title: 'Decodable Readers', subtitle: 'Grade 1', grade: '1', showToc: true };
-        nextId = lessons.length + 1;
+
+        if (data && data.lessons) {
+          lessons = data.lessons.map(l => migrateLesson({
+            id: String(l.id || ''),
+            lessonNumber: typeof l.lessonNumber === 'number' ? l.lessonNumber : 0,
+            imageUrl: String(l.imageUrl || ''),
+            title: String(l.title || 'Untitled'),
+            targetSound: String(l.targetSound || ''),
+            imagePageLabel: String(l.imagePageLabel ?? DEFAULT_IMAGE_PAGE_LABEL),
+            storyLines: (Array.isArray(l.storyLines) ? l.storyLines : []).map(sl => ({ sentence: String(sl.sentence || '') })).filter(sl => sl.sentence.trim() !== ''),
+            comprehension: Array.isArray(l.comprehension) ? l.comprehension : [],
+            showImagePage: typeof l.showImagePage === 'boolean' ? l.showImagePage : false,
+            page2: l.page2
+          })).filter(l => l.id);
+          bookMeta = data.bookMeta || { title: 'Decodable Readers', subtitle: 'Grade 1', grade: '1', showToc: true };
+        } else {
+          lessons = JSON.parse(JSON.stringify(DEFAULT_LESSONS)).map(l => migrateLesson(l));
+          bookMeta = { title: 'Decodable Readers', subtitle: 'Grade 1', grade: '1', showToc: true };
+        }
+        bookMeta.grade = String(bookMeta.grade || '1');
+        bookMeta.showToc = (typeof bookMeta.showToc === 'boolean') ? bookMeta.showToc : true;
         renumberByOrder(lessons);
-        saveData();
+        nextId = Math.max(...lessons.map(l => parseInt(l.id.replace('r','')) || 0), 0) + 1;
+        await saveData();
       }
-      function saveData() {
+
+      async function saveData() {
         const payload = { lessons, bookMeta };
-        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(payload)); }
-        catch(e) { showToast('Storage full – delete some lessons.', 'error'); }
+        await idbSet(payload);
       }
+
       function generateId() { return 'r' + (nextId++); }
       function renumberByOrder(arr) { arr.forEach((l, idx) => l.lessonNumber = idx + 1); }
 
@@ -619,7 +649,6 @@
         card.style.alignItems = 'center';
         const imagePlaceholder = document.createElement('div');
         imagePlaceholder.className = 'image-full-placeholder';
-        // Use lesson.imageUrl if available; otherwise use default image path with fallback
         if (lesson.imageUrl) {
           imagePlaceholder.innerHTML = `<img src="${escapeHtml(lesson.imageUrl)}" alt="Full Page Image" onerror="this.parentElement.innerHTML='<div class=&quot;placeholder-text&quot;>🖼️ Image Placeholder</div>'">`;
         } else {
@@ -688,9 +717,7 @@
         let currentPage = firstLessonPage;
         activeLessons.forEach(l => {
           const spread = document.createElement('div'); spread.className = 'lesson-spread';
-          if (l.showImagePage) {
-            spread.appendChild(buildImagePage(l, currentPage++));
-          }
+          if (l.showImagePage) spread.appendChild(buildImagePage(l, currentPage++));
           spread.appendChild(buildPageOne(l, currentPage++));
           spread.appendChild(buildPageTwo(l, currentPage++));
           container.appendChild(spread);
@@ -729,9 +756,7 @@
         page2.comprehension.questions.forEach(q => {
           if (q.type === 'objective') {
             q.options = q.options.map(o => o.trim()).filter(o => o !== '');
-            if (q.options.length < 2) {
-              q.options.push('');
-            }
+            if (q.options.length < 2) q.options.push('');
             if (q.options.length > MAX_OPTIONS) q.options = q.options.slice(0, MAX_OPTIONS);
           } else {
             delete q.options;
@@ -861,14 +886,10 @@
         container.innerHTML = html;
       }
 
+      // Question CRUD
       window.addQuestion = function() {
         if (!tempPage2) return;
-        tempPage2.comprehension.questions.push({
-          id: generateQuestionId(),
-          type: 'objective',
-          question: '',
-          options: ['', '', '']
-        });
+        tempPage2.comprehension.questions.push({ id: generateQuestionId(), type: 'objective', question: '', options: ['', '', ''] });
         renderQuestionList();
       };
       window.deleteQuestion = function(idx) {
@@ -881,9 +902,7 @@
         const arr = tempPage2.comprehension.questions;
         const newIdx = idx + dir;
         if (newIdx < 0 || newIdx >= arr.length) return;
-        const temp = arr[idx];
-        arr[idx] = arr[newIdx];
-        arr[newIdx] = temp;
+        const temp = arr[idx]; arr[idx] = arr[newIdx]; arr[newIdx] = temp;
         renderQuestionList();
       };
       window.changeQuestionType = function(idx, type) {
@@ -891,31 +910,25 @@
         const q = tempPage2.comprehension.questions[idx];
         if (!q) return;
         q.type = type;
-        if (type === 'objective' && !q.options) {
-          q.options = ['', '', ''];
-        } else if (type === 'theory') {
-          delete q.options;
-        }
+        if (type === 'objective' && !q.options) q.options = ['', '', ''];
+        else if (type === 'theory') delete q.options;
         renderQuestionList();
       };
       window.updateQuestionText = function(idx, value) {
         if (!tempPage2) return;
         const q = tempPage2.comprehension.questions[idx];
-        if (!q) return;
-        q.question = value.trim();
+        if (q) q.question = value.trim();
       };
       window.updateOption = function(qIdx, optIdx, value) {
         if (!tempPage2) return;
         const q = tempPage2.comprehension.questions[qIdx];
-        if (!q || !q.options) return;
-        q.options[optIdx] = value.trim();
+        if (q && q.options) q.options[optIdx] = value.trim();
         renderQuestionList();
       };
       window.addOption = function(qIdx) {
         if (!tempPage2) return;
         const q = tempPage2.comprehension.questions[qIdx];
-        if (!q || !q.options) return;
-        if (q.options.length < MAX_OPTIONS) {
+        if (q && q.options && q.options.length < MAX_OPTIONS) {
           q.options.push('');
           renderQuestionList();
         }
@@ -923,13 +936,13 @@
       window.deleteOption = function(qIdx, optIdx) {
         if (!tempPage2) return;
         const q = tempPage2.comprehension.questions[qIdx];
-        if (!q || !q.options) return;
-        if (q.options.length > 2) {
+        if (q && q.options && q.options.length > 2) {
           q.options.splice(optIdx, 1);
           renderQuestionList();
         }
       };
 
+      // Section toggles
       window.toggleSection = function(section, checked) {
         if (!tempPage2) return;
         if (section === 'comp') tempPage2.comprehension.enabled = checked;
@@ -938,22 +951,19 @@
         renderQuestionList();
       };
       window.updateFindSoundInstruction = function(value) {
-        if (!tempPage2) return;
-        tempPage2.findSound.instruction = value;
+        if (tempPage2) tempPage2.findSound.instruction = value;
       };
       window.updateSentenceInstruction = function(value) {
-        if (!tempPage2) return;
-        tempPage2.sentenceWriting.instruction = value;
+        if (tempPage2) tempPage2.sentenceWriting.instruction = value;
       };
       window.updateSentenceLines = function(value) {
-        if (!tempPage2) return;
-        tempPage2.sentenceWriting.numberOfLines = parseInt(value) || 1;
+        if (tempPage2) tempPage2.sentenceWriting.numberOfLines = parseInt(value) || 1;
       };
       window.toggleImagePage = function(checked) {
         tempShowImagePage = checked;
       };
 
-      // ---------- Save / Edit / Delete etc ----------
+      // Save / Edit / Delete / Import / Export
       window.handleImageUpload = function(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -1092,9 +1102,7 @@
         const activeLessons = lessons.filter(l => l.title.trim());
         const tocPages = (bookMeta.showToc && activeLessons.length) ? Math.ceil(activeLessons.length / MAX_TOC_PER_PAGE) : 0;
         let lessonPages = 0;
-        activeLessons.forEach(l => {
-          lessonPages += l.showImagePage ? 3 : 2;
-        });
+        activeLessons.forEach(l => { lessonPages += l.showImagePage ? 3 : 2; });
         const totalPages = 1 + tocPages + lessonPages;
         document.getElementById('viewInfo').textContent = `📄 ${lessons.length} lessons · ${totalPages} pages (Grade ${bookMeta.grade})`;
       }
@@ -1103,15 +1111,9 @@
       function renderTocPreview() {
         const tocPreview = document.getElementById('tocPreview');
         if (!tocPreview) return;
-        if (!bookMeta.showToc) {
-          tocPreview.innerHTML = '<p style="color:#64748b; font-style:italic;">Table of Contents is disabled.</p>';
-          return;
-        }
+        if (!bookMeta.showToc) { tocPreview.innerHTML = '<p style="color:#64748b; font-style:italic;">Table of Contents is disabled.</p>'; return; }
         const activeLessons = lessons.filter(l => l.title.trim());
-        if (!activeLessons.length) {
-          tocPreview.innerHTML = '<p style="color:#64748b;">No active lessons.</p>';
-          return;
-        }
+        if (!activeLessons.length) { tocPreview.innerHTML = '<p style="color:#64748b;">No active lessons.</p>'; return; }
         const tocPageCount = Math.ceil(activeLessons.length / MAX_TOC_PER_PAGE);
         const firstLessonPage = 1 + tocPageCount + 1;
         let runningPage = firstLessonPage;
@@ -1140,160 +1142,160 @@
       };
 
       // ---------- Initialization ----------
-      loadData();
+      async function initApp() {
+        await loadData();
 
-      document.getElementById('app').innerHTML = `
-        <div class="app-header"><h1><span class="icon">📖</span> Decodable Reader Publisher</h1><span class="badge" id="lessonCount">0</span></div>
-        <div class="tabs">
-          <button class="tab-btn active" data-tab="edit" onclick="switchTab('edit')">✏️ Edit Readers</button>
-          <button class="tab-btn" data-tab="book" onclick="switchTab('book')">📘 Book Setup</button>
-          <button class="tab-btn" data-tab="view" onclick="switchTab('view')">👁️ Preview &amp; Export</button>
-        </div>
-        <div class="tab-panel active" id="editPanel">
-          <div class="edit-layout">
-            <div class="form-section">
-              <h2 id="formTitle"><span class="dot"></span> Add New Reader</h2>
-              <div class="form-row">
-                <div class="form-group"><label>Title <span class="req">*</span></label><input id="fTitle" placeholder="e.g. Ben's Camping Trip"></div>
-                <div class="form-group"><label>Lesson Number (auto)</label><input id="fLessonNumber" type="number" readonly style="background:#f0f0f0;"></div>
-                <div class="form-group"><label>Image (for full-page image page if enabled)</label>
-                  <div class="image-upload-wrap">
-                    <img id="imagePreview" class="preview" style="display:none;">
-                    <div id="imagePreviewPlaceholder" class="preview-placeholder">🖼️</div>
-                    <input type="file" id="imageUploadFile" accept="image/*" onchange="handleImageUpload(event)">
-                    <input type="hidden" id="fImageUrl">
+        document.getElementById('app').innerHTML = `
+          <div class="app-header"><h1><span class="icon">📖</span> Decodable Reader Publisher</h1><span class="badge" id="lessonCount">0</span></div>
+          <div class="tabs">
+            <button class="tab-btn active" data-tab="edit" onclick="switchTab('edit')">✏️ Edit Readers</button>
+            <button class="tab-btn" data-tab="book" onclick="switchTab('book')">📘 Book Setup</button>
+            <button class="tab-btn" data-tab="view" onclick="switchTab('view')">👁️ Preview &amp; Export</button>
+          </div>
+          <div class="tab-panel active" id="editPanel">
+            <div class="edit-layout">
+              <div class="form-section">
+                <h2 id="formTitle"><span class="dot"></span> Add New Reader</h2>
+                <div class="form-row">
+                  <div class="form-group"><label>Title <span class="req">*</span></label><input id="fTitle" placeholder="e.g. Ben's Camping Trip"></div>
+                  <div class="form-group"><label>Lesson Number (auto)</label><input id="fLessonNumber" type="number" readonly style="background:#f0f0f0;"></div>
+                  <div class="form-group"><label>Image (for full-page image page if enabled)</label>
+                    <div class="image-upload-wrap">
+                      <img id="imagePreview" class="preview" style="display:none;">
+                      <div id="imagePreviewPlaceholder" class="preview-placeholder">🖼️</div>
+                      <input type="file" id="imageUploadFile" accept="image/*" onchange="handleImageUpload(event)">
+                      <input type="hidden" id="fImageUrl">
+                    </div>
                   </div>
                 </div>
+                <div class="form-group"><label>Full-Page Image Label</label><input id="fImagePageLabel" placeholder="e.g. Picture Page" value="${escapeHtml(DEFAULT_IMAGE_PAGE_LABEL)}"></div>
+                <div class="form-group" style="display:flex;align-items:center;gap:10px;margin-top:16px;">
+                  <input type="checkbox" id="imagePageToggle" onchange="toggleImagePage(this.checked)" style="width:18px;height:18px;accent-color:#f59e0b;">
+                  <label for="imagePageToggle" style="margin:0;font-weight:600;">Include full-page image placeholder before reading page</label>
+                </div>
+                <div class="form-group"><label>Target Sound <span class="req">*</span></label><input id="fTargetSound" placeholder="short e (/ɛ/)"></div>
+                <div class="form-group"><label>Story Text <span class="req">*</span></label><textarea id="fStory" rows="8" placeholder="One sentence per line..."></textarea></div>
+                <hr style="margin:16px 0;border-color:#e2e8f0;">
+                <h4 style="margin-bottom:12px;">📋 Page 2 Activities</h4>
+                <div class="form-group" style="display:flex;align-items:center;gap:10px;">
+                  <input type="checkbox" id="compToggle" onchange="toggleSection('comp', this.checked)" style="width:18px;height:18px;accent-color:#f59e0b;">
+                  <label for="compToggle" style="margin:0;font-weight:600;">Comprehension Section</label>
+                </div>
+                <div id="compQuestionsContainer" style="margin-bottom:16px;"></div>
+                <button class="btn btn-outline btn-sm" onclick="addQuestion()">+ Add Question</button>
+                <hr style="margin:16px 0;border-color:#e2e8f0;">
+                <div class="form-group" style="display:flex;align-items:center;gap:10px;">
+                  <input type="checkbox" id="findSoundToggle" onchange="toggleSection('findSound', this.checked)" style="width:18px;height:18px;accent-color:#f59e0b;">
+                  <label for="findSoundToggle" style="margin:0;font-weight:600;">Find Sound Section</label>
+                </div>
+                <div class="form-group">
+                  <label>Find Sound Instruction</label>
+                  <textarea id="findSoundInstruction" rows="2" onchange="updateFindSoundInstruction(this.value)"></textarea>
+                </div>
+                <hr style="margin:16px 0;border-color:#e2e8f0;">
+                <div class="form-group" style="display:flex;align-items:center;gap:10px;">
+                  <input type="checkbox" id="sentenceToggle" onchange="toggleSection('sentence', this.checked)" style="width:18px;height:18px;accent-color:#f59e0b;">
+                  <label for="sentenceToggle" style="margin:0;font-weight:600;">Sentence Writing Section</label>
+                </div>
+                <div class="form-group">
+                  <label>Sentence Writing Instruction</label>
+                  <textarea id="sentenceInstruction" rows="2" onchange="updateSentenceInstruction(this.value)"></textarea>
+                </div>
+                <div class="form-group">
+                  <label>Number of Lines</label>
+                  <input type="number" id="sentenceLines" min="1" max="10" value="1" onchange="updateSentenceLines(this.value)">
+                </div>
+                <div class="form-actions">
+                  <button class="btn btn-primary" id="saveBtn" onclick="saveLesson()">💾 Save Lesson</button>
+                  <button class="btn btn-outline" id="cancelBtn" onclick="cancelEdit()" style="display:none">Cancel</button>
+                </div>
               </div>
-              <div class="form-group"><label>Full-Page Image Label</label><input id="fImagePageLabel" placeholder="e.g. Picture Page" value="${escapeHtml(DEFAULT_IMAGE_PAGE_LABEL)}"></div>
-              <div class="form-group" style="display:flex;align-items:center;gap:10px;margin-top:16px;">
-                <input type="checkbox" id="imagePageToggle" onchange="toggleImagePage(this.checked)" style="width:18px;height:18px;accent-color:#f59e0b;">
-                <label for="imagePageToggle" style="margin:0;font-weight:600;">Include full-page image placeholder before reading page</label>
-              </div>
-              <div class="form-group"><label>Target Sound <span class="req">*</span></label><input id="fTargetSound" placeholder="short e (/ɛ/)"></div>
-              <div class="form-group"><label>Story Text <span class="req">*</span></label><textarea id="fStory" rows="8" placeholder="One sentence per line..."></textarea></div>
-              <hr style="margin:16px 0;border-color:#e2e8f0;">
-              <h4 style="margin-bottom:12px;">📋 Page 2 Activities</h4>
-              <div class="form-group" style="display:flex;align-items:center;gap:10px;">
-                <input type="checkbox" id="compToggle" onchange="toggleSection('comp', this.checked)" style="width:18px;height:18px;accent-color:#f59e0b;">
-                <label for="compToggle" style="margin:0;font-weight:600;">Comprehension Section</label>
-              </div>
-              <div id="compQuestionsContainer" style="margin-bottom:16px;"></div>
-              <button class="btn btn-outline btn-sm" onclick="addQuestion()">+ Add Question</button>
-              <hr style="margin:16px 0;border-color:#e2e8f0;">
-              <div class="form-group" style="display:flex;align-items:center;gap:10px;">
-                <input type="checkbox" id="findSoundToggle" onchange="toggleSection('findSound', this.checked)" style="width:18px;height:18px;accent-color:#f59e0b;">
-                <label for="findSoundToggle" style="margin:0;font-weight:600;">Find Sound Section</label>
-              </div>
-              <div class="form-group">
-                <label>Find Sound Instruction</label>
-                <textarea id="findSoundInstruction" rows="2" onchange="updateFindSoundInstruction(this.value)"></textarea>
-              </div>
-              <hr style="margin:16px 0;border-color:#e2e8f0;">
-              <div class="form-group" style="display:flex;align-items:center;gap:10px;">
-                <input type="checkbox" id="sentenceToggle" onchange="toggleSection('sentence', this.checked)" style="width:18px;height:18px;accent-color:#f59e0b;">
-                <label for="sentenceToggle" style="margin:0;font-weight:600;">Sentence Writing Section</label>
-              </div>
-              <div class="form-group">
-                <label>Sentence Writing Instruction</label>
-                <textarea id="sentenceInstruction" rows="2" onchange="updateSentenceInstruction(this.value)"></textarea>
-              </div>
-              <div class="form-group">
-                <label>Number of Lines</label>
-                <input type="number" id="sentenceLines" min="1" max="10" value="1" onchange="updateSentenceLines(this.value)">
-              </div>
-              <div class="form-actions">
-                <button class="btn btn-primary" id="saveBtn" onclick="saveLesson()">💾 Save Lesson</button>
-                <button class="btn btn-outline" id="cancelBtn" onclick="cancelEdit()" style="display:none">Cancel</button>
-              </div>
-            </div>
-            <div class="list-section">
-              <h2>📖 All Readers</h2>
-              <div class="list-toolbar">
-                <input class="search-box" id="searchInput" placeholder="🔍 Search..." oninput="window.searchQuery=this.value;renderEditList()">
-                <span class="count" id="listCount">0/0</span>
-                <button class="btn btn-success btn-sm" onclick="exportJSON()">📤 Export JSON</button>
-                <button class="btn btn-outline btn-sm" onclick="document.getElementById('importFile').click()">📥 Import</button>
-                <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(this)">
-              </div>
-              <div class="lesson-list" id="lessonList"></div>
-            </div>
-          </div>
-        </div>
-        <div class="tab-panel" id="bookPanel">
-          <div style="max-width:600px;margin:0 auto;">
-            <h2 style="margin-bottom:20px;">📘 Book Cover &amp; TOC</h2>
-            <div class="form-section" style="position:static;max-height:none;">
-              <div class="form-group"><label>Cover Title</label><input id="coverTitleInput" value="${escapeHtml(bookMeta.title)}"></div>
-              <div class="form-group"><label>Cover Subtitle</label><input id="coverSubtitleInput" value="${escapeHtml(bookMeta.subtitle)}"></div>
-              <div class="form-group"><label>Global Grade</label><input id="globalGradeInput" value="${escapeHtml(bookMeta.grade)}" placeholder="e.g. 1, 2, K"></div>
-              <div class="form-group" style="display:flex;align-items:center;gap:12px;margin-top:16px;">
-                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600;font-size:14px;">
-                  <input type="checkbox" id="tocToggle" onchange="bookMeta.showToc=this.checked;saveBookMeta()" style="width:18px;height:18px;accent-color:#f59e0b;"> Include Table of Contents
-                </label>
-              </div>
-              <button class="btn btn-primary" onclick="saveBookMeta()">💾 Save Cover & TOC Settings</button>
-            </div>
-            <div style="margin-top:24px;">
-              <h3 style="margin-bottom:12px;">📋 Table of Contents Preview</h3>
-              <div style="background:var(--surface-alt);border-radius:var(--radius-lg);padding:16px;border:1px solid var(--border);">
-                <div id="tocPreview" style="font-size:14px;"></div>
+              <div class="list-section">
+                <h2>📖 All Readers</h2>
+                <div class="list-toolbar">
+                  <input class="search-box" id="searchInput" placeholder="🔍 Search..." oninput="window.searchQuery=this.value;renderEditList()">
+                  <span class="count" id="listCount">0/0</span>
+                  <button class="btn btn-success btn-sm" onclick="exportJSON()">📤 Export JSON</button>
+                  <button class="btn btn-outline btn-sm" onclick="document.getElementById('importFile').click()">📥 Import</button>
+                  <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(this)">
+                </div>
+                <div class="lesson-list" id="lessonList"></div>
               </div>
             </div>
           </div>
-        </div>
-        <div class="tab-panel" id="viewPanel">
-          <div class="view-toolbar"><span class="info" id="viewInfo">0 lessons</span><button class="btn btn-success" onclick="exportAllPages()">⬇ Export All</button></div>
-          <div class="view-container" id="viewContainer"></div>
-        </div>`;
+          <div class="tab-panel" id="bookPanel">
+            <div style="max-width:600px;margin:0 auto;">
+              <h2 style="margin-bottom:20px;">📘 Book Cover &amp; TOC</h2>
+              <div class="form-section" style="position:static;max-height:none;">
+                <div class="form-group"><label>Cover Title</label><input id="coverTitleInput" value="${escapeHtml(bookMeta.title)}"></div>
+                <div class="form-group"><label>Cover Subtitle</label><input id="coverSubtitleInput" value="${escapeHtml(bookMeta.subtitle)}"></div>
+                <div class="form-group"><label>Global Grade</label><input id="globalGradeInput" value="${escapeHtml(bookMeta.grade)}" placeholder="e.g. 1, 2, K"></div>
+                <div class="form-group" style="display:flex;align-items:center;gap:12px;margin-top:16px;">
+                  <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600;font-size:14px;">
+                    <input type="checkbox" id="tocToggle" onchange="bookMeta.showToc=this.checked;saveBookMeta()" style="width:18px;height:18px;accent-color:#f59e0b;"> Include Table of Contents
+                  </label>
+                </div>
+                <button class="btn btn-primary" onclick="saveBookMeta()">💾 Save Cover & TOC Settings</button>
+              </div>
+              <div style="margin-top:24px;">
+                <h3 style="margin-bottom:12px;">📋 Table of Contents Preview</h3>
+                <div style="background:var(--surface-alt);border-radius:var(--radius-lg);padding:16px;border:1px solid var(--border);">
+                  <div id="tocPreview" style="font-size:14px;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="tab-panel" id="viewPanel">
+            <div class="view-toolbar"><span class="info" id="viewInfo">0 lessons</span><button class="btn btn-success" onclick="exportAllPages()">⬇ Export All</button></div>
+            <div class="view-container" id="viewContainer"></div>
+          </div>`;
 
-      resetForm();
-      if (lessons.length) fillForm(lessons[0]);
-      renderEditList();
-      renderAllView();
-      updateCounts();
-      renderTocPreview();
+        resetForm();
+        if (lessons.length) fillForm(lessons[0]);
+        renderEditList();
+        renderAllView();
+        updateCounts();
+        renderTocPreview();
 
-      const list = document.getElementById('lessonList');
-      list.addEventListener('dragstart', e => {
-        const item = e.target.closest('.lesson-item');
-        if (item) { item.classList.add('dragging'); e.dataTransfer.setData('text/plain', item.dataset.id); }
-      });
-      list.addEventListener('dragend', e => {
-        const item = e.target.closest('.lesson-item');
-        if (item) item.classList.remove('dragging');
-        list.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
-      });
-      list.addEventListener('dragover', e => {
-        e.preventDefault();
-        const target = e.target.closest('.lesson-item');
-        list.querySelectorAll('.drag-over').forEach(el => { if (el !== target) el.classList.remove('drag-over'); });
-        if (target && !target.classList.contains('dragging')) target.classList.add('drag-over');
-      });
-      list.addEventListener('dragleave', e => {
-        const target = e.target.closest('.lesson-item');
-        if (target) target.classList.remove('drag-over');
-      });
-      list.addEventListener('drop', e => {
-        e.preventDefault();
-        list.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
-        const id = e.dataTransfer.getData('text/plain');
-        const target = e.target.closest('.lesson-item');
-        if (id && target && target.dataset.id !== id) {
-          const fromIdx = lessons.findIndex(l => l.id === id);
-          const toIdx = lessons.findIndex(l => l.id === target.dataset.id);
-          if (fromIdx !== -1 && toIdx !== -1) {
-            const [moved] = lessons.splice(fromIdx, 1);
-            lessons.splice(toIdx, 0, moved);
-            renumberByOrder(lessons);
-            saveData(); refreshUI(); showToast('Order updated.', 'info');
+        const list = document.getElementById('lessonList');
+        list.addEventListener('dragstart', e => {
+          const item = e.target.closest('.lesson-item');
+          if (item) { item.classList.add('dragging'); e.dataTransfer.setData('text/plain', item.dataset.id); }
+        });
+        list.addEventListener('dragend', e => {
+          const item = e.target.closest('.lesson-item');
+          if (item) item.classList.remove('dragging');
+          list.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+        });
+        list.addEventListener('dragover', e => {
+          e.preventDefault();
+          const target = e.target.closest('.lesson-item');
+          list.querySelectorAll('.drag-over').forEach(el => { if (el !== target) el.classList.remove('drag-over'); });
+          if (target && !target.classList.contains('dragging')) target.classList.add('drag-over');
+        });
+        list.addEventListener('dragleave', e => {
+          const target = e.target.closest('.lesson-item');
+          if (target) target.classList.remove('drag-over');
+        });
+        list.addEventListener('drop', e => {
+          e.preventDefault();
+          list.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+          const id = e.dataTransfer.getData('text/plain');
+          const target = e.target.closest('.lesson-item');
+          if (id && target && target.dataset.id !== id) {
+            const fromIdx = lessons.findIndex(l => l.id === id);
+            const toIdx = lessons.findIndex(l => l.id === target.dataset.id);
+            if (fromIdx !== -1 && toIdx !== -1) {
+              const [moved] = lessons.splice(fromIdx, 1);
+              lessons.splice(toIdx, 0, moved);
+              renumberByOrder(lessons);
+              saveData(); refreshUI(); showToast('Order updated.', 'info');
+            }
           }
-        }
-      });
-      window.renderEditList = renderEditList;
-      window.refreshUI = refreshUI;
-      window.renderTocPreview = renderTocPreview;
-      window.updateCounts = updateCounts;
+        });
+      }
+
+      initApp();
     })();
   </script>
 </body>
