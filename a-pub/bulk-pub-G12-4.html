@@ -215,31 +215,10 @@
         }
 
         /* Thumbnail styles */
-        .thumbnail-wrapper {
-            margin-bottom: 16px;
-        }
-        .thumbnail-wrapper .thumb-label {
-            font-size: 13px;
-            font-weight: 700;
-            margin-bottom: 6px;
-            color: #495057;
-        }
-        .thumbnail-container {
-            width: 255px;
-            height: 324px;
-            border: 2px solid #dee2e6;
-            border-radius: 8px;
-            overflow: hidden;
-            background: #fff;
-            position: relative;
-        }
-        .thumbnail-container .page {
-            transform: scale(0.3);
-            transform-origin: top left;
-            position: absolute;
-            top: 0;
-            left: 0;
-        }
+        .thumbnail-wrapper { margin-bottom: 16px; }
+        .thumbnail-wrapper .thumb-label { font-size: 13px; font-weight: 700; margin-bottom: 6px; color: #495057; }
+        .thumbnail-container { width: 255px; height: 324px; border: 2px solid #dee2e6; border-radius: 8px; overflow: hidden; background: #fff; position: relative; }
+        .thumbnail-container .page { transform: scale(0.3); transform-origin: top left; position: absolute; top: 0; left: 0; }
     </style>
 </head>
 <body>
@@ -463,9 +442,6 @@
             let editingId = null, nextId = 1, tempSections = [];
             window.searchQuery = '';
 
-            // Temp form state for sections
-            let tempSections = [];
-
             // ---------- Data Loading / Saving ----------
             async function loadData() {
                 let data = null;
@@ -612,7 +588,7 @@
                 return html;
             }
 
-            // Section CRUD for tempSections
+            // Section CRUD
             window.addSection = function(type) {
                 const newSection = createDefaultSection(type);
                 tempSections.push(newSection);
@@ -661,7 +637,6 @@
                     lessonNumber,
                     sections: JSON.parse(JSON.stringify(tempSections))
                 };
-                // Build a page element
                 const pageEl = buildLessonPage(tempLesson, 1);
                 pageEl.classList.add('page-thumb');
                 pageEl.style.transform = 'scale(0.3)';
@@ -674,7 +649,7 @@
                 pageEl.style.minHeight = '1080px';
                 pageEl.style.padding = '24px 32px';
                 pageEl.style.margin = '0';
-                pageEl.style.borderRadius = '8px';
+                pageEl.style.borderRadius = '0';
                 pageEl.style.boxShadow = 'none';
                 pageEl.style.pageBreakAfter = 'auto';
                 container.innerHTML = '';
@@ -795,7 +770,7 @@
                 }
             }
 
-            // ---------- Rest of functions (buildTocPage, buildSightWordsPage, buildCoverPage, etc.) ----------
+            // ---------- Rest of functions ----------
             function buildTocPage(pageNum, entries) {
                 const page = document.createElement('div'); page.className = 'page';
                 page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
@@ -840,7 +815,7 @@
                 container.querySelectorAll('.page-actions').forEach(el => el.remove());
                 const win = window.open('', '_blank');
                 const styles = document.querySelector('style').outerHTML;
-                win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>All Pages</title>${styles}</head><body style="padding:0;background:#fff;margin:0;"><div class="view-container" style="overflow:visible;display:block;">${container.outerHTML}</div></body></html>`);
+                win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>All Pages</title>${styles}</head><body style="padding:0;background:#fff;margin:0;"><div class="view-container" style="overflow:visible;display:block;">${container.innerHTML}</div></body></html>`);
                 win.document.close(); win.focus(); setTimeout(() => win.print(), 400);
             };
 
@@ -899,7 +874,7 @@
                 const reader = new FileReader();
                 reader.onload = ev => {
                     const dataUrl = ev.target.result;
-                    // We'll store it in a hidden field, but for now just show toast
+                    // For now, just show toast
                     showToast('Image uploaded. Use path field in tile section for now.', 'info');
                 };
                 reader.readAsDataURL(file);
@@ -1067,8 +1042,8 @@
                         <div class="edit-layout">
                             <div class="form-section">
                                 <h2 id="formTitle">➕ Add New Lesson</h2>
-                                <div class="form-group"><label>Main Title</label><input id="fMainTitle" value="SHORT VOWEL CVC WORDS"></div>
-                                <div class="form-group"><label>Subtitle</label><input id="fSubtitle" value="SHORT VOWEL"></div>
+                                <div class="form-group"><label>Main Title</label><input id="fMainTitle" value="SHORT VOWEL CVC WORDS" oninput="renderThumbnail()"></div>
+                                <div class="form-group"><label>Subtitle</label><input id="fSubtitle" value="SHORT VOWEL" oninput="renderThumbnail()"></div>
                                 <div class="form-group"><label>Lesson Number (auto)</label><input id="fLessonNumber" readonly style="background:#f0f0f0;"></div>
 
                                 <!-- Thumbnail preview -->
