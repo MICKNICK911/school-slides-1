@@ -3,25 +3,21 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
-    <title>B.Ed Module Viewer & Publisher</title>
+    <title>B.Ed Module Viewer & Publisher (Local)</title>
 
-    <!-- KaTeX -->
-    <!--<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" />
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <!-- KaTeX (local) -->
+    <link rel="stylesheet" href="katex.min.css" />
+    <script src="katex.min.js"></script>
+    <script src="auto-render.min.js"></script>
 
-  
-    <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet" />
-    <script src="https://cdn.quilljs.com/1.3.7/quill.js"></script>-->
-    
-    <!-- After (local) -->
-<link rel="stylesheet" href="katex.min.css" />
-<script defer src="katex.min.js"></script>
-<script defer src="auto-render.min.js"></script>
-<link href="quill.snow.css" rel="stylesheet" />
-<script src="quill.js"></script>
+    <!-- Quill (local) -->
+    <link href="quill.snow.css" rel="stylesheet" />
+    <script src="quill.js"></script>
 
-           <style>
+    <style>
+        /* ============================
+           CSS VARIABLES (Gold, White, Wine Theme)
+           ============================ */
         :root {
             --bg: #f8f9fa;
             --surface: #ffffff;
@@ -219,16 +215,6 @@
         #sidebar::-webkit-scrollbar, #content::-webkit-scrollbar { width: 5px; }
         #sidebar::-webkit-scrollbar-track, #content::-webkit-scrollbar-track { background: transparent; }
         #sidebar::-webkit-scrollbar-thumb, #content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
-        .ql-toolbar {
-    display: block !important;
-    min-height: 40px;
-    padding: 4px;
-}
-.ql-toolbar button {
-    width: 28px;
-    height: 28px;
-    margin: 2px;
-}
     </style>
 </head>
 <body>
@@ -794,13 +780,14 @@
             // Update indicators
             renderIndicators(session);
 
-            // Update Quill content
+            // Update Quill content reliably
             if (state.quill) {
                 state.ignoreQuillChange = true;
                 try {
-                    // Use clipboard API to set HTML content properly
-                    state.quill.clipboard.dangerouslyPasteHTML(session.content || '');
+                    const delta = state.quill.clipboard.convert(session.content || '');
+                    state.quill.setContents(delta);
                 } catch (e) {
+                    // Fallback: directly set innerHTML if clipboard API fails
                     state.quill.root.innerHTML = session.content || '';
                 }
                 state.ignoreQuillChange = false;
@@ -1476,7 +1463,7 @@
             }
 
             setTimeout(() => dom.splash.classList.add('hidden'), 500);
-            console.log('✅ B.Ed Module Viewer & Publisher ready');
+            console.log('✅ B.Ed Module Viewer & Publisher ready (local)');
         }
 
         if (document.readyState === 'loading') {
