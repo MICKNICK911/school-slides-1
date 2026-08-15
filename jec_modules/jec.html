@@ -5,14 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
     <title>B.Ed Module Viewer & Publisher (Local)</title>
 
-    <!-- KaTeX (local) -->
+    <!-- KaTeX (local, optional) -->
     <link rel="stylesheet" href="katex.min.css" />
     <script src="katex.min.js"></script>
     <script src="auto-render.min.js"></script>
-
-    <!-- Quill (local) -->
-    <link href="quill.snow.css" rel="stylesheet" />
-    <script src="quill.js"></script>
 
     <style>
         /* ============================
@@ -182,12 +178,63 @@
         .add-indicator-btn { padding: 4px 12px; background: var(--surface-2); border: 1px dashed var(--accent); border-radius: 4px; color: var(--wine); cursor: pointer; }
         .add-indicator-btn:hover { background: var(--border); }
 
-        /* Static editor container */
-        #editor-wrapper { display: none; }
-        #editor-wrapper.active { display: block; }
-        #editor-toolbar { border: 1px solid var(--border); border-radius: 6px 6px 0 0; }
-        #editor-container { height: 300px; border: 1px solid var(--border); border-top: none; border-radius: 0 0 6px 6px; background: var(--surface); }
-        .ql-editor { min-height: 250px; }
+        /* Rich text editor (custom toolbar) */
+        .editor-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 4px;
+            padding: 6px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 6px 6px 0 0;
+            margin-bottom: -1px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .editor-toolbar button {
+            min-width: 32px;
+            height: 32px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            padding: 0 8px;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .editor-toolbar button:hover {
+            background: var(--accent-light);
+            border-color: var(--accent);
+        }
+        .editor-toolbar button.active {
+            background: var(--accent);
+            color: var(--wine-dark);
+            border-color: var(--wine);
+        }
+        .editor-content {
+            min-height: 200px;
+            border: 1px solid var(--border);
+            border-radius: 0 0 6px 6px;
+            padding: 12px;
+            background: var(--surface);
+            overflow-y: auto;
+            outline: none;
+            font-size: 1rem;
+            line-height: 1.6;
+            color: var(--text);
+        }
+        .editor-content:empty:before {
+            content: attr(data-placeholder);
+            color: var(--text-secondary);
+            pointer-events: none;
+        }
 
         /* Responsive */
         @media (min-width: 768px) {
@@ -206,6 +253,7 @@
             #module-selector { max-width: 80px; font-size: 0.7rem; padding: 2px 4px; }
             .topbar-actions button { width: 32px; height: 32px; font-size: 1rem; }
             #splash-screen h1 { font-size: 2rem; }
+            .editor-toolbar button { min-width: 28px; height: 28px; font-size: 0.75rem; padding: 0 4px; }
         }
 
         .hidden { display: none !important; }
@@ -289,7 +337,7 @@
             <!-- View mode container -->
             <div id="session-display" class="hidden"></div>
 
-            <!-- Edit mode container (static Quill editor) -->
+            <!-- Edit mode container -->
             <div id="editor-wrapper" class="edit-panel">
                 <div class="breadcrumb">📝 Editing Session</div>
                 <div class="edit-field">
@@ -303,8 +351,21 @@
                 </div>
                 <div class="edit-field">
                     <label>Content</label>
-                    <div id="editor-toolbar"></div>
-                    <div id="editor-container"></div>
+                    <div class="editor-toolbar" id="editor-toolbar">
+                        <button data-command="bold" title="Bold"><b>B</b></button>
+                        <button data-command="italic" title="Italic"><i>I</i></button>
+                        <button data-command="underline" title="Underline"><u>U</u></button>
+                        <button data-command="formatBlock" data-value="h1" title="Heading 1">H1</button>
+                        <button data-command="formatBlock" data-value="h2" title="Heading 2">H2</button>
+                        <button data-command="formatBlock" data-value="h3" title="Heading 3">H3</button>
+                        <button data-command="formatBlock" data-value="p" title="Paragraph">P</button>
+                        <button data-command="insertUnorderedList" title="Bullet List">•</button>
+                        <button data-command="insertOrderedList" title="Numbered List">1.</button>
+                        <button data-command="createLink" title="Link">🔗</button>
+                        <button data-command="insertImage" title="Image">🖼️</button>
+                        <button data-command="removeFormat" title="Clear Formatting">🧹</button>
+                    </div>
+                    <div id="editor-content" class="editor-content" contenteditable="true" data-placeholder="Enter content..."></div>
                 </div>
             </div>
         </main>
@@ -332,11 +393,9 @@
             manifest: null,
             moduleData: null,
             editMode: false,
-            quill: null,
             selectedSession: null,
             debounceTimer: null,
             dirty: false,
-            ignoreQuillChange: false,
         };
 
         // ============================================================
@@ -371,6 +430,8 @@
             addIndicatorBtn: $('#add-indicator-btn'),
             addUnitBtn: $('#addUnitBtn'),
             welcomeMsg: $('#welcome-message'),
+            editorToolbar: $('#editor-toolbar'),
+            editorContent: $('#editor-content'),
         };
 
         // ============================================================
@@ -721,7 +782,6 @@
             state.currentUnitId = unitId;
             state.currentSessionId = sessionId;
             state.selectedSession = session;
-            // Use history.replaceState to avoid triggering hashchange and reload
             history.replaceState(null, '', buildHash(state.currentModule, unitId, sessionId));
 
             if (state.editMode) {
@@ -780,18 +840,9 @@
             // Update indicators
             renderIndicators(session);
 
-            // Update Quill content reliably
-            if (state.quill) {
-                state.ignoreQuillChange = true;
-                try {
-                    const delta = state.quill.clipboard.convert(session.content || '');
-                    state.quill.setContents(delta);
-                } catch (e) {
-                    // Fallback: directly set innerHTML if clipboard API fails
-                    state.quill.root.innerHTML = session.content || '';
-                }
-                state.ignoreQuillChange = false;
-            }
+            // Update rich text content
+            dom.editorContent.innerHTML = session.content || '';
+            dom.editorContent.dataset.placeholder = 'Enter content...';
 
             dom.content.scrollTop = 0;
         }
@@ -840,44 +891,63 @@
         }
 
         // ============================================================
-        // 10. QUILL INITIALIZATION (deferred)
+        // 10. RICH TEXT EDITOR TOOLBAR (execCommand)
         // ============================================================
-        function initQuill() {
-            if (typeof Quill === 'undefined') {
-                console.error('Quill library not loaded');
-                return;
-            }
-            const toolbarOptions = [
-                [{ 'header': [1, 2, 3, false] }],
-                ['bold', 'italic', 'underline'],
-                [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-                ['link', 'image'],
-                ['clean']
-            ];
-            state.quill = new Quill('#editor-container', {
-                theme: 'snow',
-                modules: {
-                    toolbar: {
-                        container: '#editor-toolbar',
-                        handlers: {
-                            'image': imageHandler
-                        }
-                    }
-                },
-                placeholder: 'Enter content...'
+        function initEditorToolbar() {
+            dom.editorToolbar.addEventListener('click', (e) => {
+                const btn = e.target.closest('button');
+                if (!btn) return;
+                const command = btn.dataset.command;
+                const value = btn.dataset.value || null;
+                e.preventDefault();
+
+                // Handle special commands
+                if (command === 'createLink') {
+                    const url = prompt('Enter URL:');
+                    if (url) document.execCommand('createLink', false, url);
+                    return;
+                }
+                if (command === 'insertImage') {
+                    dom.imageFileInput.click();
+                    return;
+                }
+                if (command === 'formatBlock') {
+                    document.execCommand('formatBlock', false, value);
+                    return;
+                }
+                if (command === 'removeFormat') {
+                    document.execCommand('removeFormat', false, null);
+                    return;
+                }
+                // Standard commands
+                document.execCommand(command, false, value);
+                // Keep focus in editor
+                dom.editorContent.focus();
             });
-            // Text-change handler
-            state.quill.on('text-change', () => {
-                if (state.ignoreQuillChange) return;
+
+            // Update editor content on input
+            dom.editorContent.addEventListener('input', () => {
                 if (state.selectedSession) {
-                    state.selectedSession.content = state.quill.root.innerHTML;
+                    state.selectedSession.content = dom.editorContent.innerHTML;
                     markDirty();
                 }
             });
-        }
 
-        function imageHandler() {
-            dom.imageFileInput.click();
+            // Handle image insertion
+            dom.imageFileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        const dataUrl = reader.result;
+                        const imgHtml = `<img src="${dataUrl}" style="max-width:100%;" />`;
+                        document.execCommand('insertHTML', false, imgHtml);
+                        dom.editorContent.focus();
+                    };
+                    reader.readAsDataURL(file);
+                }
+                e.target.value = '';
+            });
         }
 
         // ============================================================
@@ -957,7 +1027,6 @@
             state.currentSessionId = newSession.id;
             state.selectedSession = newSession;
             renderSidebar();
-            // If not in edit mode, switch to edit mode automatically
             if (!state.editMode) {
                 toggleEditMode();
             }
@@ -1004,7 +1073,6 @@
         }
 
         function updateHashAfterChange() {
-            // Use history.replaceState to update URL without triggering reload
             if (state.currentModule && state.currentUnitId && state.currentSessionId) {
                 history.replaceState(null, '', buildHash(state.currentModule, state.currentUnitId, state.currentSessionId));
             } else if (state.currentModule && state.currentUnitId) {
@@ -1022,11 +1090,6 @@
             dom.editModeToggle.textContent = state.editMode ? '👁️' : '✏️';
             renderSidebar();
             if (state.editMode) {
-                // Initialize Quill if not already done (must be visible first)
-                if (!state.quill) {
-                    dom.editorWrapper.classList.add('active');
-                    initQuill();
-                }
                 if (state.selectedSession) {
                     showEditorForSession(state.selectedSession);
                 } else {
@@ -1073,7 +1136,6 @@
             try {
                 const text = await file.text();
                 const moduleData = JSON.parse(text);
-                // Strict validation
                 if (!moduleData.code || typeof moduleData.code !== 'string') {
                     throw new Error('Module "code" must be a non-empty string.');
                 }
@@ -1121,7 +1183,6 @@
 
                 await setCachedModule(moduleData.code, moduleData, Date.now());
 
-                // Update manifest
                 if (state.manifest) {
                     const existing = state.manifest.modules.find(m => m.code === moduleData.code);
                     if (!existing) {
@@ -1238,7 +1299,6 @@
         // 17. MODULE LOADER
         // ============================================================
         async function loadModule(moduleCode, forceRefresh = false) {
-            // Save any unsaved changes before switching modules
             if (state.dirty && state.moduleData && state.currentModule !== moduleCode) {
                 await saveNow();
             }
@@ -1373,22 +1433,6 @@
                 e.target.value = '';
             });
 
-            // Image upload handler
-            dom.imageFileInput.addEventListener('change', (e) => {
-                const file = e.target.files[0];
-                if (file && state.quill) {
-                    const reader = new FileReader();
-                    reader.onload = () => {
-                        const dataUrl = reader.result;
-                        const range = state.quill.getSelection(true);
-                        const index = range ? range.index : state.quill.getLength();
-                        state.quill.insertEmbed(index, 'image', dataUrl);
-                    };
-                    reader.readAsDataURL(file);
-                }
-                e.target.value = '';
-            });
-
             // Sidebar toggles
             dom.hamburger.addEventListener('click', openSidebar);
             dom.sidebarClose.addEventListener('click', closeSidebar);
@@ -1421,6 +1465,9 @@
             dom.searchBox.addEventListener('input', function() {
                 handleSearch(this.value);
             });
+
+            // Init rich text toolbar
+            initEditorToolbar();
 
             // Hash change listener
             window.addEventListener('hashchange', async () => {
@@ -1463,7 +1510,7 @@
             }
 
             setTimeout(() => dom.splash.classList.add('hidden'), 500);
-            console.log('✅ B.Ed Module Viewer & Publisher ready (local)');
+            console.log('✅ B.Ed Module Viewer & Publisher ready (local, no Quill)');
         }
 
         if (document.readyState === 'loading') {
