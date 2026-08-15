@@ -292,7 +292,71 @@
             flex-shrink: 0;
             position: relative;
         }
-        /* (tools-dropdown styles live in the polished block below) */
+        .tools-dropdown {
+            position: absolute;
+            right: 0;
+            top: 100%;
+            margin-top: 4px;
+            background: var(--surface);
+            border: 2px solid var(--accent);
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            display: none;
+            flex-direction: column;
+            min-width: 200px;
+            z-index: 300;
+            padding: 4px;
+        }
+        .tools-dropdown.show {
+            display: flex;
+        }
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            font-size: 0.85rem;
+            color: var(--text);
+            border-radius: 4px;
+            text-decoration: none;
+            border: none;
+            background: none;
+            cursor: pointer;
+            text-align: left;
+            width: 100%;
+            white-space: nowrap;
+            border-bottom: 1px solid var(--border);
+        }
+        .dropdown-item:last-child {
+            border-bottom: none;
+        }
+        .dropdown-item:hover {
+            background: var(--surface-2);
+        }
+        .dropdown-module {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            font-size: 0.85rem;
+            color: var(--text);
+            border-bottom: 1px solid var(--border);
+        }
+        .dropdown-module label {
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-right: 4px;
+        }
+        .dropdown-module select {
+            flex: 1;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            outline: none;
+        }
 
         .hidden { display: none !important; }
         .fade-in { animation: fadeIn 0.25s ease; }
@@ -303,10 +367,10 @@
         #sidebar::-webkit-scrollbar-thumb, #content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
         
         /* ============================================================
-   MOBILE TOOLS DROPDOWN – CENTERED VERTICAL COLUMN
+   MOBILE TOOLS DROPDOWN – ICON-ONLY, CENTERED COLUMN
    ============================================================ */
 
-/* Dropdown container – vertical stack under module selector */
+/* Dropdown container */
 .tools-dropdown {
     position: absolute;
     right: 0;
@@ -318,12 +382,13 @@
     box-shadow: var(--shadow);
     display: none;
     flex-direction: column;
-    align-items: stretch;
-    min-width: 200px;
-    max-width: calc(100vw - 24px);
-    width: max-content;
+    align-items: center;          /* center items horizontally */
+    justify-content: center;      /* center items vertically (if height fixed) */
+    gap: 8px;                     /* even spacing between icons */
+    padding: 12px 8px;
+    min-width: 56px;              /* compact but enough for icons */
+    max-width: 80px;              /* prevent it from being too wide */
     z-index: 300;
-    padding: 10px 8px;
     box-sizing: border-box;
     overflow: hidden;
 }
@@ -333,89 +398,64 @@
     display: flex;
 }
 
-/* Module selector row – sits above the button column */
+/* Hide module selector row inside dropdown on mobile */
 .dropdown-module {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 10px 12px;
-    font-size: 0.85rem;
-    color: var(--text);
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 6px;
-    width: 100%;
-    box-sizing: border-box;
+    display: none !important;     /* remove completely if you don't want it */
 }
 
-.dropdown-module label {
-    font-weight: 600;
-    color: var(--text-secondary);
-    margin-right: 4px;
-    white-space: nowrap;
-}
-
-.dropdown-module select {
-    flex: 1;
-    background: var(--surface-2);
-    border: 1px solid var(--border);
-    color: var(--text);
-    padding: 6px 8px;
-    border-radius: 4px;
-    font-size: 0.85rem;
-    outline: none;
-    min-width: 0;
-    width: 100%;
-}
-
-/* Action buttons – centered vertical column under module selector */
+/* Action buttons – icon only, circular, centered */
 .dropdown-item {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
-    padding: 12px 16px;
-    font-size: 0.9rem;
-    color: var(--text);
-    border-radius: 6px;
-    text-decoration: none;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    font-size: 1.4rem;           /* large enough for icon visibility */
+    color: var(--text-secondary);
+    background: transparent;
     border: none;
-    background: none;
     cursor: pointer;
+    padding: 0;
+    margin: 0;
     text-align: center;
-    width: 100%;
+    text-decoration: none;
+    transition: background 0.2s, color 0.2s;
     white-space: nowrap;
-    border-bottom: 1px solid var(--border);
-    box-sizing: border-box;
-    transition: background 0.15s;
+    overflow: hidden;
 }
 
-/* Remove bottom border from last item */
-.dropdown-item:last-child {
-    border-bottom: none;
+/* Hide any text inside dropdown items (keep only the icon emoji/symbol) */
+.dropdown-item::after,
+.dropdown-item::before {
+    content: none !important;
 }
 
-/* Hover effect */
+/* Hover/active states */
 .dropdown-item:hover {
     background: var(--surface-2);
+    color: var(--accent);
+}
+.dropdown-item:active {
+    transform: scale(0.92);
 }
 
-/* Prevent the tools menu button from being squeezed */
+/* Tools menu button (the gear icon) */
 #toolsMenuBtn {
-    display: none;  /* shown only on mobile via media query */
+    display: none;
     width: 40px;
     height: 40px;
     border-radius: 50%;
     align-items: center;
     justify-content: center;
-    font-size: 1.2rem;
+    font-size: 1.4rem;
     background: transparent;
     color: var(--text-secondary);
     flex-shrink: 0;
     position: relative;
 }
 
-/* Ensure on mobile the tools button is visible */
+/* On mobile, show the tools button */
 @media (max-width: 600px) {
     #toolsMenuBtn {
         display: inline-flex !important;
