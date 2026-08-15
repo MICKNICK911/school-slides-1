@@ -3,11 +3,16 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
-    <title>B.Ed Module Viewer</title>
+    <title>B.Ed Module Viewer & Publisher</title>
 
+    <!-- KaTeX -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" />
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+    <!-- Quill -->
+    <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet" />
+    <script src="https://cdn.quilljs.com/1.3.7/quill.js"></script>
 
     <style>
         /* ============================
@@ -32,10 +37,6 @@
             --header-height: 60px;
             --sidebar-width: 320px;
         }
-
-        /* ============================
-           DARK MODE – Wine Highlight & Buy Data Button in Wine
-           ============================ */
         body.dark-mode {
             --bg: #1a0d0f;
             --surface: #2d151a;
@@ -47,709 +48,178 @@
             --accent: #e8c84a;
             --accent-hover: #f0d86a;
             --accent-light: #f9e49b;
-            --wine: #c0393b;           /* Brighter wine for dark mode readability */
+            --wine: #c0393b;
             --wine-dark: #2d151a;
             --wine-light: #e8747c;
             --wine-glow: rgba(192, 57, 59, 0.5);
         }
 
-        /* ============================
-           BUY DATA BUNDLE – PULSING EFFECT
-           ============================ */
         @keyframes pulse-wine {
-            0% {
-                box-shadow: 0 0 0 0 var(--wine-glow);
-                transform: scale(1);
-            }
-            50% {
-                box-shadow: 0 0 20px 8px var(--wine-glow);
-                transform: scale(1.02);
-            }
-            100% {
-                box-shadow: 0 0 0 0 var(--wine-glow);
-                transform: scale(1);
-            }
+            0% { box-shadow: 0 0 0 0 var(--wine-glow); transform: scale(1); }
+            50% { box-shadow: 0 0 20px 8px var(--wine-glow); transform: scale(1.02); }
+            100% { box-shadow: 0 0 0 0 var(--wine-glow); transform: scale(1); }
         }
-        .data-bundle-btn.pulse {
-            animation: pulse-wine 2s ease-in-out infinite;
-        }
-        .data-bundle-btn.pulse:hover {
-            animation: none;
-            transform: scale(1.05);
-        }
+        .data-bundle-btn.pulse { animation: pulse-wine 2s ease-in-out infinite; }
+        .data-bundle-btn.pulse:hover { animation: none; transform: scale(1.05); }
 
-        /* ============================
-           SPLASH SCREEN
-           ============================ */
         #splash-screen {
-            position: fixed;
-            inset: 0;
-            z-index: 9999;
+            position: fixed; inset: 0; z-index: 9999;
             background: var(--wine-dark);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            transition: opacity 0.8s ease;
-            color: #fff;
-            text-align: center;
-            padding: 20px;
+            display: flex; align-items: center; justify-content: center; flex-direction: column;
+            transition: opacity 0.8s ease; color: #fff; text-align: center; padding: 20px;
         }
-        #splash-screen.hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
-        #splash-screen h1 {
-            font-size: 2.8rem;
-            font-weight: 700;
-            color: var(--accent);
-            margin-bottom: 8px;
-            letter-spacing: -0.5px;
-            line-height: 1.2;
-        }
-        #splash-screen .sub {
-            font-size: 1.2rem;
-            color: var(--accent-light);
-            opacity: 0.8;
-            font-weight: 300;
-            letter-spacing: 4px;
-        }
-        #splash-screen .loader {
-            margin-top: 40px;
-            width: 48px;
-            height: 48px;
-            border: 4px solid rgba(212, 175, 55, 0.2);
-            border-top: 4px solid var(--accent);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
+        #splash-screen.hidden { opacity: 0; pointer-events: none; }
+        #splash-screen h1 { font-size: 2.8rem; font-weight: 700; color: var(--accent); margin-bottom: 8px; letter-spacing: -0.5px; line-height: 1.2; }
+        #splash-screen .sub { font-size: 1.2rem; color: var(--accent-light); opacity: 0.8; font-weight: 300; letter-spacing: 4px; }
+        #splash-screen .loader { margin-top: 40px; width: 48px; height: 48px; border: 4px solid rgba(212,175,55,0.2); border-top: 4px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* ============================
-           RESET & BASE
-           ============================ */
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        html {
-            font-size: 16px;
-            -webkit-text-size-adjust: 100%;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            transition: background 0.3s, color 0.3s;
-            height: 100vh;
-            overflow: hidden;
-        }
-        button, a {
-            font: inherit;
-            cursor: pointer;
-            background: none;
-            border: none;
-            color: inherit;
-            touch-action: manipulation;
-            text-decoration: none;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { font-size: 16px; -webkit-text-size-adjust: 100%; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); transition: background 0.3s, color 0.3s; height: 100vh; overflow: hidden; }
+        button, a { font: inherit; cursor: pointer; background: none; border: none; color: inherit; touch-action: manipulation; text-decoration: none; }
 
-        /* ============================
-           APP LAYOUT
-           ============================ */
-        #app {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
-        }
+        #app { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
-        /* ---- Top Bar ---- */
-        #topbar {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 0 16px;
-            height: var(--header-height);
-            background: var(--surface);
-            border-bottom: 2px solid var(--accent);
-            flex-shrink: 0;
-            z-index: 100;
-            transition: background 0.3s, border-color 0.3s;
-            flex-wrap: nowrap;
-        }
-        #topbar .brand {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: 700;
-            font-size: 1.1rem;
-            color: var(--text);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            flex: 1 1 auto;
-            min-width: 0;
-        }
-        #topbar .brand small {
-            font-weight: 400;
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-            margin-left: 4px;
-        }
+        #topbar { display: flex; align-items: center; gap: 8px; padding: 0 16px; height: var(--header-height); background: var(--surface); border-bottom: 2px solid var(--accent); flex-shrink: 0; z-index: 100; transition: background 0.3s, border-color 0.3s; flex-wrap: nowrap; }
+        #topbar .brand { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 1.1rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1 1 auto; min-width: 0; }
+        #topbar .brand small { font-weight: 400; font-size: 0.75rem; color: var(--text-secondary); margin-left: 4px; }
 
-        .topbar-actions {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            flex-shrink: 0;
-            flex-wrap: wrap;
-            justify-content: flex-end;
-        }
-        .topbar-actions .quiz-btn {
-            display: inline-flex;
-            align-items: center;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            border: 2px solid var(--accent);
-            color: var(--accent);
-            transition: 0.2s;
-            height: 32px;
-            background: transparent;
-            white-space: nowrap;
-        }
-        .topbar-actions .quiz-btn:hover {
-            background: var(--accent);
-            color: var(--wine-dark);
-        }
-        .topbar-actions button {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            background: transparent;
-            transition: background 0.2s, color 0.2s;
-            color: var(--text-secondary);
-            flex-shrink: 0;
-        }
-        .topbar-actions button:hover,
-        .topbar-actions button:active {
-            background: var(--surface-2);
-            color: var(--accent);
-        }
-        #hamburger {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            font-size: 1.5rem;
-            background: transparent;
-            flex-shrink: 0;
-            color: var(--text);
-        }
-        #hamburger:active {
-            background: var(--surface-2);
-        }
+        .topbar-actions { display: flex; align-items: center; gap: 4px; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end; }
+        .topbar-actions .quiz-btn { display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border: 2px solid var(--accent); color: var(--accent); transition: 0.2s; height: 32px; background: transparent; white-space: nowrap; }
+        .topbar-actions .quiz-btn:hover { background: var(--accent); color: var(--wine-dark); }
+        .topbar-actions button { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; background: transparent; transition: background 0.2s, color 0.2s; color: var(--text-secondary); flex-shrink: 0; }
+        .topbar-actions button:hover, .topbar-actions button:active { background: var(--surface-2); color: var(--accent); }
+        #hamburger { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; font-size: 1.5rem; background: transparent; flex-shrink: 0; color: var(--text); }
+        #hamburger:active { background: var(--surface-2); }
 
-        #module-selector {
-            background: var(--surface-2);
-            border: 1px solid var(--border);
-            color: var(--text);
-            padding: 4px 8px;
-            border-radius: 6px;
-            font-size: 0.8rem;
-            max-width: 120px;
-            cursor: pointer;
-            outline: none;
-            transition: background 0.3s, border-color 0.3s;
-            height: 32px;
-        }
-        #module-selector:focus {
-            border-color: var(--accent);
-        }
+        #module-selector { background: var(--surface-2); border: 1px solid var(--border); color: var(--text); padding: 4px 8px; border-radius: 6px; font-size: 0.8rem; max-width: 120px; cursor: pointer; outline: none; transition: background 0.3s, border-color 0.3s; height: 32px; }
+        #module-selector:focus { border-color: var(--accent); }
 
-        /* ---- Overlay ---- */
-        #overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.45);
-            z-index: 150;
-            display: none;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            -webkit-tap-highlight-color: transparent;
-        }
-        #overlay.active {
-            display: block;
-            opacity: 1;
-        }
+        #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 150; display: none; opacity: 0; transition: opacity 0.3s ease; -webkit-tap-highlight-color: transparent; }
+        #overlay.active { display: block; opacity: 1; }
 
-        /* ---- Sidebar ---- */
-        #sidebar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 85%;
-            max-width: var(--sidebar-width);
-            height: 100%;
-            background: var(--surface);
-            border-right: 2px solid var(--accent);
-            z-index: 200;
-            transform: translateX(-100%);
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            box-shadow: var(--shadow);
-        }
-        #sidebar.open {
-            transform: translateX(0);
-        }
+        #sidebar { position: fixed; top: 0; left: 0; width: 85%; max-width: var(--sidebar-width); height: 100%; background: var(--surface); border-right: 2px solid var(--accent); z-index: 200; transform: translateX(-100%); transition: transform 0.3s cubic-bezier(0.4,0,0.2,1); display: flex; flex-direction: column; overflow: hidden; box-shadow: var(--shadow); }
+        #sidebar.open { transform: translateX(0); }
 
-        #sidebar-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 16px 16px 12px 16px;
-            border-bottom: 2px solid var(--accent);
-            flex-shrink: 0;
-        }
-        #sidebar-header h2 {
-            font-size: 1rem;
-            font-weight: 700;
-            color: var(--wine);
-            letter-spacing: 0.5px;
-        }
-        #sidebar-close {
-            font-size: 1.5rem;
-            padding: 4px 8px;
-            border-radius: 6px;
-            color: var(--text-secondary);
-        }
-        #sidebar-close:active {
-            background: var(--surface-2);
-        }
+        #sidebar-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 16px 12px 16px; border-bottom: 2px solid var(--accent); flex-shrink: 0; }
+        #sidebar-header h2 { font-size: 1rem; font-weight: 700; color: var(--wine); letter-spacing: 0.5px; }
+        #sidebar-close { font-size: 1.5rem; padding: 4px 8px; border-radius: 6px; color: var(--text-secondary); }
+        #sidebar-close:active { background: var(--surface-2); }
 
-        /* Search */
-        #search-box {
-            margin: 12px 16px 8px 16px;
-            padding: 10px 14px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            background: var(--bg);
-            color: var(--text);
-            font-size: 0.95rem;
-            width: calc(100% - 32px);
-            flex-shrink: 0;
-            transition: border-color 0.2s, background 0.3s;
-            outline: none;
-        }
-        #search-box:focus {
-            border-color: var(--accent);
-        }
-        #search-box::placeholder {
-            color: var(--text-secondary);
-        }
+        #search-box { margin: 12px 16px 8px 16px; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 0.95rem; width: calc(100% - 32px); flex-shrink: 0; transition: border-color 0.2s, background 0.3s; outline: none; }
+        #search-box:focus { border-color: var(--accent); }
+        #search-box::placeholder { color: var(--text-secondary); }
 
-        /* Sidebar Navigation */
-        #nav-tree {
-            flex: 1;
-            overflow-y: auto;
-            padding: 0 12px 20px 12px;
-            -webkit-overflow-scrolling: touch;
-        }
-        #nav-tree .unit {
-            margin-top: 8px;
-            border-radius: 6px;
-            overflow: hidden;
-        }
-        #nav-tree .unit summary {
-            display: flex;
-            align-items: center;
-            padding: 10px 12px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            border-radius: 6px;
-            cursor: pointer;
-            list-style: none;
-            min-height: 44px;
-            touch-action: manipulation;
-            background: var(--surface-2);
-            transition: background 0.2s, color 0.2s;
-            color: var(--wine);
-        }
-        #nav-tree .unit summary::-webkit-details-marker {
-            display: none;
-        }
-        #nav-tree .unit summary::before {
-            content: '▶';
-            font-size: 0.7rem;
-            margin-right: 10px;
-            transition: transform 0.2s;
-            color: var(--accent);
-        }
-        #nav-tree .unit[open] summary::before {
-            transform: rotate(90deg);
-        }
-        #nav-tree .unit summary:active {
-            background: var(--border);
-        }
+        #nav-tree { flex: 1; overflow-y: auto; padding: 0 12px 20px 12px; -webkit-overflow-scrolling: touch; }
+        #nav-tree .unit { margin-top: 8px; border-radius: 6px; overflow: hidden; }
+        #nav-tree .unit summary { display: flex; align-items: center; padding: 10px 12px; font-weight: 600; font-size: 0.9rem; border-radius: 6px; cursor: pointer; list-style: none; min-height: 44px; touch-action: manipulation; background: var(--surface-2); transition: background 0.2s, color 0.2s; color: var(--wine); }
+        #nav-tree .unit summary::-webkit-details-marker { display: none; }
+        #nav-tree .unit summary::before { content: '▶'; font-size: 0.7rem; margin-right: 10px; transition: transform 0.2s; color: var(--accent); }
+        #nav-tree .unit[open] summary::before { transform: rotate(90deg); }
+        #nav-tree .unit summary:active { background: var(--border); }
+        #nav-tree .session-list { padding: 4px 0 4px 16px; margin: 0; list-style: none; }
+        #nav-tree .session-list li { padding: 10px 12px; font-size: 0.9rem; border-radius: 6px; cursor: pointer; min-height: 44px; display: flex; align-items: center; transition: background 0.15s, color 0.15s; color: var(--text-secondary); border-left: 3px solid transparent; touch-action: manipulation; }
+        #nav-tree .session-list li:active { background: var(--surface-2); }
+        #nav-tree .session-list li.active { background: var(--wine); color: #fff; border-left-color: var(--accent); font-weight: 500; }
+        #nav-tree .session-list li.active .sess-id { opacity: 0.9; color: var(--accent); }
+        #nav-tree .session-list li .sess-id { font-weight: 600; margin-right: 8px; opacity: 0.6; font-size: 0.75rem; color: var(--text-secondary); }
 
-        #nav-tree .session-list {
-            padding: 4px 0 4px 16px;
-            margin: 0;
-            list-style: none;
-        }
-        #nav-tree .session-list li {
-            padding: 10px 12px;
-            font-size: 0.9rem;
-            border-radius: 6px;
-            cursor: pointer;
-            min-height: 44px;
-            display: flex;
-            align-items: center;
-            transition: background 0.15s, color 0.15s;
-            color: var(--text-secondary);
-            border-left: 3px solid transparent;
-            touch-action: manipulation;
-        }
-        #nav-tree .session-list li:active {
-            background: var(--surface-2);
-        }
-        #nav-tree .session-list li.active {
-            background: var(--wine);
-            color: #fff;
-            border-left-color: var(--accent);
-            font-weight: 500;
-        }
-        #nav-tree .session-list li.active .sess-id {
-            opacity: 0.9;
-            color: var(--accent);
-        }
-        #nav-tree .session-list li .sess-id {
-            font-weight: 600;
-            margin-right: 8px;
-            opacity: 0.6;
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-        }
+        /* Edit mode controls */
+        .edit-buttons { display: flex; gap: 4px; margin-left: auto; }
+        .edit-buttons button { width: 24px; height: 24px; font-size: 0.8rem; border-radius: 50%; background: transparent; color: var(--text-secondary); }
+        .edit-buttons button:hover { background: var(--surface-2); color: var(--wine); }
+        .add-unit-btn { display: block; width: calc(100% - 24px); margin: 8px 12px; padding: 8px; background: var(--surface-2); border: 1px dashed var(--accent); border-radius: 6px; color: var(--wine); font-size: 0.85rem; cursor: pointer; text-align: center; }
+        .add-unit-btn:hover { background: var(--border); }
 
-        /* Sidebar Footer (Data Bundle) */
-        #sidebar-footer {
-            padding: 12px 16px 20px 16px;
-            border-top: 2px solid var(--accent);
-            flex-shrink: 0;
-            background: var(--surface);
-        }
-        .data-bundle-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            width: 100%;
-            padding: 12px 16px;
-            background: var(--wine);
-            color: #fff;
-            border-radius: 8px;
-            font-weight: 700;
-            font-size: 0.95rem;
-            text-align: center;
-            transition: background 0.2s, transform 0.1s;
-            border: 2px solid var(--accent);
-            box-shadow: 0 4px 12px var(--wine-glow);
-        }
-        .data-bundle-btn:hover {
-            background: var(--wine-dark);
-            transform: scale(1.02);
-            animation: none;
-        }
-        .data-bundle-btn:active {
-            transform: scale(0.98);
-        }
-        .data-bundle-btn span {
-            font-size: 1.2rem;
-        }
+        #sidebar-footer { padding: 12px 16px 20px 16px; border-top: 2px solid var(--accent); flex-shrink: 0; background: var(--surface); }
+        .data-bundle-btn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 12px 16px; background: var(--wine); color: #fff; border-radius: 8px; font-weight: 700; font-size: 0.95rem; text-align: center; transition: background 0.2s, transform 0.1s; border: 2px solid var(--accent); box-shadow: 0 4px 12px var(--wine-glow); }
+        .data-bundle-btn:hover { background: var(--wine-dark); transform: scale(1.02); animation: none; }
+        .data-bundle-btn:active { transform: scale(0.98); }
+        .data-bundle-btn span { font-size: 1.2rem; }
 
-        /* ---- Main Content ---- */
-        #content {
-            flex: 1 1 0%;
-            min-width: 0;
-            overflow-y: auto;
-            padding: 16px 20px 40px 20px;
-            background: var(--bg);
-            transition: background 0.3s;
-            -webkit-overflow-scrolling: touch;
-            width: 100%;
-            max-width: 100%;
-            margin: 0;
-        }
+        #content { flex: 1 1 0%; min-width: 0; overflow-y: auto; padding: 16px 20px 40px 20px; background: var(--bg); transition: background 0.3s; -webkit-overflow-scrolling: touch; width: 100%; max-width: 100%; margin: 0; }
+        #content .breadcrumb { font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 12px; padding: 6px 0; border-bottom: 1px solid var(--border); }
+        #content .breadcrumb span { margin: 0 4px; }
+        #content .session-indicators { background: var(--surface-2); border-left: 4px solid var(--accent); padding: 14px 16px; border-radius: var(--radius); margin-bottom: 20px; }
+        #content .session-indicators h4 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-secondary); margin-bottom: 8px; }
+        #content .session-indicators ul { list-style: none; padding: 0; margin: 0; }
+        #content .session-indicators ul li { padding: 4px 0; font-size: 0.95rem; display: flex; align-items: flex-start; gap: 8px; }
+        #content .session-indicators ul li::before { content: '✓'; color: var(--accent); font-weight: 700; }
+        #content .session-content { font-size: 1rem; line-height: 1.7; color: var(--text); }
+        #content .session-content h4 { font-size: 1.2rem; margin: 20px 0 12px 0; color: var(--wine); }
+        #content .session-content h5 { font-size: 1.05rem; margin: 16px 0 8px 0; color: var(--text); }
+        #content .session-content p { margin: 0 0 14px 0; }
+        #content .session-content ul, #content .session-content ol { margin: 0 0 14px 20px; padding-left: 8px; }
+        #content .session-content li { margin-bottom: 6px; }
+        #content .session-content img { width: 100%; height: auto; max-width: 100%; border-radius: var(--radius); margin: 16px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.06); display: block; }
+        #content .session-content table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.9rem; min-width: 300px; }
+        #content .session-content table th, #content .session-content table td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; }
+        #content .session-content table th { background: var(--surface-2); font-weight: 600; color: var(--wine); }
+        .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 8px 0; }
 
-        #content .breadcrumb {
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-            margin-bottom: 12px;
-            padding: 6px 0;
-            border-bottom: 1px solid var(--border);
-        }
-        #content .breadcrumb span {
-            margin: 0 4px;
-        }
-        #content .session-indicators {
-            background: var(--surface-2);
-            border-left: 4px solid var(--accent);
-            padding: 14px 16px;
-            border-radius: var(--radius);
-            margin-bottom: 20px;
-        }
-        #content .session-indicators h4 {
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: var(--text-secondary);
-            margin-bottom: 8px;
-        }
-        #content .session-indicators ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-        #content .session-indicators ul li {
-            padding: 4px 0;
-            font-size: 0.95rem;
-            display: flex;
-            align-items: flex-start;
-            gap: 8px;
-        }
-        #content .session-indicators ul li::before {
-            content: '✓';
-            color: var(--accent);
-            font-weight: 700;
-        }
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-secondary); }
+        .empty-state h2 { font-size: 1.5rem; margin-bottom: 8px; color: var(--text); }
 
-        #content .session-content {
-            font-size: 1rem;
-            line-height: 1.7;
-            color: var(--text);
-        }
-        #content .session-content h4 {
-            font-size: 1.2rem;
-            margin: 20px 0 12px 0;
-            color: var(--wine);
-        }
-        #content .session-content h5 {
-            font-size: 1.05rem;
-            margin: 16px 0 8px 0;
-            color: var(--text);
-        }
-        #content .session-content p {
-            margin: 0 0 14px 0;
-        }
-        #content .session-content ul,
-        #content .session-content ol {
-            margin: 0 0 14px 20px;
-            padding-left: 8px;
-        }
-        #content .session-content li {
-            margin-bottom: 6px;
-        }
-        #content .session-content img {
-            width: 100%;
-            height: auto;
-            max-width: 100%;
-            border-radius: var(--radius);
-            margin: 16px 0;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-            display: block;
-        }
-        #content .session-content table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 16px 0;
-            font-size: 0.9rem;
-            min-width: 300px;
-        }
-        #content .session-content table th,
-        #content .session-content table td {
-            border: 1px solid var(--border);
-            padding: 8px 12px;
-            text-align: left;
-        }
-        #content .session-content table th {
-            background: var(--surface-2);
-            font-weight: 600;
-            color: var(--wine);
-        }
-        .table-wrap {
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            margin: 8px 0;
-        }
+        #update-banner { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--surface); border: 2px solid var(--accent); border-radius: 12px; padding: 14px 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.2); z-index: 999; display: flex; align-items: center; gap: 16px; max-width: 90%; font-size: 0.95rem; flex-wrap: wrap; justify-content: center; color: var(--text); box-shadow: 0 4px 20px rgba(212,175,55,0.2); }
+        #update-banner .banner-text { display: flex; align-items: center; gap: 8px; }
+        #update-banner .banner-btn { background: var(--accent); color: var(--wine-dark); padding: 6px 20px; border-radius: 6px; font-weight: 700; cursor: pointer; border: none; transition: background 0.2s; font-size: 0.9rem; }
+        #update-banner .banner-btn:hover { background: var(--accent-hover); }
+        #update-banner .banner-close { cursor: pointer; font-size: 1.2rem; opacity: 0.6; background: none; border: none; padding: 4px 8px; color: var(--text-secondary); }
 
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: var(--text-secondary);
-        }
-        .empty-state h2 {
-            font-size: 1.5rem;
-            margin-bottom: 8px;
-            color: var(--text);
-        }
+        /* Edit mode styles */
+        .edit-panel { display: none; }
+        .edit-panel.active { display: block; }
+        .edit-field { margin-bottom: 16px; }
+        .edit-field label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; }
+        .edit-field input[type="text"], .edit-field textarea { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 1rem; }
+        .edit-field input[type="text"]:focus, .edit-field textarea:focus { border-color: var(--accent); outline: none; }
+        .indicators-editor { margin-bottom: 16px; }
+        .indicators-editor .indicator-item { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+        .indicators-editor .indicator-item input { flex: 1; padding: 6px 10px; border: 1px solid var(--border); border-radius: 4px; background: var(--bg); color: var(--text); }
+        .indicators-editor .indicator-item button { width: 32px; height: 32px; border-radius: 50%; background: transparent; color: var(--wine); font-size: 1rem; }
+        .indicators-editor .indicator-item button:hover { background: var(--surface-2); }
+        .add-indicator-btn { padding: 4px 12px; background: var(--surface-2); border: 1px dashed var(--accent); border-radius: 4px; color: var(--wine); cursor: pointer; }
+        .add-indicator-btn:hover { background: var(--border); }
 
-        /* ---- Update Banner ---- */
-        #update-banner {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--surface);
-            border: 2px solid var(--accent);
-            border-radius: 12px;
-            padding: 14px 24px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-            z-index: 999;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            max-width: 90%;
-            font-size: 0.95rem;
-            flex-wrap: wrap;
-            justify-content: center;
-            color: var(--text);
-            box-shadow: 0 4px 20px rgba(212, 175, 55, 0.2);
-        }
-        #update-banner .banner-text {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        #update-banner .banner-btn {
-            background: var(--accent);
-            color: var(--wine-dark);
-            padding: 6px 20px;
-            border-radius: 6px;
-            font-weight: 700;
-            cursor: pointer;
-            border: none;
-            transition: background 0.2s;
-            font-size: 0.9rem;
-        }
-        #update-banner .banner-btn:hover {
-            background: var(--accent-hover);
-        }
-        #update-banner .banner-close {
-            cursor: pointer;
-            font-size: 1.2rem;
-            opacity: 0.6;
-            background: none;
-            border: none;
-            padding: 4px 8px;
-            color: var(--text-secondary);
-        }
+        /* Static editor container */
+        #editor-wrapper { display: none; }
+        #editor-wrapper.active { display: block; }
+        #editor-toolbar { border: 1px solid var(--border); border-radius: 6px 6px 0 0; }
+        #editor-container { height: 300px; border: 1px solid var(--border); border-top: none; border-radius: 0 0 6px 6px; background: var(--surface); }
+        .ql-editor { min-height: 250px; }
 
-        /* ============================
-           RESPONSIVE
-           ============================ */
+        /* Responsive */
         @media (min-width: 768px) {
-            #content {
-                padding: 28px 48px 40px 48px;
-            }
-            #sidebar {
-                max-width: 340px;
-            }
-            #module-selector {
-                max-width: 160px;
-            }
-            .topbar-actions .quiz-btn {
-                font-size: 0.8rem;
-                padding: 4px 16px;
-            }
+            #content { padding: 28px 48px 40px 48px; }
+            #sidebar { max-width: 340px; }
+            #module-selector { max-width: 160px; }
+            .topbar-actions .quiz-btn { font-size: 0.8rem; padding: 4px 16px; }
         }
-
         @media (min-width: 1024px) {
-            #content {
-                padding: 36px 64px 48px 64px;
-            }
-            #module-selector {
-                max-width: 200px;
-            }
+            #content { padding: 36px 64px 48px 64px; }
+            #module-selector { max-width: 200px; }
         }
-
         @media (max-width: 600px) {
-            #topbar .brand {
-                font-size: 0.9rem;
-            }
-            .topbar-actions .quiz-btn {
-                font-size: 0.6rem;
-                padding: 2px 8px;
-                height: 26px;
-            }
-            #module-selector {
-                max-width: 80px;
-                font-size: 0.7rem;
-                padding: 2px 4px;
-            }
-            .topbar-actions button {
-                width: 32px;
-                height: 32px;
-                font-size: 1rem;
-            }
-            #splash-screen h1 {
-                font-size: 2rem;
-            }
+            #topbar .brand { font-size: 0.9rem; }
+            .topbar-actions .quiz-btn { font-size: 0.6rem; padding: 2px 8px; height: 26px; }
+            #module-selector { max-width: 80px; font-size: 0.7rem; padding: 2px 4px; }
+            .topbar-actions button { width: 32px; height: 32px; font-size: 1rem; }
+            #splash-screen h1 { font-size: 2rem; }
         }
 
-        /* ============================
-           UTILITIES
-           ============================ */
-        .hidden {
-            display: none !important;
-        }
-        .fade-in {
-            animation: fadeIn 0.25s ease;
-        }
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(6px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
+        .hidden { display: none !important; }
+        .fade-in { animation: fadeIn 0.25s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Scrollbar */
-        #sidebar::-webkit-scrollbar,
-        #content::-webkit-scrollbar {
-            width: 5px;
-        }
-        #sidebar::-webkit-scrollbar-track,
-        #content::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        #sidebar::-webkit-scrollbar-thumb,
-        #content::-webkit-scrollbar-thumb {
-            background: var(--border);
-            border-radius: 10px;
-        }
+        #sidebar::-webkit-scrollbar, #content::-webkit-scrollbar { width: 5px; }
+        #sidebar::-webkit-scrollbar-track, #content::-webkit-scrollbar-track { background: transparent; }
+        #sidebar::-webkit-scrollbar-thumb, #content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
     </style>
 </head>
 <body>
 
-    <!-- ==================== SPLASH SCREEN ==================== -->
+    <!-- Splash Screen -->
     <div id="splash-screen">
         <div class="splash-content">
             <h1>📚 Year One<br>Semester 2 Modules</h1>
@@ -758,7 +228,7 @@
         </div>
     </div>
 
-    <!-- ==================== APP ==================== -->
+    <!-- App -->
     <div id="app">
         <!-- Top Bar -->
         <header id="topbar">
@@ -773,6 +243,7 @@
                 <select id="module-selector" aria-label="Switch module">
                     <option value="">— Select —</option>
                 </select>
+                <button id="editModeToggle" title="Toggle edit mode" aria-label="Toggle edit mode">✏️</button>
                 <button id="importBtn" title="Import module JSON" aria-label="Import module">📥</button>
                 <button id="exportBtn" title="Export current module" aria-label="Export module">📤</button>
                 <button id="refreshBtn" aria-label="Refresh content" title="Refresh content">🔄</button>
@@ -780,8 +251,9 @@
             </div>
         </header>
 
-        <!-- Hidden file input for import -->
+        <!-- Hidden file inputs -->
         <input type="file" id="importFileInput" accept=".json" style="display:none" />
+        <input type="file" id="imageFileInput" accept="image/*" style="display:none" />
 
         <!-- Overlay -->
         <div id="overlay" aria-hidden="true"></div>
@@ -794,10 +266,9 @@
             </div>
             <input type="text" id="search-box" placeholder="🔍 Search sessions..." autocomplete="off" />
             <nav id="nav-tree">
-                <div class="empty-state" style="padding: 30px 10px;">
-                    <p>Load a module to see contents.</p>
-                </div>
+                <div class="empty-state" style="padding:30px 10px;"><p>Load a module to see contents.</p></div>
             </nav>
+            <button id="addUnitBtn" class="add-unit-btn hidden" title="Add new unit">➕ Add Unit</button>
             <div id="sidebar-footer">
                 <a href="https://www.digi-mall.app/store/micky-data-hub" class="data-bundle-btn pulse">
                     <span>📱</span> Buy DATA Bundle here
@@ -810,11 +281,32 @@
             <div class="empty-state" id="welcome-message">
                 <h2>👋 Welcome!</h2>
                 <p>Select a module from the dropdown above to start learning.</p>
-                <p style="margin-top: 12px; font-size: 0.9rem; color: var(--text-secondary);">
+                <p style="margin-top:12px; font-size:0.9rem; color:var(--text-secondary);">
                     External JSON modules loaded from <code>Module List</code>
                 </p>
             </div>
+
+            <!-- View mode container -->
             <div id="session-display" class="hidden"></div>
+
+            <!-- Edit mode container (static Quill editor) -->
+            <div id="editor-wrapper" class="edit-panel">
+                <div class="breadcrumb">📝 Editing Session</div>
+                <div class="edit-field">
+                    <label for="session-title-input">Session Title</label>
+                    <input type="text" id="session-title-input" />
+                </div>
+                <div class="indicators-editor">
+                    <label>Learning Indicators</label>
+                    <div id="indicators-list"></div>
+                    <button id="add-indicator-btn" class="add-indicator-btn">➕ Add Indicator</button>
+                </div>
+                <div class="edit-field">
+                    <label>Content</label>
+                    <div id="editor-toolbar"></div>
+                    <div id="editor-container"></div>
+                </div>
+            </div>
         </main>
     </div>
 
@@ -825,7 +317,6 @@
         const CONFIG = {
             manifestUrl: './data/manifest.json',
             modulesBase: './data/modules/',
-            cacheKey: 'module_'
         };
 
         // ============================================================
@@ -839,7 +330,13 @@
             theme: localStorage.getItem('theme') || 'light',
             searchQuery: '',
             manifest: null,
-            moduleData: null
+            moduleData: null,
+            editMode: false,
+            quill: null,
+            selectedSession: null,
+            debounceTimer: null,
+            dirty: false,
+            ignoreQuillChange: false,
         };
 
         // ============================================================
@@ -861,106 +358,175 @@
             refreshBtn: $('#refreshBtn'),
             importBtn: $('#importBtn'),
             exportBtn: $('#exportBtn'),
+            editModeToggle: $('#editModeToggle'),
             importFileInput: $('#importFileInput'),
+            imageFileInput: $('#imageFileInput'),
             searchBox: $('#search-box'),
             navTree: $('#nav-tree'),
             content: $('#content'),
             sessionDisplay: $('#session-display'),
-            welcomeMsg: $('#welcome-message')
+            editorWrapper: $('#editor-wrapper'),
+            sessionTitleInput: $('#session-title-input'),
+            indicatorsList: $('#indicators-list'),
+            addIndicatorBtn: $('#add-indicator-btn'),
+            addUnitBtn: $('#addUnitBtn'),
+            welcomeMsg: $('#welcome-message'),
         };
 
         // ============================================================
-        // 4. INDEXEDDB HELPERS
+        // 4. STORAGE (IndexedDB with localStorage fallback)
         // ============================================================
         const DB_NAME = 'bed-module-viewer';
         const DB_VERSION = 1;
-        let db;
+        let db = null;
+        let useIndexedDB = true;
+        const LS_PREFIX = 'bed_module_';
 
-        function openDatabase() {
-            return new Promise((resolve, reject) => {
+        function lsGetModule(code) {
+            const str = localStorage.getItem(LS_PREFIX + code);
+            if (str) return JSON.parse(str);
+            return null;
+        }
+        function lsSetModule(code, data, timestamp) {
+            const record = { code, data, timestamp };
+            localStorage.setItem(LS_PREFIX + code, JSON.stringify(record));
+        }
+        function lsClearModules() {
+            const keys = Object.keys(localStorage).filter(k => k.startsWith(LS_PREFIX));
+            keys.forEach(k => localStorage.removeItem(k));
+        }
+        function lsGetManifest() {
+            const str = localStorage.getItem(LS_PREFIX + 'manifest');
+            if (str) return JSON.parse(str);
+            return null;
+        }
+        function lsSetManifest(data) {
+            localStorage.setItem(LS_PREFIX + 'manifest', JSON.stringify(data));
+        }
+
+        async function openDatabase() {
+            if (!useIndexedDB) return;
+            try {
                 const request = indexedDB.open(DB_NAME, DB_VERSION);
-
                 request.onupgradeneeded = (event) => {
                     const db = event.target.result;
-                    // Object store for module data (key = module code)
                     if (!db.objectStoreNames.contains('modules')) {
                         db.createObjectStore('modules', { keyPath: 'code' });
                     }
-                    // Object store for manifest (key = 'manifest')
                     if (!db.objectStoreNames.contains('manifest')) {
                         db.createObjectStore('manifest', { keyPath: 'id' });
                     }
                 };
-
-                request.onsuccess = (event) => {
-                    db = event.target.result;
-                    resolve(db);
-                };
-
-                request.onerror = (event) => {
-                    reject(event.target.error);
-                };
-            });
+                request.onsuccess = (event) => { db = event.target.result; };
+                request.onerror = () => { useIndexedDB = false; };
+                await new Promise((resolve) => {
+                    request.onsuccess = (e) => { db = e.target.result; resolve(); };
+                    request.onerror = () => { useIndexedDB = false; resolve(); };
+                });
+            } catch (e) {
+                useIndexedDB = false;
+            }
         }
 
-        // Get a module from IndexedDB
         async function getCachedModule(moduleCode) {
-            if (!db) await openDatabase();
-            return new Promise((resolve, reject) => {
-                const tx = db.transaction('modules', 'readonly');
-                const store = tx.objectStore('modules');
-                const req = store.get(moduleCode);
-                req.onsuccess = () => resolve(req.result);
-                req.onerror = () => reject(req.error);
-            });
+            if (useIndexedDB) {
+                try {
+                    if (!db) await openDatabase();
+                    if (db) {
+                        return new Promise((resolve, reject) => {
+                            const tx = db.transaction('modules', 'readonly');
+                            const store = tx.objectStore('modules');
+                            const req = store.get(moduleCode);
+                            req.onsuccess = () => resolve(req.result);
+                            req.onerror = () => reject(req.error);
+                        });
+                    }
+                } catch (e) {
+                    useIndexedDB = false;
+                }
+            }
+            return lsGetModule(moduleCode);
         }
 
-        // Store a module in IndexedDB
         async function setCachedModule(moduleCode, data, timestamp) {
-            if (!db) await openDatabase();
-            return new Promise((resolve, reject) => {
-                const tx = db.transaction('modules', 'readwrite');
-                const store = tx.objectStore('modules');
-                const record = { code: moduleCode, data, timestamp };
-                store.put(record);
-                tx.oncomplete = () => resolve();
-                tx.onerror = () => reject(tx.error);
-            });
+            if (useIndexedDB) {
+                try {
+                    if (!db) await openDatabase();
+                    if (db) {
+                        return new Promise((resolve, reject) => {
+                            const tx = db.transaction('modules', 'readwrite');
+                            const store = tx.objectStore('modules');
+                            const record = { code: moduleCode, data, timestamp };
+                            store.put(record);
+                            tx.oncomplete = () => resolve();
+                            tx.onerror = () => reject(tx.error);
+                        });
+                    }
+                } catch (e) {
+                    useIndexedDB = false;
+                }
+            }
+            lsSetModule(moduleCode, data, timestamp);
         }
 
-        // Clear all cached modules
         async function clearAllCachedModules() {
-            if (!db) await openDatabase();
-            return new Promise((resolve, reject) => {
-                const tx = db.transaction('modules', 'readwrite');
-                const store = tx.objectStore('modules');
-                store.clear();
-                tx.oncomplete = () => resolve();
-                tx.onerror = () => reject(tx.error);
-            });
+            if (useIndexedDB) {
+                try {
+                    if (!db) await openDatabase();
+                    if (db) {
+                        return new Promise((resolve, reject) => {
+                            const tx = db.transaction('modules', 'readwrite');
+                            const store = tx.objectStore('modules');
+                            store.clear();
+                            tx.oncomplete = () => resolve();
+                            tx.onerror = () => reject(tx.error);
+                        });
+                    }
+                } catch (e) {
+                    useIndexedDB = false;
+                }
+            }
+            lsClearModules();
         }
 
-        // Manifest caching
         async function getCachedManifest() {
-            if (!db) await openDatabase();
-            return new Promise((resolve, reject) => {
-                const tx = db.transaction('manifest', 'readonly');
-                const store = tx.objectStore('manifest');
-                const req = store.get('manifest');
-                req.onsuccess = () => resolve(req.result);
-                req.onerror = () => reject(req.error);
-            });
+            if (useIndexedDB) {
+                try {
+                    if (!db) await openDatabase();
+                    if (db) {
+                        return new Promise((resolve, reject) => {
+                            const tx = db.transaction('manifest', 'readonly');
+                            const store = tx.objectStore('manifest');
+                            const req = store.get('manifest');
+                            req.onsuccess = () => resolve(req.result);
+                            req.onerror = () => reject(req.error);
+                        });
+                    }
+                } catch (e) {
+                    useIndexedDB = false;
+                }
+            }
+            return lsGetManifest();
         }
 
         async function setCachedManifest(manifestData) {
-            if (!db) await openDatabase();
-            return new Promise((resolve, reject) => {
-                const tx = db.transaction('manifest', 'readwrite');
-                const store = tx.objectStore('manifest');
-                store.put({ id: 'manifest', ...manifestData });
-                tx.oncomplete = () => resolve();
-                tx.onerror = () => reject(tx.error);
-            });
+            if (useIndexedDB) {
+                try {
+                    if (!db) await openDatabase();
+                    if (db) {
+                        return new Promise((resolve, reject) => {
+                            const tx = db.transaction('manifest', 'readwrite');
+                            const store = tx.objectStore('manifest');
+                            store.put({ id: 'manifest', ...manifestData });
+                            tx.oncomplete = () => resolve();
+                            tx.onerror = () => reject(tx.error);
+                        });
+                    }
+                } catch (e) {
+                    useIndexedDB = false;
+                }
+            }
+            lsSetManifest(manifestData);
         }
 
         // ============================================================
@@ -971,7 +537,6 @@
             dom.sidebar.classList.remove('open');
             dom.overlay.classList.remove('active');
         }
-
         function openSidebar() {
             state.sidebarOpen = true;
             dom.sidebar.classList.add('open');
@@ -987,32 +552,23 @@
             dom.themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
             document.body.classList.toggle('dark-mode', theme === 'dark');
         }
-
-        function toggleTheme() {
-            applyTheme(state.theme === 'light' ? 'dark' : 'light');
-        }
+        function toggleTheme() { applyTheme(state.theme === 'light' ? 'dark' : 'light'); }
 
         // ============================================================
         // 7. DATA LOADING
         // ============================================================
-
         async function loadManifest() {
             try {
                 const response = await fetch(CONFIG.manifestUrl + '?t=' + Date.now());
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 const data = await response.json();
-
-                // Check version change against cached manifest
                 const cachedManifest = await getCachedManifest();
                 if (cachedManifest && cachedManifest.version !== data.version) {
-                    console.log('🔄 New version detected! Clearing module caches...');
+                    console.log('New version detected, clearing module caches');
                     await clearAllCachedModules();
                     showUpdateBanner(data.version);
                 }
-
-                // Store the new manifest in IndexedDB
                 await setCachedManifest(data);
-
                 state.manifest = data;
                 return data;
             } catch (error) {
@@ -1028,112 +584,135 @@
             }
         }
 
-        async function loadModuleData(moduleCode) {
-            const moduleEntry = state.manifest?.modules?.find(m => m.code === moduleCode);
-            if (!moduleEntry && state.manifest) {
-                console.warn('Module not found in manifest, but attempting to load anyway:', moduleCode);
+        async function loadModuleData(moduleCode, forceRefresh = false) {
+            if (!forceRefresh) {
+                const cached = await getCachedModule(moduleCode);
+                if (cached && cached.timestamp && (Date.now() - cached.timestamp < 3600000)) {
+                    console.log('Using cache for:', moduleCode);
+                    return cached.data;
+                }
             }
-
+            const moduleEntry = state.manifest?.modules?.find(m => m.code === moduleCode);
             const fileName = moduleEntry?.file || (moduleCode.toLowerCase() + '.json');
             const url = CONFIG.modulesBase + fileName;
-
-            // Try IndexedDB cache first
-            const cachedRecord = await getCachedModule(moduleCode);
-            if (cachedRecord && cachedRecord.timestamp && (Date.now() - cachedRecord.timestamp < 3600000)) {
-                console.log('Using IndexedDB cache for:', moduleCode);
-                return cachedRecord.data;
-            }
-
             try {
                 const response = await fetch(url + '?t=' + Date.now());
                 if (!response.ok) throw new Error(`HTTP ${response.status} - ${url}`);
                 const data = await response.json();
-
-                // Store in IndexedDB with current timestamp
                 await setCachedModule(moduleCode, data, Date.now());
-
                 return data;
             } catch (error) {
                 console.error('Failed to load module:', error);
-                dom.moduleTitle.textContent = 'Load Error';
-                dom.moduleCode.textContent = '';
-                dom.navTree.innerHTML = `
-                    <div class="empty-state">
-                        <p>Could not load module "${moduleCode}".</p>
-                        <p style="font-size:0.8rem;color:var(--text-secondary);">
-                            Tried: ${url}<br>
-                            Check that the file exists and is valid JSON.
-                        </p>
-                    </div>
-                `;
+                const cached = await getCachedModule(moduleCode);
+                if (cached) {
+                    console.log('Using stale cache for:', moduleCode);
+                    return cached.data;
+                }
                 return null;
             }
         }
 
         // ============================================================
-        // 8. RENDER FUNCTIONS
+        // 8. RENDER SIDEBAR
         // ============================================================
-
-        function populateModuleSelector(manifest) {
-            if (!manifest || !manifest.modules) {
-                dom.moduleSelector.innerHTML = `<option value="">— No modules —</option>`;
-                return;
-            }
-            let html = `<option value=""> Select </option>`;
-            manifest.modules.forEach(mod => {
-                html += `<option value="${mod.code}">${mod.code}</option>`;
-            });
-            dom.moduleSelector.innerHTML = html;
-        }
-
-        function renderSidebar(moduleData) {
-            if (!moduleData || !moduleData.units) {
+        function renderSidebar() {
+            if (!state.moduleData || !state.moduleData.units) {
                 dom.navTree.innerHTML = `<div class="empty-state"><p>No content.</p></div>`;
+                dom.addUnitBtn.classList.add('hidden');
                 return;
             }
-
             let html = '';
-            moduleData.units.forEach(unit => {
-                const isOpen = (state.currentUnitId === unit.id);
+            state.moduleData.units.forEach(unit => {
+                const isOpen = state.currentUnitId === unit.id;
                 html += `<details class="unit" ${isOpen ? 'open' : ''}>`;
-                html += `<summary>Unit ${unit.id}: ${unit.title}</summary>`;
-                html += `<ul class="session-list">`;
+                html += `<summary><span>Unit ${unit.id}: ${unit.title}</span>`;
+                if (state.editMode) {
+                    html += `<span class="edit-buttons">
+                        <button class="rename-unit" data-unit="${unit.id}" title="Rename">✎</button>
+                        <button class="delete-unit" data-unit="${unit.id}" title="Delete">🗑</button>
+                    </span>`;
+                }
+                html += `</summary><ul class="session-list">`;
                 unit.sessions.forEach(sess => {
-                    const active = (state.currentUnitId === unit.id && state.currentSessionId === sess.id) ?
-                        'active' : '';
-                    html += `
-                        <li class="${active}" data-unit="${unit.id}" data-session="${sess.id}">
-                            <span class="sess-id">${sess.id}</span> ${sess.title}
-                        </li>
-                    `;
+                    const active = (state.currentUnitId === unit.id && state.currentSessionId === sess.id) ? 'active' : '';
+                    html += `<li class="${active}" data-unit="${unit.id}" data-session="${sess.id}">
+                        <span class="sess-id">${sess.id}</span> <span class="sess-title">${sess.title}</span>`;
+                    if (state.editMode) {
+                        html += `<span class="edit-buttons">
+                            <button class="rename-session" data-unit="${unit.id}" data-session="${sess.id}" title="Rename">✎</button>
+                            <button class="delete-session" data-unit="${unit.id}" data-session="${sess.id}" title="Delete">🗑</button>
+                        </span>`;
+                    }
+                    html += `</li>`;
                 });
-                html += `</ul></details>`;
+                html += `</ul>`;
+                if (state.editMode) {
+                    html += `<button class="add-session-btn" data-unit="${unit.id}" style="margin-left:16px; padding:4px 8px; background:transparent; border:1px dashed var(--accent); border-radius:4px; color:var(--wine); cursor:pointer; font-size:0.8rem;">➕ Add Session</button>`;
+                }
+                html += `</details>`;
             });
-
             dom.navTree.innerHTML = html;
 
+            dom.addUnitBtn.classList.toggle('hidden', !state.editMode);
+
+            // Session click listeners
             dom.navTree.querySelectorAll('.session-list li').forEach(el => {
                 el.addEventListener('click', function(e) {
-                    e.stopPropagation();
+                    if (e.target.closest('.rename-session') || e.target.closest('.delete-session')) return;
                     const unitId = parseInt(this.dataset.unit);
                     const sessionId = parseInt(this.dataset.session);
-                    loadSession(unitId, sessionId);
+                    selectSession(unitId, sessionId);
                     closeSidebar();
                 });
             });
 
+            // Edit control listeners
+            if (state.editMode) {
+                dom.navTree.querySelectorAll('.rename-unit').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        renameUnit(parseInt(btn.dataset.unit));
+                    });
+                });
+                dom.navTree.querySelectorAll('.delete-unit').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        deleteUnit(parseInt(btn.dataset.unit));
+                    });
+                });
+                dom.navTree.querySelectorAll('.rename-session').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        renameSession(parseInt(btn.dataset.unit), parseInt(btn.dataset.session));
+                    });
+                });
+                dom.navTree.querySelectorAll('.delete-session').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        deleteSession(parseInt(btn.dataset.unit), parseInt(btn.dataset.session));
+                    });
+                });
+                dom.navTree.querySelectorAll('.add-session-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        addSession(parseInt(btn.dataset.unit));
+                    });
+                });
+            }
+
+            // Scroll to active
             if (state.currentUnitId) {
                 const activeUnit = dom.navTree.querySelector(`.unit[open]`);
-                if (activeUnit) {
-                    setTimeout(() => activeUnit.scrollIntoView({ block: 'nearest' }), 50);
-                }
+                if (activeUnit) setTimeout(() => activeUnit.scrollIntoView({ block: 'nearest' }), 50);
             }
         }
 
-        function loadSession(unitId, sessionId) {
+        // ============================================================
+        // 9. SESSION SELECTION & RENDERING
+        // ============================================================
+        function selectSession(unitId, sessionId) {
             const moduleData = state.moduleData;
             if (!moduleData) return;
-
             const unit = moduleData.units.find(u => u.id === unitId);
             if (!unit) return;
             const session = unit.sessions.find(s => s.id === sessionId);
@@ -1141,38 +720,39 @@
 
             state.currentUnitId = unitId;
             state.currentSessionId = sessionId;
-            window.location.hash = buildHash(state.currentModule, unitId, sessionId);
+            state.selectedSession = session;
+            // Use history.replaceState to avoid triggering hashchange and reload
+            history.replaceState(null, '', buildHash(state.currentModule, unitId, sessionId));
+
+            if (state.editMode) {
+                showEditorForSession(session);
+            } else {
+                showViewForSession(session);
+            }
+
+            dom.navTree.querySelectorAll('.session-list li').forEach(el => {
+                el.classList.toggle('active', parseInt(el.dataset.unit) === unitId && parseInt(el.dataset.session) === sessionId);
+            });
+        }
+
+        function showViewForSession(session) {
+            dom.editorWrapper.classList.remove('active');
+            dom.sessionDisplay.classList.remove('hidden');
+            dom.welcomeMsg.classList.add('hidden');
 
             let indicatorsHtml = '';
             if (session.indicators && session.indicators.length) {
                 indicatorsHtml = `
                     <div class="session-indicators">
                         <h4>📌 Learning Indicators</h4>
-                        <ul>
-                            ${session.indicators.map(i => `<li>${i}</li>`).join('')}
-                        </ul>
-                    </div>
-                `;
+                        <ul>${session.indicators.map(i => `<li>${escapeHtml(i)}</li>`).join('')}</ul>
+                    </div>`;
             }
-
             const contentHtml = `
-                <div class="breadcrumb">📖 Unit ${unitId} <span>›</span> Session ${sessionId}</div>
+                <div class="breadcrumb">📖 Unit ${state.currentUnitId} <span>›</span> Session ${state.currentSessionId}</div>
                 ${indicatorsHtml}
-                <div class="session-content fade-in">${session.content}</div>
-            `;
-
+                <div class="session-content fade-in">${session.content}</div>`;
             dom.sessionDisplay.innerHTML = contentHtml;
-            dom.sessionDisplay.classList.remove('hidden');
-            dom.welcomeMsg.classList.add('hidden');
-            dom.moduleTitle.textContent = moduleData.title || moduleData.code;
-            dom.moduleCode.textContent = moduleData.code || '';
-
-            dom.navTree.querySelectorAll('.session-list li').forEach(el => {
-                el.classList.toggle('active',
-                    parseInt(el.dataset.unit) === unitId &&
-                    parseInt(el.dataset.session) === sessionId
-                );
-            });
 
             if (window.renderMathInElement) {
                 try {
@@ -1186,116 +766,290 @@
                     });
                 } catch (e) { console.warn('KaTeX error:', e); }
             }
+            dom.content.scrollTop = 0;
+        }
+
+        function showEditorForSession(session) {
+            dom.sessionDisplay.classList.add('hidden');
+            dom.welcomeMsg.classList.add('hidden');
+            dom.editorWrapper.classList.add('active');
+
+            // Update title input
+            dom.sessionTitleInput.value = session.title;
+
+            // Update indicators
+            renderIndicators(session);
+
+            // Update Quill content
+            if (state.quill) {
+                state.ignoreQuillChange = true;
+                try {
+                    // Use clipboard API to set HTML content properly
+                    state.quill.clipboard.dangerouslyPasteHTML(session.content || '');
+                } catch (e) {
+                    state.quill.root.innerHTML = session.content || '';
+                }
+                state.ignoreQuillChange = false;
+            }
 
             dom.content.scrollTop = 0;
         }
 
-        // ============================================================
-        // 9. MODULE LOADER
-        // ============================================================
-        async function loadModule(moduleCode) {
-            if (!moduleCode) {
-                dom.welcomeMsg.classList.remove('hidden');
-                dom.sessionDisplay.classList.add('hidden');
-                dom.moduleTitle.textContent = 'Select a Module';
-                dom.moduleCode.textContent = '';
-                dom.navTree.innerHTML = `<div class="empty-state"><p>Select a module from the dropdown.</p></div>`;
-                state.currentModule = null;
-                state.moduleData = null;
-                state.currentUnitId = null;
-                state.currentSessionId = null;
-                dom.moduleSelector.value = '';
+        function renderIndicators(session) {
+            dom.indicatorsList.innerHTML = '';
+            if (!session.indicators || session.indicators.length === 0) {
+                addIndicatorInput('', 0);
                 return;
             }
+            session.indicators.forEach((ind, idx) => addIndicatorInput(ind, idx));
+        }
 
-            dom.moduleTitle.textContent = 'Loading…';
-            dom.moduleCode.textContent = moduleCode;
+        function addIndicatorInput(value, idx) {
+            const div = document.createElement('div');
+            div.className = 'indicator-item';
+            div.innerHTML = `
+                <input type="text" class="indicator-input" value="${escapeHtml(value)}" data-index="${idx}" />
+                <button class="remove-indicator" data-index="${idx}" title="Remove">✕</button>`;
+            dom.indicatorsList.appendChild(div);
 
-            const data = await loadModuleData(moduleCode);
-            if (!data) {
-                dom.moduleTitle.textContent = 'Error';
-                return;
-            }
-
-            state.currentModule = moduleCode;
-            state.moduleData = data;
-            dom.moduleSelector.value = moduleCode;
-            dom.moduleTitle.textContent = data.title || moduleCode;
-            dom.moduleCode.textContent = data.code || '';
-
-            renderSidebar(data);
-
-            const hash = parseHash();
-            if (hash.unit && hash.session) {
-                const unitExists = data.units.some(u => u.id === hash.unit);
-                const sessionExists = data.units.some(u =>
-                    u.id === hash.unit && u.sessions.some(s => s.id === hash.session)
-                );
-                if (unitExists && sessionExists) {
-                    loadSession(hash.unit, hash.session);
-                    return;
+            const input = div.querySelector('.indicator-input');
+            input.addEventListener('input', () => {
+                const index = parseInt(input.dataset.index);
+                if (state.selectedSession && state.selectedSession.indicators) {
+                    state.selectedSession.indicators[index] = input.value;
+                    markDirty();
                 }
-            }
+            });
 
-            if (data.units.length && data.units[0].sessions.length) {
-                loadSession(data.units[0].id, data.units[0].sessions[0].id);
+            const removeBtn = div.querySelector('.remove-indicator');
+            removeBtn.addEventListener('click', () => {
+                const index = parseInt(removeBtn.dataset.index);
+                if (state.selectedSession && state.selectedSession.indicators) {
+                    state.selectedSession.indicators.splice(index, 1);
+                    renderIndicators(state.selectedSession);
+                    markDirty();
+                }
+            });
+        }
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // ============================================================
+        // 10. QUILL INITIALIZATION (deferred)
+        // ============================================================
+        function initQuill() {
+            if (typeof Quill === 'undefined') {
+                console.error('Quill library not loaded');
+                return;
+            }
+            const toolbarOptions = [
+                [{ 'header': [1, 2, 3, false] }],
+                ['bold', 'italic', 'underline'],
+                [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                ['link', 'image'],
+                ['clean']
+            ];
+            state.quill = new Quill('#editor-container', {
+                theme: 'snow',
+                modules: {
+                    toolbar: {
+                        container: '#editor-toolbar',
+                        handlers: {
+                            'image': imageHandler
+                        }
+                    }
+                },
+                placeholder: 'Enter content...'
+            });
+            // Text-change handler
+            state.quill.on('text-change', () => {
+                if (state.ignoreQuillChange) return;
+                if (state.selectedSession) {
+                    state.selectedSession.content = state.quill.root.innerHTML;
+                    markDirty();
+                }
+            });
+        }
+
+        function imageHandler() {
+            dom.imageFileInput.click();
+        }
+
+        // ============================================================
+        // 11. CRUD OPERATIONS
+        // ============================================================
+        function getNextUnitId() {
+            return state.moduleData.units.reduce((max, u) => Math.max(max, u.id), 0) + 1;
+        }
+
+        function getNextSessionId(unit) {
+            return unit.sessions.reduce((max, s) => Math.max(max, s.id), 0) + 1;
+        }
+
+        function addUnit() {
+            const newUnit = {
+                id: getNextUnitId(),
+                title: 'New Unit',
+                sessions: []
+            };
+            state.moduleData.units.push(newUnit);
+            state.currentUnitId = newUnit.id;
+            state.currentSessionId = null;
+            state.selectedSession = null;
+            renderSidebar();
+            if (state.editMode) {
+                dom.sessionDisplay.classList.add('hidden');
+                dom.editorWrapper.classList.remove('active');
+                dom.welcomeMsg.classList.remove('hidden');
+                dom.welcomeMsg.innerHTML = `<h2>Unit ${newUnit.id} created</h2><p>Add a session to start editing.</p>`;
+            }
+            markDirty();
+            updateHashAfterChange();
+        }
+
+        function deleteUnit(unitId) {
+            if (!confirm('Delete this unit and all its sessions?')) return;
+            const idx = state.moduleData.units.findIndex(u => u.id === unitId);
+            if (idx > -1) {
+                state.moduleData.units.splice(idx, 1);
+                if (state.currentUnitId === unitId) {
+                    state.currentUnitId = null;
+                    state.currentSessionId = null;
+                    state.selectedSession = null;
+                    dom.sessionDisplay.classList.add('hidden');
+                    dom.editorWrapper.classList.remove('active');
+                    dom.welcomeMsg.classList.remove('hidden');
+                    dom.welcomeMsg.innerHTML = `<h2>Unit deleted</h2><p>Select another unit or add a new one.</p>`;
+                }
+                renderSidebar();
+                markDirty();
+                updateHashAfterChange();
+            }
+        }
+
+        function renameUnit(unitId) {
+            const unit = state.moduleData.units.find(u => u.id === unitId);
+            if (!unit) return;
+            const newTitle = prompt('Enter new unit title:', unit.title);
+            if (newTitle !== null && newTitle.trim() !== '') {
+                unit.title = newTitle.trim();
+                renderSidebar();
+                markDirty();
+            }
+        }
+
+        function addSession(unitId) {
+            const unit = state.moduleData.units.find(u => u.id === unitId);
+            if (!unit) return;
+            const newSession = {
+                id: getNextSessionId(unit),
+                title: 'New Session',
+                indicators: [],
+                content: ''
+            };
+            unit.sessions.push(newSession);
+            state.currentUnitId = unitId;
+            state.currentSessionId = newSession.id;
+            state.selectedSession = newSession;
+            renderSidebar();
+            // If not in edit mode, switch to edit mode automatically
+            if (!state.editMode) {
+                toggleEditMode();
+            }
+            showEditorForSession(newSession);
+            markDirty();
+            updateHashAfterChange();
+        }
+
+        function deleteSession(unitId, sessionId) {
+            if (!confirm('Delete this session?')) return;
+            const unit = state.moduleData.units.find(u => u.id === unitId);
+            if (!unit) return;
+            const idx = unit.sessions.findIndex(s => s.id === sessionId);
+            if (idx > -1) {
+                unit.sessions.splice(idx, 1);
+                if (state.currentUnitId === unitId && state.currentSessionId === sessionId) {
+                    state.currentSessionId = null;
+                    state.selectedSession = null;
+                    dom.sessionDisplay.classList.add('hidden');
+                    dom.editorWrapper.classList.remove('active');
+                    dom.welcomeMsg.classList.remove('hidden');
+                    dom.welcomeMsg.innerHTML = `<h2>Session deleted</h2><p>Select another session or add a new one.</p>`;
+                }
+                renderSidebar();
+                markDirty();
+                updateHashAfterChange();
+            }
+        }
+
+        function renameSession(unitId, sessionId) {
+            const unit = state.moduleData.units.find(u => u.id === unitId);
+            if (!unit) return;
+            const session = unit.sessions.find(s => s.id === sessionId);
+            if (!session) return;
+            const newTitle = prompt('Enter new session title:', session.title);
+            if (newTitle !== null && newTitle.trim() !== '') {
+                session.title = newTitle.trim();
+                renderSidebar();
+                if (state.currentUnitId === unitId && state.currentSessionId === sessionId && state.editMode) {
+                    dom.sessionTitleInput.value = session.title;
+                }
+                markDirty();
+            }
+        }
+
+        function updateHashAfterChange() {
+            // Use history.replaceState to update URL without triggering reload
+            if (state.currentModule && state.currentUnitId && state.currentSessionId) {
+                history.replaceState(null, '', buildHash(state.currentModule, state.currentUnitId, state.currentSessionId));
+            } else if (state.currentModule && state.currentUnitId) {
+                history.replaceState(null, '', buildHash(state.currentModule, state.currentUnitId));
+            } else if (state.currentModule) {
+                history.replaceState(null, '', buildHash(state.currentModule));
+            }
+        }
+
+        // ============================================================
+        // 12. EDIT MODE TOGGLE
+        // ============================================================
+        function toggleEditMode() {
+            state.editMode = !state.editMode;
+            dom.editModeToggle.textContent = state.editMode ? '👁️' : '✏️';
+            renderSidebar();
+            if (state.editMode) {
+                // Initialize Quill if not already done (must be visible first)
+                if (!state.quill) {
+                    dom.editorWrapper.classList.add('active');
+                    initQuill();
+                }
+                if (state.selectedSession) {
+                    showEditorForSession(state.selectedSession);
+                } else {
+                    dom.sessionDisplay.classList.add('hidden');
+                    dom.editorWrapper.classList.remove('active');
+                    dom.welcomeMsg.classList.remove('hidden');
+                    if (state.moduleData && state.moduleData.units.length) {
+                        dom.welcomeMsg.innerHTML = `<h2>Select a session to edit</h2>`;
+                    }
+                }
             } else {
-                dom.welcomeMsg.classList.remove('hidden');
-                dom.sessionDisplay.classList.add('hidden');
-            }
-        }
-
-        // ============================================================
-        // 10. SEARCH
-        // ============================================================
-        function handleSearch(query) {
-            state.searchQuery = query.trim().toLowerCase();
-            const moduleData = state.moduleData;
-            if (!moduleData) return;
-
-            const allSessions = [];
-            moduleData.units.forEach(unit => {
-                unit.sessions.forEach(sess => {
-                    allSessions.push({
-                        unitId: unit.id,
-                        sessionId: sess.id,
-                        title: sess.title.toLowerCase(),
-                        content: sess.content.replace(/<[^>]+>/g, ' ').toLowerCase()
-                    });
-                });
-            });
-
-            const listItems = dom.navTree.querySelectorAll('.session-list li');
-            if (!state.searchQuery) {
-                listItems.forEach(el => el.style.display = 'flex');
-                dom.navTree.querySelectorAll('.unit').forEach(d => d.open = (d.querySelector('.session-list li.active') !==
-                    null));
-                return;
-            }
-
-            const matchIds = new Set();
-            allSessions.forEach(item => {
-                if (item.title.includes(state.searchQuery) || item.content.includes(state.searchQuery)) {
-                    matchIds.add(`${item.unitId}-${item.sessionId}`);
+                if (state.selectedSession) {
+                    showViewForSession(state.selectedSession);
+                } else {
+                    dom.editorWrapper.classList.remove('active');
+                    dom.sessionDisplay.classList.add('hidden');
+                    dom.welcomeMsg.classList.remove('hidden');
                 }
-            });
-
-            listItems.forEach(el => {
-                const key = `${el.dataset.unit}-${el.dataset.session}`;
-                el.style.display = matchIds.has(key) ? 'flex' : 'none';
-            });
-
-            dom.navTree.querySelectorAll('.unit').forEach(details => {
-                const hasVisible = details.querySelector('.session-list li[style*="flex"]');
-                details.open = !!hasVisible;
-            });
+            }
         }
 
         // ============================================================
-        // 11. IMPORT / EXPORT
+        // 13. IMPORT / EXPORT
         // ============================================================
-
-        // Export current module as JSON file
         function exportCurrentModule() {
             if (!state.moduleData) {
                 alert('No module loaded to export.');
@@ -1314,39 +1068,76 @@
             URL.revokeObjectURL(url);
         }
 
-        // Import a module JSON file
         async function importModule(file) {
             try {
                 const text = await file.text();
                 const moduleData = JSON.parse(text);
-
-                // Basic validation
-                if (!moduleData.code || !moduleData.units || !Array.isArray(moduleData.units)) {
-                    throw new Error('Invalid module JSON format. Missing "code" or "units" array.');
+                // Strict validation
+                if (!moduleData.code || typeof moduleData.code !== 'string') {
+                    throw new Error('Module "code" must be a non-empty string.');
+                }
+                if (!moduleData.title || typeof moduleData.title !== 'string') {
+                    throw new Error('Module "title" must be a string.');
+                }
+                if (!Array.isArray(moduleData.units) || moduleData.units.length === 0) {
+                    throw new Error('Module must contain at least one unit.');
+                }
+                const unitIds = new Set();
+                for (const unit of moduleData.units) {
+                    if (!Number.isInteger(unit.id) || unit.id <= 0) {
+                        throw new Error('Unit id must be a positive integer.');
+                    }
+                    if (unitIds.has(unit.id)) {
+                        throw new Error(`Duplicate unit id: ${unit.id}`);
+                    }
+                    unitIds.add(unit.id);
+                    if (!unit.title || typeof unit.title !== 'string') {
+                        throw new Error(`Unit ${unit.id} missing title.`);
+                    }
+                    if (!Array.isArray(unit.sessions)) {
+                        throw new Error(`Unit ${unit.id} sessions must be an array.`);
+                    }
+                    const sessIds = new Set();
+                    for (const sess of unit.sessions) {
+                        if (!Number.isInteger(sess.id) || sess.id <= 0) {
+                            throw new Error(`Session id in unit ${unit.id} must be a positive integer.`);
+                        }
+                        if (sessIds.has(sess.id)) {
+                            throw new Error(`Duplicate session id ${sess.id} in unit ${unit.id}.`);
+                        }
+                        sessIds.add(sess.id);
+                        if (!sess.title || typeof sess.title !== 'string') {
+                            throw new Error(`Session ${sess.id} missing title.`);
+                        }
+                        if (!Array.isArray(sess.indicators)) {
+                            throw new Error(`Session ${sess.id} indicators must be an array.`);
+                        }
+                        if (typeof sess.content !== 'string') {
+                            throw new Error(`Session ${sess.id} content must be a string.`);
+                        }
+                    }
                 }
 
-                // Save to IndexedDB (overwrite existing)
                 await setCachedModule(moduleData.code, moduleData, Date.now());
 
-                // Update manifest: if module not already present, add it
+                // Update manifest
                 if (state.manifest) {
                     const existing = state.manifest.modules.find(m => m.code === moduleData.code);
                     if (!existing) {
                         state.manifest.modules.push({
                             code: moduleData.code,
-                            title: moduleData.title || moduleData.code,
+                            title: moduleData.title,
                             file: moduleData.code.toLowerCase() + '.json'
                         });
                         await setCachedManifest(state.manifest);
                         populateModuleSelector(state.manifest);
                     }
                 } else {
-                    // Create a temporary manifest with just this module
                     state.manifest = {
                         version: 'local',
                         modules: [{
                             code: moduleData.code,
-                            title: moduleData.title || moduleData.code,
+                            title: moduleData.title,
                             file: moduleData.code.toLowerCase() + '.json'
                         }]
                     };
@@ -1354,10 +1145,8 @@
                     populateModuleSelector(state.manifest);
                 }
 
-                // Reload the module in the viewer
                 await loadModule(moduleData.code);
                 alert(`Module "${moduleData.code}" imported successfully.`);
-
             } catch (err) {
                 console.error('Import failed:', err);
                 alert('Import failed: ' + err.message);
@@ -1365,44 +1154,67 @@
         }
 
         // ============================================================
-        // 12. UPDATE BANNER & REFRESH
+        // 14. DIRTY TRACKING & SAVING
+        // ============================================================
+        function markDirty() {
+            state.dirty = true;
+            scheduleSave();
+        }
+
+        function scheduleSave() {
+            if (state.debounceTimer) clearTimeout(state.debounceTimer);
+            state.debounceTimer = setTimeout(() => {
+                if (state.moduleData && state.dirty) {
+                    setCachedModule(state.moduleData.code, state.moduleData, Date.now())
+                        .then(() => { state.dirty = false; console.log('Saved'); })
+                        .catch(err => console.error('Save failed:', err));
+                }
+            }, 500);
+        }
+
+        async function saveNow() {
+            if (state.debounceTimer) clearTimeout(state.debounceTimer);
+            if (state.moduleData && state.dirty) {
+                try {
+                    await setCachedModule(state.moduleData.code, state.moduleData, Date.now());
+                    state.dirty = false;
+                    console.log('Saved immediately');
+                } catch (e) {
+                    console.error('Immediate save failed:', e);
+                }
+            }
+        }
+
+        // ============================================================
+        // 15. UPDATE BANNER & REFRESH
         // ============================================================
         function showUpdateBanner(version) {
             const existing = document.getElementById('update-banner');
             if (existing) existing.remove();
-
             const banner = document.createElement('div');
             banner.id = 'update-banner';
             banner.innerHTML = `
                 <span class="banner-text">🔄 <b>New version ${version}</b> available!</span>
                 <button class="banner-btn" onclick="refreshApp()">Refresh Now</button>
-                <button class="banner-close" onclick="this.parentElement.remove()">✕</button>
-            `;
+                <button class="banner-close" onclick="this.parentElement.remove()">✕</button>`;
             document.body.appendChild(banner);
         }
 
         async function refreshApp() {
             await clearAllCachedModules();
-            // Optionally clear manifest cache if you want to force re-fetch
-            // const tx = db.transaction('manifest', 'readwrite');
-            // tx.objectStore('manifest').delete('manifest');
-            // await tx.complete;
-
             const banner = document.getElementById('update-banner');
             if (banner) banner.remove();
-
             if (state.currentModule) {
-                await loadModule(state.currentModule);
+                await loadModule(state.currentModule, true);
             } else {
                 window.location.reload();
             }
-
             dom.refreshBtn.textContent = '✅';
             setTimeout(() => { dom.refreshBtn.textContent = '🔄'; }, 2000);
         }
 
         // ============================================================
-        // 13. ROUTER / HASH HELPERS
+        // 16. ROUTER / HASH
         // ============================================================
         function parseHash() {
             const hash = window.location.hash.slice(1);
@@ -1413,7 +1225,6 @@
                 session: parseInt(params.get('session')) || null
             };
         }
-
         function buildHash(module, unit, session) {
             let parts = [];
             if (module) parts.push(`module=${module}`);
@@ -1423,40 +1234,181 @@
         }
 
         // ============================================================
-        // 14. INITIALIZATION
+        // 17. MODULE LOADER
+        // ============================================================
+        async function loadModule(moduleCode, forceRefresh = false) {
+            // Save any unsaved changes before switching modules
+            if (state.dirty && state.moduleData && state.currentModule !== moduleCode) {
+                await saveNow();
+            }
+
+            if (!moduleCode) {
+                dom.welcomeMsg.classList.remove('hidden');
+                dom.sessionDisplay.classList.add('hidden');
+                dom.editorWrapper.classList.remove('active');
+                dom.moduleTitle.textContent = 'Select a Module';
+                dom.moduleCode.textContent = '';
+                dom.navTree.innerHTML = `<div class="empty-state"><p>Select a module from the dropdown.</p></div>`;
+                state.currentModule = null;
+                state.moduleData = null;
+                state.currentUnitId = null;
+                state.currentSessionId = null;
+                state.selectedSession = null;
+                state.dirty = false;
+                dom.moduleSelector.value = '';
+                return;
+            }
+
+            dom.moduleTitle.textContent = 'Loading…';
+            dom.moduleCode.textContent = moduleCode;
+            const data = await loadModuleData(moduleCode, forceRefresh);
+            if (!data) {
+                dom.moduleTitle.textContent = 'Error';
+                return;
+            }
+            state.currentModule = moduleCode;
+            state.moduleData = data;
+            state.dirty = false;
+            dom.moduleSelector.value = moduleCode;
+            dom.moduleTitle.textContent = data.title || moduleCode;
+            dom.moduleCode.textContent = data.code || '';
+            renderSidebar();
+
+            const hash = parseHash();
+            if (hash.unit && hash.session) {
+                const unitExists = data.units.some(u => u.id === hash.unit);
+                const sessionExists = data.units.some(u => u.id === hash.unit && u.sessions.some(s => s.id === hash.session));
+                if (unitExists && sessionExists) {
+                    selectSession(hash.unit, hash.session);
+                    return;
+                }
+            }
+            if (data.units.length && data.units[0].sessions.length) {
+                selectSession(data.units[0].id, data.units[0].sessions[0].id);
+            } else {
+                dom.welcomeMsg.classList.remove('hidden');
+                dom.sessionDisplay.classList.add('hidden');
+                dom.editorWrapper.classList.remove('active');
+                dom.welcomeMsg.innerHTML = `<h2>Module loaded</h2><p>This module has no units or sessions yet.${state.editMode ? ' Switch to edit mode to add content.' : ''}</p>`;
+            }
+        }
+
+        // ============================================================
+        // 18. SEARCH
+        // ============================================================
+        function handleSearch(query) {
+            state.searchQuery = query.trim().toLowerCase();
+            if (!state.moduleData) return;
+            const allSessions = [];
+            state.moduleData.units.forEach(unit => {
+                unit.sessions.forEach(sess => {
+                    allSessions.push({
+                        unitId: unit.id,
+                        sessionId: sess.id,
+                        title: sess.title.toLowerCase(),
+                        content: sess.content.replace(/<[^>]+>/g, ' ').toLowerCase()
+                    });
+                });
+            });
+            const listItems = dom.navTree.querySelectorAll('.session-list li');
+            if (!state.searchQuery) {
+                listItems.forEach(el => el.style.display = 'flex');
+                dom.navTree.querySelectorAll('.unit').forEach(d => d.open = (d.querySelector('.session-list li.active') !== null));
+                return;
+            }
+            const matchIds = new Set();
+            allSessions.forEach(item => {
+                if (item.title.includes(state.searchQuery) || item.content.includes(state.searchQuery)) {
+                    matchIds.add(`${item.unitId}-${item.sessionId}`);
+                }
+            });
+            listItems.forEach(el => {
+                const key = `${el.dataset.unit}-${el.dataset.session}`;
+                el.style.display = matchIds.has(key) ? 'flex' : 'none';
+            });
+            dom.navTree.querySelectorAll('.unit').forEach(details => {
+                const hasVisible = details.querySelector('.session-list li[style*="flex"]');
+                details.open = !!hasVisible;
+            });
+        }
+
+        // ============================================================
+        // 19. POPULATE MODULE SELECTOR
+        // ============================================================
+        function populateModuleSelector(manifest) {
+            if (!manifest || !manifest.modules) {
+                dom.moduleSelector.innerHTML = `<option value="">— No modules —</option>`;
+                return;
+            }
+            let html = `<option value=""> Select </option>`;
+            manifest.modules.forEach(mod => {
+                html += `<option value="${escapeHtml(mod.code)}">${escapeHtml(mod.code)}</option>`;
+            });
+            dom.moduleSelector.innerHTML = html;
+        }
+
+        // ============================================================
+        // 20. INITIALIZATION
         // ============================================================
         async function init() {
-            // Show splash screen first
             dom.splash.classList.remove('hidden');
 
             // Theme
             applyTheme(state.theme);
             dom.themeToggle.addEventListener('click', toggleTheme);
 
-            // Refresh button
+            // Refresh
             dom.refreshBtn.addEventListener('click', refreshApp);
+
+            // Edit mode toggle
+            dom.editModeToggle.addEventListener('click', toggleEditMode);
 
             // Import/Export
             dom.exportBtn.addEventListener('click', exportCurrentModule);
-            dom.importBtn.addEventListener('click', () => {
-                dom.importFileInput.click();
-            });
-            dom.importFileInput.addEventListener('change', async (event) => {
-                const file = event.target.files[0];
-                if (file) {
-                    await importModule(file);
-                }
-                event.target.value = ''; // reset
+            dom.importBtn.addEventListener('click', () => dom.importFileInput.click());
+            dom.importFileInput.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (file) await importModule(file);
+                e.target.value = '';
             });
 
-            // Sidebar controls
+            // Image upload handler
+            dom.imageFileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file && state.quill) {
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        const dataUrl = reader.result;
+                        const range = state.quill.getSelection(true);
+                        const index = range ? range.index : state.quill.getLength();
+                        state.quill.insertEmbed(index, 'image', dataUrl);
+                    };
+                    reader.readAsDataURL(file);
+                }
+                e.target.value = '';
+            });
+
+            // Sidebar toggles
             dom.hamburger.addEventListener('click', openSidebar);
             dom.sidebarClose.addEventListener('click', closeSidebar);
             dom.overlay.addEventListener('click', closeSidebar);
 
+            // Add unit button
+            dom.addUnitBtn.addEventListener('click', addUnit);
+
+            // Add indicator button
+            dom.addIndicatorBtn.addEventListener('click', () => {
+                if (state.selectedSession) {
+                    state.selectedSession.indicators.push('');
+                    renderIndicators(state.selectedSession);
+                    markDirty();
+                }
+            });
+
             // Module selector
-            dom.moduleSelector.addEventListener('change', function() {
+            dom.moduleSelector.addEventListener('change', async function() {
                 if (this.value) {
+                    await saveNow();
                     window.location.hash = buildHash(this.value);
                 } else {
                     window.location.hash = '';
@@ -1468,17 +1420,6 @@
             dom.searchBox.addEventListener('input', function() {
                 handleSearch(this.value);
             });
-
-            // Load manifest
-            const manifest = await loadManifest();
-            if (manifest) {
-                populateModuleSelector(manifest);
-                state.manifest = manifest;
-            } else {
-                dom.moduleTitle.textContent = 'No manifest';
-                dom.splash.classList.add('hidden');
-                return;
-            }
 
             // Hash change listener
             window.addEventListener('hashchange', async () => {
@@ -1494,6 +1435,17 @@
                 }
             });
 
+            // Load manifest
+            const manifest = await loadManifest();
+            if (manifest) {
+                populateModuleSelector(manifest);
+                state.manifest = manifest;
+            } else {
+                dom.moduleTitle.textContent = 'No manifest';
+                dom.splash.classList.add('hidden');
+                return;
+            }
+
             // Initial load
             const hash = parseHash();
             if (hash.module) {
@@ -1505,18 +1457,14 @@
             } else {
                 dom.welcomeMsg.classList.remove('hidden');
                 dom.sessionDisplay.classList.add('hidden');
+                dom.editorWrapper.classList.remove('active');
                 dom.moduleTitle.textContent = 'No modules found';
             }
 
-            // Hide splash screen after everything is loaded
-            setTimeout(() => {
-                dom.splash.classList.add('hidden');
-            }, 500);
-
-            console.log('✅ B.Ed Module Viewer ready (IndexedDB + Import/Export)');
+            setTimeout(() => dom.splash.classList.add('hidden'), 500);
+            console.log('✅ B.Ed Module Viewer & Publisher ready');
         }
 
-        // Run
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', init);
         } else {
