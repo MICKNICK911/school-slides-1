@@ -138,7 +138,7 @@
         .q-answer table th, .q-answer table td { border: 1px solid var(--border-color); padding: 8px; text-align: left; }
         .q-answer table th { background: var(--mark-bg); }
 
-        .empty-state { text-align: center; color: var(--secondary-text); padding: 40px; }
+        .empty-state, .error-state { text-align: center; color: var(--secondary-text); padding: 40px; }
         .loading-state { text-align: center; color: var(--secondary-text); padding: 40px; font-size: 1.2rem; }
 
         @media (max-width: 600px) {
@@ -172,25 +172,170 @@
 
     <script>
         // ==========================================
+        // CONSTANTS
+        // ==========================================
+        const DATA_VERSION = '1.0.0';   // bump to invalidate cache
+        const FETCH_TIMEOUT = 10000;    // 10 seconds
+        const DB_NAME = 'BEdRevisionDB';
+        const DB_VERSION = 1;
+        const STORE_NAME = 'data';
+
+        // ==========================================
+        // SAFE LOCAL STORAGE
+        // ==========================================
+        function storageGet(key) {
+            try { return localStorage.getItem(key); } catch(e) { return null; }
+        }
+        function storageSet(key, value) {
+            try { localStorage.setItem(key, value); } catch(e) {}
+        }
+
+        // ==========================================
+        // HTML ESCAPING
+        // ==========================================
+        function escapeHtml(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // ==========================================
         // MATH FORMATTER
         // ==========================================
         function migrateMath(text) {
+            if (!text) return text;
             const wrap = (str) => `\\( ${str} \\)`;
-            text = text.replace(/(\d+)\/(\d+)/g, (match, num, den) => wrap(`\\frac{${num}}{${den}}`));
-            text = text.replace(/sqrt\(([^)]+)\)/g, (match, contents) => wrap(`\\sqrt{${contents}}`));
-            text = text.replace(/([a-zA-Z])\^(\{?\d+\}?)/g, (match, base, power) => wrap(`${base}^{${power}}`));
-            text = text.replace(/([a-zA-Z])_(\d+)/g, (match, base, subscript) => wrap(`${base}_{${subscript}}`));
-            text = text.replace(/fog(?![a-zA-Z])/g, wrap(`f \\circ g`));
-            text = text.replace(/gof(?![a-zA-Z])/g, wrap(`g \\circ f`));
-            text = text.replace(/÷/g, wrap(`\\div`));
-            text = text.replace(/([A-Z][a-z]?)(\d+)([A-Z]?)/g, (match, element, num, next) => {
-                if (next) return `${element}_{${num}}${next}`;
-                return `${element}_{${num}}`;
+            let t = text;
+
+            // Fractions: 1/2
+            t = t.replace(/(\d+)\/(\d+)/g, (m, n, d) => wrap(`\\frac{${n}}{${d}}`));
+            // sqrt
+            t = t.replace(/sqrt\(([^)]+)\)/g, (m, inner) => wrap(`\\sqrt{${inner}}`));
+            // Power: x^2, x^{2}, 2^3
+            t = t.replace(/([a-zA-Z0-9])\^(\{?[^}]+\}?)/g, (m, base, pow) => {
+                const p = pow.replace(/[{}]/g, '');
+                return wrap(`${base}^{${p}}`);
             });
-            text = text.replace(/(\d+)°([C|F])/g, (match, num, unit) => wrap(`${num}^{\\circ}${unit}`));
-            text = text.replace(/([a-zA-Z])2\b/g, (match, unit) => wrap(`${unit}^2`));
-            text = text.replace(/([a-zA-Z])3\b/g, (match, unit) => wrap(`${unit}^3`));
-            return text;
+            // Subscript: x_2
+            t = t.replace(/([a-zA-Z0-9])_(\{?[^}]+\}?)/g, (m, base, sub) => {
+                const s = sub.replace(/[{}]/g, '');
+                return wrap(`${base}_{${s}}`);
+            });
+            // fog / gof
+            t = t.replace(/fog(?![a-zA-Z])/g, wrap(`f \\circ g`));
+            t = t.replace(/gof(?![a-zA-Z])/g, wrap(`g \\circ f`));
+            // Division
+            t = t.replace(/÷/g, wrap(`\\div`));
+            // Degrees: 30°C, 45°F
+            t = t.replace(/(\d+)°([CF])/g, (m, num, unit) => wrap(`${num}^{\\circ}\\text{${unit}}`));
+            // Chemical formulas: H2O, CO2, Na2SO4, etc.
+            t = t.replace(/([A-Z][a-z]?\d*)+/g, (formula) => {
+                if (/\d/.test(formula) && /[A-Z]/.test(formula)) {
+                    const parts = [];
+                    const regex = /([A-Z][a-z]?)(\d*)/g;
+                    let match;
+                    while ((match = regex.exec(formula)) !== null) {
+                        const el = match[1];
+                        const num = match[2];
+                        parts.push(`\\text{${el}}` + (num ? `_{${num}}` : ''));
+                    }
+                    return wrap(parts.join(''));
+                }
+                return formula;
+            });
+            // Unit superscripts: cm2, m2, kg3 etc.
+            t = t.replace(/(^|\s)([a-zA-Z]{1,4})(2|3)\b/g, (m, prefix, unit, num) => {
+                return `${prefix}${wrap(`\\text{${unit}}^{${num}}`)}`;
+            });
+
+            return t;
+        }
+
+        // ==========================================
+        // INDEXEDDB HELPERS
+        // ==========================================
+        function openDB() {
+            return new Promise((resolve, reject) => {
+                if (!('indexedDB' in window)) {
+                    reject(new Error('IndexedDB not supported'));
+                    return;
+                }
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                request.onupgradeneeded = (event) => {
+                    const db = event.target.result;
+                    if (!db.objectStoreNames.contains(STORE_NAME)) {
+                        db.createObjectStore(STORE_NAME);
+                    }
+                };
+                request.onsuccess = (event) => resolve(event.target.result);
+                request.onerror = (event) => reject(event.target.error);
+            });
+        }
+
+        async function dbGet(key) {
+            try {
+                const db = await openDB();
+                return await new Promise((resolve, reject) => {
+                    const transaction = db.transaction(STORE_NAME, 'readonly');
+                    const store = transaction.objectStore(STORE_NAME);
+                    const request = store.get(key);
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                });
+            } catch (e) {
+                return null;
+            }
+        }
+
+        async function dbSet(key, value) {
+            try {
+                const db = await openDB();
+                return await new Promise((resolve, reject) => {
+                    const transaction = db.transaction(STORE_NAME, 'readwrite');
+                    const store = transaction.objectStore(STORE_NAME);
+                    const request = store.put(value, key);
+                    request.onsuccess = () => resolve();
+                    request.onerror = () => reject(request.error);
+                });
+            } catch (e) {
+                // ignore write errors
+            }
+        }
+
+        async function dbClear() {
+            try {
+                const db = await openDB();
+                return await new Promise((resolve, reject) => {
+                    const transaction = db.transaction(STORE_NAME, 'readwrite');
+                    const store = transaction.objectStore(STORE_NAME);
+                    const request = store.clear();
+                    request.onsuccess = () => resolve();
+                    request.onerror = () => reject(request.error);
+                });
+            } catch (e) {
+                // ignore
+            }
+        }
+
+        // ==========================================
+        // FETCH WITH TIMEOUT
+        // ==========================================
+        async function fetchWithTimeout(url, timeout = FETCH_TIMEOUT) {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), timeout);
+            try {
+                const response = await fetch(url, { signal: controller.signal });
+                clearTimeout(timeoutId);
+                if (!response.ok) throw new Error(`HTTP ${response.status} for ${url}`);
+                return response;
+            } catch (err) {
+                clearTimeout(timeoutId);
+                if (err.name === 'AbortError') {
+                    throw new Error(`Request timed out after ${timeout}ms: ${url}`);
+                }
+                throw err;
+            }
         }
 
         // ==========================================
@@ -203,33 +348,68 @@
 
         let modules = [];
         let questionsData = {};
-        let activeModuleId = localStorage.getItem('activeModuleId') || null;
+        let activeModuleId = storageGet('activeModuleId') || null;
         let allDataLoaded = false;
 
         // ==========================================
-        // LOAD DATA
+        // LOAD DATA (with cache versioning, timeout, fallbacks)
         // ==========================================
         async function loadAllData() {
             try {
-                const manifestRes = await fetch('data/th-quiz/th-manifest.json');
-                if (!manifestRes.ok) throw new Error('Failed to load manifest.json');
+                // Try IndexedDB cache first
+                const cachedManifest = await dbGet('manifest');
+                if (cachedManifest && cachedManifest.version === DATA_VERSION && cachedManifest.modules) {
+                    modules = cachedManifest.modules;
+                    let allCached = true;
+                    for (const mod of modules) {
+                        const cachedData = await dbGet(`module_${mod.id}`);
+                        if (cachedData) {
+                            questionsData[mod.id] = cachedData.map(q => ({
+                                ...q,
+                                textFormatted: q.textFormatted || migrateMath(q.text),
+                                answerFormatted: q.answerFormatted || migrateMath(q.answer)
+                            }));
+                        } else {
+                            allCached = false;
+                            break;
+                        }
+                    }
+                    if (allCached) {
+                        allDataLoaded = true;
+                        renderTabs();
+                        if (!activeModuleId || !questionsData[activeModuleId]) {
+                            activeModuleId = modules[0].id;
+                            storageSet('activeModuleId', activeModuleId);
+                        }
+                        setActiveTab(activeModuleId);
+                        renderQuestions(activeModuleId, searchInput.value);
+                        return;
+                    }
+                }
+
+                // Cache missing/outdated, fetch from network
+                if (window.location.protocol === 'file:') {
+                    throw new Error('File:// protocol detected. Please run a local server (e.g., `python -m http.server`).');
+                }
+
+                const manifestRes = await fetchWithTimeout('data/th-quiz/th-manifest.json');
                 const manifest = await manifestRes.json();
                 modules = manifest.modules || [];
                 if (modules.length === 0) throw new Error('No modules defined.');
 
+                // Update manifest in cache with version
+                const manifestToStore = { ...manifest, version: DATA_VERSION };
+                await dbSet('manifest', manifestToStore);
+
                 const fetchPromises = modules.map(async (mod) => {
-                    const res = await fetch(mod.file);
-                    if (!res.ok) throw new Error(`Failed to load ${mod.file}`);
+                    const res = await fetchWithTimeout(mod.file);
                     const data = await res.json();
-                    // Ensure each question has moduleClass (fallback if missing)
-                    data.forEach(q => {
-                        if (!q.moduleClass) {
-                            // generate a class from module code, e.g. "JEB 115" -> "module-jeb"
-                            const codePart = q.module.split(' ')[0].toLowerCase();
-                            q.moduleClass = 'module-' + codePart;
-                        }
-                    });
-                    questionsData[mod.id] = data;
+                    await dbSet(`module_${mod.id}`, data);
+                    questionsData[mod.id] = data.map(q => ({
+                        ...q,
+                        textFormatted: migrateMath(q.text),
+                        answerFormatted: migrateMath(q.answer)
+                    }));
                 });
                 await Promise.all(fetchPromises);
                 allDataLoaded = true;
@@ -237,13 +417,13 @@
                 renderTabs();
                 if (!activeModuleId || !questionsData[activeModuleId]) {
                     activeModuleId = modules[0].id;
-                    localStorage.setItem('activeModuleId', activeModuleId);
+                    storageSet('activeModuleId', activeModuleId);
                 }
                 setActiveTab(activeModuleId);
                 renderQuestions(activeModuleId, searchInput.value);
 
             } catch (error) {
-                container.innerHTML = `<div class="empty-state">Error loading data: ${error.message}</div>`;
+                container.innerHTML = `<div class="error-state">Error loading data: ${escapeHtml(error.message)}</div>`;
                 console.error(error);
             }
         }
@@ -267,7 +447,7 @@
                 }
                 btn.addEventListener('click', () => {
                     activeModuleId = mod.id;
-                    localStorage.setItem('activeModuleId', activeModuleId);
+                    storageSet('activeModuleId', activeModuleId);
                     setActiveTab(activeModuleId);
                     renderQuestions(activeModuleId, searchInput.value);
                 });
@@ -289,7 +469,7 @@
         }
 
         // ==========================================
-        // RENDER QUESTIONS
+        // RENDER QUESTIONS (with escaping and class fallback)
         // ==========================================
         function renderQuestions(moduleId, searchTerm = '') {
             if (!allDataLoaded || !questionsData[moduleId]) {
@@ -300,41 +480,41 @@
             if (searchTerm.trim() !== '') {
                 const lower = searchTerm.toLowerCase();
                 qs = qs.filter(q => 
-                    q.text.toLowerCase().includes(lower) ||
-                    q.module.toLowerCase().includes(lower)
+                    (q.text && q.text.toLowerCase().includes(lower)) ||
+                    (q.module && q.module.toLowerCase().includes(lower))
                 );
             }
             if (qs.length === 0) {
                 container.innerHTML = `<div class="empty-state">No questions found.</div>`;
                 return;
             }
-            qs = qs.map(q => {
-                q.text = migrateMath(q.text);
-                q.answer = migrateMath(q.answer);
-                return q;
-            });
-            container.innerHTML = qs.map(q => `
-                <div class="q-card ${q.moduleClass}" role="button" tabindex="0" aria-expanded="false">
+
+            container.innerHTML = qs.map(q => {
+                // Fallback for moduleClass
+                const cls = q.moduleClass || 'module-' + (q.module?.split(' ')[0]?.toLowerCase() || 'default');
+                return `
+                <div class="q-card ${cls}" role="button" tabindex="0" aria-expanded="false">
                     <div class="q-header">
                         <div class="q-info">
-                            <div class="q-module">${q.module}</div>
-                            <div class="q-text">${q.text}</div>
+                            <div class="q-module">${escapeHtml(q.module)}</div>
+                            <div class="q-text">${q.textFormatted ? escapeHtml(q.textFormatted) : escapeHtml(q.text || '')}</div>
                         </div>
-                        <div class="q-marks">${q.marks} Marks</div>
+                        <div class="q-marks">${escapeHtml(String(q.marks))} Marks</div>
                         <div class="q-indicator">▼</div>
                     </div>
-                    <div class="q-answer">${q.answer}</div>
+                    <div class="q-answer">${q.answerFormatted || q.answer || ''}</div>
                 </div>
-            `).join('');
+                `;
+            }).join('');
 
             if (window.renderMathInElement) {
-                renderMathInElement(document.body, {
+                renderMathInElement(container, {
                     delimiters: [
                         {left: '$$', right: '$$', display: true},
                         {left: '\\(', right: '\\)', display: false},
                         {left: '\\[', right: '\\]', display: true}
                     ],
-                    throwOnError : false
+                    throwOnError: false
                 });
             }
         }
@@ -379,14 +559,14 @@
         // ==========================================
         // THEME
         // ==========================================
-        if (localStorage.getItem('theme') === 'dark') {
+        if (storageGet('theme') === 'dark') {
             document.body.classList.add('dark-mode');
             themeToggle.textContent = '☀️';
         }
         themeToggle.addEventListener('click', () => {
             document.body.classList.toggle('dark-mode');
             const theme = document.body.classList.contains('dark-mode') ? 'dark' : 'light';
-            localStorage.setItem('theme', theme);
+            storageSet('theme', theme);
             themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
         });
 

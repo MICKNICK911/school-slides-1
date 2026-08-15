@@ -871,7 +871,90 @@
     };
 
     // ============================================================
-    // 2. STATE
+    // 2. INDEXEDDB WRAPPER
+    // ============================================================
+    const DB_NAME = 'quizAppDB';
+    const DB_VERSION = 1;
+    const STORE_QUIZZES = 'quizzes';
+    const STORE_MANIFEST = 'manifest';
+    const STORE_STATE = 'state';
+    const STORE_HISTORY = 'history';
+    const STORE_META = 'meta';
+
+    let db = null;
+
+    function openDB() {
+        return new Promise((resolve, reject) => {
+            if (db) return resolve(db);
+            const request = indexedDB.open(DB_NAME, DB_VERSION);
+            request.onupgradeneeded = (e) => {
+                const database = e.target.result;
+                if (!database.objectStoreNames.contains(STORE_QUIZZES)) {
+                    database.createObjectStore(STORE_QUIZZES);
+                }
+                if (!database.objectStoreNames.contains(STORE_MANIFEST)) {
+                    database.createObjectStore(STORE_MANIFEST);
+                }
+                if (!database.objectStoreNames.contains(STORE_STATE)) {
+                    database.createObjectStore(STORE_STATE);
+                }
+                if (!database.objectStoreNames.contains(STORE_HISTORY)) {
+                    database.createObjectStore(STORE_HISTORY, { autoIncrement: true });
+                }
+                if (!database.objectStoreNames.contains(STORE_META)) {
+                    database.createObjectStore(STORE_META);
+                }
+            };
+            request.onsuccess = () => {
+                db = request.result;
+                resolve(db);
+            };
+            request.onerror = () => reject(request.error);
+        });
+    }
+
+    async function idbSet(storeName, key, value) {
+        const database = await openDB();
+        return new Promise((resolve, reject) => {
+            const tx = database.transaction(storeName, 'readwrite');
+            tx.objectStore(storeName).put(value, key);
+            tx.oncomplete = () => resolve();
+            tx.onerror = () => reject(tx.error);
+        });
+    }
+
+    async function idbGet(storeName, key) {
+        const database = await openDB();
+        return new Promise((resolve, reject) => {
+            const tx = database.transaction(storeName, 'readonly');
+            const request = tx.objectStore(storeName).get(key);
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
+        });
+    }
+
+    async function idbDelete(storeName, key) {
+        const database = await openDB();
+        return new Promise((resolve, reject) => {
+            const tx = database.transaction(storeName, 'readwrite');
+            tx.objectStore(storeName).delete(key);
+            tx.oncomplete = () => resolve();
+            tx.onerror = () => reject(tx.error);
+        });
+    }
+
+    async function idbClear(storeName) {
+        const database = await openDB();
+        return new Promise((resolve, reject) => {
+            const tx = database.transaction(storeName, 'readwrite');
+            tx.objectStore(storeName).clear();
+            tx.oncomplete = () => resolve();
+            tx.onerror = () => reject(tx.error);
+        });
+    }
+
+    // ============================================================
+    // 3. STATE
     // ============================================================
     const state = {
         currentModule: null,
@@ -889,7 +972,7 @@
     };
 
     // ============================================================
-    // 3. DOM REFS
+    // 4. DOM REFS
     // ============================================================
     const $ = (s) => document.querySelector(s);
     const $$ = (s) => document.querySelectorAll(s);
@@ -937,7 +1020,7 @@
     };
 
     // ============================================================
-    // 4. THEME
+    // 5. THEME
     // ============================================================
     function applyTheme(theme) {
         state.theme = theme;
@@ -960,98 +1043,6 @@
     loadTheme();
 
     // ============================================================
-    // 5. DATA LOADING
-    // ============================================================
-
-    async function loadManifest() {
-        dom.loading.style.display = 'block';
-        dom.unitSelection.style.display = 'none';
-
-        try {
-            const response = await fetch(CONFIG.manifestUrl + '?t=' + Date.now());
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            const data = await response.json();
-
-            const storedVersion = localStorage.getItem(CONFIG.appVersionKey);
-            if (storedVersion && storedVersion !== data.version) {
-                console.log('🔄 New quiz manifest version detected!');
-                const keysToRemove = [];
-                for (let i = 0; i < localStorage.length; i++) {
-                    const key = localStorage.key(i);
-                    if (key && (key.startsWith(CONFIG.cacheKey) || key === CONFIG.appVersionKey)) {
-                        keysToRemove.push(key);
-                    }
-                }
-                keysToRemove.forEach(key => localStorage.removeItem(key));
-            }
-            localStorage.setItem(CONFIG.appVersionKey, data.version);
-
-            state.manifest = data;
-            localStorage.setItem('cached_quiz_manifest', JSON.stringify(data));
-
-            dom.loading.style.display = 'none';
-            dom.unitSelection.style.display = 'block';
-
-            return data;
-        } catch (error) {
-            console.error('Failed to load manifest:', error);
-            const cached = localStorage.getItem('cached_quiz_manifest');
-            if (cached) {
-                state.manifest = JSON.parse(cached);
-                dom.loading.style.display = 'none';
-                dom.unitSelection.style.display = 'block';
-                return state.manifest;
-            }
-            dom.loading.innerHTML = `
-                <h3 style="color:var(--error-color);">⚠️ Error Loading Modules</h3>
-                <p style="color:var(--dark-gray);">Could not load quiz manifest. Please check your connection.</p>
-                <button onclick="location.reload()" style="margin-top:15px;padding:10px 24px;background:var(--primary-color);color:var(--white);border:none;border-radius:6px;cursor:pointer;font-weight:600;">
-                    🔄 Retry
-                </button>
-            `;
-            return null;
-        }
-    }
-
-    async function loadQuizData(moduleCode) {
-        const moduleEntry = state.manifest.modules.find(m => m.code === moduleCode);
-        if (!moduleEntry) {
-            console.error('Module not found in manifest:', moduleCode);
-            return null;
-        }
-
-        const fileName = moduleEntry.file || (moduleCode.toLowerCase() + '-quiz.json');
-        const url = CONFIG.quizzesBase + fileName;
-
-        const cacheKey = CONFIG.cacheKey + moduleCode;
-        const cached = localStorage.getItem(cacheKey);
-        if (cached) {
-            try {
-                const parsed = JSON.parse(cached);
-                if (parsed.timestamp && (Date.now() - parsed.timestamp < 3600000)) {
-                    console.log('Using cached quiz data for:', moduleCode);
-                    return parsed.data;
-                }
-            } catch (e) { /* ignore */ }
-        }
-
-        try {
-            const response = await fetch(url + '?t=' + Date.now());
-            if (!response.ok) throw new Error(`HTTP ${response.status} - ${url}`);
-            const data = await response.json();
-
-            const toStore = { data: data, timestamp: Date.now() };
-            localStorage.setItem(cacheKey, JSON.stringify(toStore));
-
-            return data;
-        } catch (error) {
-            console.error('Failed to load quiz:', error);
-            alert(`Could not load quiz for "${moduleCode}". Please check the file exists.`);
-            return null;
-        }
-    }
-
-    // ============================================================
     // 6. QUIZ HELPERS
     // ============================================================
     function shuffleArray(arr) {
@@ -1061,6 +1052,22 @@
             [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
         }
         return shuffled;
+    }
+
+    function prepareQuestion(question) {
+        if (!question) return question;
+        const q = { ...question };
+        if (q.type !== 'text-input' && Array.isArray(q.options) && q.options.length > 0) {
+            const indices = q.options.map((_, idx) => idx);
+            const shuffledIndices = shuffleArray(indices);
+            q.options = shuffledIndices.map(i => q.options[i]);
+            q.correctAnswer = shuffledIndices.indexOf(q.correctAnswer);
+        }
+        return q;
+    }
+
+    function prepareQuestions(questions) {
+        return questions.map(prepareQuestion);
     }
 
     function escapeHtml(text) {
@@ -1148,6 +1155,11 @@
         } else {
             timeLeft = TIME_PER_QUESTION;
         }
+        if (timeLeft <= 0) {
+            timeLeft = 0;
+            updateTimerDisplay();
+            return;
+        }
         updateTimerDisplay();
         timer = setInterval(() => {
             timeLeft--;
@@ -1164,11 +1176,9 @@
 
         savePendingTextInput();
         if (isQuestionAnswered(state.currentQuestionIndex)) {
-            // already answered – just ensure next is enabled
             if (state.currentQuestionIndex === state.currentUnitQuestions.length - 1) {
                 updateNavigation();
             } else {
-                // auto-advance because time ran out
                 feedbackTimeout = setTimeout(() => {
                     clearFeedback();
                     goToNextQuestion();
@@ -1200,9 +1210,9 @@
     }
 
     // ============================================================
-    // 8. SAVE & RESUME
+    // 8. SAVE & RESUME (IndexedDB)
     // ============================================================
-    function saveState() {
+    async function saveState() {
         if (!state.currentModule || state.quizSubmitted) return;
         const data = {
             currentModule: state.currentModule,
@@ -1217,23 +1227,114 @@
             timestamp: Date.now()
         };
         try {
-            localStorage.setItem(CONFIG.stateKey, JSON.stringify(data));
-        } catch (e) { /* ignore */ }
+            await idbSet(STORE_STATE, 'current', data);
+        } catch (e) {
+            console.error('Failed to save state:', e);
+        }
     }
 
-    function loadSavedState() {
+    async function loadSavedState() {
         try {
-            const raw = localStorage.getItem(CONFIG.stateKey);
-            return raw ? JSON.parse(raw) : null;
-        } catch (e) { return null; }
+            return await idbGet(STORE_STATE, 'current');
+        } catch (e) {
+            console.error('Failed to load state:', e);
+            return null;
+        }
     }
 
-    function clearSavedState() {
-        try { localStorage.removeItem(CONFIG.stateKey); } catch (e) { /* ignore */ }
+    async function clearSavedState() {
+        try {
+            await idbDelete(STORE_STATE, 'current');
+        } catch (e) {
+            console.error('Failed to clear state:', e);
+        }
     }
 
     // ============================================================
-    // 9. POPULATE MODULE SELECTOR
+    // 9. DATA LOADING (IndexedDB)
+    // ============================================================
+    async function loadManifest() {
+        dom.loading.style.display = 'block';
+        dom.unitSelection.style.display = 'none';
+
+        try {
+            const response = await fetch(CONFIG.manifestUrl + '?t=' + Date.now());
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const data = await response.json();
+
+            // version check
+            const storedVersion = await idbGet(STORE_META, CONFIG.appVersionKey);
+            if (storedVersion && storedVersion !== data.version) {
+                console.log('🔄 New quiz manifest version detected!');
+                // clear old caches (optional: only quizzes store, not state)
+                await idbClear(STORE_QUIZZES);
+            }
+            await idbSet(STORE_META, CONFIG.appVersionKey, data.version);
+
+            state.manifest = data;
+            await idbSet(STORE_MANIFEST, 'cached', data);
+
+            dom.loading.style.display = 'none';
+            dom.unitSelection.style.display = 'block';
+
+            return data;
+        } catch (error) {
+            console.error('Failed to load manifest:', error);
+            // try cached manifest from IndexedDB
+            const cached = await idbGet(STORE_MANIFEST, 'cached');
+            if (cached) {
+                state.manifest = cached;
+                dom.loading.style.display = 'none';
+                dom.unitSelection.style.display = 'block';
+                return state.manifest;
+            }
+            dom.loading.innerHTML = `
+                <h3 style="color:var(--error-color);">⚠️ Error Loading Modules</h3>
+                <p style="color:var(--dark-gray);">Could not load quiz manifest. Please check your connection.</p>
+                <button onclick="location.reload()" style="margin-top:15px;padding:10px 24px;background:var(--primary-color);color:var(--white);border:none;border-radius:6px;cursor:pointer;font-weight:600;">
+                    🔄 Retry
+                </button>
+            `;
+            return null;
+        }
+    }
+
+    async function loadQuizData(moduleCode) {
+        const moduleEntry = state.manifest.modules.find(m => m.code === moduleCode);
+        if (!moduleEntry) {
+            console.error('Module not found in manifest:', moduleCode);
+            return null;
+        }
+
+        const fileName = moduleEntry.file || (moduleCode.toLowerCase() + '-quiz.json');
+        const url = CONFIG.quizzesBase + fileName;
+
+        // try IndexedDB cache (with 1 hour expiry)
+        const cacheKey = CONFIG.cacheKey + moduleCode; // e.g., 'quiz_MAT101'
+        const cached = await idbGet(STORE_QUIZZES, cacheKey);
+        if (cached && cached.timestamp && (Date.now() - cached.timestamp < 3600000)) {
+            console.log('Using cached quiz data for:', moduleCode);
+            return cached.data;
+        }
+
+        try {
+            const response = await fetch(url + '?t=' + Date.now());
+            if (!response.ok) throw new Error(`HTTP ${response.status} - ${url}`);
+            const data = await response.json();
+
+            const toStore = { data: data, timestamp: Date.now() };
+            await idbSet(STORE_QUIZZES, cacheKey, toStore);
+
+            return data;
+        } catch (error) {
+            console.error('Failed to load quiz:', error);
+            alert(`Could not load quiz for "${moduleCode}". Please check the file exists.`);
+            return null;
+        }
+    }
+
+    // ============================================================
+    // 10. POPULATE MODULE SELECTOR
     // ============================================================
     function populateModuleSelector() {
         if (!state.manifest || !state.manifest.modules) {
@@ -1248,7 +1349,7 @@
     }
 
     // ============================================================
-    // 10. RENDER: UNIT SELECTION
+    // 11. RENDER: UNIT SELECTION
     // ============================================================
     function renderUnitSelection(moduleData) {
         if (!moduleData || !moduleData.units) {
@@ -1276,9 +1377,9 @@
     }
 
     // ============================================================
-    // 11. SELECT UNIT
+    // 12. SELECT UNIT
     // ============================================================
-    function selectUnit(unitId) {
+    async function selectUnit(unitId) {
         const unit = state.moduleData.units.find(u => u.id === unitId);
         if (!unit || !unit.questions || unit.questions.length === 0) {
             alert('This unit has no questions yet.');
@@ -1287,10 +1388,10 @@
 
         stopTimer();
         clearFeedback();
-        clearSavedState();
+        await clearSavedState();
 
         state.currentUnitId = unitId;
-        state.currentUnitQuestions = shuffleArray(unit.questions);
+        state.currentUnitQuestions = shuffleArray(prepareQuestions(unit.questions));
         state.currentQuestionIndex = 0;
         state.userAnswers = new Array(state.currentUnitQuestions.length).fill(null);
         state.timeSpentPerQuestion = new Array(state.currentUnitQuestions.length).fill(0);
@@ -1310,11 +1411,11 @@
 
         renderQuestion();
         startTimer();
-        saveState();
+        await saveState();
     }
 
     // ============================================================
-    // 12. LOAD MODULE
+    // 13. LOAD MODULE
     // ============================================================
     async function loadModule(moduleCode) {
         if (!moduleCode) {
@@ -1354,19 +1455,19 @@
         dom.resultContainer.style.display = 'none';
 
         renderUnitSelection(data);
-        clearSavedState();
+        await clearSavedState();
 
-        const saved = loadSavedState();
+        const saved = await loadSavedState();
         if (saved && saved.currentModule === moduleCode && saved.currentUnitId) {
             dom.resumeContainer.style.display = 'block';
         } else {
             dom.resumeContainer.style.display = 'none';
-            clearSavedState();
+            await clearSavedState();
         }
     }
 
     // ============================================================
-    // 13. RENDER: QUIZ (WITH EXPLANATION CONTROL)
+    // 14. RENDER: QUIZ (WITH EXPLANATION CONTROL)
     // ============================================================
     function renderQuestion() {
         dom.showExplanationBtn.style.display = 'none';
@@ -1378,7 +1479,6 @@
         let html = '<div class="question active">';
         html += `<div class="question-text">${escapeHtml(question.question)} ${getQuestionTypeBadge(question)}</div>`;
 
-        // Only show correct/incorrect colours if in Practice Mode AND answered, OR quiz already submitted
         const showCorrectness = (state.practiceMode && isQuestionAnswered(state.currentQuestionIndex)) || state.quizSubmitted;
 
         if (question.type === 'text-input') {
@@ -1431,12 +1531,7 @@
         html += '</div>';
         dom.questionContainer.innerHTML = html;
 
-        // Show explanation button only in Practice Mode, after answering, before submission
-        if (state.practiceMode && !state.quizSubmitted && isQuestionAnswered(state.currentQuestionIndex)) {
-            dom.showExplanationBtn.style.display = 'inline-block';
-        } else {
-            dom.showExplanationBtn.style.display = 'none';
-        }
+        updateExplanationButtonVisibility();
 
         if (!state.quizSubmitted && !isQuestionAnswered(state.currentQuestionIndex)) {
             if (question.type === 'text-input') {
@@ -1462,8 +1557,16 @@
         }
     }
 
+    function updateExplanationButtonVisibility() {
+        if (state.practiceMode && !state.quizSubmitted && isQuestionAnswered(state.currentQuestionIndex)) {
+            dom.showExplanationBtn.style.display = 'inline-block';
+        } else {
+            dom.showExplanationBtn.style.display = 'none';
+        }
+    }
+
     // ============================================================
-    // 14. UPDATE NAVIGATION
+    // 15. UPDATE NAVIGATION
     // ============================================================
     function updateNavigation() {
         dom.prevBtn.disabled = state.currentQuestionIndex === 0;
@@ -1475,7 +1578,8 @@
             if (state.practiceMode) {
                 dom.submitBtn.disabled = false;
             } else {
-                dom.submitBtn.disabled = !currentAnswered && !state.quizSubmitted;
+                // FIX: allow submit when time has expired (timeLeft <= 0)
+                dom.submitBtn.disabled = !currentAnswered && !state.quizSubmitted && timeLeft > 0;
             }
         } else {
             dom.nextBtn.style.display = 'block';
@@ -1489,7 +1593,7 @@
     }
 
     // ============================================================
-    // 15. SHOW FEEDBACK WITH SOURCE & EXPLANATION (PRACTICE MODE ONLY)
+    // 16. SHOW FEEDBACK WITH SOURCE & EXPLANATION
     // ============================================================
     function extractSourceFromExplanation(explanation) {
         if (!explanation) return null;
@@ -1510,7 +1614,7 @@
         return null;
     }
 
-    function showFeedbackWithSource(isCorrect, question, userAnswer) {
+    function showFeedbackWithSource(isCorrect, question) {
         clearFeedback();
 
         let correctAnswerText = '';
@@ -1533,7 +1637,7 @@
     }
 
     // ============================================================
-    // 16. EVENT HANDLERS
+    // 17. EVENT HANDLERS
     // ============================================================
     function handleTextInputChange(e) {
         if (state.quizSubmitted) return;
@@ -1568,13 +1672,11 @@
         const isCorrect = checkTextAnswer(rawValue, question);
 
         if (state.practiceMode) {
-            showFeedbackWithSource(isCorrect, question, rawValue);
+            showFeedbackWithSource(isCorrect, question);
         } else {
             clearFeedback();
-            // NO auto-advance in timed mode – user must click Next or wait for timeout
         }
 
-        // In-place UI update
         const showCorrectness = (state.practiceMode && isQuestionAnswered(state.currentQuestionIndex)) || state.quizSubmitted;
         textInput.disabled = true;
         if (showCorrectness) {
@@ -1594,6 +1696,7 @@
         }
 
         updateNavigation();
+        updateExplanationButtonVisibility();
         saveState();
     }
 
@@ -1615,10 +1718,8 @@
             showFeedbackWithSource(isCorrect, question);
         } else {
             clearFeedback();
-            // NO auto-advance in timed mode – user must click Next or wait for timeout
         }
 
-        // Update UI in-place
         const options = dom.questionContainer.querySelectorAll('.option');
         const showCorrectness = (state.practiceMode && isQuestionAnswered(state.currentQuestionIndex)) || state.quizSubmitted;
         options.forEach((opt, idx) => {
@@ -1637,6 +1738,7 @@
         });
 
         updateNavigation();
+        updateExplanationButtonVisibility();
         saveState();
     }
 
@@ -1663,12 +1765,12 @@
         }
         if (!isQuestionAnswered(state.currentQuestionIndex) && !state.practiceMode && timer) {
             state.timeLeftPerQuestion[state.currentQuestionIndex] = timeLeft;
-            state.timeSpentPerQuestion[state.currentQuestionIndex] = 0;
+            state.timeSpentPerQuestion[state.currentQuestionIndex] = TIME_PER_QUESTION - timeLeft;
         }
     }
 
     // ============================================================
-    // 17. NAVIGATION
+    // 18. NAVIGATION
     // ============================================================
     function goToPreviousQuestion() {
         if (state.currentQuestionIndex > 0) {
@@ -1695,7 +1797,7 @@
     }
 
     // ============================================================
-    // 18. MODE TOGGLE
+    // 19. MODE TOGGLE
     // ============================================================
     function setMode(isPractice) {
         state.practiceMode = isPractice;
@@ -1720,14 +1822,14 @@
     }
 
     // ============================================================
-    // 19. SUBMIT & RESULTS
+    // 20. SUBMIT & RESULTS
     // ============================================================
-    function submitQuiz() {
+    async function submitQuiz() {
         finaliseCurrentQuestionBeforeLeaving();
         state.quizSubmitted = true;
         stopTimer();
         clearFeedback();
-        clearSavedState();
+        await clearSavedState();
 
         let correctCount = 0, incorrectCount = 0;
         state.currentUnitQuestions.forEach((q, i) => {
@@ -1767,10 +1869,10 @@
         dom.feedback.innerHTML = '';
         renderReview();
 
+        // Save history to IndexedDB
         try {
-            const history = JSON.parse(localStorage.getItem(CONFIG.historyKey) || '[]');
             const unitName = state.moduleData.units.find(u => u.id === state.currentUnitId)?.title || 'Unknown Unit';
-            history.push({
+            const historyEntry = {
                 module: state.currentModule,
                 unit: unitName,
                 score: correctCount,
@@ -1778,9 +1880,12 @@
                 percentage: Math.round(percentage),
                 practiceMode: state.practiceMode,
                 date: new Date().toISOString()
-            });
-            localStorage.setItem(CONFIG.historyKey, JSON.stringify(history.slice(-20)));
-        } catch (e) { /* ignore */ }
+            };
+            // We don't need to await this; it's best-effort
+            idbSet(STORE_HISTORY, Date.now().toString(), historyEntry);
+        } catch (e) {
+            console.error('Failed to save history:', e);
+        }
     }
 
     function renderReview() {
@@ -1825,14 +1930,15 @@
     }
 
     // ============================================================
-    // 20. RESTART & BACK
+    // 21. RESTART & BACK
     // ============================================================
-    function restartQuiz() {
+    async function restartQuiz() {
         stopTimer();
         clearFeedback();
-        clearSavedState();
+        await clearSavedState();
         if (!state.currentUnitQuestions.length) return;
-        state.currentUnitQuestions = shuffleArray(state.moduleData.units.find(u => u.id === state.currentUnitId).questions);
+        const unit = state.moduleData.units.find(u => u.id === state.currentUnitId);
+        state.currentUnitQuestions = shuffleArray(prepareQuestions(unit.questions));
         state.currentQuestionIndex = 0;
         state.userAnswers = new Array(state.currentUnitQuestions.length).fill(null);
         state.timeSpentPerQuestion = new Array(state.currentUnitQuestions.length).fill(0);
@@ -1845,13 +1951,13 @@
         dom.showExplanationBtn.style.display = 'none';
         renderQuestion();
         startTimer();
-        saveState();
+        await saveState();
     }
 
-    function backToUnitSelection() {
+    async function backToUnitSelection() {
         stopTimer();
         clearFeedback();
-        clearSavedState();
+        await clearSavedState();
         dom.quizContainer.style.display = 'none';
         dom.resultContainer.style.display = 'none';
         dom.unitSelection.style.display = 'block';
@@ -1880,27 +1986,27 @@
     }
 
     // ============================================================
-    // 21. RESUME
+    // 22. RESUME
     // ============================================================
-    function resumeQuiz() {
-        const saved = loadSavedState();
+    async function resumeQuiz() {
+        const saved = await loadSavedState();
         if (!saved || !saved.currentModule || !saved.currentUnitId) {
-            clearSavedState();
+            await clearSavedState();
             dom.resumeContainer.style.display = 'none';
             return;
         }
         if (!state.manifest.modules.find(m => m.code === saved.currentModule)) {
-            clearSavedState();
+            await clearSavedState();
             dom.resumeContainer.style.display = 'none';
             return;
         }
 
         if (state.currentModule !== saved.currentModule) {
-            loadModuleAndResume(saved);
+            await loadModuleAndResume(saved);
             return;
         }
 
-        doResume(saved);
+        await doResume(saved);
     }
 
     async function loadModuleAndResume(saved) {
@@ -1924,10 +2030,10 @@
         dom.unitSelection.style.display = 'block';
         renderUnitSelection(data);
 
-        doResume(saved);
+        await doResume(saved);
     }
 
-    function doResume(saved) {
+    async function doResume(saved) {
         state.currentUnitId = saved.currentUnitId;
         state.currentUnitQuestions = saved.currentUnitQuestions;
         state.currentQuestionIndex = saved.currentQuestionIndex;
@@ -1956,7 +2062,7 @@
             startTimer();
         }
         dom.resumeContainer.style.display = 'none';
-        clearSavedState();
+        await clearSavedState();
     }
 
     function showResultsFromState() {
@@ -1999,7 +2105,7 @@
     }
 
     // ============================================================
-    // 22. AUTO-SAVE ON LEAVE
+    // 23. AUTO-SAVE ON LEAVE
     // ============================================================
     window.addEventListener('blur', () => {
         if (state.currentModule && !state.quizSubmitted) {
@@ -2015,7 +2121,7 @@
     });
 
     // ============================================================
-    // 23. EVENT BINDING
+    // 24. EVENT BINDING
     // ============================================================
     dom.moduleSelector.addEventListener('change', function() {
         if (this.value) {
@@ -2024,8 +2130,6 @@
             loadModule(null);
         }
     });
-
-    dom.themeToggle.addEventListener('click', toggleTheme);
 
     dom.prevBtn.addEventListener('click', goToPreviousQuestion);
     dom.nextBtn.addEventListener('click', goToNextQuestion);
@@ -2037,11 +2141,13 @@
     dom.modeTimed.addEventListener('click', () => setMode(false));
     dom.modePractice.addEventListener('click', () => setMode(true));
     dom.resumeBtn.addEventListener('click', resumeQuiz);
-    dom.discardBtn.addEventListener('click', () => { clearSavedState();
-        dom.resumeContainer.style.display = 'none'; });
+    dom.discardBtn.addEventListener('click', async () => {
+        await clearSavedState();
+        dom.resumeContainer.style.display = 'none';
+    });
 
     // ============================================================
-    // 24. INITIALIZATION
+    // 25. INITIALIZATION
     // ============================================================
     async function init() {
         const manifest = await loadManifest();
@@ -2049,7 +2155,7 @@
 
         populateModuleSelector();
 
-        const saved = loadSavedState();
+        const saved = await loadSavedState();
         if (saved && saved.currentModule && manifest.modules.find(m => m.code === saved.currentModule)) {
             dom.resumeContainer.style.display = 'block';
             setMode(saved.practiceMode || false);
@@ -2072,10 +2178,10 @@
             dom.unitSelectionTitle.textContent = 'Select a Module';
             dom.unitSelectionSubtitle.textContent = 'Choose a module from the dropdown above, then select a unit';
             dom.unitGrid.innerHTML = '<p style="text-align:center;color:var(--dark-gray);padding:40px 0;">👆 Select a module from the dropdown above to get started.</p>';
-            clearSavedState();
+            await clearSavedState();
         }
 
-        console.log('✅ Quiz App ready! Timed mode: no auto-advance on answer. Practice mode: no pre-highlighted correct answer.');
+        console.log('✅ Quiz App ready with IndexedDB storage!');
     }
 
     init();
