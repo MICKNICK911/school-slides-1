@@ -1450,6 +1450,15 @@
                 }
             });
 
+            // Session title input listener (new)
+            dom.sessionTitleInput.addEventListener('input', () => {
+                if (state.selectedSession) {
+                    state.selectedSession.title = dom.sessionTitleInput.value;
+                    renderSidebar(); // update sidebar title live
+                    markDirty();
+                }
+            });
+
             // Module selector
             dom.moduleSelector.addEventListener('change', async function() {
                 if (this.value) {
