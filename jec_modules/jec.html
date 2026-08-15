@@ -77,7 +77,7 @@
 
         #app { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
-        #topbar { display: flex; align-items: center; gap: 8px; padding: 0 16px; height: var(--header-height); background: var(--surface); border-bottom: 2px solid var(--accent); flex-shrink: 0; z-index: 100; transition: background 0.3s, border-color 0.3s; flex-wrap: nowrap; }
+        #topbar { display: flex; align-items: center; gap: 8px; padding: 0 12px; height: var(--header-height); background: var(--surface); border-bottom: 2px solid var(--accent); flex-shrink: 0; z-index: 100; transition: background 0.3s, border-color 0.3s; flex-wrap: nowrap; }
         #topbar .brand { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 1.1rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1 1 auto; min-width: 0; }
         #topbar .brand small { font-weight: 400; font-size: 0.75rem; color: var(--text-secondary); margin-left: 4px; }
 
@@ -86,9 +86,9 @@
             align-items: center;
             gap: 4px;
             flex-shrink: 0;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;          /* prevent wrapping */
             justify-content: flex-end;
-            position: relative; /* for dropdown */
+            position: relative;         /* for dropdown */
         }
         .topbar-actions .quiz-btn { display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border: 2px solid var(--accent); color: var(--accent); transition: 0.2s; height: 32px; background: transparent; white-space: nowrap; }
         .topbar-actions .quiz-btn:hover { background: var(--accent); color: var(--wine-dark); }
@@ -256,14 +256,16 @@
             #module-selector { max-width: 200px; }
         }
         @media (max-width: 600px) {
-            #topbar .brand { font-size: 0.9rem; }
-            .topbar-actions .quiz-btn { font-size: 0.6rem; padding: 2px 8px; height: 26px; }
-            #module-selector { max-width: 80px; font-size: 0.7rem; padding: 2px 4px; }
+            #topbar .brand { font-size: 0.85rem; }   /* smaller title but visible */
+            .topbar-actions .quiz-btn { font-size: 0.55rem; padding: 2px 6px; height: 24px; border-width: 1px; }
+            #module-selector { display: none !important; }   /* hide top module selector */
+            #module-selector-mobile { display: block !important; }  /* show inside dropdown */
             .topbar-actions button { width: 32px; height: 32px; font-size: 1rem; }
+            #hamburger { width: 36px; height: 36px; }
             #splash-screen h1 { font-size: 2rem; }
             .editor-toolbar button { min-width: 28px; height: 28px; font-size: 0.75rem; padding: 0 4px; }
 
-            /* Hide only the individual action buttons, keep quiz buttons visible */
+            /* Hide individual action buttons, keep quiz buttons visible */
             #editModeToggle,
             #importBtn,
             #exportBtn,
@@ -271,7 +273,6 @@
             #themeToggle {
                 display: none !important;
             }
-            /* Show tools menu button */
             #toolsMenuBtn {
                 display: inline-flex !important;
             }
@@ -302,7 +303,7 @@
             box-shadow: var(--shadow);
             display: none;
             flex-direction: column;
-            min-width: 160px;
+            min-width: 200px;
             z-index: 300;
             padding: 4px;
         }
@@ -313,7 +314,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            padding: 8px 12px;
+            padding: 10px 12px;
             font-size: 0.85rem;
             color: var(--text);
             border-radius: 4px;
@@ -324,9 +325,37 @@
             text-align: left;
             width: 100%;
             white-space: nowrap;
+            border-bottom: 1px solid var(--border);
+        }
+        .dropdown-item:last-child {
+            border-bottom: none;
         }
         .dropdown-item:hover {
             background: var(--surface-2);
+        }
+        .dropdown-module {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            font-size: 0.85rem;
+            color: var(--text);
+            border-bottom: 1px solid var(--border);
+        }
+        .dropdown-module label {
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-right: 4px;
+        }
+        .dropdown-module select {
+            flex: 1;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            outline: none;
         }
 
         .hidden { display: none !important; }
@@ -370,14 +399,20 @@
                 <button id="refreshBtn" aria-label="Refresh content" title="Refresh content">🔄</button>
                 <button id="themeToggle" aria-label="Toggle dark mode">🌙</button>
 
-                <!-- Mobile tools dropdown (no quiz buttons) -->
+                <!-- Mobile tools dropdown -->
                 <button id="toolsMenuBtn" class="tools-menu-btn" title="More tools" aria-label="More tools">⚙️</button>
                 <div id="toolsDropdown" class="tools-dropdown">
-                    <button id="editModeToggleMobile" class="dropdown-item">👁️</button>
+                    <div class="dropdown-module">
+                        <label for="module-selector-mobile">Module</label>
+                        <select id="module-selector-mobile" style="display:none;">
+                            <option value="">— Select —</option>
+                        </select>
+                    </div>
+                    <button id="editModeToggleMobile" class="dropdown-item">👁️ View/Edit</button>
                     <button id="importBtnMobile" class="dropdown-item">📥 Import</button>
                     <button id="exportBtnMobile" class="dropdown-item">📤 Export</button>
                     <button id="refreshBtnMobile" class="dropdown-item">🔄 Refresh</button>
-                    <button id="themeToggleMobile" class="dropdown-item">🌙</button>
+                    <button id="themeToggleMobile" class="dropdown-item">🌙 Theme</button>
                 </div>
             </div>
         </header>
@@ -496,6 +531,7 @@
             moduleTitle: $('#module-title'),
             moduleCode: $('#module-code'),
             moduleSelector: $('#module-selector'),
+            moduleSelectorMobile: $('#module-selector-mobile'),
             themeToggle: $('#themeToggle'),
             refreshBtn: $('#refreshBtn'),
             importBtn: $('#importBtn'),
@@ -1163,7 +1199,7 @@
             state.editMode = !state.editMode;
             dom.editModeToggle.textContent = state.editMode ? '👁️' : '✏️';
             const mobileEditBtn = $('#editModeToggleMobile');
-            if (mobileEditBtn) mobileEditBtn.textContent = state.editMode ? '👁️' : '✏️';
+            if (mobileEditBtn) mobileEditBtn.textContent = state.editMode ? '👁️ View' : '✏️ Edit';
             renderSidebar();
             if (state.editMode) {
                 if (state.selectedSession) {
@@ -1393,6 +1429,7 @@
                 state.selectedSession = null;
                 state.dirty = false;
                 dom.moduleSelector.value = '';
+                dom.moduleSelectorMobile.value = '';
                 return;
             }
 
@@ -1407,6 +1444,7 @@
             state.moduleData = data;
             state.dirty = false;
             dom.moduleSelector.value = moduleCode;
+            dom.moduleSelectorMobile.value = moduleCode;
             dom.moduleTitle.textContent = data.title || moduleCode;
             dom.moduleCode.textContent = data.code || '';
             renderSidebar();
@@ -1470,11 +1508,13 @@
         }
 
         // ============================================================
-        // 19. POPULATE MODULE SELECTOR
+        // 19. POPULATE MODULE SELECTOR (both top and mobile)
         // ============================================================
         function populateModuleSelector(manifest) {
             if (!manifest || !manifest.modules) {
-                dom.moduleSelector.innerHTML = `<option value="">— No modules —</option>`;
+                const emptyOpt = `<option value="">— No modules —</option>`;
+                dom.moduleSelector.innerHTML = emptyOpt;
+                dom.moduleSelectorMobile.innerHTML = emptyOpt;
                 return;
             }
             let html = `<option value=""> Select </option>`;
@@ -1482,6 +1522,7 @@
                 html += `<option value="${escapeHtml(mod.code)}">${escapeHtml(mod.code)}</option>`;
             });
             dom.moduleSelector.innerHTML = html;
+            dom.moduleSelectorMobile.innerHTML = html;
         }
 
         // ============================================================
@@ -1527,6 +1568,7 @@
                 }
             });
 
+            // Top module selector
             dom.moduleSelector.addEventListener('change', async function() {
                 if (this.value) {
                     await saveNow();
@@ -1535,6 +1577,23 @@
                     window.location.hash = '';
                     loadModule(null);
                 }
+                // sync mobile selector
+                dom.moduleSelectorMobile.value = this.value;
+            });
+
+            // Mobile module selector
+            dom.moduleSelectorMobile.addEventListener('change', async function() {
+                if (this.value) {
+                    await saveNow();
+                    window.location.hash = buildHash(this.value);
+                } else {
+                    window.location.hash = '';
+                    loadModule(null);
+                }
+                // sync top selector
+                dom.moduleSelector.value = this.value;
+                // close dropdown
+                dom.toolsDropdown.classList.remove('show');
             });
 
             dom.searchBox.addEventListener('input', function() {
@@ -1556,14 +1615,29 @@
             });
 
             dom.toolsDropdown.addEventListener('click', () => {
-                dom.toolsDropdown.classList.remove('show');
+                // keep open for module selector? we'll close on specific item clicks
             });
 
-            $('#editModeToggleMobile').addEventListener('click', toggleEditMode);
-            $('#importBtnMobile').addEventListener('click', () => dom.importFileInput.click());
-            $('#exportBtnMobile').addEventListener('click', exportCurrentModule);
-            $('#refreshBtnMobile').addEventListener('click', refreshApp);
-            $('#themeToggleMobile').addEventListener('click', toggleTheme);
+            $('#editModeToggleMobile').addEventListener('click', () => {
+                toggleEditMode();
+                dom.toolsDropdown.classList.remove('show');
+            });
+            $('#importBtnMobile').addEventListener('click', () => {
+                dom.importFileInput.click();
+                dom.toolsDropdown.classList.remove('show');
+            });
+            $('#exportBtnMobile').addEventListener('click', () => {
+                exportCurrentModule();
+                dom.toolsDropdown.classList.remove('show');
+            });
+            $('#refreshBtnMobile').addEventListener('click', () => {
+                refreshApp();
+                dom.toolsDropdown.classList.remove('show');
+            });
+            $('#themeToggleMobile').addEventListener('click', () => {
+                toggleTheme();
+                dom.toolsDropdown.classList.remove('show');
+            });
 
             window.addEventListener('hashchange', async () => {
                 const hash = parseHash();
