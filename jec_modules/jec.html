@@ -258,14 +258,13 @@
         @media (max-width: 600px) {
             #topbar .brand { font-size: 0.85rem; }   /* smaller title but visible */
             .topbar-actions .quiz-btn { font-size: 0.55rem; padding: 2px 6px; height: 24px; border-width: 1px; }
-            #module-selector { display: none !important; }   /* hide top module selector */
-            #module-selector-mobile { display: block !important; }  /* show inside dropdown */
+            #module-selector { max-width: 70px; font-size: 0.7rem; padding: 2px 4px; height: 26px; }
             .topbar-actions button { width: 32px; height: 32px; font-size: 1rem; }
             #hamburger { width: 36px; height: 36px; }
             #splash-screen h1 { font-size: 2rem; }
             .editor-toolbar button { min-width: 28px; height: 28px; font-size: 0.75rem; padding: 0 4px; }
 
-            /* Hide individual action buttons, keep quiz buttons visible */
+            /* Hide individual action buttons, keep quiz buttons and module selector visible */
             #editModeToggle,
             #importBtn,
             #exportBtn,
@@ -278,15 +277,15 @@
             }
         }
 
-        /* Tools dropdown */
+        /* Tools dropdown – icon‑only, centered column */
         .tools-menu-btn {
             display: none;
-            width: 36px;
-            height: 36px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             align-items: center;
             justify-content: center;
-            font-size: 1.2rem;
+            font-size: 1.4rem;
             background: transparent;
             color: var(--text-secondary);
             flex-shrink: 0;
@@ -303,9 +302,15 @@
             box-shadow: var(--shadow);
             display: none;
             flex-direction: column;
-            min-width: 200px;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 8px;
+            min-width: 56px;
+            max-width: 80px;
             z-index: 300;
-            padding: 4px;
+            box-sizing: border-box;
+            overflow: hidden;
         }
         .tools-dropdown.show {
             display: flex;
@@ -313,49 +318,29 @@
         .dropdown-item {
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 10px 12px;
-            font-size: 0.85rem;
-            color: var(--text);
-            border-radius: 4px;
-            text-decoration: none;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            font-size: 1.4rem;
+            color: var(--text-secondary);
+            background: transparent;
             border: none;
-            background: none;
             cursor: pointer;
-            text-align: left;
-            width: 100%;
+            padding: 0;
+            margin: 0;
+            text-align: center;
+            text-decoration: none;
+            transition: background 0.2s, color 0.2s;
             white-space: nowrap;
-            border-bottom: 1px solid var(--border);
-        }
-        .dropdown-item:last-child {
-            border-bottom: none;
+            overflow: hidden;
         }
         .dropdown-item:hover {
             background: var(--surface-2);
+            color: var(--accent);
         }
-        .dropdown-module {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 12px;
-            font-size: 0.85rem;
-            color: var(--text);
-            border-bottom: 1px solid var(--border);
-        }
-        .dropdown-module label {
-            font-weight: 600;
-            color: var(--text-secondary);
-            margin-right: 4px;
-        }
-        .dropdown-module select {
-            flex: 1;
-            background: var(--surface-2);
-            border: 1px solid var(--border);
-            color: var(--text);
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.85rem;
-            outline: none;
+        .dropdown-item:active {
+            transform: scale(0.92);
         }
 
         .hidden { display: none !important; }
@@ -365,102 +350,6 @@
         #sidebar::-webkit-scrollbar, #content::-webkit-scrollbar { width: 5px; }
         #sidebar::-webkit-scrollbar-track, #content::-webkit-scrollbar-track { background: transparent; }
         #sidebar::-webkit-scrollbar-thumb, #content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
-        
-        /* ============================================================
-   MOBILE TOOLS DROPDOWN – ICON-ONLY, CENTERED COLUMN
-   ============================================================ */
-
-/* Dropdown container */
-.tools-dropdown {
-    position: absolute;
-    right: 0;
-    top: 100%;
-    margin-top: 4px;
-    background: var(--surface);
-    border: 2px solid var(--accent);
-    border-radius: 8px;
-    box-shadow: var(--shadow);
-    display: none;
-    flex-direction: column;
-    align-items: center;          /* center items horizontally */
-    justify-content: center;      /* center items vertically (if height fixed) */
-    gap: 8px;                     /* even spacing between icons */
-    padding: 12px 8px;
-    min-width: 56px;              /* compact but enough for icons */
-    max-width: 80px;              /* prevent it from being too wide */
-    z-index: 300;
-    box-sizing: border-box;
-    overflow: hidden;
-}
-
-/* Show dropdown */
-.tools-dropdown.show {
-    display: flex;
-}
-
-/* Hide module selector row inside dropdown on mobile */
-.dropdown-module {
-    display: none !important;     /* remove completely if you don't want it */
-}
-
-/* Action buttons – icon only, circular, centered */
-.dropdown-item {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    font-size: 1.4rem;           /* large enough for icon visibility */
-    color: var(--text-secondary);
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    padding: 0;
-    margin: 0;
-    text-align: center;
-    text-decoration: none;
-    transition: background 0.2s, color 0.2s;
-    white-space: nowrap;
-    overflow: hidden;
-}
-
-/* Hide any text inside dropdown items (keep only the icon emoji/symbol) */
-.dropdown-item::after,
-.dropdown-item::before {
-    content: none !important;
-}
-
-/* Hover/active states */
-.dropdown-item:hover {
-    background: var(--surface-2);
-    color: var(--accent);
-}
-.dropdown-item:active {
-    transform: scale(0.92);
-}
-
-/* Tools menu button (the gear icon) */
-#toolsMenuBtn {
-    display: none;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.4rem;
-    background: transparent;
-    color: var(--text-secondary);
-    flex-shrink: 0;
-    position: relative;
-}
-
-/* On mobile, show the tools button */
-@media (max-width: 600px) {
-    #toolsMenuBtn {
-        display: inline-flex !important;
-    }
-}
     </style>
 </head>
 <body>
@@ -495,20 +384,14 @@
                 <button id="refreshBtn" aria-label="Refresh content" title="Refresh content">🔄</button>
                 <button id="themeToggle" aria-label="Toggle dark mode">🌙</button>
 
-                <!-- Mobile tools dropdown -->
+                <!-- Mobile tools dropdown (icon only) -->
                 <button id="toolsMenuBtn" class="tools-menu-btn" title="More tools" aria-label="More tools">⚙️</button>
                 <div id="toolsDropdown" class="tools-dropdown">
-                    <div class="dropdown-module">
-                        <label for="module-selector-mobile">Module</label>
-                        <select id="module-selector-mobile" style="display:none;">
-                            <option value="">— Select —</option>
-                        </select>
-                    </div>
-                    <button id="editModeToggleMobile" class="dropdown-item">👁️ View/Edit</button>
-                    <button id="importBtnMobile" class="dropdown-item">📥 Import</button>
-                    <button id="exportBtnMobile" class="dropdown-item">📤 Export</button>
-                    <button id="refreshBtnMobile" class="dropdown-item">🔄 Refresh</button>
-                    <button id="themeToggleMobile" class="dropdown-item">🌙 Theme</button>
+                    <button id="editModeToggleMobile" class="dropdown-item" title="Toggle edit mode">👁️</button>
+                    <button id="importBtnMobile" class="dropdown-item" title="Import module">📥</button>
+                    <button id="exportBtnMobile" class="dropdown-item" title="Export module">📤</button>
+                    <button id="refreshBtnMobile" class="dropdown-item" title="Refresh">🔄</button>
+                    <button id="themeToggleMobile" class="dropdown-item" title="Toggle theme">🌙</button>
                 </div>
             </div>
         </header>
@@ -627,7 +510,6 @@
             moduleTitle: $('#module-title'),
             moduleCode: $('#module-code'),
             moduleSelector: $('#module-selector'),
-            moduleSelectorMobile: $('#module-selector-mobile'),
             themeToggle: $('#themeToggle'),
             refreshBtn: $('#refreshBtn'),
             importBtn: $('#importBtn'),
@@ -1295,7 +1177,7 @@
             state.editMode = !state.editMode;
             dom.editModeToggle.textContent = state.editMode ? '👁️' : '✏️';
             const mobileEditBtn = $('#editModeToggleMobile');
-            if (mobileEditBtn) mobileEditBtn.textContent = state.editMode ? '👁️ View' : '✏️ Edit';
+            if (mobileEditBtn) mobileEditBtn.textContent = state.editMode ? '👁️' : '✏️';
             renderSidebar();
             if (state.editMode) {
                 if (state.selectedSession) {
@@ -1525,7 +1407,6 @@
                 state.selectedSession = null;
                 state.dirty = false;
                 dom.moduleSelector.value = '';
-                dom.moduleSelectorMobile.value = '';
                 return;
             }
 
@@ -1540,7 +1421,6 @@
             state.moduleData = data;
             state.dirty = false;
             dom.moduleSelector.value = moduleCode;
-            dom.moduleSelectorMobile.value = moduleCode;
             dom.moduleTitle.textContent = data.title || moduleCode;
             dom.moduleCode.textContent = data.code || '';
             renderSidebar();
@@ -1604,13 +1484,11 @@
         }
 
         // ============================================================
-        // 19. POPULATE MODULE SELECTOR (both top and mobile)
+        // 19. POPULATE MODULE SELECTOR
         // ============================================================
         function populateModuleSelector(manifest) {
             if (!manifest || !manifest.modules) {
-                const emptyOpt = `<option value="">— No modules —</option>`;
-                dom.moduleSelector.innerHTML = emptyOpt;
-                dom.moduleSelectorMobile.innerHTML = emptyOpt;
+                dom.moduleSelector.innerHTML = `<option value="">— No modules —</option>`;
                 return;
             }
             let html = `<option value=""> Select </option>`;
@@ -1618,7 +1496,6 @@
                 html += `<option value="${escapeHtml(mod.code)}">${escapeHtml(mod.code)}</option>`;
             });
             dom.moduleSelector.innerHTML = html;
-            dom.moduleSelectorMobile.innerHTML = html;
         }
 
         // ============================================================
@@ -1664,7 +1541,7 @@
                 }
             });
 
-            // Top module selector
+            // Module selector
             dom.moduleSelector.addEventListener('change', async function() {
                 if (this.value) {
                     await saveNow();
@@ -1673,23 +1550,6 @@
                     window.location.hash = '';
                     loadModule(null);
                 }
-                // sync mobile selector
-                dom.moduleSelectorMobile.value = this.value;
-            });
-
-            // Mobile module selector
-            dom.moduleSelectorMobile.addEventListener('change', async function() {
-                if (this.value) {
-                    await saveNow();
-                    window.location.hash = buildHash(this.value);
-                } else {
-                    window.location.hash = '';
-                    loadModule(null);
-                }
-                // sync top selector
-                dom.moduleSelector.value = this.value;
-                // close dropdown
-                dom.toolsDropdown.classList.remove('show');
             });
 
             dom.searchBox.addEventListener('input', function() {
@@ -1710,10 +1570,7 @@
                 }
             });
 
-            dom.toolsDropdown.addEventListener('click', () => {
-                // keep open for module selector? we'll close on specific item clicks
-            });
-
+            // Mobile dropdown buttons
             $('#editModeToggleMobile').addEventListener('click', () => {
                 toggleEditMode();
                 dom.toolsDropdown.classList.remove('show');
