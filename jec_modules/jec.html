@@ -86,9 +86,9 @@
             align-items: center;
             gap: 4px;
             flex-shrink: 0;
-            flex-wrap: nowrap;          /* prevent wrapping */
+            flex-wrap: nowrap;
             justify-content: flex-end;
-            position: relative;         /* for dropdown */
+            position: relative;
         }
         .topbar-actions .quiz-btn { display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border: 2px solid var(--accent); color: var(--accent); transition: 0.2s; height: 32px; background: transparent; white-space: nowrap; }
         .topbar-actions .quiz-btn:hover { background: var(--accent); color: var(--wine-dark); }
@@ -256,7 +256,7 @@
             #module-selector { max-width: 200px; }
         }
         @media (max-width: 600px) {
-            #topbar .brand { font-size: 0.85rem; }   /* smaller title but visible */
+            #topbar .brand { font-size: 0.85rem; }
             .topbar-actions .quiz-btn { font-size: 0.55rem; padding: 2px 6px; height: 24px; border-width: 1px; }
             #module-selector { max-width: 70px; font-size: 0.7rem; padding: 2px 4px; height: 26px; }
             .topbar-actions button { width: 32px; height: 32px; font-size: 1rem; }
@@ -387,7 +387,7 @@
                 <!-- Mobile tools dropdown (icon only) -->
                 <button id="toolsMenuBtn" class="tools-menu-btn" title="More tools" aria-label="More tools">⚙️</button>
                 <div id="toolsDropdown" class="tools-dropdown">
-                    <button id="editModeToggleMobile" class="dropdown-item" title="Toggle edit mode">👁️</button>
+                    <button id="editModeToggleMobile" class="dropdown-item" title="Toggle edit mode">✏️</button>
                     <button id="importBtnMobile" class="dropdown-item" title="Import module">📥</button>
                     <button id="exportBtnMobile" class="dropdown-item" title="Export module">📤</button>
                     <button id="refreshBtnMobile" class="dropdown-item" title="Refresh">🔄</button>
@@ -399,6 +399,7 @@
         <!-- Hidden file inputs -->
         <input type="file" id="importFileInput" accept=".json" style="display:none" />
         <input type="file" id="imageFileInput" accept="image/*" style="display:none" />
+        <input type="color" id="fontColorInput" style="display:none;" value="#000000" />
 
         <!-- Overlay -->
         <div id="overlay" aria-hidden="true"></div>
@@ -460,6 +461,7 @@
                         <button data-command="insertOrderedList" title="Numbered List">1.</button>
                         <button data-command="createLink" title="Link">🔗</button>
                         <button data-command="insertImage" title="Image">🖼️</button>
+                        <button id="fontColorBtn" title="Font Colour">🌈</button>
                         <button data-command="removeFormat" title="Clear Formatting">🧹</button>
                     </div>
                     <div id="editor-content" class="editor-content" contenteditable="true" data-placeholder="Enter content..."></div>
@@ -517,6 +519,7 @@
             editModeToggle: $('#editModeToggle'),
             importFileInput: $('#importFileInput'),
             imageFileInput: $('#imageFileInput'),
+            fontColorInput: $('#fontColorInput'),
             searchBox: $('#search-box'),
             navTree: $('#nav-tree'),
             content: $('#content'),
@@ -1012,6 +1015,17 @@
                     return;
                 }
                 document.execCommand(command, false, value);
+                dom.editorContent.focus();
+            });
+
+            // Font colour button
+            const fontColorBtn = $('#fontColorBtn');
+            fontColorBtn.addEventListener('click', () => {
+                dom.fontColorInput.click();
+            });
+            dom.fontColorInput.addEventListener('input', (e) => {
+                const color = e.target.value;
+                document.execCommand('foreColor', false, color);
                 dom.editorContent.focus();
             });
 
@@ -1541,7 +1555,6 @@
                 }
             });
 
-            // Module selector
             dom.moduleSelector.addEventListener('change', async function() {
                 if (this.value) {
                     await saveNow();
