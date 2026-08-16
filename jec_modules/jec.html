@@ -5,10 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
     <title>B.Ed Module Viewer & Publisher (Local)</title>
 
-    <!-- KaTeX (local, optional) -->
+    <!-- KaTeX (local) -->
     <link rel="stylesheet" href="katex.min.css" />
     <script src="katex.min.js"></script>
     <script src="auto-render.min.js"></script>
+
+    <!-- CodeMirror (local) -->
+    <link rel="stylesheet" href="codemirror.min.css" />
+    <script src="codemirror.min.js"></script>
+    <script src="xml.min.js"></script>
+    <script src="htmlmixed.min.js"></script>
 
     <style>
         /* ============================
@@ -244,20 +250,18 @@
             pointer-events: none;
         }
 
-        /* HTML editor textarea */
-        .html-editor {
-            width: 100%;
-            min-height: 200px;
+        /* CodeMirror container */
+        #html-editor-container {
+            display: none;
             border: 1px solid var(--border);
             border-radius: 0 0 6px 6px;
-            padding: 12px;
-            background: var(--surface);
-            color: var(--text);
-            font-family: monospace;
+            overflow: hidden;
+        }
+        .CodeMirror {
+            height: 300px;
+            font-family: 'Courier New', monospace;
             font-size: 0.9rem;
-            line-height: 1.5;
-            resize: vertical;
-            outline: none;
+            line-height: 1.4;
         }
 
         /* Responsive */
@@ -478,11 +482,11 @@
                         <button data-command="createLink" title="Link">🔗</button>
                         <button data-command="insertImage" title="Image">🖼️</button>
                         <button id="fontColorBtn" title="Font Colour">🌈</button>
-                        <button id="htmlToggleBtn" title="Edit HTML">&lt;/&gt;</button>
+                        <button id="htmlToggleBtn" title="Edit HTML Source">&lt;/&gt;</button>
                         <button data-command="removeFormat" title="Clear Formatting">🧹</button>
                     </div>
                     <div id="editor-content" class="editor-content" contenteditable="true" data-placeholder="Enter content..."></div>
-                    <textarea id="html-editor" class="html-editor" style="display:none;"></textarea>
+                    <div id="html-editor-container"></div>
                 </div>
             </div>
         </main>
@@ -516,8 +520,8 @@
             htmlMode: false,
         };
 
-        // For saving selection when applying font colour
-        let savedRange = null;
+        let savedRange = null;   // for font colour
+        let cmInstance = null;   // CodeMirror instance
 
         // ============================================================
         // 3. DOM REFS
@@ -554,7 +558,7 @@
             welcomeMsg: $('#welcome-message'),
             editorToolbar: $('#editor-toolbar'),
             editorContent: $('#editor-content'),
-            htmlEditor: $('#html-editor'),
+            htmlEditorContainer: $('#html-editor-container'),
             toolsMenuBtn: $('#toolsMenuBtn'),
             toolsDropdown: $('#toolsDropdown'),
         };
@@ -966,10 +970,7 @@
             dom.editorContent.style.display = 'block';
             dom.editorContent.innerHTML = session.content || '';
             dom.editorContent.dataset.placeholder = 'Enter content...';
-            if (dom.htmlEditor) {
-                dom.htmlEditor.style.display = 'none';
-                dom.htmlEditor.value = '';
-            }
+            dom.htmlEditorContainer.style.display = 'none';
 
             dom.content.scrollTop = 0;
         }
@@ -1074,10 +1075,8 @@
 
             // HTML toggle with warning
             const htmlToggleBtn = $('#htmlToggleBtn');
-            const htmlEditor = $('#html-editor');
             htmlToggleBtn.addEventListener('click', () => {
                 if (!state.htmlMode) {
-                    // Warn before entering HTML mode
                     const proceed = confirm(
                         '⚠️ You are switching to HTML source mode.\n\n' +
                         'The image upload button will not work here. ' +
@@ -1089,24 +1088,25 @@
                 state.htmlMode = !state.htmlMode;
                 if (state.htmlMode) {
                     dom.editorContent.style.display = 'none';
-                    htmlEditor.style.display = 'block';
-                    htmlEditor.value = dom.editorContent.innerHTML;
-                    htmlEditor.focus();
+                    dom.htmlEditorContainer.style.display = 'block';
+                    // Set CodeMirror value
+                    if (cmInstance) {
+                        cmInstance.setValue(dom.editorContent.innerHTML);
+                        cmInstance.refresh();
+                        cmInstance.focus();
+                    }
                 } else {
-                    dom.editorContent.innerHTML = htmlEditor.value;
+                    // Get value from CodeMirror
+                    if (cmInstance) {
+                        const value = cmInstance.getValue();
+                        dom.editorContent.innerHTML = value;
+                    }
                     dom.editorContent.style.display = 'block';
-                    htmlEditor.style.display = 'none';
+                    dom.htmlEditorContainer.style.display = 'none';
                     if (state.selectedSession) {
                         state.selectedSession.content = dom.editorContent.innerHTML;
                         markDirty();
                     }
-                }
-            });
-
-            htmlEditor.addEventListener('input', () => {
-                if (state.selectedSession && state.htmlMode) {
-                    state.selectedSession.content = htmlEditor.value;
-                    markDirty();
                 }
             });
 
@@ -1131,6 +1131,27 @@
                 }
                 e.target.value = '';
             });
+        }
+
+        // Initialize CodeMirror
+        function initCodeMirror() {
+            if (typeof CodeMirror === 'undefined') {
+                console.error('CodeMirror library not loaded');
+                return;
+            }
+            cmInstance = CodeMirror(dom.htmlEditorContainer, {
+                value: '',
+                mode: 'htmlmixed',
+                lineNumbers: true,
+                indentUnit: 4,
+                tabSize: 4,
+                lineWrapping: true,
+                autoCloseTags: true,
+                matchBrackets: true,
+                theme: 'default',
+            });
+            // Hide initially
+            dom.htmlEditorContainer.style.display = 'none';
         }
 
         // ============================================================
@@ -1307,7 +1328,7 @@
             const module = state.moduleData;
             const defaultName = `${module.code || 'module'}.json`;
             let filename = prompt('Enter filename for export:', defaultName);
-            if (filename === null) return; // user cancelled
+            if (filename === null) return;
             filename = filename.trim();
             if (!filename) filename = defaultName;
             if (!filename.toLowerCase().endsWith('.json')) filename += '.json';
@@ -1658,6 +1679,7 @@
             });
 
             initEditorToolbar();
+            initCodeMirror();
 
             // Mobile tools dropdown
             dom.toolsMenuBtn.addEventListener('click', (e) => {
@@ -1731,7 +1753,7 @@
             }
 
             setTimeout(() => dom.splash.classList.add('hidden'), 500);
-            console.log('✅ B.Ed Module Viewer & Publisher ready (local, no Quill)');
+            console.log('✅ B.Ed Module Viewer & Publisher ready (with CodeMirror local)');
         }
 
         if (document.readyState === 'loading') {
