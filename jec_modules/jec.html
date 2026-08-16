@@ -244,6 +244,22 @@
             pointer-events: none;
         }
 
+        /* HTML editor textarea */
+        .html-editor {
+            width: 100%;
+            min-height: 200px;
+            border: 1px solid var(--border);
+            border-radius: 0 0 6px 6px;
+            padding: 12px;
+            background: var(--surface);
+            color: var(--text);
+            font-family: monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            resize: vertical;
+            outline: none;
+        }
+
         /* Responsive */
         @media (min-width: 768px) {
             #content { padding: 28px 48px 40px 48px; }
@@ -462,9 +478,11 @@
                         <button data-command="createLink" title="Link">🔗</button>
                         <button data-command="insertImage" title="Image">🖼️</button>
                         <button id="fontColorBtn" title="Font Colour">🌈</button>
+                        <button id="htmlToggleBtn" title="Edit HTML">&lt;/&gt;</button>
                         <button data-command="removeFormat" title="Clear Formatting">🧹</button>
                     </div>
                     <div id="editor-content" class="editor-content" contenteditable="true" data-placeholder="Enter content..."></div>
+                    <textarea id="html-editor" class="html-editor" style="display:none;"></textarea>
                 </div>
             </div>
         </main>
@@ -495,7 +513,11 @@
             selectedSession: null,
             debounceTimer: null,
             dirty: false,
+            htmlMode: false,
         };
+
+        // For saving selection when applying font colour
+        let savedRange = null;
 
         // ============================================================
         // 3. DOM REFS
@@ -532,6 +554,7 @@
             welcomeMsg: $('#welcome-message'),
             editorToolbar: $('#editor-toolbar'),
             editorContent: $('#editor-content'),
+            htmlEditor: $('#html-editor'),
             toolsMenuBtn: $('#toolsMenuBtn'),
             toolsDropdown: $('#toolsDropdown'),
         };
@@ -937,8 +960,16 @@
 
             dom.sessionTitleInput.value = session.title;
             renderIndicators(session);
+
+            // Reset HTML mode to visual
+            state.htmlMode = false;
+            dom.editorContent.style.display = 'block';
             dom.editorContent.innerHTML = session.content || '';
             dom.editorContent.dataset.placeholder = 'Enter content...';
+            if (dom.htmlEditor) {
+                dom.htmlEditor.style.display = 'none';
+                dom.htmlEditor.value = '';
+            }
 
             dom.content.scrollTop = 0;
         }
@@ -1021,16 +1052,66 @@
             // Font colour button
             const fontColorBtn = $('#fontColorBtn');
             fontColorBtn.addEventListener('click', () => {
+                const selection = window.getSelection();
+                if (selection.rangeCount > 0) {
+                    savedRange = selection.getRangeAt(0).cloneRange();
+                }
+                dom.fontColorInput.value = '#000000';
                 dom.fontColorInput.click();
             });
+
             dom.fontColorInput.addEventListener('input', (e) => {
                 const color = e.target.value;
+                if (savedRange) {
+                    const selection = window.getSelection();
+                    selection.removeAllRanges();
+                    selection.addRange(savedRange);
+                }
                 document.execCommand('foreColor', false, color);
                 dom.editorContent.focus();
+                savedRange = null;
+            });
+
+            // HTML toggle with warning
+            const htmlToggleBtn = $('#htmlToggleBtn');
+            const htmlEditor = $('#html-editor');
+            htmlToggleBtn.addEventListener('click', () => {
+                if (!state.htmlMode) {
+                    // Warn before entering HTML mode
+                    const proceed = confirm(
+                        '⚠️ You are switching to HTML source mode.\n\n' +
+                        'The image upload button will not work here. ' +
+                        'You can manually insert image HTML tags.\n\n' +
+                        'Continue?'
+                    );
+                    if (!proceed) return;
+                }
+                state.htmlMode = !state.htmlMode;
+                if (state.htmlMode) {
+                    dom.editorContent.style.display = 'none';
+                    htmlEditor.style.display = 'block';
+                    htmlEditor.value = dom.editorContent.innerHTML;
+                    htmlEditor.focus();
+                } else {
+                    dom.editorContent.innerHTML = htmlEditor.value;
+                    dom.editorContent.style.display = 'block';
+                    htmlEditor.style.display = 'none';
+                    if (state.selectedSession) {
+                        state.selectedSession.content = dom.editorContent.innerHTML;
+                        markDirty();
+                    }
+                }
+            });
+
+            htmlEditor.addEventListener('input', () => {
+                if (state.selectedSession && state.htmlMode) {
+                    state.selectedSession.content = htmlEditor.value;
+                    markDirty();
+                }
             });
 
             dom.editorContent.addEventListener('input', () => {
-                if (state.selectedSession) {
+                if (state.selectedSession && !state.htmlMode) {
                     state.selectedSession.content = dom.editorContent.innerHTML;
                     markDirty();
                 }
@@ -1224,12 +1305,19 @@
                 return;
             }
             const module = state.moduleData;
+            const defaultName = `${module.code || 'module'}.json`;
+            let filename = prompt('Enter filename for export:', defaultName);
+            if (filename === null) return; // user cancelled
+            filename = filename.trim();
+            if (!filename) filename = defaultName;
+            if (!filename.toLowerCase().endsWith('.json')) filename += '.json';
+
             const jsonString = JSON.stringify(module, null, 2);
             const blob = new Blob([jsonString], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `${module.code || 'module'}.json`;
+            a.download = filename;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
