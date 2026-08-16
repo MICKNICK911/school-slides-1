@@ -250,19 +250,41 @@
             pointer-events: none;
         }
 
-        /* CodeMirror container */
+        /* CodeMirror container – forced dark appearance */
         #html-editor-container {
             display: none;
-            border: 1px solid var(--border);
+            border: 1px solid #555;
             border-radius: 0 0 6px 6px;
             overflow: hidden;
+            background: #1e1e1e;
         }
         .CodeMirror {
             height: 300px;
             font-family: 'Courier New', monospace;
             font-size: 0.9rem;
             line-height: 1.4;
+            background: #1e1e1e;
+            color: #d4d4d4;
         }
+        /* Override CodeMirror default theme to dark */
+        .CodeMirror-cursor {
+            border-left: 1px solid #d4d4d4;
+        }
+        .CodeMirror-gutters {
+            background: #1e1e1e;
+            border-right: 1px solid #555;
+        }
+        .CodeMirror-linenumber {
+            color: #888;
+        }
+        .cm-s-default .cm-tag { color: #569cd6; }
+        .cm-s-default .cm-attribute { color: #9cdcfe; }
+        .cm-s-default .cm-string { color: #ce9178; }
+        .cm-s-default .cm-comment { color: #6a9955; }
+        .cm-s-default .cm-keyword { color: #c586c0; }
+        .cm-s-default .cm-bracket { color: #d4d4d4; }
+        .cm-s-default .cm-number { color: #b5cea8; }
+        .cm-s-default .cm-error { color: #f44747; }
 
         /* Responsive */
         @media (min-width: 768px) {
@@ -520,8 +542,8 @@
             htmlMode: false,
         };
 
-        let savedRange = null;   // for font colour
-        let cmInstance = null;   // CodeMirror instance
+        let savedRange = null;
+        let cmInstance = null;
 
         // ============================================================
         // 3. DOM REFS
@@ -965,7 +987,6 @@
             dom.sessionTitleInput.value = session.title;
             renderIndicators(session);
 
-            // Reset HTML mode to visual
             state.htmlMode = false;
             dom.editorContent.style.display = 'block';
             dom.editorContent.innerHTML = session.content || '';
@@ -1050,7 +1071,6 @@
                 dom.editorContent.focus();
             });
 
-            // Font colour button
             const fontColorBtn = $('#fontColorBtn');
             fontColorBtn.addEventListener('click', () => {
                 const selection = window.getSelection();
@@ -1073,7 +1093,6 @@
                 savedRange = null;
             });
 
-            // HTML toggle with warning
             const htmlToggleBtn = $('#htmlToggleBtn');
             htmlToggleBtn.addEventListener('click', () => {
                 if (!state.htmlMode) {
@@ -1089,14 +1108,12 @@
                 if (state.htmlMode) {
                     dom.editorContent.style.display = 'none';
                     dom.htmlEditorContainer.style.display = 'block';
-                    // Set CodeMirror value
                     if (cmInstance) {
                         cmInstance.setValue(dom.editorContent.innerHTML);
                         cmInstance.refresh();
                         cmInstance.focus();
                     }
                 } else {
-                    // Get value from CodeMirror
                     if (cmInstance) {
                         const value = cmInstance.getValue();
                         dom.editorContent.innerHTML = value;
@@ -1148,9 +1165,8 @@
                 lineWrapping: true,
                 autoCloseTags: true,
                 matchBrackets: true,
-                theme: 'default',
+                theme: 'default',   // will be overridden by CSS to dark
             });
-            // Hide initially
             dom.htmlEditorContainer.style.display = 'none';
         }
 
@@ -1681,7 +1697,6 @@
             initEditorToolbar();
             initCodeMirror();
 
-            // Mobile tools dropdown
             dom.toolsMenuBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 dom.toolsDropdown.classList.toggle('show');
@@ -1693,7 +1708,6 @@
                 }
             });
 
-            // Mobile dropdown buttons
             $('#editModeToggleMobile').addEventListener('click', () => {
                 toggleEditMode();
                 dom.toolsDropdown.classList.remove('show');
@@ -1753,7 +1767,7 @@
             }
 
             setTimeout(() => dom.splash.classList.add('hidden'), 500);
-            console.log('✅ B.Ed Module Viewer & Publisher ready (with CodeMirror local)');
+            console.log('✅ B.Ed Module Viewer & Publisher ready (dark CodeMirror)');
         }
 
         if (document.readyState === 'loading') {
