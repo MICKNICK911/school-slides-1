@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>📚 Phonics Lesson Publisher v8 — Full Single Page</title>
+    <title>📚 Phonics Lesson Publisher v8 — Dynamic Sections</title>
     <style>
         @page { size: 850px 1100px; margin: 0; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -21,13 +21,10 @@
         .toast { padding: 14px 20px; border-radius: 12px; color: #fff; font-weight: 600; font-size: 14px; box-shadow: 0 8px 30px rgba(0,0,0,0.15); animation: slideIn 0.3s ease; display: flex; align-items: center; gap: 10px; pointer-events: auto; }
         .toast.success { background: #2d7d46; } .toast.error { background: #dc3545; } .toast.warning { background: #e67e22; } .toast.info { background: #2c7be5; }
         @keyframes slideIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
-        .edit-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
-        @media (max-width: 1200px) { .edit-layout { grid-template-columns: 1fr; } }
-        .form-section { background: #f8f9fa; border-radius: 16px; padding: 24px; border: 2px solid #e9ecef; position: sticky; top: 20px; max-height: calc(100vh - 160px); overflow-y: auto; }
+        .form-section { background: #f8f9fa; border-radius: 16px; padding: 24px; border: 2px solid #e9ecef; }
         .form-section h2 { font-size: 21px; margin-bottom: 16px; }
         .form-group { margin-bottom: 14px; }
         .form-group label { display: block; font-weight: 700; font-size: 13px; color: #495057; margin-bottom: 4px; }
-        .form-group label .req { color: #dc3545; }
         .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px 14px; border: 2px solid #dee2e6; border-radius: 10px; font-size: 14px; font-family: inherit; transition: border 0.2s; background: #fff; }
         .form-group input:focus, .form-group textarea:focus, .form-group select:focus { outline: none; border-color: #F5A623; box-shadow: 0 0 0 3px rgba(245,166,35,0.15); }
         .form-group textarea { resize: vertical; min-height: 50px; }
@@ -61,15 +58,15 @@
         .modal-overlay .modal p { color: #6c757d; margin-bottom: 20px; font-size: 17px; }
         .modal-overlay .modal .actions { display: flex; gap: 10px; justify-content: flex-end; }
 
-        .toggle-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; padding: 10px 14px; background: #fff; border: 2px solid #e9ecef; border-radius: 12px; flex-wrap: wrap; }
-        .toggle-row label { margin: 0; font-weight: 700; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 8px; }
-        .toggle-row input[type="checkbox"] { width: 18px; height: 18px; accent-color: #F5A623; cursor: pointer; }
-        .toggle-row .size-input { width: 70px; padding: 5px 8px; border: 2px solid #dee2e6; border-radius: 8px; font-size: 13px; }
         .section-card { background: #fff; border: 2px solid #e9ecef; border-radius: 12px; padding: 14px; margin-bottom: 12px; }
         .section-card h4 { font-size: 14px; margin-bottom: 10px; color: #E2571C; }
-        .image-upload-wrap { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-        .image-upload-wrap .preview { width: 56px; height: 56px; border-radius: 8px; object-fit: cover; border: 2px solid #dee2e6; }
-        .image-upload-wrap .preview-ph { width: 56px; height: 56px; border-radius: 8px; border: 2px dashed #dee2e6; display: flex; align-items: center; justify-content: center; font-size: 22px; color: #adb5bd; background: #f8f9fa; }
+        .section-builder-item { background: #fff; border: 2px solid #dee2e6; border-radius: 12px; padding: 12px; margin-bottom: 10px; }
+        .section-builder-item .sb-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+        .section-builder-item .sb-header .sb-title { font-weight: 700; font-size: 14px; flex: 1; }
+        .section-builder-item .sb-header select { width: auto; padding: 4px 8px; border-radius: 8px; border: 2px solid #dee2e6; font-size: 12px; }
+        .section-builder-item .sb-body { display: flex; flex-direction: column; gap: 8px; }
+        .section-builder-item .sb-body textarea, .section-builder-item .sb-body input, .section-builder-item .sb-body select { width: 100%; padding: 6px 10px; border: 2px solid #dee2e6; border-radius: 8px; font-size: 13px; font-family: inherit; }
+        .section-builder-item .sb-actions { display: flex; gap: 4px; justify-content: flex-end; }
 
         @media (hover: hover) {
             .tab-btn:hover { color: #1a1a2e; }
@@ -100,255 +97,62 @@
             print-color-adjust: exact;
         }
 
-        .cvc-header {
-            display: flex;
-            align-items: stretch;
-            border-bottom: 3px solid #E2571C;
-            min-height: 68px;
-            flex-shrink: 0;
-        }
-        .cvc-header-left {
-            flex: 1;
-            padding: 12px 22px 8px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-        .cvc-main-title {
-            font-size: 28px;
-            font-weight: 800;
-            color: #E2571C;
-            letter-spacing: 0.4px;
-            line-height: 1.1;
-            margin: 0;
-        }
-        .cvc-subtitle {
-            font-size: 13px;
-            font-weight: 700;
-            color: #c45a12;
-            letter-spacing: 1.2px;
-            text-transform: uppercase;
-            margin-top: 2px;
-        }
-        .cvc-header-right {
-            background: #E2571C;
-            color: #fff;
-            min-width: 150px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 10px 18px;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
-        }
+        .cvc-header { display: flex; align-items: stretch; border-bottom: 3px solid #E2571C; min-height: 68px; flex-shrink: 0; }
+        .cvc-header-left { flex: 1; padding: 12px 22px 8px; display: flex; flex-direction: column; justify-content: center; }
+        .cvc-main-title { font-size: 28px; font-weight: 800; color: #E2571C; letter-spacing: 0.4px; line-height: 1.1; margin: 0; }
+        .cvc-subtitle { font-size: 13px; font-weight: 700; color: #c45a12; letter-spacing: 1.2px; text-transform: uppercase; margin-top: 2px; }
+        .cvc-header-right { background: #E2571C; color: #fff; min-width: 150px; display: flex; align-items: center; justify-content: center; padding: 10px 18px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         .cvc-header-right .lesson-label { font-size: 13px; font-weight: 600; opacity: 0.95; margin-right: 6px; }
         .cvc-header-right .lesson-num { font-size: 26px; font-weight: 800; line-height: 1; }
 
-        .cvc-body {
-            padding: 14px 22px 8px;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            min-height: 0;
-            gap: 10px;
-        }
+        .lesson-sections-container { display: flex; flex-wrap: wrap; gap: 10px; padding: 14px 22px 8px; flex: 1; align-content: flex-start; min-height: 0; }
+        .section-item { flex: 0 0 auto; }
+        .w-full { width: 100%; }
+        .w-half { width: calc(50% - 5px); }
+        .w-quarter { width: calc(25% - 7.5px); }
+        .w-threequarter { width: calc(75% - 2.5px); }
 
-        .cvc-top-row {
-            display: flex;
-            gap: 14px;
-            align-items: stretch;
-            flex-shrink: 0;
-        }
-        .todays-sound-card {
-            background: #fff;
-            border: 2px solid #F5A623;
-            border-radius: 12px;
-            width: 140px;
-            flex-shrink: 0;
-            overflow: hidden;
-            box-shadow: 0 2px 6px rgba(226,87,28,0.1);
-            display: flex;
-            flex-direction: column;
-        }
-        .todays-sound-card.full-width {
-            width: 100%;
-            max-width: 100%;
-        }
-        .todays-sound-header {
-            background: #E2571C;
-            color: #fff;
-            text-align: center;
-            font-size: 11px;
-            font-weight: 800;
-            letter-spacing: 1px;
-            padding: 5px 4px;
-            text-transform: uppercase;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
-        }
-        .todays-sound-body {
-            padding: 8px 6px 12px;
-            text-align: center;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
+        .todays-sound-card { background: #fff; border: 2px solid #F5A623; border-radius: 12px; width: 100%; overflow: hidden; box-shadow: 0 2px 6px rgba(226,87,28,0.1); display: flex; flex-direction: column; }
+        .todays-sound-header { background: #E2571C; color: #fff; text-align: center; font-size: 11px; font-weight: 800; letter-spacing: 1px; padding: 5px 4px; text-transform: uppercase; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .todays-sound-body { padding: 8px 6px 12px; text-align: center; flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; }
         .todays-sound-stars { color: #F5A623; font-size: 12px; letter-spacing: 3px; margin-bottom: 2px; }
         .todays-sound-letter { font-weight: 800; color: #E2571C; line-height: 1; letter-spacing: -1px; }
         .todays-sound-img { max-width: 90%; max-height: 90px; object-fit: contain; border-radius: 6px; }
 
-        .cvc-intro-stack {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            min-width: 0;
-        }
-        .cvc-intro-box {
-            border: 2px dashed #E2571C;
-            border-radius: 10px;
-            padding: 10px 14px;
-            background: #fff8f3;
-            flex: 1;
-        }
+        .cvc-intro-box { border: 2px dashed #E2571C; border-radius: 10px; padding: 10px 14px; background: #fff8f3; }
         .cvc-intro-box p { margin: 0; font-size: 13px; line-height: 1.4; color: #1a1a1a; font-weight: 500; }
         .cvc-intro-box .highlight { color: #E2571C; font-weight: 700; }
-        .cvc-instruction-box {
-            border: 2px solid #F5A623;
-            border-radius: 10px;
-            padding: 9px 14px;
-            background: #fffaf0;
-            flex: 1;
-        }
+        .cvc-instruction-box { border: 2px solid #F5A623; border-radius: 10px; padding: 9px 14px; background: #fffaf0; }
         .cvc-instruction-box p { margin: 0; font-size: 13px; font-weight: 700; color: #1a1a2e; line-height: 1.35; }
 
-        .cvc-word-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            border: 2px solid #E2571C;
-            border-radius: 10px;
-            overflow: hidden;
-            background: #fff;
-            flex-shrink: 0;
-        }
-        .cvc-word-cell {
-            border-right: 1px solid #f0c9a8;
-            border-bottom: 1px solid #f0c9a8;
-            padding: 9px 4px;
-            text-align: center;
-            font-size: 23px;
-            font-weight: 600;
-            color: #1a1a1a;
-            min-height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #fff;
-        }
-        .cvc-word-cell:nth-child(4n) { border-right: none; }
-        .cvc-word-cell:nth-last-child(-n+4) { border-bottom: none; }
-        .cvc-word-cell.empty { background: #faf7f4; color: transparent; }
+        .custom-text-box { border: 2px dashed #E2571C; border-radius: 10px; padding: 10px 14px; background: #fff8f3; }
+        .custom-text-box p { margin: 0; font-size: 13px; line-height: 1.4; color: #1a1a1a; font-weight: 500; }
+        .custom-text-box .highlight { color: #E2571C; font-weight: 700; }
 
-        /* Activity boxes */
-        .act-box {
-            border: 2px solid #E2571C;
-            border-radius: 12px;
-            padding: 12px 16px;
-            background: #fff;
-            flex-shrink: 0;
-        }
-        .act-box .act-title {
-            font-size: 13px;
-            font-weight: 700;
-            color: #1a1a1a;
-            margin-bottom: 8px;
-        }
-        .act-box .sentence {
-            font-size: 17px;
-            font-weight: 600;
-            color: #E2571C;
-            margin: 3px 0;
-            line-height: 1.35;
-        }
+        .word-grid { display: grid; border: 2px solid #E2571C; border-radius: 10px; overflow: hidden; background: #fff; }
+        .word-cell { border-right: 1px solid #f0c9a8; border-bottom: 1px solid #f0c9a8; padding: 9px 4px; text-align: center; font-size: 23px; font-weight: 600; color: #1a1a1a; min-height: 40px; display: flex; align-items: center; justify-content: center; background: #fff; }
+        .word-cell.empty { background: #faf7f4; color: transparent; }
 
-        .fill-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-        }
-        .fill-item {
-            border: 2px solid #F5A623;
-            border-radius: 10px;
-            padding: 8px 6px;
-            text-align: center;
-            font-size: 21px;
-            font-weight: 700;
-            color: #E2571C;
-            background: #fffaf0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 2px;
-            min-height: 42px;
-        }
-        .fill-item .blank-sq {
-            display: inline-block;
-            width: 22px;
-            height: 26px;
-            border: 2px solid #1a1a1a;
-            border-radius: 4px;
-            background: #fff;
-            vertical-align: middle;
-        }
+        .act-box { border: 2px solid #E2571C; border-radius: 12px; padding: 12px 16px; background: #fff; }
+        .act-box .act-title { font-size: 13px; font-weight: 700; color: #1a1a1a; margin-bottom: 8px; }
+        .act-box .sentence { font-size: 17px; font-weight: 600; color: #E2571C; margin: 3px 0; line-height: 1.35; }
+
+        .fill-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        .fill-item { border: 2px solid #F5A623; border-radius: 10px; padding: 10px 8px; text-align: center; font-size: 24px; font-weight: 700; color: #E2571C; background: #fffaf0; display: flex; align-items: center; justify-content: center; gap: 2px; min-height: 48px; overflow: hidden; word-break: break-word; }
+        .fill-item .blank-sq { display: inline-block; width: 32px; height: 32px; border: 2px solid #1a1a1a; border-radius: 4px; background: #fff; vertical-align: middle; }
 
         .sent-lines { margin-top: 4px; }
-        .sent-line {
-            border-bottom: 1.5px solid #999;
-            padding: 12px 0 4px;
-            font-size: 14px;
-            color: #666;
-            font-weight: 600;
-        }
+        .sent-line { border-bottom: 1.5px solid #999; padding: 12px 0 4px; font-size: 14px; color: #666; font-weight: 600; }
 
-        .cvc-writing-area {
-            flex: 1 1 auto;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-evenly;
-            min-height: 0;
-            padding-bottom: 26px;
-        }
-        .writing-set {
-            position: relative;
-            height: 46px;
-            width: 100%;
-            flex: 0 0 auto;
-        }
-        .writing-set .line {
-            position: absolute;
-            left: 0; right: 0;
-            height: 0;
-            border-top-width: 1.8px;
-            border-top-style: solid;
-        }
-        .writing-set .line.l1 { top: 0;    border-top-color: #E2571C; }
+        .writing-lines-area { display: flex; flex-direction: column; justify-content: space-evenly; min-height: 120px; padding-bottom: 26px; flex: 1; }
+        .writing-set { position: relative; height: 46px; width: 100%; flex: 0 0 auto; }
+        .writing-set .line { position: absolute; left: 0; right: 0; height: 0; border-top-width: 1.8px; border-top-style: solid; }
+        .writing-set .line.l1 { top: 0; border-top-color: #E2571C; }
         .writing-set .line.l2 { top: 15px; border-top-color: #2c7be5; }
         .writing-set .line.l3 { top: 30px; border-top-color: #2c7be5; }
         .writing-set .line.l4 { top: 45px; border-top-color: #E2571C; }
 
-        .cvc-page-number {
-            position: absolute;
-            bottom: 10px;
-            left: 0; right: 0;
-            text-align: center;
-            font-weight: 700;
-            font-size: 14px;
-            color: #6c757d;
-            z-index: 2;
-            pointer-events: none;
-        }
+        .cvc-page-number { position: absolute; bottom: 10px; left: 0; right: 0; text-align: center; font-weight: 700; font-size: 14px; color: #6c757d; z-index: 2; pointer-events: none; }
 
         .cover-card { display: flex; flex-direction: column; justify-content: center; align-items: center; font-family: 'Times New Roman', Times, serif; min-height: 1000px; border: 3px solid #F5A623; border-radius: 28px; }
         .cover-text-block { text-align: center; padding: 0 40px; }
@@ -364,13 +168,7 @@
         .toc-card .page-number { position: absolute; bottom: 16px; right: 24px; font-weight: 800; font-size: 14px; font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; }
 
         .sight-words-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-top: 8px; padding: 0 12px; }
-        .sight-word-pill {
-            display: flex; align-items: center; justify-content: center;
-            font-size: 22px; font-weight: 800; color: #E2571C; background: #fff;
-            border: 3px solid #F5A623; border-radius: 14px; padding: 16px 6px; min-height: 76px;
-            text-align: center; word-break: break-word;
-            -webkit-print-color-adjust: exact; print-color-adjust: exact;
-        }
+        .sight-word-pill { display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 800; color: #E2571C; background: #fff; border: 3px solid #F5A623; border-radius: 14px; padding: 16px 6px; min-height: 76px; text-align: center; word-break: break-word; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         .view-container .card.sight-card { border: 3px solid #F5A623; border-radius: 28px; min-height: 1000px; padding: 24px 32px; }
         .view-container .title { font-size: 28px; font-weight: 800; color: #1a1a1a; letter-spacing: 0.5px; margin: 4px 0 16px 0; }
         .view-container .section-header { display: flex; align-items: center; margin-bottom: 10px; margin-top: 10px; }
@@ -379,19 +177,25 @@
 
         .view-toolbar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 2px solid #e9ecef; }
         .view-toolbar .info { font-weight: 700; color: #6c757d; font-size: 14px; margin-right: auto; }
-        .page-actions { text-align: right; margin-bottom: 8px; }
-        .export-btn { background: #E2571C; color: #fff; border: none; border-radius: 8px; padding: 8px 16px; font-weight: 700; font-size: 13px; font-family: inherit; cursor: pointer; }
+        .page-actions { text-align: right; margin-bottom: 8px; display: flex; justify-content: flex-end; gap: 8px; }
+        .export-btn, .edit-btn { background: #E2571C; color: #fff; border: none; border-radius: 8px; padding: 8px 16px; font-weight: 700; font-size: 13px; font-family: inherit; cursor: pointer; }
+        .edit-btn { background: #2c7be5; }
 
         @media print {
             body { padding: 0; background: #fff; }
-            .app, .app-header, .tabs, .tab-panel, .view-toolbar, .no-print { display: none !important; }
-            .view-container { overflow-x: visible !important; }
+            .app-header, .tabs, .tab-panel, .edit-layout, .form-section, .list-section, .view-toolbar, .no-print, .page-actions, .thumbnail-wrapper, .modal-overlay, .toast-container { display: none !important; }
+            .view-container { overflow: visible !important; display: block !important; }
             .view-container .page { box-shadow: none !important; border-radius: 0 !important; margin: 0 auto !important; padding: 18px !important; width: 850px !important; min-width: 850px !important; min-height: 1080px !important; page-break-after: always; background: #fff !important; }
             .view-container .page .page-actions { display: none !important; }
             .view-container .page:last-child { page-break-after: auto; }
             .view-container .card, .todays-sound-header, .cvc-header-right, .sight-word-pill, .toc-card, .cover-card,
-            .view-container .section-header .circle { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .view-container .section-header .circle, .custom-text-box, .cvc-intro-box { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
         }
+
+        .thumbnail-wrapper { margin-bottom: 16px; display: flex; flex-direction: column; align-items: center; }
+        .thumbnail-wrapper .thumb-label { font-size: 13px; font-weight: 700; margin-bottom: 6px; color: #495057; text-align: center; }
+        .thumbnail-container { width: 255px; height: 324px; border: 2px solid #dee2e6; border-radius: 8px; overflow: hidden; background: #fff; position: relative; }
+        .thumbnail-container .page { transform: scale(0.3); transform-origin: top left; position: absolute; top: 0; left: 0; width: 850px; min-width: 850px; min-height: 1080px; padding: 24px 32px; margin: 0; border-radius: 0; box-shadow: none; page-break-after: auto; }
     </style>
 </head>
 <body>
@@ -400,7 +204,6 @@
 
     <script>
         (function () {
-            // ---------- Storage Configuration ----------
             const IDB_NAME = 'phonics_lessons_db';
             const IDB_STORE = 'app_data';
             const LEGACY_STORAGE_KEY = 'phonics_lessons_v8';
@@ -409,7 +212,6 @@
             const MAX_GRID_WORDS = 24;
             const MAX_FILL_ITEMS = 18;
 
-            // ---------- IndexedDB Utility ----------
             let dbPromise = null;
             function getDB() {
                 if (!dbPromise) {
@@ -439,7 +241,6 @@
                         tx.onerror = () => reject(tx.error);
                     });
                 } catch (e) {
-                    // Fallback to localStorage
                     localStorage.setItem(LEGACY_STORAGE_KEY, JSON.stringify(data));
                 }
             }
@@ -457,6 +258,26 @@
                 } catch (e) {
                     return null;
                 }
+            }
+
+            function sanitizeRichText(text) {
+                if (!text) return '';
+                let esc = escapeHtml(text);
+                esc = esc
+                    .replace(/&lt;b&gt;/g, '<b>').replace(/&lt;\/b&gt;/g, '</b>')
+                    .replace(/&lt;i&gt;/g, '<i>').replace(/&lt;\/i&gt;/g, '</i>')
+                    .replace(/&lt;u&gt;/g, '<u>').replace(/&lt;\/u&gt;/g, '</u>')
+                    .replace(/&lt;strong&gt;/g, '<strong>').replace(/&lt;\/strong&gt;/g, '</strong>')
+                    .replace(/&lt;em&gt;/g, '<em>').replace(/&lt;\/em&gt;/g, '</em>')
+                    .replace(/&lt;span class=&quot;highlight&quot;&gt;/g, '<span class="highlight">')
+                    .replace(/&lt;span class="highlight"&gt;/g, '<span class="highlight">')
+                    .replace(/&lt;\/span&gt;/g, '</span>');
+                return esc;
+            }
+
+            function formatTextWithHighlight(text) {
+                const formatted = sanitizeRichText(text);
+                return formatted.replace(/\b(apple|egg|igloo|octopus|umbrella)\b/gi, m => `<span class="highlight">${m}</span>`);
             }
 
             function flattenWords(arr) {
@@ -487,83 +308,127 @@
                 o.querySelector('.confirm').onclick = () => { o.remove(); cb(); };
             }
 
-            const DEFAULT_LESSONS = [
-                {
-                    id: 'l1',
-                    mainTitle: 'SHORT VOWEL CVC WORDS',
-                    subtitle: 'SHORT VOWEL',
-                    lessonNumber: 1,
-                    tileMode: 'letter',
-                    letterTile: 'Aa',
-                    letterFontSize: 56,
-                    imagePath: '',
-                    imageCaption: "TODAY'S SOUND",
-                    showIntro: true,
-                    introText: 'Short a says /a/ like in apple — when a single vowel is boxed in between two consonants, it usually keeps this quick, clipped sound.',
-                    showInstruction: true,
-                    instruction: 'Say each picture word out loud and listen for this pattern.',
-                    showGrid: true,
-                    words: ['bag','cat','mat','hat','rat','bat','sat','pat','fat','man','van','map'],
-                    showDecodable: true,
-                    decodableInstruction: 'Read ALOUD and circle all words with the target sound',
-                    decodableSentences: ['I see a bag.','Look at the cat and the mat.','Is this a hat?','I like my rat.','We have a bat.'],
-                    showFillBlanks: true,
-                    fillTitle: 'A. Fill in the missing letters and say the word',
-                    fillItems: ['b_g','c_t','m_t','h_t','r_t','b_t','s_t','p_t','f_t'],
-                    showSentenceWrite: true,
-                    sentenceTitle: 'C. Choose any word and form 2 sentences',
-                    sentenceLines: 2,
-                    showWritingLines: false
+            const SECTION_TYPES = {
+                tile: { label: 'Letter/Image Tile', defaultWidth: 'full', fields: ['tileMode','letterTile','letterFontSize','imagePath','imageCaption'] },
+                introText: { label: 'Intro Text', defaultWidth: 'full', fields: ['text'] },
+                instruction: { label: 'Instruction', defaultWidth: 'full', fields: ['text'] },
+                wordGrid: { label: 'Word Grid', defaultWidth: 'full', fields: ['words','columns','rows'] },
+                decodable: { label: 'Decodable Reading', defaultWidth: 'full', fields: ['instruction','sentences'] },
+                fillBlanks: { label: 'Fill-in-Blanks', defaultWidth: 'full', fields: ['title','items'] },
+                sentenceWriting: { label: 'Sentence Writing', defaultWidth: 'full', fields: ['title','lines'] },
+                customText: { label: 'Custom Text', defaultWidth: 'full', fields: ['text'] },
+                writingLines: { label: 'Writing Lines (expandable)', defaultWidth: 'full', fields: ['fillRemaining'] }
+            };
+
+            function generateSectionId() { return 'sec' + Date.now() + Math.random().toString(36).slice(2, 7); }
+
+            function createDefaultSection(type) {
+                const id = generateSectionId();
+                const base = { id, type, width: SECTION_TYPES[type].defaultWidth };
+                switch (type) {
+                    case 'tile':
+                        return { ...base, tileMode: 'letter', letterTile: 'Aa', letterFontSize: 56, imagePath: '', imageCaption: "TODAY'S SOUND" };
+                    case 'introText':
+                    case 'instruction':
+                    case 'customText':
+                        return { ...base, text: '' };
+                    case 'wordGrid':
+                        return { ...base, words: [], columns: 4, rows: 3 };
+                    case 'decodable':
+                        return { ...base, instruction: 'Read ALOUD and circle all words with the target sound', sentences: [] };
+                    case 'fillBlanks':
+                        return { ...base, title: 'A. Fill in the missing letters and say the word', items: [] };
+                    case 'sentenceWriting':
+                        return { ...base, title: 'C. Choose any word and form 2 sentences', lines: 2 };
+                    case 'writingLines':
+                        return { ...base, fillRemaining: true };
+                    default:
+                        return { ...base };
                 }
+            }
+
+            function migrateToSections(lesson) {
+                if (Array.isArray(lesson.sections) && lesson.sections.length > 0) return lesson;
+                const sections = [];
+                if (lesson.tileMode && lesson.tileMode !== 'none') {
+                    sections.push({ id: generateSectionId(), type: 'tile', width: 'full', tileMode: lesson.tileMode, letterTile: lesson.letterTile || '', letterFontSize: lesson.letterFontSize || 56, imagePath: lesson.imagePath || '', imageCaption: lesson.imageCaption || "TODAY'S SOUND" });
+                }
+                if (lesson.showIntro !== false && lesson.introText) {
+                    sections.push({ id: generateSectionId(), type: 'introText', width: 'full', text: lesson.introText });
+                }
+                if (lesson.showInstruction !== false && lesson.instruction) {
+                    sections.push({ id: generateSectionId(), type: 'instruction', width: 'full', text: lesson.instruction });
+                }
+                if (lesson.showGrid !== false && lesson.words && lesson.words.length > 0) {
+                    sections.push({ id: generateSectionId(), type: 'wordGrid', width: 'full', words: lesson.words, columns: 4, rows: Math.ceil(lesson.words.length / 4) || 3 });
+                } else if (lesson.showGrid !== false && (!lesson.words || lesson.words.length === 0)) {
+                    sections.push({ id: generateSectionId(), type: 'wordGrid', width: 'full', words: [], columns: 4, rows: 3 });
+                }
+                if (lesson.showDecodable === true) {
+                    sections.push({ id: generateSectionId(), type: 'decodable', width: 'full', instruction: lesson.decodableInstruction || 'Read ALOUD and circle all words with the target sound', sentences: lesson.decodableSentences || [] });
+                }
+                if (lesson.showFillBlanks === true) {
+                    sections.push({ id: generateSectionId(), type: 'fillBlanks', width: 'full', title: lesson.fillTitle || 'A. Fill in the missing letters and say the word', items: lesson.fillItems || [] });
+                }
+                if (lesson.showSentenceWrite === true) {
+                    sections.push({ id: generateSectionId(), type: 'sentenceWriting', width: 'full', title: lesson.sentenceTitle || 'C. Choose any word and form 2 sentences', lines: lesson.sentenceLines || 2 });
+                }
+                if (lesson.showWritingLines !== false) {
+                    sections.push({ id: generateSectionId(), type: 'writingLines', width: 'full', fillRemaining: true });
+                }
+                if (Array.isArray(lesson.customBoxes)) {
+                    lesson.customBoxes.forEach(cb => {
+                        if (cb.enabled && cb.text) sections.push({ id: generateSectionId(), type: 'customText', width: 'full', text: cb.text });
+                    });
+                }
+                lesson.sections = sections;
+                delete lesson.tileMode; delete lesson.letterTile; delete lesson.letterFontSize; delete lesson.imagePath; delete lesson.imageCaption;
+                delete lesson.showIntro; delete lesson.introText; delete lesson.showInstruction; delete lesson.instruction;
+                delete lesson.showGrid; delete lesson.words; delete lesson.showDecodable; delete lesson.decodableInstruction; delete lesson.decodableSentences;
+                delete lesson.showFillBlanks; delete lesson.fillTitle; delete lesson.fillItems; delete lesson.showSentenceWrite; delete lesson.sentenceTitle; delete lesson.sentenceLines;
+                delete lesson.showWritingLines; delete lesson.customBoxes;
+                return lesson;
+            }
+
+            const DEFAULT_LESSONS = [
+                (() => {
+                    const l = { id: 'l1', mainTitle: 'SHORT VOWEL CVC WORDS', subtitle: 'SHORT VOWEL', lessonNumber: 1 };
+                    l.sections = [
+                        { id: generateSectionId(), type: 'tile', width: 'full', tileMode: 'letter', letterTile: 'Aa', letterFontSize: 56, imagePath: '', imageCaption: "TODAY'S SOUND" },
+                        { id: generateSectionId(), type: 'introText', width: 'full', text: 'Short a says /a/ like in <b>apple</b> — when a single vowel is boxed in between two consonants, it usually keeps this quick, clipped sound.' },
+                        { id: generateSectionId(), type: 'instruction', width: 'full', text: 'Say each picture word out loud and listen for this pattern.' },
+                        { id: generateSectionId(), type: 'wordGrid', width: 'full', words: ['bag','cat','mat','hat','rat','bat','sat','pat','fat','man','van','map'], columns: 4, rows: 3 },
+                        { id: generateSectionId(), type: 'decodable', width: 'full', instruction: 'Read ALOUD and circle all words with the target sound', sentences: ['I see a bag.','Look at the cat and the mat.','Is this a hat?','I like my rat.','We have a bat.'] },
+                        { id: generateSectionId(), type: 'fillBlanks', width: 'full', title: 'A. Fill in the missing letters and say the word', items: ['b_g','c_t','m_t','h_t','r_t','b_t','s_t','p_t','f_t'] },
+                        { id: generateSectionId(), type: 'sentenceWriting', width: 'full', title: 'C. Choose any word and form 2 sentences', lines: 2 },
+                        { id: generateSectionId(), type: 'writingLines', width: 'full', fillRemaining: true }
+                    ];
+                    return l;
+                })()
             ];
             const DEFAULT_SIGHT_WORDS = ['the','of','and','a','to','in','is','you','that','it','he','was','for','on','are','as','with','his','they','I','at','be','this','have','from','or','one','had','by','but','not','what','all','were','we','when','your','can','said','there','use','an','each','which','she','do','how','their','if','will','up','other','about','out','many','then','them','these','so','some','her','would','make','like','him','into','time','has','look','two','more','write','go','see','no','way','could','people','my','than','first','water','been','called','who','am','its','now','find','long','down','day','did','get','come','made','may','part'];
             const DEFAULT_COVER = { title: 'Crystal Phonics', subtitle: 'Grade 1' };
 
-            let lessons = [];
-            let sightWords = [];
-            let coverData = { ...DEFAULT_COVER };
-            let editingId = null;
-            let nextId = 1;
+            let lessons = [], sightWords = [], coverData = { ...DEFAULT_COVER };
+            let editingId = null, nextId = 1, tempSections = [];
             window.searchQuery = '';
 
             async function loadData() {
                 let data = null;
-                try {
-                    data = await idbGet();
-                } catch (e) {
-                    data = null;
-                }
+                try { data = await idbGet(); } catch (e) { data = null; }
                 if (!data || !data.lessons) {
-                    // Fallback to legacy localStorage
                     try {
                         const raw = localStorage.getItem(LEGACY_STORAGE_KEY);
-                        if (raw) {
-                            data = JSON.parse(raw);
-                        }
+                        if (raw) data = JSON.parse(raw);
                     } catch (e) {}
                 }
                 if (data && data.lessons) {
-                    lessons = data.lessons || [];
+                    lessons = data.lessons.map(l => migrateToSections(l));
                     sightWords = data.sightWords || [...DEFAULT_SIGHT_WORDS];
                     coverData = data.coverData || { ...DEFAULT_COVER };
                     if (lessons.length) {
                         let maxId = 0;
                         lessons.forEach(l => {
-                            if (!l.words && l.activities?.lookAndSay?.words) l.words = flattenWords(l.activities.lookAndSay.words);
-                            if (!l.tileMode) l.tileMode = 'letter';
-                            if (!l.letterFontSize) l.letterFontSize = 56;
-                            if (!l.imageCaption) l.imageCaption = "TODAY'S SOUND";
-                            if (typeof l.showIntro === 'undefined') l.showIntro = true;
-                            if (typeof l.showInstruction === 'undefined') l.showInstruction = true;
-                            if (typeof l.showGrid === 'undefined') l.showGrid = true;
-                            if (typeof l.showDecodable === 'undefined') l.showDecodable = false;
-                            if (typeof l.showFillBlanks === 'undefined') l.showFillBlanks = false;
-                            if (typeof l.showSentenceWrite === 'undefined') l.showSentenceWrite = false;
-                            if (typeof l.showWritingLines === 'undefined') l.showWritingLines = true;
-                            if (!l.decodableInstruction) l.decodableInstruction = 'Read ALOUD and circle all words with the target sound';
-                            if (!l.fillTitle) l.fillTitle = 'A. Fill in the missing letters and say the word';
-                            if (!l.sentenceTitle) l.sentenceTitle = 'C. Choose any word and form 2 sentences';
-                            if (!l.sentenceLines) l.sentenceLines = 2;
                             if (!l.id) l.id = 'l' + Date.now() + Math.random().toString(36).slice(2, 6);
                             const num = parseInt(String(l.id).replace('l', '')) || 0;
                             if (num > maxId) maxId = num;
@@ -581,16 +446,13 @@
                     nextId = lessons.length + 1;
                     renumberByOrder(lessons);
                 }
-                await saveData(); // Persist migrated data
+                await saveData();
             }
 
             async function saveData() {
                 const payload = { lessons, sightWords, coverData };
                 await idbSet(payload);
-                // Fallback to localStorage too (optional, but helpful)
-                try {
-                    localStorage.setItem(LEGACY_STORAGE_KEY, JSON.stringify(payload));
-                } catch (e) {}
+                try { localStorage.setItem(LEGACY_STORAGE_KEY, JSON.stringify(payload)); } catch (e) {}
             }
 
             function generateId() { return 'l' + (nextId++); }
@@ -602,143 +464,194 @@
                 });
                 nextId = maxId + 1;
             }
-            function renumberByOrder(arr) {
-                arr.forEach((lesson, idx) => lesson.lessonNumber = idx + 1);
-            }
+            function renumberByOrder(arr) { arr.forEach((lesson, idx) => lesson.lessonNumber = idx + 1); }
 
-            function createWritingSets(count) {
+            function renderSectionsBuilder() {
+                const container = document.getElementById('sectionsContainer');
+                if (!container) return;
+                if (!tempSections.length) {
+                    container.innerHTML = '<div style="color:#6c757d;font-size:12px;padding:8px 0;">No sections added.</div>';
+                    return;
+                }
                 let html = '';
-                for (let i = 0; i < count; i++) {
-                    html += `<div class="writing-set"><div class="line l1"></div><div class="line l2"></div><div class="line l3"></div><div class="line l4"></div></div>`;
-                }
-                const el = document.createElement('div');
-                el.className = 'cvc-writing-area';
-                el.innerHTML = html;
-                return el;
+                tempSections.forEach((section, idx) => {
+                    const typeInfo = SECTION_TYPES[section.type];
+                    html += `<div class="section-builder-item" data-id="${section.id}">
+                        <div class="sb-header">
+                            <span class="sb-title">${typeInfo.label}</span>
+                            <select onchange="updateSectionWidth('${section.id}', this.value)">
+                                <option value="full" ${section.width === 'full' ? 'selected' : ''}>Full width</option>
+                                <option value="half" ${section.width === 'half' ? 'selected' : ''}>Half width</option>
+                                <option value="quarter" ${section.width === 'quarter' ? 'selected' : ''}>Quarter width</option>
+                                <option value="threequarter" ${section.width === 'threequarter' ? 'selected' : ''}>Three-quarter width</option>
+                            </select>
+                            <div class="sb-actions">
+                                <button class="btn btn-outline btn-xs" onclick="moveSection('${section.id}', -1)" ${idx === 0 ? 'disabled' : ''}>▲</button>
+                                <button class="btn btn-outline btn-xs" onclick="moveSection('${section.id}', 1)" ${idx === tempSections.length-1 ? 'disabled' : ''}>▼</button>
+                                <button class="btn btn-danger btn-xs" onclick="deleteSection('${section.id}')">🗑️</button>
+                            </div>
+                        </div>
+                        <div class="sb-body">
+                            ${renderSectionFields(section)}
+                        </div>
+                    </div>`;
+                });
+                container.innerHTML = html;
             }
 
-            function calcWritingSets(l) {
-                let base = 10;
-                if (l.showGrid) {
-                    const rows = Math.ceil(Math.min((l.words||[]).length, MAX_GRID_WORDS) / 4) || 0;
-                    base -= Math.min(rows, 5);
+            function renderSectionFields(section) {
+                let html = '';
+                switch (section.type) {
+                    case 'tile':
+                        html = `
+                            <select onchange="updateSectionData('${section.id}', 'tileMode', this.value)">
+                                <option value="letter" ${section.tileMode === 'letter' ? 'selected' : ''}>Letter</option>
+                                <option value="image" ${section.tileMode === 'image' ? 'selected' : ''}>Image</option>
+                            </select>
+                            <div class="form-group">
+                                <label>Letter Tile</label>
+                                <input value="${escapeHtml(section.letterTile || '')}" onchange="updateSectionData('${section.id}', 'letterTile', this.value)">
+                            </div>
+                            <div class="form-group">
+                                <label>Font size (px)</label>
+                                <input type="number" value="${section.letterFontSize || 56}" min="24" max="96" onchange="updateSectionData('${section.id}', 'letterFontSize', this.value)">
+                            </div>
+                            <div class="form-group">
+                                <label>Caption (for image mode)</label>
+                                <input value="${escapeHtml(section.imageCaption || "TODAY'S SOUND")}" onchange="updateSectionData('${section.id}', 'imageCaption', this.value)">
+                            </div>
+                            <div class="form-group">
+                                <label>Image Path</label>
+                                <input value="${escapeHtml(section.imagePath || '')}" onchange="updateSectionData('${section.id}', 'imagePath', this.value)">
+                            </div>`;
+                        break;
+                    case 'introText':
+                    case 'instruction':
+                    case 'customText':
+                        html = `<textarea rows="3" oninput="updateSectionData('${section.id}', 'text', this.value)">${escapeHtml(section.text || '')}</textarea>`;
+                        break;
+                    case 'wordGrid':
+                        html = `
+                            <div class="form-row" style="display:flex; gap:10px;">
+                                <div class="form-group" style="flex:1;">
+                                    <label>Columns</label>
+                                    <input type="number" value="${section.columns || 4}" min="1" max="8" onchange="updateSectionData('${section.id}', 'columns', parseInt(this.value))">
+                                </div>
+                                <div class="form-group" style="flex:1;">
+                                    <label>Rows</label>
+                                    <input type="number" value="${section.rows || 3}" min="1" max="12" onchange="updateSectionData('${section.id}', 'rows', parseInt(this.value))">
+                                </div>
+                            </div>
+                            <textarea rows="3" placeholder="Comma separated words (optional)" oninput="updateSectionData('${section.id}', 'words', this.value.split(',').map(s=>s.trim()).filter(Boolean))">${(section.words || []).join(', ')}</textarea>`;
+                        break;
+                    case 'decodable':
+                        html = `
+                            <input value="${escapeHtml(section.instruction || '')}" onchange="updateSectionData('${section.id}', 'instruction', this.value)">
+                            <textarea rows="3" placeholder="Sentences, comma separated" oninput="updateSectionData('${section.id}', 'sentences', this.value.split(',').map(s=>s.trim()).filter(Boolean))">${(section.sentences || []).join(', ')}</textarea>`;
+                        break;
+                    case 'fillBlanks':
+                        html = `
+                            <input value="${escapeHtml(section.title || '')}" onchange="updateSectionData('${section.id}', 'title', this.value)">
+                            <textarea rows="3" placeholder="Items, comma separated (use _ for blank)" oninput="updateSectionData('${section.id}', 'items', this.value.split(',').map(s=>s.trim()).filter(Boolean))">${(section.items || []).join(', ')}</textarea>`;
+                        break;
+                    case 'sentenceWriting':
+                        html = `
+                            <input value="${escapeHtml(section.title || '')}" onchange="updateSectionData('${section.id}', 'title', this.value)">
+                            <input type="number" value="${section.lines || 2}" min="1" max="8" onchange="updateSectionData('${section.id}', 'lines', parseInt(this.value))">`;
+                        break;
+                    case 'writingLines':
+                        html = `<label><input type="checkbox" ${section.fillRemaining ? 'checked' : ''} onchange="updateSectionData('${section.id}', 'fillRemaining', this.checked)"> Fill remaining height</label>`;
+                        break;
+                    default:
+                        html = '';
                 }
-                if (l.showDecodable) base -= 2;
-                if (l.showFillBlanks) {
-                    const rows = Math.ceil(Math.min((l.fillItems||[]).length, MAX_FILL_ITEMS) / 3) || 0;
-                    base -= Math.min(rows, 3);
-                }
-                if (l.showSentenceWrite) base -= 1;
-                if (l.showIntro || l.showInstruction || l.tileMode) base -= 1;
-                return Math.max(3, Math.min(11, base));
+                return html;
+            }
+
+            window.addSection = function(type) {
+                const newSection = createDefaultSection(type);
+                tempSections.push(newSection);
+                renderSectionsBuilder();
+                renderThumbnail();
+            };
+            window.deleteSection = function(id) {
+                tempSections = tempSections.filter(s => s.id !== id);
+                renderSectionsBuilder();
+                renderThumbnail();
+            };
+            window.moveSection = function(id, dir) {
+                const idx = tempSections.findIndex(s => s.id === id);
+                if (idx === -1) return;
+                const newIdx = idx + dir;
+                if (newIdx < 0 || newIdx >= tempSections.length) return;
+                const temp = tempSections[idx];
+                tempSections[idx] = tempSections[newIdx];
+                tempSections[newIdx] = temp;
+                renderSectionsBuilder();
+                renderThumbnail();
+            };
+            window.updateSectionWidth = function(id, width) {
+                const section = tempSections.find(s => s.id === id);
+                if (section) section.width = width;
+                renderThumbnail();
+            };
+            window.updateSectionData = function(id, field, value) {
+                const section = tempSections.find(s => s.id === id);
+                if (!section) return;
+                section[field] = value;
+                if (field === 'lines') section.lines = parseInt(value) || 2;
+                if (field === 'columns') section.columns = parseInt(value) || 4;
+                if (field === 'rows') section.rows = parseInt(value) || 3;
+                renderThumbnail();
+            };
+
+            function renderThumbnail() {
+                const container = document.getElementById('thumbnailContainer');
+                if (!container) return;
+
+                const mainTitle = document.getElementById('fMainTitle')?.value || 'Untitled';
+                const subtitle = document.getElementById('fSubtitle')?.value || 'SHORT VOWEL';
+                const lessonNumber = parseInt(document.getElementById('fLessonNumber')?.value) || 1;
+
+                const tempLesson = {
+                    mainTitle,
+                    subtitle,
+                    lessonNumber,
+                    sections: JSON.parse(JSON.stringify(tempSections))
+                };
+
+                const pageEl = buildLessonPage(tempLesson, 1);
+                pageEl.querySelector('.page-actions')?.remove();
+
+                pageEl.style.transform = 'scale(0.3)';
+                pageEl.style.transformOrigin = 'top left';
+                pageEl.style.position = 'absolute';
+                pageEl.style.top = '0';
+                pageEl.style.left = '0';
+                pageEl.style.width = '850px';
+                pageEl.style.minWidth = '850px';
+                pageEl.style.minHeight = '1080px';
+                pageEl.style.padding = '24px 32px';
+                pageEl.style.margin = '0';
+                pageEl.style.borderRadius = '0';
+                pageEl.style.boxShadow = 'none';
+                pageEl.style.pageBreakAfter = 'auto';
+
+                container.innerHTML = '';
+                container.appendChild(pageEl);
+                container.style.height = '324px';
             }
 
             function buildLessonPage(lesson, pageNum) {
                 const page = document.createElement('div');
                 page.className = 'page';
-                page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
+                page.innerHTML = `
+                    <div class="page-actions no-print">
+                        <button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button>
+                        <button class="edit-btn" onclick="editPageFromView('${escapeHtml(lesson.id)}', 'lesson')">✏️ Edit</button>
+                    </div>`;
                 const card = document.createElement('div');
                 card.className = 'card';
-
-                const showIntro = lesson.showIntro !== false;
-                const showInstr = lesson.showInstruction !== false;
-                const showGrid = lesson.showGrid !== false;
-                const showDec = lesson.showDecodable === true;
-                const showFill = lesson.showFillBlanks === true;
-                const showSent = lesson.showSentenceWrite === true;
-                const showLines = lesson.showWritingLines === true;
-                const tileMode = lesson.tileMode || 'letter';
-                const hasTile = tileMode === 'letter' || tileMode === 'image';
-                const fontSize = lesson.letterFontSize || 56;
-
-                let topRowHtml = '';
-                if (hasTile || showIntro || showInstr) {
-                    let tileHtml = '';
-                    if (tileMode === 'letter') {
-                        const alone = !showIntro && !showInstr;
-                        tileHtml = `
-                            <div class="todays-sound-card${alone ? ' full-width' : ''}">
-                                <div class="todays-sound-header">TODAY'S SOUND</div>
-                                <div class="todays-sound-body">
-                                    <div class="todays-sound-stars">★ ★ ★</div>
-                                    <div class="todays-sound-letter" style="font-size:${fontSize}px">${escapeHtml(lesson.letterTile || 'Aa')}</div>
-                                </div>
-                            </div>`;
-                    } else if (tileMode === 'image') {
-                        const alone = !showIntro && !showInstr;
-                        const cap = escapeHtml(lesson.imageCaption || "TODAY'S SOUND");
-                        const img = lesson.imagePath
-                            ? `<img class="todays-sound-img" src="${escapeHtml(lesson.imagePath)}" />`
-                            : `<div style="font-size:32px;opacity:0.4">🖼️</div>`;
-                        tileHtml = `
-                            <div class="todays-sound-card${alone ? ' full-width' : ''}">
-                                <div class="todays-sound-header">${cap}</div>
-                                <div class="todays-sound-body">${img}</div>
-                            </div>`;
-                    }
-
-                    let stackHtml = '';
-                    if (showIntro || showInstr) {
-                        let parts = '';
-                        if (showIntro) {
-                            const intro = escapeHtml(lesson.introText || '');
-                            const introHtml = intro.replace(/\b(apple|egg|igloo|octopus|umbrella)\b/gi, m => `<span class="highlight">${m}</span>`);
-                            parts += `<div class="cvc-intro-box"><p>${introHtml}</p></div>`;
-                        }
-                        if (showInstr) {
-                            parts += `<div class="cvc-instruction-box"><p>${escapeHtml(lesson.instruction || '')}</p></div>`;
-                        }
-                        stackHtml = `<div class="cvc-intro-stack">${parts}</div>`;
-                    }
-
-                    if (tileHtml && stackHtml) {
-                        topRowHtml = `<div class="cvc-top-row">${tileHtml}${stackHtml}</div>`;
-                    } else if (tileHtml) {
-                        topRowHtml = `<div class="cvc-top-row" style="justify-content:center">${tileHtml}</div>`;
-                    } else {
-                        topRowHtml = `<div class="cvc-top-row"><div class="cvc-intro-stack" style="width:100%">${stackHtml.replace('cvc-intro-stack','')}</div></div>`;
-                    }
-                }
-
-                let gridHtml = '';
-                if (showGrid) {
-                    const words = (lesson.words || []).filter(w => w && String(w).trim()).slice(0, MAX_GRID_WORDS);
-                    const display = [...words];
-                    if (display.length) {
-                        while (display.length % 4 !== 0) display.push('');
-                        const cells = display.map(w => `<div class="cvc-word-cell${w ? '' : ' empty'}">${escapeHtml(w || '')}</div>`).join('');
-                        gridHtml = `<div class="cvc-word-grid">${cells}</div>`;
-                    }
-                }
-
-                let decHtml = '';
-                if (showDec) {
-                    const sents = (lesson.decodableSentences || []).filter(Boolean);
-                    const lines = sents.map((s, i) => `<div class="sentence">${i + 1}. ${escapeHtml(s)}</div>`).join('');
-                    decHtml = `<div class="act-box"><div class="act-title">${escapeHtml(lesson.decodableInstruction || 'Read ALOUD and circle all words with the target sound')}</div>${lines}</div>`;
-                }
-
-                let fillHtml = '';
-                if (showFill) {
-                    const items = (lesson.fillItems || []).filter(Boolean).slice(0, MAX_FILL_ITEMS);
-                    const cells = items.map(item => {
-                        let html = '';
-                        for (const ch of String(item)) {
-                            if (ch === '_') html += '<span class="blank-sq"></span>';
-                            else html += `<span>${escapeHtml(ch)}</span>`;
-                        }
-                        return `<div class="fill-item">${html}</div>`;
-                    }).join('');
-                    fillHtml = `<div class="act-box"><div class="act-title">${escapeHtml(lesson.fillTitle || 'A. Fill in the missing letters and say the word')}</div><div class="fill-grid">${cells}</div></div>`;
-                }
-
-                let sentHtml = '';
-                if (showSent) {
-                    const n = Math.max(1, Math.min(8, lesson.sentenceLines || 2));
-                    let lines = '';
-                    for (let i = 0; i < n; i++) lines += `<div class="sent-line">${i + 1}.</div>`;
-                    sentHtml = `<div class="act-box"><div class="act-title">${escapeHtml(lesson.sentenceTitle || 'C. Choose any word and form 2 sentences')}</div><div class="sent-lines">${lines}</div></div>`;
-                }
 
                 card.innerHTML = `
                     <div class="cvc-header">
@@ -751,41 +664,133 @@
                             <span class="lesson-num">${lesson.lessonNumber}</span>
                         </div>
                     </div>
-                    <div class="cvc-body">
-                        ${topRowHtml}
-                        ${gridHtml}
-                        ${decHtml}
-                        ${fillHtml}
-                        ${sentHtml}
-                    </div>
                 `;
 
-                if (showLines) {
-                    const writing = createWritingSets(calcWritingSets(lesson));
-                    card.querySelector('.cvc-body').appendChild(writing);
-                }
+                const sectionsContainer = document.createElement('div');
+                sectionsContainer.className = 'lesson-sections-container';
+
+                (lesson.sections || []).forEach(section => {
+                    const sectionEl = document.createElement('div');
+                    sectionEl.className = `section-item w-${section.width}`;
+                    sectionEl.innerHTML = renderSectionContent(section);
+                    sectionsContainer.appendChild(sectionEl);
+                });
+
+                card.appendChild(sectionsContainer);
+                page.appendChild(card);
 
                 const pn = document.createElement('div');
                 pn.className = 'cvc-page-number';
                 pn.textContent = pageNum;
                 card.appendChild(pn);
-                page.appendChild(card);
                 return page;
+            }
+
+            function renderSectionContent(section) {
+                switch (section.type) {
+                    case 'tile': {
+                        const tileMode = section.tileMode || 'letter';
+                        if (tileMode === 'letter') {
+                            return `<div class="todays-sound-card">
+                                <div class="todays-sound-header">TODAY'S SOUND</div>
+                                <div class="todays-sound-body">
+                                    <div class="todays-sound-stars">★ ★ ★</div>
+                                    <div class="todays-sound-letter" style="font-size:${section.letterFontSize || 56}px">${escapeHtml(section.letterTile || 'Aa')}</div>
+                                </div>
+                            </div>`;
+                        } else if (tileMode === 'image') {
+                            const img = section.imagePath ? `<img class="todays-sound-img" src="${escapeHtml(section.imagePath)}" />` : `<div style="font-size:32px;opacity:0.4">🖼️</div>`;
+                            return `<div class="todays-sound-card">
+                                <div class="todays-sound-header">${escapeHtml(section.imageCaption || "TODAY'S SOUND")}</div>
+                                <div class="todays-sound-body">${img}</div>
+                            </div>`;
+                        }
+                        return '';
+                    }
+                    case 'introText':
+                        return `<div class="cvc-intro-box"><p>${formatTextWithHighlight(section.text || '')}</p></div>`;
+                    case 'instruction':
+                        return `<div class="cvc-instruction-box"><p>${escapeHtml(section.text || '')}</p></div>`;
+                    case 'customText':
+                        return `<div class="custom-text-box"><p>${formatTextWithHighlight(section.text || '')}</p></div>`;
+                    case 'wordGrid': {
+                        const columns = Math.max(1, section.columns || 4);
+                        const rows = Math.max(1, section.rows || 3);
+                        const words = (section.words || []).slice(0, columns * rows);
+                        const totalCells = columns * rows;
+                        let cellsHtml = '';
+                        for (let i = 0; i < totalCells; i++) {
+                            const word = words[i] || '';
+                            const isLastCol = (i % columns) === columns - 1;
+                            const isLastRow = i >= totalCells - columns;
+                            let cellStyle = '';
+                            if (!isLastCol) cellStyle += 'border-right:1px solid #f0c9a8;';
+                            else cellStyle += 'border-right:none;';
+                            if (!isLastRow) cellStyle += 'border-bottom:1px solid #f0c9a8;';
+                            else cellStyle += 'border-bottom:none;';
+                            cellsHtml += `<div class="word-cell${word ? '' : ' empty'}" style="${cellStyle}">${escapeHtml(word || '')}</div>`;
+                        }
+                        return `<div class="word-grid" style="grid-template-columns:repeat(${columns},1fr);">${cellsHtml}</div>`;
+                    }
+                    case 'decodable': {
+                        const sents = (section.sentences || []).filter(Boolean);
+                        if (!sents.length) return '';
+                        const lines = sents.map((s, i) => `<div class="sentence">${i + 1}. ${escapeHtml(s)}</div>`).join('');
+                        return `<div class="act-box"><div class="act-title">${escapeHtml(section.instruction || '')}</div>${lines}</div>`;
+                    }
+                    case 'fillBlanks': {
+                        const items = (section.items || []).filter(Boolean).slice(0, MAX_FILL_ITEMS);
+                        if (!items.length) return '';
+                        const cells = items.map(item => {
+                            let html = '';
+                            for (const ch of String(item)) {
+                                if (ch === '_') html += '<span class="blank-sq"></span>';
+                                else html += `<span>${escapeHtml(ch)}</span>`;
+                            }
+                            return `<div class="fill-item">${html}</div>`;
+                        }).join('');
+                        return `<div class="act-box"><div class="act-title">${escapeHtml(section.title || '')}</div><div class="fill-grid">${cells}</div></div>`;
+                    }
+                    case 'sentenceWriting': {
+                        const n = Math.max(1, Math.min(8, section.lines || 2));
+                        let lines = '';
+                        for (let i = 0; i < n; i++) lines += `<div class="sent-line">${i + 1}.</div>`;
+                        return `<div class="act-box"><div class="act-title">${escapeHtml(section.title || '')}</div><div class="sent-lines">${lines}</div></div>`;
+                    }
+                    case 'writingLines': {
+                        const count = 3;
+                        let lines = '';
+                        for (let i = 0; i < count; i++) {
+                            lines += `<div class="writing-set"><div class="line l1"></div><div class="line l2"></div><div class="line l3"></div><div class="line l4"></div></div>`;
+                        }
+                        return `<div class="writing-lines-area">${lines}</div>`;
+                    }
+                    default:
+                        return '';
+                }
             }
 
             function buildTocPage(pageNum, entries) {
                 const page = document.createElement('div'); page.className = 'page';
-                page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
+                page.innerHTML = `
+                    <div class="page-actions no-print">
+                        <button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button>
+                        <button class="edit-btn" onclick="editPageFromView('toc', 'toc')">✏️ Edit</button>
+                    </div>`;
                 const card = document.createElement('div'); card.className = 'toc-card';
                 card.innerHTML = `<div class="toc-title">Table of Contents</div><ul class="toc-list">` +
-                    entries.map(e => `<li class="toc-item"><span>Lesson ${e.lessonNumber}: ${escapeHtml(e.mainTitle)}${e.letterTile ? ' — ' + escapeHtml(e.letterTile) : ''}</span><span class="toc-page-num">Page ${e.firstPage}</span></li>`).join('') +
+                    entries.map(e => `<li class="toc-item"><span>Lesson ${e.lessonNumber}: ${escapeHtml(e.mainTitle)}${e.sections?.[0]?.letterTile ? ' — ' + escapeHtml(e.sections[0].letterTile) : ''}</span><span class="toc-page-num">Page ${e.firstPage}</span></li>`).join('') +
                     `</ul><div class="page-number">${pageNum}</div>`;
                 page.appendChild(card); return page;
             }
 
             function buildSightWordsPage(pageNum, words) {
                 const page = document.createElement('div'); page.className = 'page';
-                page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
+                page.innerHTML = `
+                    <div class="page-actions no-print">
+                        <button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button>
+                        <button class="edit-btn" onclick="editPageFromView('sightwords', 'sightwords')">✏️ Edit</button>
+                    </div>`;
                 const card = document.createElement('div'); card.className = 'card sight-card';
                 card.innerHTML = `<div class="title">Sight Words Practice</div><div class="section-header"><div class="circle">★</div><div class="label-box">Read and say each word</div></div>`;
                 const grid = document.createElement('div'); grid.className = 'sight-words-grid';
@@ -797,7 +802,11 @@
 
             function buildCoverPage() {
                 const page = document.createElement('div'); page.className = 'page';
-                page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
+                page.innerHTML = `
+                    <div class="page-actions no-print">
+                        <button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button>
+                        <button class="edit-btn" onclick="editPageFromView('cover', 'cover')">✏️ Edit</button>
+                    </div>`;
                 const card = document.createElement('div'); card.className = 'card cover-card';
                 card.innerHTML = `<div class="cover-text-block"><div class="cover-line"></div><div class="cover-title">${escapeHtml(coverData.title)}</div><div class="cover-subtitle">${escapeHtml(coverData.subtitle)}</div><div class="cover-line"></div></div>`;
                 page.appendChild(card); return page;
@@ -808,7 +817,7 @@
                 clone.querySelector('.page-actions')?.remove();
                 const win = window.open('', '_blank');
                 const styles = document.querySelector('style').outerHTML;
-                win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Export</title>${styles}</head><body style="padding:0;background:#fff;margin:0;"><div class="view-container" style="overflow:visible;">${clone.outerHTML}</div></body></html>`);
+                win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Export</title>${styles}</head><body style="padding:0;background:#fff;margin:0;display:flex;justify-content:center;"><div class="view-container" style="overflow:visible;display:flex;flex-direction:column;align-items:center;">${clone.outerHTML}</div></body></html>`);
                 win.document.close(); win.focus(); setTimeout(() => win.print(), 400);
             };
             window.exportAllPages = function() {
@@ -817,7 +826,7 @@
                 container.querySelectorAll('.page-actions').forEach(el => el.remove());
                 const win = window.open('', '_blank');
                 const styles = document.querySelector('style').outerHTML;
-                win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>All Pages</title>${styles}</head><body style="padding:0;background:#fff;margin:0;"><div class="view-container" style="overflow:visible;">${container.outerHTML}</div></body></html>`);
+                win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>All Pages</title>${styles}</head><body style="padding:0;background:#fff;margin:0;"><div class="view-container" style="overflow:visible;display:block;">${container.innerHTML}</div></body></html>`);
                 win.document.close(); win.focus(); setTimeout(() => win.print(), 400);
             };
 
@@ -831,7 +840,7 @@
                 const lessonStart = tocPages + swPages + 1;
                 let running = lessonStart;
                 const tocEntries = lessons.map(l => {
-                    const e = { lessonNumber: l.lessonNumber, mainTitle: l.mainTitle, letterTile: l.letterTile, firstPage: running };
+                    const e = { lessonNumber: l.lessonNumber, mainTitle: l.mainTitle, firstPage: running };
                     running += 1; return e;
                 });
                 for (let p = 0; p < tocPages; p++) container.appendChild(buildTocPage(p + 1, tocEntries.slice(p * MAX_TOC_PER_PAGE, (p + 1) * MAX_TOC_PER_PAGE)));
@@ -843,68 +852,13 @@
                 lessons.forEach(l => container.appendChild(buildLessonPage(l, pageNum++)));
             }
 
-            // ---------- FORM ----------
-            function getFormData() {
-                const words = document.getElementById('fWords').value.split(',').map(s => s.trim()).filter(Boolean).slice(0, MAX_GRID_WORDS);
-                const fills = document.getElementById('fFillItems').value.split(',').map(s => s.trim()).filter(Boolean).slice(0, MAX_FILL_ITEMS);
-                const sents = document.getElementById('fDecSents').value.split(',').map(s => s.trim()).filter(Boolean);
-                return {
-                    mainTitle: document.getElementById('fMainTitle').value.trim(),
-                    subtitle: document.getElementById('fSubtitle').value.trim() || 'SHORT VOWEL',
-                    lessonNumber: parseInt(document.getElementById('fLessonNumber').value) || 0,
-                    tileMode: document.getElementById('fTileMode').value,
-                    letterTile: document.getElementById('fLetterTile').value.trim(),
-                    letterFontSize: parseInt(document.getElementById('fLetterSize').value) || 56,
-                    imagePath: document.getElementById('fImagePath').value || '',
-                    imageCaption: document.getElementById('fImageCaption').value.trim() || "TODAY'S SOUND",
-                    showIntro: document.getElementById('fShowIntro').checked,
-                    introText: document.getElementById('fIntroText').value.trim(),
-                    showInstruction: document.getElementById('fShowInstr').checked,
-                    instruction: document.getElementById('fInstruction').value.trim(),
-                    showGrid: document.getElementById('fShowGrid').checked,
-                    words,
-                    showDecodable: document.getElementById('fShowDec').checked,
-                    decodableInstruction: document.getElementById('fDecInstr').value.trim(),
-                    decodableSentences: sents,
-                    showFillBlanks: document.getElementById('fShowFill').checked,
-                    fillTitle: document.getElementById('fFillTitle').value.trim(),
-                    fillItems: fills,
-                    showSentenceWrite: document.getElementById('fShowSent').checked,
-                    sentenceTitle: document.getElementById('fSentTitle').value.trim(),
-                    sentenceLines: parseInt(document.getElementById('fSentLines').value) || 2,
-                    showWritingLines: document.getElementById('fShowLines').checked
-                };
-            }
-
             function fillForm(lesson) {
                 document.getElementById('fMainTitle').value = lesson.mainTitle || '';
                 document.getElementById('fSubtitle').value = lesson.subtitle || 'SHORT VOWEL';
                 document.getElementById('fLessonNumber').value = lesson.lessonNumber || '';
-                document.getElementById('fTileMode').value = lesson.tileMode || 'letter';
-                document.getElementById('fLetterTile').value = lesson.letterTile || '';
-                document.getElementById('fLetterSize').value = lesson.letterFontSize || 56;
-                document.getElementById('fImagePath').value = lesson.imagePath || '';
-                document.getElementById('fImageCaption').value = lesson.imageCaption || "TODAY'S SOUND";
-                const img = document.getElementById('imgPreview'), ph = document.getElementById('imgPreviewPh');
-                if (lesson.imagePath) { img.src = lesson.imagePath; img.style.display = 'block'; ph.style.display = 'none'; }
-                else { img.src = ''; img.style.display = 'none'; ph.style.display = 'flex'; }
-                document.getElementById('fShowIntro').checked = lesson.showIntro !== false;
-                document.getElementById('fIntroText').value = lesson.introText || '';
-                document.getElementById('fShowInstr').checked = lesson.showInstruction !== false;
-                document.getElementById('fInstruction').value = lesson.instruction || '';
-                document.getElementById('fShowGrid').checked = lesson.showGrid !== false;
-                document.getElementById('fWords').value = (lesson.words || []).join(', ');
-                document.getElementById('fShowDec').checked = !!lesson.showDecodable;
-                document.getElementById('fDecInstr').value = lesson.decodableInstruction || 'Read ALOUD and circle all words with the target sound';
-                document.getElementById('fDecSents').value = (lesson.decodableSentences || []).join(', ');
-                document.getElementById('fShowFill').checked = !!lesson.showFillBlanks;
-                document.getElementById('fFillTitle').value = lesson.fillTitle || 'A. Fill in the missing letters and say the word';
-                document.getElementById('fFillItems').value = (lesson.fillItems || []).join(', ');
-                document.getElementById('fShowSent').checked = !!lesson.showSentenceWrite;
-                document.getElementById('fSentTitle').value = lesson.sentenceTitle || 'C. Choose any word and form 2 sentences';
-                document.getElementById('fSentLines').value = lesson.sentenceLines || 2;
-                document.getElementById('fShowLines').checked = lesson.showWritingLines !== false;
-                toggleFields();
+                tempSections = JSON.parse(JSON.stringify(lesson.sections || []));
+                renderSectionsBuilder();
+                renderThumbnail();
             }
 
             function resetForm() {
@@ -913,45 +867,14 @@
                 document.getElementById('fMainTitle').value = 'SHORT VOWEL CVC WORDS';
                 document.getElementById('fSubtitle').value = 'SHORT VOWEL';
                 document.getElementById('fLessonNumber').value = lessons.length + 1;
-                document.getElementById('fTileMode').value = 'letter';
-                document.getElementById('fLetterTile').value = '';
-                document.getElementById('fLetterSize').value = 56;
-                document.getElementById('fImagePath').value = '';
-                document.getElementById('fImageCaption').value = "TODAY'S SOUND";
-                document.getElementById('imgPreview').style.display = 'none';
-                document.getElementById('imgPreviewPh').style.display = 'flex';
-                document.getElementById('fShowIntro').checked = true;
-                document.getElementById('fIntroText').value = '';
-                document.getElementById('fShowInstr').checked = true;
-                document.getElementById('fInstruction').value = 'Say each picture word out loud and listen for this pattern.';
-                document.getElementById('fShowGrid').checked = true;
-                document.getElementById('fWords').value = '';
-                document.getElementById('fShowDec').checked = false;
-                document.getElementById('fDecInstr').value = 'Read ALOUD and circle all words with the target sound';
-                document.getElementById('fDecSents').value = '';
-                document.getElementById('fShowFill').checked = false;
-                document.getElementById('fFillTitle').value = 'A. Fill in the missing letters and say the word';
-                document.getElementById('fFillItems').value = '';
-                document.getElementById('fShowSent').checked = false;
-                document.getElementById('fSentTitle').value = 'C. Choose any word and form 2 sentences';
-                document.getElementById('fSentLines').value = 2;
-                document.getElementById('fShowLines').checked = true;
-                toggleFields();
+                tempSections = JSON.parse(JSON.stringify(DEFAULT_LESSONS[0].sections || []));
+                renderSectionsBuilder();
+                renderThumbnail();
                 document.getElementById('saveBtn').textContent = '💾 Save Lesson';
                 document.getElementById('cancelBtn').style.display = 'none';
             }
 
-            window.toggleFields = function() {
-                const mode = document.getElementById('fTileMode').value;
-                document.getElementById('letterFields').style.display = mode === 'letter' ? 'block' : 'none';
-                document.getElementById('imageFields').style.display = mode === 'image' ? 'block' : 'none';
-                document.getElementById('introFields').style.display = document.getElementById('fShowIntro').checked ? 'block' : 'none';
-                document.getElementById('instrFields').style.display = document.getElementById('fShowInstr').checked ? 'block' : 'none';
-                document.getElementById('wordsGroup').style.display = document.getElementById('fShowGrid').checked ? 'block' : 'none';
-                document.getElementById('decFields').style.display = document.getElementById('fShowDec').checked ? 'block' : 'none';
-                document.getElementById('fillFields').style.display = document.getElementById('fShowFill').checked ? 'block' : 'none';
-                document.getElementById('sentFields').style.display = document.getElementById('fShowSent').checked ? 'block' : 'none';
-            };
+            window.toggleFields = function() {};
 
             window.handleImageUpload = function(e) {
                 const file = e.target.files[0];
@@ -960,10 +883,8 @@
                 if (!file.type.startsWith('image/')) return showToast('Please select an image.', 'error');
                 const reader = new FileReader();
                 reader.onload = ev => {
-                    document.getElementById('fImagePath').value = ev.target.result;
-                    const img = document.getElementById('imgPreview'), ph = document.getElementById('imgPreviewPh');
-                    img.src = ev.target.result; img.style.display = 'block'; ph.style.display = 'none';
-                    showToast('Image uploaded.', 'success');
+                    const dataUrl = ev.target.result;
+                    showToast('Image uploaded. Use path field in tile section for now.', 'info');
                 };
                 reader.readAsDataURL(file);
             };
@@ -976,31 +897,30 @@
                 fillForm(lesson);
                 document.getElementById('saveBtn').textContent = '💾 Update Lesson';
                 document.getElementById('cancelBtn').style.display = 'inline-block';
-                document.querySelector('.form-section').scrollIntoView({ behavior: 'smooth' });
+                switchTab('edit');
             };
-            window.cancelEdit = function() { resetForm(); showToast('Edit cancelled.', 'info'); };
+            window.cancelEdit = function() { resetForm(); switchTab('lessons'); showToast('Edit cancelled.', 'info'); };
 
             window.saveLesson = function() {
-                const data = getFormData();
-                if (!data.mainTitle) return showToast('Main Title is required.', 'error');
-                if (data.tileMode === 'letter' && !data.letterTile) return showToast('Letter Tile is required in Letter mode.', 'error');
-                if (data.showIntro && !data.introText) return showToast('Intro Text is required when enabled.', 'error');
-                if (data.showGrid && data.words.length < 1) return showToast('Word Grid needs at least 1 word when enabled.', 'error');
-                if (data.showFillBlanks && data.fillItems.length < 1) return showToast('Fill-blanks needs at least 1 item when enabled.', 'error');
-
+                const mainTitle = document.getElementById('fMainTitle').value.trim();
+                const subtitle = document.getElementById('fSubtitle').value.trim() || 'SHORT VOWEL';
+                if (!mainTitle) return showToast('Main Title is required.', 'error');
+                const sections = JSON.parse(JSON.stringify(tempSections));
                 if (editingId) {
                     const idx = lessons.findIndex(l => l.id === editingId);
                     if (idx === -1) return showToast('Lesson not found.', 'error');
-                    data.lessonNumber = idx + 1;
-                    lessons[idx] = { ...lessons[idx], ...data, id: editingId };
+                    lessons[idx] = { ...lessons[idx], mainTitle, subtitle, sections, id: editingId };
+                    lessons[idx].lessonNumber = idx + 1;
                 } else {
-                    data.lessonNumber = lessons.length + 1;
-                    lessons.push({ ...data, id: generateId() });
+                    const newLesson = { mainTitle, subtitle, sections, id: generateId() };
+                    newLesson.lessonNumber = lessons.length + 1;
+                    lessons.push(newLesson);
                 }
                 renumberByOrder(lessons);
                 saveData();
                 resetForm();
                 refreshUI();
+                switchTab('lessons');
                 showToast('Lesson saved.', 'success');
             };
 
@@ -1027,6 +947,55 @@
                 showToast('Lesson duplicated.', 'success');
             };
 
+            // ===== REORDERING FUNCTIONS =====
+            window.moveLessonUp = function(id) {
+                const idx = lessons.findIndex(l => l.id === id);
+                if (idx <= 0) return;
+                const temp = lessons[idx - 1];
+                lessons[idx - 1] = lessons[idx];
+                lessons[idx] = temp;
+                renumberByOrder(lessons);
+                saveData();
+                refreshUI();
+                showToast('Lesson moved up.', 'success');
+            };
+
+            window.moveLessonDown = function(id) {
+                const idx = lessons.findIndex(l => l.id === id);
+                if (idx === -1 || idx >= lessons.length - 1) return;
+                const temp = lessons[idx + 1];
+                lessons[idx + 1] = lessons[idx];
+                lessons[idx] = temp;
+                renumberByOrder(lessons);
+                saveData();
+                refreshUI();
+                showToast('Lesson moved down.', 'success');
+            };
+
+            // ===== EDIT PAGE FROM VIEW =====
+            window.editPageFromView = function(id, type) {
+                if (type === 'lesson') {
+                    editLesson(id);
+                } else if (type === 'cover') {
+                    switchTab('lessons');
+                    setTimeout(() => {
+                        document.getElementById('coverSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        document.getElementById('coverTitleInput')?.focus();
+                    }, 100);
+                } else if (type === 'sightwords') {
+                    switchTab('lessons');
+                    setTimeout(() => {
+                        document.getElementById('sightWordsSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        document.getElementById('fSightWords')?.focus();
+                    }, 100);
+                } else if (type === 'toc') {
+                    switchTab('lessons');
+                    showToast('Table of Contents is generated from lessons. You can reorder or edit lessons from the list.', 'info');
+                } else {
+                    showToast('Unknown page type.', 'warning');
+                }
+            };
+
             window.exportJSON = function() {
                 const blob = new Blob([JSON.stringify({ lessons, sightWords, coverData }, null, 2)], { type: 'application/json' });
                 const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'lessons_v8.json'; a.click();
@@ -1039,16 +1008,11 @@
                     try {
                         const data = JSON.parse(e.target.result);
                         if (!data || typeof data !== 'object') throw new Error('Invalid');
-                        confirmDialog('Replace all data with imported file? Lesson numbers will be renumbered.', () => {
+                        confirmDialog('Replace all data with imported file?', () => {
                             if (Array.isArray(data.lessons)) {
-                                lessons = data.lessons.map((l, i) => {
-                                    if (!l.id) l.id = '__import' + i;
-                                    if (!l.words && l.activities?.lookAndSay?.words) l.words = flattenWords(l.activities.lookAndSay.words);
-                                    if (!l.tileMode) l.tileMode = 'letter';
-                                    return l;
-                                });
+                                lessons = data.lessons.map(l => migrateToSections(l));
                                 resyncNextId();
-                                lessons.forEach(l => { if (String(l.id).startsWith('__import')) l.id = generateId(); });
+                                lessons.forEach(l => { if (!l.id) l.id = generateId(); });
                                 resyncNextId();
                             } else {
                                 lessons = JSON.parse(JSON.stringify(DEFAULT_LESSONS));
@@ -1067,7 +1031,6 @@
                 reader.readAsText(file);
                 input.value = '';
             };
-
             window.saveSightWords = function() {
                 sightWords = document.getElementById('fSightWords').value.split(',').map(s => s.trim()).filter(Boolean);
                 saveData(); refreshUI(); showToast('Sight words saved.', 'success');
@@ -1084,20 +1047,28 @@
 
             function renderEditList() {
                 const container = document.getElementById('lessonList');
+                if (!container) return;
                 const q = (window.searchQuery || '').toLowerCase();
                 const filtered = lessons.filter(l => {
                     if (!q) return true;
                     return String(l.lessonNumber).includes(q) || (l.mainTitle || '').toLowerCase().includes(q) ||
-                           (l.letterTile || '').toLowerCase().includes(q) || (l.introText || '').toLowerCase().includes(q);
+                           (l.sections?.some(s => s.letterTile && s.letterTile.toLowerCase().includes(q)));
                 });
                 container.innerHTML = filtered.length ? filtered.map(l => {
+                    const origIdx = lessons.findIndex(x => x.id === l.id);
+                    const isFirst = origIdx === 0;
+                    const isLast = origIdx === lessons.length - 1;
+                    const tileSection = l.sections?.find(s => s.type === 'tile');
+                    const tileLabel = tileSection ? (tileSection.tileMode === 'letter' ? tileSection.letterTile : '🖼️') : '—';
                     return `<div class="lesson-item" data-id="${l.id}">
                         <div class="thumb">📄</div>
                         <div class="info">
-                            <div class="title">Lesson ${l.lessonNumber} — ${escapeHtml(l.mainTitle)} ${l.letterTile ? '· ' + escapeHtml(l.letterTile) : ''}</div>
-                            <div class="sub">1 page · ${l.tileMode || 'letter'} mode</div>
+                            <div class="title">Lesson ${l.lessonNumber} — ${escapeHtml(l.mainTitle)} · ${escapeHtml(tileLabel)}</div>
+                            <div class="sub">${l.sections?.length || 0} sections</div>
                         </div>
                         <div class="actions">
+                            <button class="btn btn-outline btn-xs" onclick="moveLessonUp('${l.id}')" ${isFirst ? 'disabled' : ''}>▲</button>
+                            <button class="btn btn-outline btn-xs" onclick="moveLessonDown('${l.id}')" ${isLast ? 'disabled' : ''}>▼</button>
                             <button class="btn btn-primary btn-xs" onclick="editLesson('${l.id}')">✏️</button>
                             <button class="btn btn-warning btn-xs" onclick="duplicateLesson('${l.id}')">📋</button>
                             <button class="btn btn-danger btn-xs" onclick="deleteLesson('${l.id}')">🗑️</button>
@@ -1119,110 +1090,76 @@
             window.switchTab = function(tab) {
                 document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
                 document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === tab + 'Panel'));
-                if (tab === 'edit') renderEditList();
-                if (tab === 'view') renderAllView();
+                if (tab === 'edit') {
+                    renderThumbnail();
+                }
+                if (tab === 'lessons') {
+                    renderEditList();
+                }
+                if (tab === 'view') {
+                    renderAllView();
+                }
                 updateCounts();
             };
 
-            // ---------- Initialization (async) ----------
             async function initApp() {
                 await loadData();
                 document.getElementById('app').innerHTML = `
                     <div class="app-header"><h1>📚 Phonics Lesson Publisher v8</h1><span class="badge" id="lessonCount">0</span></div>
                     <div class="tabs">
                         <button class="tab-btn active" data-tab="edit" onclick="switchTab('edit')">✏️ Edit</button>
+                        <button class="tab-btn" data-tab="lessons" onclick="switchTab('lessons')">📖 Lessons</button>
                         <button class="tab-btn" data-tab="view" onclick="switchTab('view')">👁️ View</button>
                     </div>
                     <div class="tab-panel active" id="editPanel">
-                        <div class="edit-layout">
-                            <div class="form-section">
-                                <h2 id="formTitle">➕ Add New Lesson</h2>
-                                <div class="form-group"><label>Main Title <span class="req">*</span></label><input id="fMainTitle" value="SHORT VOWEL CVC WORDS"></div>
-                                <div class="form-group"><label>Subtitle</label><input id="fSubtitle" value="SHORT VOWEL"></div>
-                                <div class="form-group"><label>Lesson Number (auto)</label><input id="fLessonNumber" readonly style="background:#f0f0f0;"></div>
+                        <div class="form-section">
+                            <h2 id="formTitle">➕ Add New Lesson</h2>
+                            <div class="form-group"><label>Main Title</label><input id="fMainTitle" value="SHORT VOWEL CVC WORDS" oninput="renderThumbnail()"></div>
+                            <div class="form-group"><label>Subtitle</label><input id="fSubtitle" value="SHORT VOWEL" oninput="renderThumbnail()"></div>
+                            <div class="form-group"><label>Lesson Number (auto)</label><input id="fLessonNumber" readonly style="background:#f0f0f0;"></div>
 
-                                <div class="section-card">
-                                    <h4>Letter / Image Tile</h4>
-                                    <div class="form-group"><label>Mode</label>
-                                        <select id="fTileMode" onchange="toggleFields()">
-                                            <option value="letter">Letter</option>
-                                            <option value="image">Image</option>
-                                            <option value="none">None (hide)</option>
-                                        </select>
-                                    </div>
-                                    <div id="letterFields">
-                                        <div class="form-group"><label>Letter Tile</label><input id="fLetterTile" placeholder="Aa"></div>
-                                        <div class="form-group"><label>Font size (px)</label><input type="number" id="fLetterSize" value="56" min="24" max="96"></div>
-                                    </div>
-                                    <div id="imageFields" style="display:none">
-                                        <div class="form-group"><label>Caption (replaces TODAY'S SOUND)</label><input id="fImageCaption" value="TODAY'S SOUND"></div>
-                                        <div class="form-group"><label>Image</label>
-                                            <div class="image-upload-wrap">
-                                                <img id="imgPreview" class="preview" style="display:none">
-                                                <div id="imgPreviewPh" class="preview-ph">🖼️</div>
-                                                <input type="file" accept="image/*" onchange="handleImageUpload(event)">
-                                                <input type="hidden" id="fImagePath">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="toggle-row"><label><input type="checkbox" id="fShowIntro" checked onchange="toggleFields()"> Show Intro Text</label></div>
-                                <div id="introFields"><div class="form-group"><textarea id="fIntroText" rows="2" placeholder="Short a says /a/ like in apple..."></textarea></div></div>
-
-                                <div class="toggle-row"><label><input type="checkbox" id="fShowInstr" checked onchange="toggleFields()"> Show Instruction</label></div>
-                                <div id="instrFields"><div class="form-group"><textarea id="fInstruction" rows="2">Say each picture word out loud and listen for this pattern.</textarea></div></div>
-
-                                <div class="toggle-row"><label><input type="checkbox" id="fShowGrid" checked onchange="toggleFields()"> Show Word Grid (max 24)</label></div>
-                                <div id="wordsGroup" class="form-group"><textarea id="fWords" rows="2" placeholder="bag, cat, mat, hat..."></textarea></div>
-
-                                <div class="toggle-row"><label><input type="checkbox" id="fShowDec" onchange="toggleFields()"> Show Decodable Reading</label></div>
-                                <div id="decFields" style="display:none" class="section-card">
-                                    <div class="form-group"><label>Instruction</label><input id="fDecInstr" value="Read ALOUD and circle all words with the target sound"></div>
-                                    <div class="form-group"><label>Sentences (comma separated)</label><textarea id="fDecSents" rows="2" placeholder="I see a bag., Look at the cat..."></textarea></div>
-                                </div>
-
-                                <div class="toggle-row"><label><input type="checkbox" id="fShowFill" onchange="toggleFields()"> Show Fill-in-the-Blanks (max 18)</label></div>
-                                <div id="fillFields" style="display:none" class="section-card">
-                                    <div class="form-group"><label>Title</label><input id="fFillTitle" value="A. Fill in the missing letters and say the word"></div>
-                                    <div class="form-group"><label>Items (use _ for blank, e.g. b_g, c_t)</label><textarea id="fFillItems" rows="2" placeholder="b_g, c_t, m_t, h_t..."></textarea></div>
-                                </div>
-
-                                <div class="toggle-row"><label><input type="checkbox" id="fShowSent" onchange="toggleFields()"> Show Sentence Writing</label></div>
-                                <div id="sentFields" style="display:none" class="section-card">
-                                    <div class="form-group"><label>Title</label><input id="fSentTitle" value="C. Choose any word and form 2 sentences"></div>
-                                    <div class="form-group"><label>Number of lines</label><input type="number" id="fSentLines" value="2" min="1" max="8"></div>
-                                </div>
-
-                                <div class="toggle-row"><label><input type="checkbox" id="fShowLines" checked> Show Writing Lines (fills remaining space)</label></div>
-
-                                <div class="form-actions">
-                                    <button class="btn btn-primary" id="saveBtn" onclick="saveLesson()">💾 Save Lesson</button>
-                                    <button class="btn btn-outline" id="cancelBtn" onclick="cancelEdit()" style="display:none">Cancel</button>
-                                </div>
+                            <div class="thumbnail-wrapper">
+                                <div class="thumb-label">📄 Live Page Preview</div>
+                                <div class="thumbnail-container" id="thumbnailContainer"></div>
                             </div>
-                            <div class="list-section">
-                                <div style="margin-bottom:20px;border-bottom:2px solid #e9ecef;padding-bottom:20px;">
-                                    <h3>📘 Cover Page</h3>
-                                    <div class="form-group"><label>Cover Title</label><input id="coverTitleInput" value="${escapeHtml(coverData.title)}"></div>
-                                    <div class="form-group"><label>Cover Subtitle</label><input id="coverSubtitleInput" value="${escapeHtml(coverData.subtitle)}"></div>
-                                    <button class="btn btn-success btn-sm" onclick="saveCover()">💾 Save Cover</button>
+
+                            <div class="section-card">
+                                <h4>Page Sections</h4>
+                                <p style="font-size:12px;color:#6c757d;margin-bottom:8px;">Add sections and choose their width.</p>
+                                <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;">
+                                    ${Object.keys(SECTION_TYPES).map(type => `<button class="btn btn-outline btn-sm" onclick="addSection('${type}')">+ ${SECTION_TYPES[type].label}</button>`).join('')}
                                 </div>
-                                <h2>📖 All Lessons</h2>
-                                <div class="list-toolbar">
-                                    <input class="search-box" placeholder="🔍 Search..." oninput="window.searchQuery=this.value;window.renderEditList()">
-                                    <span class="count" id="listCount">0/0</span>
-                                    <button class="btn btn-success btn-sm" onclick="exportJSON()">📤 Export</button>
-                                    <button class="btn btn-outline btn-sm" onclick="document.getElementById('importFile').click()">📥 Import</button>
-                                    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(this)">
-                                </div>
-                                <div class="lesson-list" id="lessonList"></div>
-                                <div style="margin-top:28px;border-top:2px solid #e9ecef;padding-top:20px;">
-                                    <h3>📝 Sight Words</h3>
-                                    <div class="form-group"><textarea id="fSightWords" rows="3"></textarea></div>
-                                    <button class="btn btn-success btn-sm" onclick="saveSightWords()">💾 Save Sight Words</button>
-                                    <div style="margin-top:10px;"><strong>Preview:</strong><div id="sightWordsPreview" style="margin-top:6px;"></div></div>
-                                </div>
+                                <div id="sectionsContainer"></div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button class="btn btn-primary" id="saveBtn" onclick="saveLesson()">💾 Save Lesson</button>
+                                <button class="btn btn-outline" id="cancelBtn" onclick="cancelEdit()" style="display:none">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-panel" id="lessonsPanel">
+                        <div class="list-section">
+                            <div id="coverSection" style="margin-bottom:20px;border-bottom:2px solid #e9ecef;padding-bottom:20px;">
+                                <h3>📘 Cover Page</h3>
+                                <div class="form-group"><label>Cover Title</label><input id="coverTitleInput" value="${escapeHtml(coverData.title)}"></div>
+                                <div class="form-group"><label>Cover Subtitle</label><input id="coverSubtitleInput" value="${escapeHtml(coverData.subtitle)}"></div>
+                                <button class="btn btn-success btn-sm" onclick="saveCover()">💾 Save Cover</button>
+                            </div>
+                            <h2>📖 All Lessons</h2>
+                            <div class="list-toolbar">
+                                <input class="search-box" placeholder="🔍 Search..." oninput="window.searchQuery=this.value;window.renderEditList()">
+                                <span class="count" id="listCount">0/0</span>
+                                <button class="btn btn-success btn-sm" onclick="exportJSON()">📤 Export</button>
+                                <button class="btn btn-outline btn-sm" onclick="document.getElementById('importFile').click()">📥 Import</button>
+                                <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(this)">
+                            </div>
+                            <div class="lesson-list" id="lessonList"></div>
+                            <div id="sightWordsSection" style="margin-top:28px;border-top:2px solid #e9ecef;padding-top:20px;">
+                                <h3>📝 Sight Words</h3>
+                                <div class="form-group"><textarea id="fSightWords" rows="3"></textarea></div>
+                                <button class="btn btn-success btn-sm" onclick="saveSightWords()">💾 Save Sight Words</button>
+                                <div style="margin-top:10px;"><strong>Preview:</strong><div id="sightWordsPreview" style="margin-top:6px;"></div></div>
                             </div>
                         </div>
                     </div>
@@ -1240,6 +1177,7 @@
                 renderAllView();
                 updateCounts();
                 window.renderEditList = renderEditList;
+                switchTab('edit');
             }
 
             initApp();
