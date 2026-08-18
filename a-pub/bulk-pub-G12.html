@@ -7,7 +7,11 @@
     <style>
         @page { size: 850px 1100px; margin: 0; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f5f7fa; color: #1a1a1a; padding: 20px; }
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background: #f5f7fa; color: #1a1a1a; padding: 20px;
+            -webkit-font-smoothing: antialiased;
+        }
         .app { max-width: 1500px; margin: 0 auto; background: #fff; border-radius: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.08); overflow: hidden; }
         .app-header { background: #1a1a2e; color: #fff; padding: 20px 32px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
         .app-header h1 { font-size: 24px; font-weight: 800; }
@@ -83,6 +87,15 @@
         .view-container .page { width: 850px; min-width: 850px; min-height: 1080px; padding: 24px 32px; position: relative; page-break-after: always; margin: 0 auto 30px; background: #fff; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
         .view-container .page:last-child { margin-bottom: 0; }
 
+        /* Print‑friendly serif for reading passages */
+        .cvc-intro-box p,
+        .cvc-instruction-box p,
+        .custom-text-box p,
+        .act-box .sentence,
+        .act-box .act-title {
+            font-family: 'Georgia', 'Times New Roman', serif;
+        }
+
         .view-container .card {
             border: 4px solid #E2571C;
             border-radius: 12px;
@@ -154,18 +167,18 @@
 
         .cvc-page-number { position: absolute; bottom: 10px; left: 0; right: 0; text-align: center; font-weight: 700; font-size: 14px; color: #6c757d; z-index: 2; pointer-events: none; }
 
-        .cover-card { display: flex; flex-direction: column; justify-content: center; align-items: center; font-family: 'Times New Roman', Times, serif; min-height: 1000px; border: 3px solid #F5A623; border-radius: 28px; }
+        .cover-card { display: flex; flex-direction: column; justify-content: center; align-items: center; font-family: 'Georgia', 'Times New Roman', serif; min-height: 1000px; border: 3px solid #F5A623; border-radius: 28px; }
         .cover-text-block { text-align: center; padding: 0 40px; }
         .cover-line { width: 120px; height: 4px; background-color: #F5A623; margin: 30px auto; border-radius: 2px; }
         .cover-title { font-size: 60px; font-weight: 800; color: #1a1a2e; letter-spacing: 2px; margin: 0; }
         .cover-subtitle { font-size: 32px; font-weight: 400; color: #E2571C; margin-top: 14px; letter-spacing: 1px; font-style: italic; }
 
-        .toc-card { border: 3px solid #F5A623; border-radius: 28px; min-height: 1000px; padding: 30px 40px; position: relative; font-family: 'Times New Roman', Times, serif; }
+        .toc-card { border: 3px solid #F5A623; border-radius: 28px; min-height: 1000px; padding: 30px 40px; position: relative; font-family: 'Georgia', 'Times New Roman', serif; }
         .toc-title { font-size: 28px; font-weight: 800; color: #1a1a2e; text-align: center; margin-bottom: 20px; border-bottom: 4px solid #F5A623; padding-bottom: 10px; }
         .toc-list { list-style: none; padding: 0; margin: 0; }
         .toc-item { display: flex; justify-content: space-between; align-items: baseline; padding: 7px 6px; border-bottom: 1px dashed #dee2e6; font-size: 14px; font-weight: 600; line-height: 1.3; }
         .toc-item .toc-page-num { font-weight: 800; color: #E2571C; min-width: 60px; text-align: right; }
-        .toc-card .page-number { position: absolute; bottom: 16px; right: 24px; font-weight: 800; font-size: 14px; font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; }
+        .toc-card .page-number { position: absolute; bottom: 16px; right: 24px; font-weight: 800; font-size: 14px; font-family: 'Helvetica Neue', Arial, sans-serif; }
 
         .sight-words-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-top: 8px; padding: 0 12px; }
         .sight-word-pill { display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 800; color: #E2571C; background: #fff; border: 3px solid #F5A623; border-radius: 14px; padding: 16px 6px; min-height: 76px; text-align: center; word-break: break-word; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -182,7 +195,7 @@
         .edit-btn { background: #2c7be5; }
 
         @media print {
-            body { padding: 0; background: #fff; }
+            body { padding: 0; background: #fff; font-size: 12pt; }
             .app-header, .tabs, .tab-panel, .edit-layout, .form-section, .list-section, .view-toolbar, .no-print, .page-actions, .thumbnail-wrapper, .modal-overlay, .toast-container { display: none !important; }
             .view-container { overflow: visible !important; display: block !important; }
             .view-container .page { box-shadow: none !important; border-radius: 0 !important; margin: 0 auto !important; padding: 18px !important; width: 850px !important; min-width: 850px !important; min-height: 1080px !important; page-break-after: always; background: #fff !important; }
@@ -190,6 +203,17 @@
             .view-container .page:last-child { page-break-after: auto; }
             .view-container .card, .todays-sound-header, .cvc-header-right, .sight-word-pill, .toc-card, .cover-card,
             .view-container .section-header .circle, .custom-text-box, .cvc-intro-box { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .cvc-main-title { font-size: 24pt; }
+            .cvc-subtitle { font-size: 11pt; }
+            .cvc-intro-box p,
+            .cvc-instruction-box p,
+            .custom-text-box p,
+            .act-box .sentence {
+                font-size: 12pt;
+                line-height: 1.5;
+            }
+            .word-cell { font-size: 20pt; }
+            .fill-item { font-size: 22pt; }
         }
 
         .thumbnail-wrapper { margin-bottom: 16px; display: flex; flex-direction: column; align-items: center; }
@@ -411,6 +435,7 @@
 
             let lessons = [], sightWords = [], coverData = { ...DEFAULT_COVER };
             let editingId = null, nextId = 1, tempSections = [];
+            let previewLessonOverride = null;
             window.searchQuery = '';
 
             async function loadData() {
@@ -645,6 +670,7 @@
             function buildLessonPage(lesson, pageNum) {
                 const page = document.createElement('div');
                 page.className = 'page';
+                page.setAttribute('data-lesson-id', lesson.id);
                 page.innerHTML = `
                     <div class="page-actions no-print">
                         <button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button>
@@ -779,7 +805,7 @@
                     </div>`;
                 const card = document.createElement('div'); card.className = 'toc-card';
                 card.innerHTML = `<div class="toc-title">Table of Contents</div><ul class="toc-list">` +
-                    entries.map(e => `<li class="toc-item"><span>Lesson ${e.lessonNumber}: ${escapeHtml(e.mainTitle)}${e.sections?.[0]?.letterTile ? ' — ' + escapeHtml(e.sections[0].letterTile) : ''}</span><span class="toc-page-num">Page ${e.firstPage}</span></li>`).join('') +
+                    entries.map(e => `<li class="toc-item"><span>Lesson ${e.lessonNumber}: ${escapeHtml(e.mainTitle)}${e.tile ? ' — ' + escapeHtml(e.tile) : ''}</span><span class="toc-page-num">Page ${e.firstPage}</span></li>`).join('') +
                     `</ul><div class="page-number">${pageNum}</div>`;
                 page.appendChild(card); return page;
             }
@@ -837,19 +863,32 @@
                 if (!lessons.length && !sightWords.length) return;
                 const swPages = Math.ceil(sightWords.length / MAX_SIGHT_WORDS_PER_PAGE) || 0;
                 const tocPages = lessons.length ? Math.ceil(lessons.length / MAX_TOC_PER_PAGE) : 0;
-                const lessonStart = tocPages + swPages + 1;
-                let running = lessonStart;
-                const tocEntries = lessons.map(l => {
-                    const e = { lessonNumber: l.lessonNumber, mainTitle: l.mainTitle, firstPage: running };
-                    running += 1; return e;
+                let currentPage = 2;
+                const tocEntries = [];
+                let lessonPageNum = currentPage + tocPages + swPages;
+                lessons.forEach(l => {
+                    const displayLesson = (previewLessonOverride && previewLessonOverride.id === l.id) ? { ...l, ...previewLessonOverride } : l;
+                    const tileSection = displayLesson.sections?.find(s => s.type === 'tile');
+                    tocEntries.push({
+                        lessonNumber: l.lessonNumber,
+                        mainTitle: displayLesson.mainTitle,
+                        tile: tileSection ? tileSection.letterTile : null,
+                        firstPage: lessonPageNum
+                    });
+                    lessonPageNum++;
                 });
-                for (let p = 0; p < tocPages; p++) container.appendChild(buildTocPage(p + 1, tocEntries.slice(p * MAX_TOC_PER_PAGE, (p + 1) * MAX_TOC_PER_PAGE)));
-                let pageNum = tocPages + 1;
-                for (let p = 0; p < swPages; p++) {
-                    container.appendChild(buildSightWordsPage(pageNum++, sightWords.slice(p * MAX_SIGHT_WORDS_PER_PAGE, (p + 1) * MAX_SIGHT_WORDS_PER_PAGE)));
+
+                for (let p = 0; p < tocPages; p++) {
+                    container.appendChild(buildTocPage(currentPage++, tocEntries.slice(p * MAX_TOC_PER_PAGE, (p + 1) * MAX_TOC_PER_PAGE)));
                 }
-                pageNum = lessonStart;
-                lessons.forEach(l => container.appendChild(buildLessonPage(l, pageNum++)));
+                for (let p = 0; p < swPages; p++) {
+                    container.appendChild(buildSightWordsPage(currentPage++, sightWords.slice(p * MAX_SIGHT_WORDS_PER_PAGE, (p + 1) * MAX_SIGHT_WORDS_PER_PAGE)));
+                }
+                let pageNum = lessonPageNum - lessons.length;
+                lessons.forEach(l => {
+                    const displayLesson = (previewLessonOverride && previewLessonOverride.id === l.id) ? { ...l, ...previewLessonOverride } : l;
+                    container.appendChild(buildLessonPage(displayLesson, pageNum++));
+                });
             }
 
             function fillForm(lesson) {
@@ -859,10 +898,12 @@
                 tempSections = JSON.parse(JSON.stringify(lesson.sections || []));
                 renderSectionsBuilder();
                 renderThumbnail();
+                document.getElementById('viewLessonBtn').style.display = 'inline-flex';
             }
 
             function resetForm() {
                 editingId = null;
+                previewLessonOverride = null;
                 document.getElementById('formTitle').textContent = '➕ Add New Lesson';
                 document.getElementById('fMainTitle').value = 'SHORT VOWEL CVC WORDS';
                 document.getElementById('fSubtitle').value = 'SHORT VOWEL';
@@ -872,6 +913,7 @@
                 renderThumbnail();
                 document.getElementById('saveBtn').textContent = '💾 Save Lesson';
                 document.getElementById('cancelBtn').style.display = 'none';
+                document.getElementById('viewLessonBtn').style.display = 'none';
             }
 
             window.toggleFields = function() {};
@@ -918,6 +960,7 @@
                 }
                 renumberByOrder(lessons);
                 saveData();
+                previewLessonOverride = null;
                 resetForm();
                 refreshUI();
                 switchTab('lessons');
@@ -932,6 +975,7 @@
                     if (editingId === id) resetForm();
                     renumberByOrder(lessons);
                     saveData();
+                    previewLessonOverride = null;
                     refreshUI();
                 });
             };
@@ -943,11 +987,11 @@
                 lessons.push(copy);
                 renumberByOrder(lessons);
                 saveData();
+                previewLessonOverride = null;
                 refreshUI();
                 showToast('Lesson duplicated.', 'success');
             };
 
-            // ===== REORDERING FUNCTIONS =====
             window.moveLessonUp = function(id) {
                 const idx = lessons.findIndex(l => l.id === id);
                 if (idx <= 0) return;
@@ -956,6 +1000,7 @@
                 lessons[idx] = temp;
                 renumberByOrder(lessons);
                 saveData();
+                previewLessonOverride = null;
                 refreshUI();
                 showToast('Lesson moved up.', 'success');
             };
@@ -968,13 +1013,17 @@
                 lessons[idx] = temp;
                 renumberByOrder(lessons);
                 saveData();
+                previewLessonOverride = null;
                 refreshUI();
                 showToast('Lesson moved down.', 'success');
             };
 
-            // ===== EDIT PAGE FROM VIEW =====
             window.editPageFromView = function(id, type) {
                 if (type === 'lesson') {
+                    if (editingId === id) {
+                        switchTab('edit');
+                        return;
+                    }
                     editLesson(id);
                 } else if (type === 'cover') {
                     switchTab('lessons');
@@ -994,6 +1043,38 @@
                 } else {
                     showToast('Unknown page type.', 'warning');
                 }
+            };
+
+            window.viewLessonFromEdit = function() {
+                if (!editingId) return;
+
+                const mainTitle = document.getElementById('fMainTitle').value.trim();
+                const subtitle = document.getElementById('fSubtitle').value.trim() || 'SHORT VOWEL';
+                const sections = JSON.parse(JSON.stringify(tempSections));
+
+                previewLessonOverride = {
+                    id: editingId,
+                    mainTitle,
+                    subtitle,
+                    sections
+                };
+
+                switchTab('view');
+                setTimeout(() => {
+                    const targetPage = document.querySelector(`.view-container .page[data-lesson-id="${editingId}"]`);
+                    if (targetPage) {
+                        targetPage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        targetPage.style.transition = 'outline 0.3s ease';
+                        targetPage.style.outline = '3px solid #F5A623';
+                        setTimeout(() => {
+                            targetPage.style.outline = 'none';
+                        }, 2000);
+                    } else {
+                        showToast('Could not find the page in view.', 'warning');
+                    }
+                }, 150);
+
+                showToast('Showing unsaved changes in view. Remember to save!', 'warning');
             };
 
             window.exportJSON = function() {
@@ -1022,6 +1103,7 @@
                             coverData = data.coverData || { ...DEFAULT_COVER };
                             renumberByOrder(lessons);
                             saveData();
+                            previewLessonOverride = null;
                             resetForm();
                             refreshUI();
                             showToast('Data imported.', 'success');
@@ -1099,6 +1181,9 @@
                 if (tab === 'view') {
                     renderAllView();
                 }
+                if (tab !== 'view') {
+                    previewLessonOverride = null;
+                }
                 updateCounts();
             };
 
@@ -1135,6 +1220,7 @@
                             <div class="form-actions">
                                 <button class="btn btn-primary" id="saveBtn" onclick="saveLesson()">💾 Save Lesson</button>
                                 <button class="btn btn-outline" id="cancelBtn" onclick="cancelEdit()" style="display:none">Cancel</button>
+                                <button class="btn btn-outline" id="viewLessonBtn" onclick="viewLessonFromEdit()" style="display:none">👁️ View Lesson</button>
                             </div>
                         </div>
                     </div>
