@@ -487,8 +487,7 @@
         l.page2.sentenceWriting.numberOfLines = parseInt(l.page2.sentenceWriting.numberOfLines) || 1;
         if (typeof l.showImagePage !== 'boolean') l.showImagePage = false;
         if (typeof l.imagePageLabel !== 'string') l.imagePageLabel = DEFAULT_IMAGE_PAGE_LABEL;
-        // CHANGED: default showReadingImageBox to false instead of true
-        if (typeof l.showReadingImageBox !== 'boolean') l.showReadingImageBox = false;
+        if (typeof l.showReadingImageBox !== 'boolean') l.showReadingImageBox = false; // CHANGED default false
         return l;
       }
 
@@ -498,8 +497,7 @@
         targetSound: "short e (/ɛ/)",
         imageLabel: DEFAULT_IMAGE_LABEL,
         imagePageLabel: DEFAULT_IMAGE_PAGE_LABEL,
-        // CHANGED: set default sample lesson to false
-        showReadingImageBox: false,
+        showReadingImageBox: false, // CHANGED default false
         storyLines: [
           { sentence: "Ben went on a camping trip with Dad." },
           { sentence: "They set up the tent near the lake." },
@@ -527,6 +525,7 @@
         subtitle: 'Grade 1', 
         grade: '1', 
         showToc: true,
+        readingImageDefaultOffApplied: false, // NEW: migration flag
         sightWords: {
           enabled: false,
           title: DEFAULT_SIGHT_WORDS_TITLE,
@@ -562,14 +561,13 @@
             targetSound: String(l.targetSound || ''),
             imageLabel: String(l.imageLabel ?? DEFAULT_IMAGE_LABEL),
             imagePageLabel: String(l.imagePageLabel ?? DEFAULT_IMAGE_PAGE_LABEL),
-            // CHANGED: fallback to false instead of true
             showReadingImageBox: typeof l.showReadingImageBox === 'boolean' ? l.showReadingImageBox : false,
             storyLines: (Array.isArray(l.storyLines) ? l.storyLines : []).map(sl => ({ sentence: String(sl.sentence || '') })).filter(sl => sl.sentence.trim() !== ''),
             comprehension: Array.isArray(l.comprehension) ? l.comprehension : [],
             showImagePage: typeof l.showImagePage === 'boolean' ? l.showImagePage : false,
             page2: l.page2
           })).filter(l => l.id);
-          bookMeta = data.bookMeta || { title: 'Decodable Readers', subtitle: 'Grade 1', grade: '1', showToc: true, sightWords: { enabled: false, title: DEFAULT_SIGHT_WORDS_TITLE, columns: DEFAULT_SIGHT_COLUMNS, rawText: '' } };
+          bookMeta = data.bookMeta || { title: 'Decodable Readers', subtitle: 'Grade 1', grade: '1', showToc: true, readingImageDefaultOffApplied: false, sightWords: { enabled: false, title: DEFAULT_SIGHT_WORDS_TITLE, columns: DEFAULT_SIGHT_COLUMNS, rawText: '' } };
           if (!bookMeta.sightWords) {
             bookMeta.sightWords = { enabled: false, title: DEFAULT_SIGHT_WORDS_TITLE, columns: DEFAULT_SIGHT_COLUMNS, rawText: '' };
           } else {
@@ -579,6 +577,12 @@
             bookMeta.sightWords.columns = Math.min(Math.max(bookMeta.sightWords.columns, MIN_SIGHT_COLUMNS), MAX_SIGHT_COLUMNS);
             bookMeta.sightWords.rawText = String(bookMeta.sightWords.rawText || '');
           }
+
+          // NEW: One-time migration to force existing lessons' reading image box off
+          if (!bookMeta.readingImageDefaultOffApplied) {
+            lessons.forEach(l => l.showReadingImageBox = false);
+            bookMeta.readingImageDefaultOffApplied = true;
+          }
         } else {
           lessons = JSON.parse(JSON.stringify(DEFAULT_LESSONS)).map(l => migrateLesson(l));
           bookMeta = { 
@@ -586,6 +590,7 @@
             subtitle: 'Grade 1', 
             grade: '1', 
             showToc: true,
+            readingImageDefaultOffApplied: true, // already applied for new data
             sightWords: { enabled: false, title: DEFAULT_SIGHT_WORDS_TITLE, columns: DEFAULT_SIGHT_COLUMNS, rawText: '' }
           };
         }
@@ -883,7 +888,7 @@
       let tempPage2 = null;
       let tempShowImagePage = false;
       let tempImagePageLabel = DEFAULT_IMAGE_PAGE_LABEL;
-      let tempShowReadingImageBox = false; // CHANGED: initial default false
+      let tempShowReadingImageBox = false; // initial default false
 
       function getFormData() {
         const storyRaw = document.getElementById('fStory').value;
@@ -974,7 +979,7 @@
         tempPage2 = getDefaultPage2();
         tempShowImagePage = false;
         tempImagePageLabel = DEFAULT_IMAGE_PAGE_LABEL;
-        tempShowReadingImageBox = false; // CHANGED: default false for new lesson
+        tempShowReadingImageBox = false; // new lesson default false
 
         document.getElementById('compToggle').checked = true;
         document.getElementById('findSoundToggle').checked = true;
@@ -983,7 +988,7 @@
         document.getElementById('sentenceInstruction').value = tempPage2.sentenceWriting.instruction;
         document.getElementById('sentenceLines').value = 1;
         document.getElementById('imagePageToggle').checked = false;
-        document.getElementById('readingImageToggle').checked = false; // CHANGED: unchecked
+        document.getElementById('readingImageToggle').checked = false; // unchecked
 
         renderQuestionList();
         renderThumbnail();
@@ -1279,7 +1284,6 @@
               targetSound: String(l.targetSound || ''),
               imageLabel: String(l.imageLabel ?? DEFAULT_IMAGE_LABEL),
               imagePageLabel: String(l.imagePageLabel ?? DEFAULT_IMAGE_PAGE_LABEL),
-              // CHANGED: fallback to false instead of true
               showReadingImageBox: typeof l.showReadingImageBox === 'boolean' ? l.showReadingImageBox : false,
               storyLines: (Array.isArray(l.storyLines) ? l.storyLines : []).map(sl => ({ sentence: String(sl.sentence || '') })).filter(sl => sl.sentence.trim() !== ''),
               comprehension: Array.isArray(l.comprehension) ? l.comprehension : [],
@@ -1289,7 +1293,7 @@
             if (validated.length === 0) throw new Error('No valid lessons');
             confirmDialog('Replace all lessons with imported data?', () => {
               lessons = validated;
-              bookMeta = data.bookMeta || { title: 'Decodable Readers', subtitle: 'Grade 1', grade: '1', showToc: true, sightWords: { enabled: false, title: DEFAULT_SIGHT_WORDS_TITLE, columns: DEFAULT_SIGHT_COLUMNS, rawText: '' } };
+              bookMeta = data.bookMeta || { title: 'Decodable Readers', subtitle: 'Grade 1', grade: '1', showToc: true, readingImageDefaultOffApplied: true, sightWords: { enabled: false, title: DEFAULT_SIGHT_WORDS_TITLE, columns: DEFAULT_SIGHT_COLUMNS, rawText: '' } };
               if (!bookMeta.sightWords) bookMeta.sightWords = { enabled: false, title: DEFAULT_SIGHT_WORDS_TITLE, columns: DEFAULT_SIGHT_COLUMNS, rawText: '' };
               bookMeta.grade = String(bookMeta.grade || '1');
               bookMeta.showToc = (typeof bookMeta.showToc === 'boolean') ? bookMeta.showToc : true;
@@ -1473,7 +1477,6 @@
               </div>
               <div class="form-group"><label>Image Label (overlay on image)</label><input id="fImageLabel" placeholder="e.g. Let's read together!" value="${escapeHtml(DEFAULT_IMAGE_LABEL)}" oninput="renderThumbnail()"></div>
               <div class="form-group"><label>Full-Page Image Label (overlay on image page)</label><input id="fImagePageLabel" placeholder="e.g. Picture Page" value="${escapeHtml(DEFAULT_IMAGE_PAGE_LABEL)}" oninput="renderThumbnail()"></div>
-              <!-- CHANGED: removed the `checked` attribute from the reading image checkbox -->
               <div class="form-group" style="display:flex;align-items:center;gap:10px;margin-top:16px;">
                 <input type="checkbox" id="readingImageToggle" onchange="toggleReadingImage(this.checked)" style="width:18px;height:18px;accent-color:#f59e0b;">
                 <label for="readingImageToggle" style="margin:0;font-weight:600;">Include image box on reading page</label>
