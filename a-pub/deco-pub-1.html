@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>📖 Decodable Reader Publisher with Cover & TOC</title>
+  <title>📖 Decodable Reader Publisher with Cover, TOC & Sight Words</title>
   <style>
     :root {
       --bg: #f1f5f9;
@@ -27,6 +27,8 @@
       --orange-hover: #c2410c;
       --blue: #2563eb;
       --blue-soft: #eff6ff;
+      --scarlet: #b91c1c;
+      --scarlet-light: #fff5f5;
       --radius-sm: 8px;
       --radius: 12px;
       --radius-lg: 16px;
@@ -162,27 +164,24 @@
     .header-title { background: #b91c1c; color: #fff; flex: 1; display: flex; justify-content: center; align-items: center; font-size: 21px; letter-spacing: 0.04em; -webkit-print-color-adjust: exact; print-color-adjust: exact; font-weight: 800; }
     .header-grade { background: #f59e0b; color: #0f172a; display: flex; justify-content: center; align-items: center; padding: 2px 18px; border-radius: 0 10px 10px 0; font-size: 15px; -webkit-print-color-adjust: exact; print-color-adjust: exact; font-weight: 800; }
 
-    /* Page 1: Title + Story Lines (no image) */
-    .title-block { margin-bottom: 18px; flex-shrink: 0; display: flex; flex-direction: column; gap: 8px; }
-    .story-title { font-size: 28px; font-weight: 800; color: #b91c1c; margin: 0; line-height: 1.15; letter-spacing: -0.01em; text-align: center; }
-    .target-pill {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 100%;
-      height: 44px;
-      background: #fef9e7;
-      border: 2px solid #f59e0b;
-      border-radius: 0;
-      padding: 0 16px;
-      font-weight: 700;
-      font-size: 16px;
-      color: #b91c1c;
-      -webkit-print-color-adjust: exact;
-      print-color-adjust: exact;
-      letter-spacing: 0.04em;
-      box-sizing: border-box;
+    /* Page 1 (original layout – with optional image box) */
+    .title-image-row { display: flex; gap: 18px; align-items: flex-start; margin-bottom: 18px; flex-shrink: 0; }
+    .title-side { flex: 1; display: flex; flex-direction: column; justify-content: flex-start; }
+    .story-title { font-size: 28px; font-weight: 800; color: #b91c1c; margin: 0 0 8px 0; line-height: 1.15; letter-spacing: -0.01em; }
+    .target-pill { display: inline-block; background: #fef9e7; border: 2px solid #f59e0b; border-radius: 26px; padding: 5px 16px; font-weight: 700; font-size: 16px; width: fit-content; align-self: flex-start; flex-shrink: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+    .story-img-container {
+      flex: 0 0 420px; width: 420px; height: 160px; border-radius: 12px; overflow: hidden; background: #e2e8f0; position: relative; border: 1px solid #cbd5e1; -webkit-print-color-adjust: exact; print-color-adjust: exact; flex-shrink: 0;
     }
+    .story-img-container img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .story-img-placeholder { width: 100%; height: 100%; background: linear-gradient(135deg, #1e3a5f 0%, #2a4a7f 100%); display: flex; align-items: center; justify-content: center; position: relative; }
+    .story-img-placeholder svg { width: 100%; height: 100%; }
+    .story-img-label { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.65); color: #fff; text-align: center; padding: 5px 10px; font-size: 12px; font-weight: 700; letter-spacing: 0.03em; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+    /* Page 1 without image box (like first app) */
+    .title-block { margin-bottom: 18px; flex-shrink: 0; display: flex; flex-direction: column; gap: 8px; }
+    .title-block .story-title { text-align: center; }
+    .title-block .target-pill { display: block; width: 100%; text-align: center; box-sizing: border-box; }
 
     .story-lines-area { flex: 0 0 auto; position: relative; padding-bottom: 10px; margin-bottom: 15px; }
     .story-line { display: flex; justify-content: space-between; align-items: baseline; padding: 3px 0; font-size: 18px; font-weight: 600; line-height: 1.65; }
@@ -199,7 +198,7 @@
     .parent-table th { background: #b91c1c; color: #fff; font-weight: 800; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .parent-table td:first-child { font-weight: 700; text-align: left; background: #fdfdfd; }
 
-    /* Page 2 specific styles */
+    /* Page 2 specific styles (dynamic) */
     .comp-section { margin: 15px 0; flex-shrink: 0; }
     .comp-section.last-section { flex: 1; display: flex; flex-direction: column; }
     .comp-section.last-section .activity-blank-large { flex: 1; min-height: 120px; }
@@ -287,6 +286,28 @@
     .toc-item .toc-page-num { font-weight: 800; color: #b91c1c; min-width: 70px; text-align: right; }
     .toc-page-footer { margin-top: auto; text-align: right; font-weight: 800; font-size: 15px; color: #1e293b; }
 
+    /* ========== SIGHT WORDS PAGES ========== */
+    .sight-word-page .card { border-color: var(--scarlet); }
+    .sight-word-header { background: var(--scarlet); color: #fff; padding: 10px 18px; border-radius: 12px 12px 0 0; font-size: 22px; font-weight: 800; text-align: center; letter-spacing: 0.04em; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .sight-word-grid { display: grid; gap: 20px; padding: 20px 28px; flex: 1; align-content: start; }
+    .sight-word-item { 
+      border: 3px solid var(--scarlet);
+      border-radius: 16px;
+      background: var(--scarlet-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px;
+      min-height: 60px;
+      text-align: center;
+      font-weight: 700;
+      color: #1e293b;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+      word-break: break-word;
+    }
+    .sight-word-footer { margin-top: auto; }
+
     @media print {
       @page { size: 850px 1100px; margin: 0; }
       body { padding: 0 !important; background: #fff !important; margin: 0 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
@@ -299,14 +320,16 @@
       .view-container .card { border-radius: 0 !important; min-height: 1010px !important; height: 1010px !important; border: 3px solid #f59e0b !important; overflow: hidden !important; }
       .inner-pad { padding: 20px 28px 0 28px !important; }
       .page-footer-red { border-radius: 0 !important; height: 26px !important; }
+      .story-img-container { border: 1px solid #cbd5e1 !important; width: 420px !important; height: 160px !important; }
       .parent-corner { margin-top: 25px !important; }
-      .view-container .card, .view-container .header-lesson, .view-container .header-title, .view-container .header-grade, .view-container .pc-header, .view-container .comp-header, .view-container .page-footer-red, .view-container .parent-table th, .view-container .target-pill, .view-container .parent-corner, .view-container .pc-body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      .view-container .card, .view-container .header-lesson, .view-container .header-title, .view-container .header-grade, .view-container .pc-header, .view-container .comp-header, .view-container .page-footer-red, .view-container .parent-table th, .view-container .target-pill, .view-container .story-img-placeholder, .view-container .parent-corner, .view-container .pc-body, .view-container .story-img-label { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
       .cover-card, .toc-card { border-radius: 0 !important; min-height: 1010px !important; height: 1010px !important; border: 3px solid #f59e0b !important; }
       .cover-line, .cover-title, .cover-subtitle { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
       .comp-section.last-section { flex: 1 !important; }
       .comp-section.last-section .activity-blank-large { flex: 1 !important; }
       .image-only-page .image-full-placeholder { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
       .image-only-page .image-full-label { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      .sight-word-header, .sight-word-item { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
     }
 
     @media (max-width: 900px) {
@@ -338,12 +361,17 @@
       // ---------- Storage Configuration ----------
       const IDB_NAME = 'DecodableReadersDB';
       const IDB_STORE = 'appData';
-      const LEGACY_LOCAL_STORAGE_KEYS = ['decodable_readers_v9', 'decodable_readers_v8', 'decodable_readers_v7', 'decodable_readers_v6', 'decodable_readers_v5', 'decodable_readers_v4', 'decodable_readers_v3'];
+      const LEGACY_LOCAL_STORAGE_KEYS = ['decodable_readers_v7', 'decodable_readers_v6', 'decodable_readers_v5', 'decodable_readers_v4', 'decodable_readers_v3'];
       const MAX_IMAGE_SIZE = 2 * 1024 * 1024;
       const MAX_TOC_PER_PAGE = 20;
+      const DEFAULT_IMAGE_LABEL = "Let's read together!";
       const DEFAULT_IMAGE_PAGE_LABEL = "Picture Page";
       const DEFAULT_IMAGE_PATH = "./read.png";
       const MAX_OPTIONS = 5;
+      const DEFAULT_SIGHT_WORDS_TITLE = 'Sight Words';
+      const DEFAULT_SIGHT_COLUMNS = 4;
+      const MIN_SIGHT_COLUMNS = 2;
+      const MAX_SIGHT_COLUMNS = 6;
 
       // ---------- IndexedDB Utility ----------
       let dbPromise = null;
@@ -417,6 +445,7 @@
       function countWords(sentence) { return sentence.trim().split(/\s+/).filter(w => w).length; }
       function generateQuestionId() { return 'q' + Math.random().toString(36).substring(2, 9); }
 
+      // ---------- Default Page2 & Migration ----------
       function getDefaultPage2() {
         return {
           comprehension: {
@@ -475,13 +504,17 @@
         l.page2.sentenceWriting.numberOfLines = parseInt(l.page2.sentenceWriting.numberOfLines) || 1;
         if (typeof l.showImagePage !== 'boolean') l.showImagePage = false;
         if (typeof l.imagePageLabel !== 'string') l.imagePageLabel = DEFAULT_IMAGE_PAGE_LABEL;
+        if (typeof l.showReadingImageBox !== 'boolean') l.showReadingImageBox = true; // default on
         return l;
       }
 
+      // ---------- Default Data ----------
       const DEFAULT_LESSONS = [{
         id: 'r1', lessonNumber: 1, imageUrl: "", title: "Ben's Camping Trip",
         targetSound: "short e (/ɛ/)",
+        imageLabel: DEFAULT_IMAGE_LABEL,
         imagePageLabel: DEFAULT_IMAGE_PAGE_LABEL,
+        showReadingImageBox: true,
         storyLines: [
           { sentence: "Ben went on a camping trip with Dad." },
           { sentence: "They set up the tent near the lake." },
@@ -502,8 +535,20 @@
         showImagePage: false
       }];
 
+      // ---------- State ----------
       let lessons = [], editingId = null, nextId = 1;
-      let bookMeta = { title: 'Decodable Readers', subtitle: 'Grade 1', grade: '1', showToc: true };
+      let bookMeta = { 
+        title: 'Decodable Readers', 
+        subtitle: 'Grade 1', 
+        grade: '1', 
+        showToc: true,
+        sightWords: {
+          enabled: false,
+          title: DEFAULT_SIGHT_WORDS_TITLE,
+          columns: DEFAULT_SIGHT_COLUMNS,
+          rawText: ''
+        }
+      };
       window.searchQuery = '';
 
       // ---------- Data Loading / Saving ----------
@@ -529,16 +574,34 @@
             imageUrl: String(l.imageUrl || ''),
             title: String(l.title || 'Untitled'),
             targetSound: String(l.targetSound || ''),
+            imageLabel: String(l.imageLabel ?? DEFAULT_IMAGE_LABEL),
             imagePageLabel: String(l.imagePageLabel ?? DEFAULT_IMAGE_PAGE_LABEL),
+            showReadingImageBox: typeof l.showReadingImageBox === 'boolean' ? l.showReadingImageBox : true,
             storyLines: (Array.isArray(l.storyLines) ? l.storyLines : []).map(sl => ({ sentence: String(sl.sentence || '') })).filter(sl => sl.sentence.trim() !== ''),
             comprehension: Array.isArray(l.comprehension) ? l.comprehension : [],
             showImagePage: typeof l.showImagePage === 'boolean' ? l.showImagePage : false,
             page2: l.page2
           })).filter(l => l.id);
-          bookMeta = data.bookMeta || { title: 'Decodable Readers', subtitle: 'Grade 1', grade: '1', showToc: true };
+          bookMeta = data.bookMeta || { title: 'Decodable Readers', subtitle: 'Grade 1', grade: '1', showToc: true, sightWords: { enabled: false, title: DEFAULT_SIGHT_WORDS_TITLE, columns: DEFAULT_SIGHT_COLUMNS, rawText: '' } };
+          // Ensure sightWords exists
+          if (!bookMeta.sightWords) {
+            bookMeta.sightWords = { enabled: false, title: DEFAULT_SIGHT_WORDS_TITLE, columns: DEFAULT_SIGHT_COLUMNS, rawText: '' };
+          } else {
+            bookMeta.sightWords.enabled = (typeof bookMeta.sightWords.enabled === 'boolean') ? bookMeta.sightWords.enabled : false;
+            bookMeta.sightWords.title = String(bookMeta.sightWords.title || DEFAULT_SIGHT_WORDS_TITLE);
+            bookMeta.sightWords.columns = parseInt(bookMeta.sightWords.columns) || DEFAULT_SIGHT_COLUMNS;
+            bookMeta.sightWords.columns = Math.min(Math.max(bookMeta.sightWords.columns, MIN_SIGHT_COLUMNS), MAX_SIGHT_COLUMNS);
+            bookMeta.sightWords.rawText = String(bookMeta.sightWords.rawText || '');
+          }
         } else {
           lessons = JSON.parse(JSON.stringify(DEFAULT_LESSONS)).map(l => migrateLesson(l));
-          bookMeta = { title: 'Decodable Readers', subtitle: 'Grade 1', grade: '1', showToc: true };
+          bookMeta = { 
+            title: 'Decodable Readers', 
+            subtitle: 'Grade 1', 
+            grade: '1', 
+            showToc: true,
+            sightWords: { enabled: false, title: DEFAULT_SIGHT_WORDS_TITLE, columns: DEFAULT_SIGHT_COLUMNS, rawText: '' }
+          };
         }
         bookMeta.grade = String(bookMeta.grade || '1');
         bookMeta.showToc = (typeof bookMeta.showToc === 'boolean') ? bookMeta.showToc : true;
@@ -555,15 +618,55 @@
       function generateId() { return 'r' + (nextId++); }
       function renumberByOrder(arr) { arr.forEach((l, idx) => l.lessonNumber = idx + 1); }
 
+      // ---------- Sight Words Parsing ----------
+      function parseSightWords(rawText) {
+        if (!rawText || !rawText.trim()) return [];
+        const lines = rawText.split(/\r?\n/).map(line => line.trim()).filter(line => line.length > 0);
+        if (lines.length === 0) return [];
+        let pages = [];
+        if (lines.length === 1) {
+          // All words in one line: split into three equal pages
+          const words = lines[0].split(',').map(w => w.trim()).filter(w => w.length > 0);
+          if (words.length === 0) return [];
+          const pagesCount = 3;
+          const perPage = Math.ceil(words.length / pagesCount);
+          for (let i = 0; i < pagesCount; i++) {
+            const chunk = words.slice(i * perPage, (i + 1) * perPage);
+            // Do NOT filter empty chunks; always produce 3 pages
+            pages.push(chunk);
+          }
+        } else {
+          // Manual page breaks: each non-empty line is a page
+          pages = lines.map(line => line.split(',').map(w => w.trim()).filter(w => w.length > 0));
+          pages = pages.filter(page => page.length > 0); // remove empty pages from manual breaks
+        }
+        return pages;
+      }
+
+      function countSightWordPages() {
+        if (!bookMeta.sightWords.enabled) return 0;
+        return parseSightWords(bookMeta.sightWords.rawText).length;
+      }
+
       // ---------- Build View Pages ----------
+      function getDefaultImageHTML() { return '<img src="./read.png" alt="Story Image">'; }
+
       function buildPageOne(lesson, pageNum) {
         const page = document.createElement('div'); page.className = 'page';
         page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export Page</button></div>`;
         const card = document.createElement('div'); card.className = 'card';
         const inner = document.createElement('div'); inner.className = 'inner-pad';
-        let html = `<div class="header-row"><div class="header-lesson">LESSON <span>${escapeHtml(lesson.lessonNumber)}</span></div><div class="header-title">Reading Practice</div><div class="header-grade">Grade ${escapeHtml(bookMeta.grade)}</div></div>
-        <div class="title-block"><div class="story-title">${escapeHtml(lesson.title)}</div><div class="target-pill">Target Sound: ${escapeHtml(lesson.targetSound)}</div></div>
-        <div class="story-lines-area">`;
+
+        let html = `<div class="header-row"><div class="header-lesson">LESSON <span>${escapeHtml(lesson.lessonNumber)}</span></div><div class="header-title">Reading Practice</div><div class="header-grade">Grade ${escapeHtml(bookMeta.grade)}</div></div>`;
+
+        if (lesson.showReadingImageBox) {
+          html += `<div class="title-image-row"><div class="title-side"><div class="story-title">${escapeHtml(lesson.title)}</div><div class="target-pill">Target Sound: ${escapeHtml(lesson.targetSound)}</div></div>
+          <div class="story-img-container">${lesson.imageUrl ? `<img src="${escapeHtml(lesson.imageUrl)}" alt="Story Image">` : getDefaultImageHTML()}<div class="story-img-label">${escapeHtml(lesson.imageLabel || DEFAULT_IMAGE_LABEL)}</div></div></div>`;
+        } else {
+          html += `<div class="title-block"><div class="story-title">${escapeHtml(lesson.title)}</div><div class="target-pill">Target Sound: ${escapeHtml(lesson.targetSound)}</div></div>`;
+        }
+
+        html += `<div class="story-lines-area">`;
         let runningTotal = 0;
         lesson.storyLines.forEach(line => {
           const wc = countWords(line.sentence);
@@ -593,7 +696,6 @@
         const compEnabled = lesson.page2.comprehension.enabled && lesson.page2.comprehension.questions.length > 0;
         const findSoundEnabled = lesson.page2.findSound.enabled;
         const sentenceEnabled = lesson.page2.sentenceWriting.enabled;
-
         const sectionArray = [compEnabled, findSoundEnabled, sentenceEnabled];
         const lastEnabledIndex = sectionArray.lastIndexOf(true);
         const findSoundIsLast = lastEnabledIndex === 1;
@@ -605,9 +707,7 @@
           lesson.page2.comprehension.questions.forEach((q, idx) => {
             html += `<div class="comp-q"><div class="qtext">${idx+1}. ${escapeHtml(q.question)}</div>`;
             if (q.type === 'objective') {
-              q.options.forEach(opt => {
-                html += `<div class="opt"><span class="box-check"></span> ${escapeHtml(opt)}</div>`;
-              });
+              q.options.forEach(opt => html += `<div class="opt"><span class="box-check"></span> ${escapeHtml(opt)}</div>`);
             } else {
               html += `<div class="theory-answer"></div>`;
             }
@@ -649,11 +749,8 @@
         card.style.alignItems = 'center';
         const imagePlaceholder = document.createElement('div');
         imagePlaceholder.className = 'image-full-placeholder';
-        if (lesson.imageUrl) {
-          imagePlaceholder.innerHTML = `<img src="${escapeHtml(lesson.imageUrl)}" alt="Full Page Image" onerror="this.parentElement.innerHTML='<div class=&quot;placeholder-text&quot;>🖼️ Image Placeholder</div>'">`;
-        } else {
-          imagePlaceholder.innerHTML = `<img src="${DEFAULT_IMAGE_PATH}" alt="Default Image" onerror="this.parentElement.innerHTML='<div class=&quot;placeholder-text&quot;>🖼️ Image Placeholder</div>'">`;
-        }
+        const imageSrc = lesson.imageUrl ? lesson.imageUrl : DEFAULT_IMAGE_PATH;
+        imagePlaceholder.innerHTML = `<img src="${escapeHtml(imageSrc)}" alt="Full Page Image" onerror="this.parentElement.innerHTML='<div class=&quot;placeholder-text&quot;>🖼️ Image Placeholder</div>'">`;
         if (lesson.imagePageLabel && lesson.imagePageLabel.trim() !== '') {
           const label = document.createElement('div');
           label.className = 'image-full-label';
@@ -662,6 +759,40 @@
         }
         card.appendChild(imagePlaceholder);
         const footer = document.createElement('div'); footer.className = 'page-footer-red'; footer.textContent = pageNum;
+        card.appendChild(footer);
+        page.appendChild(card);
+        return page;
+      }
+
+      function buildSightWordPage(words, pageNum, columns) {
+        const page = document.createElement('div'); page.className = 'page sight-word-page';
+        page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export Page</button></div>`;
+        const card = document.createElement('div'); card.className = 'card';
+        card.style.borderColor = 'var(--scarlet)';
+        // Header
+        const header = document.createElement('div');
+        header.className = 'sight-word-header';
+        header.textContent = bookMeta.sightWords.title || DEFAULT_SIGHT_WORDS_TITLE;
+        card.appendChild(header);
+        // Grid
+        const grid = document.createElement('div');
+        grid.className = 'sight-word-grid';
+        grid.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
+        const baseFontSize = 28;
+        const columnWidthApprox = Math.floor((850 - 70 - (columns - 1) * 20) / columns);
+        words.forEach(word => {
+          const item = document.createElement('div');
+          item.className = 'sight-word-item';
+          const lengthFactor = Math.max(1, word.length);
+          const fontSize = Math.max(14, Math.min(baseFontSize, Math.floor(columnWidthApprox / (lengthFactor * 0.6))));
+          item.style.fontSize = fontSize + 'px';
+          item.textContent = word;
+          grid.appendChild(item);
+        });
+        card.appendChild(grid);
+        const footer = document.createElement('div');
+        footer.className = 'page-footer-red sight-word-footer';
+        footer.textContent = pageNum;
         card.appendChild(footer);
         page.appendChild(card);
         return page;
@@ -690,27 +821,56 @@
         const container = document.getElementById('viewContainer');
         container.innerHTML = '';
         container.appendChild(buildCoverPage());
-        if (!lessons.length) return;
+        if (!lessons.length) {
+          // If no lessons but sight words enabled, show sight words pages
+          if (bookMeta.sightWords.enabled) {
+            const sightPages = parseSightWords(bookMeta.sightWords.rawText);
+            let pageNum = 2;
+            sightPages.forEach(chunk => {
+              if (chunk.length > 0) {
+                container.appendChild(buildSightWordPage(chunk, pageNum, bookMeta.sightWords.columns));
+              } else {
+                // Render empty page if chunk is empty (to keep 3-page rule)
+                container.appendChild(buildSightWordPage([], pageNum, bookMeta.sightWords.columns));
+              }
+              pageNum++;
+            });
+          }
+          return;
+        }
         const activeLessons = lessons.filter(l => l.title.trim());
-
-        let pageNum = 1;
+        const sightWordPages = bookMeta.sightWords.enabled ? parseSightWords(bookMeta.sightWords.rawText) : [];
+        const sightPageCount = sightWordPages.length;
         const tocPageCount = (bookMeta.showToc && activeLessons.length) ? Math.ceil(activeLessons.length / MAX_TOC_PER_PAGE) : 0;
-        pageNum += tocPageCount;
-        const firstLessonPage = pageNum + 1;
+
+        let pageNum = 1; // cover is page 1
+        // Sight words pages start at page 2
+        if (sightPageCount > 0) {
+          sightWordPages.forEach((chunk, idx) => {
+            if (chunk.length > 0) {
+              container.appendChild(buildSightWordPage(chunk, pageNum + idx + 1, bookMeta.sightWords.columns));
+            } else {
+              // For empty chunks, still render a page
+              container.appendChild(buildSightWordPage([], pageNum + idx + 1, bookMeta.sightWords.columns));
+            }
+          });
+        }
+        pageNum += sightPageCount + 1; // now pageNum = first TOC page number (or first lesson page if no TOC)
+        const firstLessonPage = pageNum + tocPageCount;
+
         const tocEntries = [];
         let runningPage = firstLessonPage;
-
-        activeLessons.forEach((l) => {
+        activeLessons.forEach(l => {
           const entry = { lessonNumber: l.lessonNumber, title: l.title, firstPage: runningPage };
           tocEntries.push(entry);
           if (l.showImagePage) runningPage += 3;
           else runningPage += 2;
         });
 
-        if (bookMeta.showToc) {
+        if (bookMeta.showToc && tocPageCount > 0) {
           for (let p = 0; p < tocPageCount; p++) {
             const slice = tocEntries.slice(p * MAX_TOC_PER_PAGE, (p + 1) * MAX_TOC_PER_PAGE);
-            container.appendChild(buildTocPage(p + 2, slice));
+            container.appendChild(buildTocPage(pageNum + p, slice));
           }
         }
 
@@ -724,6 +884,7 @@
         });
       }
 
+      // ---------- Export functions ----------
       window.exportSinglePage = function(pageEl) {
         const clone = pageEl.cloneNode(true);
         clone.querySelector('.page-actions')?.remove();
@@ -733,7 +894,7 @@
         win.document.close(); win.focus(); setTimeout(() => win.print(), 500);
       };
       window.exportAllPages = function() {
-        if (!lessons.length) return showToast('No lessons to export.', 'warning');
+        if (!lessons.length && !bookMeta.sightWords.enabled) return showToast('No lessons to export.', 'warning');
         const container = document.querySelector('.view-container').cloneNode(true);
         container.querySelectorAll('.page-actions').forEach(el => el.remove());
         const win = window.open('', '_blank');
@@ -746,6 +907,7 @@
       let tempPage2 = null;
       let tempShowImagePage = false;
       let tempImagePageLabel = DEFAULT_IMAGE_PAGE_LABEL;
+      let tempShowReadingImageBox = true;
 
       function getFormData() {
         const storyRaw = document.getElementById('fStory').value;
@@ -767,7 +929,9 @@
           title: document.getElementById('fTitle').value.trim(),
           lessonNumber: parseInt(document.getElementById('fLessonNumber').value)||1,
           imageUrl: document.getElementById('fImageUrl').value.trim(),
+          imageLabel: document.getElementById('fImageLabel').value.trim() || DEFAULT_IMAGE_LABEL,
           imagePageLabel: document.getElementById('fImagePageLabel').value.trim() || DEFAULT_IMAGE_PAGE_LABEL,
+          showReadingImageBox: tempShowReadingImageBox,
           targetSound: document.getElementById('fTargetSound').value.trim(),
           storyLines,
           page2,
@@ -785,6 +949,7 @@
         document.getElementById('fTitle').value = lesson.title || '';
         document.getElementById('fLessonNumber').value = lesson.lessonNumber || '';
         document.getElementById('fImageUrl').value = lesson.imageUrl || '';
+        document.getElementById('fImageLabel').value = lesson.imageLabel || DEFAULT_IMAGE_LABEL;
         document.getElementById('fImagePageLabel').value = lesson.imagePageLabel || DEFAULT_IMAGE_PAGE_LABEL;
         document.getElementById('fTargetSound').value = lesson.targetSound || '';
         document.getElementById('fStory').value = lesson.storyLines.map(l => l.sentence).join('\n');
@@ -798,6 +963,7 @@
 
         tempShowImagePage = !!lesson.showImagePage;
         tempImagePageLabel = lesson.imagePageLabel || DEFAULT_IMAGE_PAGE_LABEL;
+        tempShowReadingImageBox = !!lesson.showReadingImageBox;
 
         document.getElementById('compToggle').checked = tempPage2.comprehension.enabled;
         document.getElementById('findSoundToggle').checked = tempPage2.findSound.enabled;
@@ -806,6 +972,7 @@
         document.getElementById('sentenceInstruction').value = tempPage2.sentenceWriting.instruction;
         document.getElementById('sentenceLines').value = tempPage2.sentenceWriting.numberOfLines;
         document.getElementById('imagePageToggle').checked = tempShowImagePage;
+        document.getElementById('readingImageToggle').checked = tempShowReadingImageBox;
 
         renderQuestionList();
       }
@@ -816,6 +983,7 @@
         document.getElementById('fTitle').value = '';
         document.getElementById('fLessonNumber').value = lessons.length + 1;
         document.getElementById('fImageUrl').value = '';
+        document.getElementById('fImageLabel').value = DEFAULT_IMAGE_LABEL;
         document.getElementById('fImagePageLabel').value = DEFAULT_IMAGE_PAGE_LABEL;
         document.getElementById('fTargetSound').value = '';
         document.getElementById('fStory').value = '';
@@ -824,6 +992,7 @@
         tempPage2 = getDefaultPage2();
         tempShowImagePage = false;
         tempImagePageLabel = DEFAULT_IMAGE_PAGE_LABEL;
+        tempShowReadingImageBox = true;
 
         document.getElementById('compToggle').checked = true;
         document.getElementById('findSoundToggle').checked = true;
@@ -832,6 +1001,7 @@
         document.getElementById('sentenceInstruction').value = tempPage2.sentenceWriting.instruction;
         document.getElementById('sentenceLines').value = 1;
         document.getElementById('imagePageToggle').checked = false;
+        document.getElementById('readingImageToggle').checked = true;
 
         renderQuestionList();
 
@@ -962,8 +1132,11 @@
       window.toggleImagePage = function(checked) {
         tempShowImagePage = checked;
       };
+      window.toggleReadingImage = function(checked) {
+        tempShowReadingImageBox = checked;
+      };
 
-      // Save / Edit / Delete / Import / Export
+      // ---------- Save / Edit / Delete / Import / Export ----------
       window.handleImageUpload = function(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -1043,7 +1216,9 @@
               imageUrl: String(l.imageUrl || ''),
               title: String(l.title || 'Untitled'),
               targetSound: String(l.targetSound || ''),
+              imageLabel: String(l.imageLabel ?? DEFAULT_IMAGE_LABEL),
               imagePageLabel: String(l.imagePageLabel ?? DEFAULT_IMAGE_PAGE_LABEL),
+              showReadingImageBox: typeof l.showReadingImageBox === 'boolean' ? l.showReadingImageBox : true,
               storyLines: (Array.isArray(l.storyLines) ? l.storyLines : []).map(sl => ({ sentence: String(sl.sentence || '') })).filter(sl => sl.sentence.trim() !== ''),
               comprehension: Array.isArray(l.comprehension) ? l.comprehension : [],
               showImagePage: typeof l.showImagePage === 'boolean' ? l.showImagePage : false,
@@ -1052,7 +1227,8 @@
             if (validated.length === 0) throw new Error('No valid lessons');
             confirmDialog('Replace all lessons with imported data?', () => {
               lessons = validated;
-              bookMeta = data.bookMeta || { title: 'Decodable Readers', subtitle: 'Grade 1', grade: '1', showToc: true };
+              bookMeta = data.bookMeta || { title: 'Decodable Readers', subtitle: 'Grade 1', grade: '1', showToc: true, sightWords: { enabled: false, title: DEFAULT_SIGHT_WORDS_TITLE, columns: DEFAULT_SIGHT_COLUMNS, rawText: '' } };
+              if (!bookMeta.sightWords) bookMeta.sightWords = { enabled: false, title: DEFAULT_SIGHT_WORDS_TITLE, columns: DEFAULT_SIGHT_COLUMNS, rawText: '' };
               bookMeta.grade = String(bookMeta.grade || '1');
               bookMeta.showToc = (typeof bookMeta.showToc === 'boolean') ? bookMeta.showToc : true;
               renumberByOrder(lessons);
@@ -1064,19 +1240,27 @@
         reader.readAsText(file);
         input.value = '';
       };
-
       window.saveBookMeta = function() {
         bookMeta.title = document.getElementById('coverTitleInput').value.trim() || 'Decodable Readers';
         bookMeta.subtitle = document.getElementById('coverSubtitleInput').value.trim() || 'Grade 1';
         bookMeta.grade = document.getElementById('globalGradeInput').value.trim() || '1';
         bookMeta.showToc = document.getElementById('tocToggle').checked;
+        // Sight words settings
+        const sightEnabled = document.getElementById('sightWordsToggle').checked;
+        bookMeta.sightWords.enabled = sightEnabled;
+        bookMeta.sightWords.title = document.getElementById('sightWordsTitle').value.trim() || DEFAULT_SIGHT_WORDS_TITLE;
+        bookMeta.sightWords.columns = parseInt(document.getElementById('sightColumns').value) || DEFAULT_SIGHT_COLUMNS;
+        bookMeta.sightWords.columns = Math.min(Math.max(bookMeta.sightWords.columns, MIN_SIGHT_COLUMNS), MAX_SIGHT_COLUMNS);
+        bookMeta.sightWords.rawText = document.getElementById('sightWordsText').value;
+
         saveData();
         renderAllView();
         renderTocPreview();
         updateCounts();
-        showToast('Cover & TOC settings saved.', 'success');
+        showToast('Cover, TOC & Sight Words settings saved.', 'success');
       };
 
+      // ---------- Render list and counts ----------
       function renderEditList() {
         const container = document.getElementById('lessonList');
         const q = (window.searchQuery||'').toLowerCase();
@@ -1086,7 +1270,7 @@
             <span class="drag-handle" title="Drag to reorder">⋮⋮</span>
             <div class="info">
               <div class="title">Lesson ${l.lessonNumber} — ${escapeHtml(l.title)}</div>
-              <div class="sub">🎯 ${escapeHtml(l.targetSound)} · 📝 ${l.storyLines.length} lines · 🏫 Grade ${escapeHtml(bookMeta.grade)} · 📚 ${l.page2?.comprehension?.questions?.length || 0} questions ${l.showImagePage ? '· 🖼️ Image Page' : ''}</div>
+              <div class="sub">🎯 ${escapeHtml(l.targetSound)} · 📝 ${l.storyLines.length} lines · 🏫 Grade ${escapeHtml(bookMeta.grade)} · 🖼️ ${escapeHtml(l.imageLabel || DEFAULT_IMAGE_LABEL)} · 📚 ${l.page2?.comprehension?.questions?.length || 0} questions ${l.showImagePage ? '· 🖼️ Image Page' : ''} ${l.showReadingImageBox ? '· 📷 Reading Image' : ''}</div>
             </div>
             <div class="actions">
               <button class="btn btn-primary btn-xs" onclick="editLesson('${l.id}')" title="Edit">✏️</button>
@@ -1100,11 +1284,12 @@
       function updateCounts() {
         document.getElementById('lessonCount').textContent = lessons.length + ' lessons';
         const activeLessons = lessons.filter(l => l.title.trim());
+        const sightPages = bookMeta.sightWords.enabled ? parseSightWords(bookMeta.sightWords.rawText).length : 0;
         const tocPages = (bookMeta.showToc && activeLessons.length) ? Math.ceil(activeLessons.length / MAX_TOC_PER_PAGE) : 0;
         let lessonPages = 0;
         activeLessons.forEach(l => { lessonPages += l.showImagePage ? 3 : 2; });
-        const totalPages = 1 + tocPages + lessonPages;
-        document.getElementById('viewInfo').textContent = `📄 ${lessons.length} lessons · ${totalPages} pages (Grade ${bookMeta.grade})`;
+        const totalPages = 1 + sightPages + tocPages + lessonPages;
+        document.getElementById('viewInfo').textContent = `📄 ${lessons.length} lessons · ${totalPages} pages (Grade ${bookMeta.grade}) · Sight Words: ${sightPages} pages`;
       }
       function refreshUI() { renderEditList(); renderAllView(); updateCounts(); renderTocPreview(); }
 
@@ -1114,8 +1299,9 @@
         if (!bookMeta.showToc) { tocPreview.innerHTML = '<p style="color:#64748b; font-style:italic;">Table of Contents is disabled.</p>'; return; }
         const activeLessons = lessons.filter(l => l.title.trim());
         if (!activeLessons.length) { tocPreview.innerHTML = '<p style="color:#64748b;">No active lessons.</p>'; return; }
+        const sightPages = bookMeta.sightWords.enabled ? parseSightWords(bookMeta.sightWords.rawText).length : 0;
         const tocPageCount = Math.ceil(activeLessons.length / MAX_TOC_PER_PAGE);
-        const firstLessonPage = 1 + tocPageCount + 1;
+        const firstLessonPage = 1 + sightPages + tocPageCount + 1;
         let runningPage = firstLessonPage;
         let html = '<ul style="list-style:none;padding:0;margin:0;">';
         activeLessons.forEach(l => {
@@ -1136,9 +1322,20 @@
           document.getElementById('coverSubtitleInput').value = bookMeta.subtitle;
           document.getElementById('globalGradeInput').value = bookMeta.grade;
           document.getElementById('tocToggle').checked = bookMeta.showToc;
+          // Sight words fields
+          document.getElementById('sightWordsToggle').checked = bookMeta.sightWords.enabled;
+          document.getElementById('sightWordsTitle').value = bookMeta.sightWords.title;
+          document.getElementById('sightColumns').value = bookMeta.sightWords.columns;
+          document.getElementById('sightWordsText').value = bookMeta.sightWords.rawText;
+          toggleSightWordsFields();
           renderTocPreview();
         }
         updateCounts();
+      };
+
+      window.toggleSightWordsFields = function() {
+        const enabled = document.getElementById('sightWordsToggle').checked;
+        document.getElementById('sightWordsFields').style.display = enabled ? 'block' : 'none';
       };
 
       // ---------- Initialization ----------
@@ -1159,7 +1356,7 @@
                 <div class="form-row">
                   <div class="form-group"><label>Title <span class="req">*</span></label><input id="fTitle" placeholder="e.g. Ben's Camping Trip"></div>
                   <div class="form-group"><label>Lesson Number (auto)</label><input id="fLessonNumber" type="number" readonly style="background:#f0f0f0;"></div>
-                  <div class="form-group"><label>Image (for full-page image page if enabled)</label>
+                  <div class="form-group"><label>Image</label>
                     <div class="image-upload-wrap">
                       <img id="imagePreview" class="preview" style="display:none;">
                       <div id="imagePreviewPlaceholder" class="preview-placeholder">🖼️</div>
@@ -1168,13 +1365,18 @@
                     </div>
                   </div>
                 </div>
-                <div class="form-group"><label>Full-Page Image Label</label><input id="fImagePageLabel" placeholder="e.g. Picture Page" value="${escapeHtml(DEFAULT_IMAGE_PAGE_LABEL)}"></div>
+                <div class="form-group"><label>Image Label (overlay on image)</label><input id="fImageLabel" placeholder="e.g. Let's read together!" value="${escapeHtml(DEFAULT_IMAGE_LABEL)}"></div>
+                <div class="form-group"><label>Full-Page Image Label (overlay on image page)</label><input id="fImagePageLabel" placeholder="e.g. Picture Page" value="${escapeHtml(DEFAULT_IMAGE_PAGE_LABEL)}"></div>
+                <div class="form-group" style="display:flex;align-items:center;gap:10px;margin-top:16px;">
+                  <input type="checkbox" id="readingImageToggle" onchange="toggleReadingImage(this.checked)" checked style="width:18px;height:18px;accent-color:#f59e0b;">
+                  <label for="readingImageToggle" style="margin:0;font-weight:600;">Include image box on reading page</label>
+                </div>
+                <div class="form-group"><label>Target Sound <span class="req">*</span></label><input id="fTargetSound" placeholder="short e (/ɛ/)"></div>
+                <div class="form-group"><label>Story Text <span class="req">*</span></label><textarea id="fStory" rows="8" placeholder="One sentence per line..."></textarea></div>
                 <div class="form-group" style="display:flex;align-items:center;gap:10px;margin-top:16px;">
                   <input type="checkbox" id="imagePageToggle" onchange="toggleImagePage(this.checked)" style="width:18px;height:18px;accent-color:#f59e0b;">
                   <label for="imagePageToggle" style="margin:0;font-weight:600;">Include full-page image placeholder before reading page</label>
                 </div>
-                <div class="form-group"><label>Target Sound <span class="req">*</span></label><input id="fTargetSound" placeholder="short e (/ɛ/)"></div>
-                <div class="form-group"><label>Story Text <span class="req">*</span></label><textarea id="fStory" rows="8" placeholder="One sentence per line..."></textarea></div>
                 <hr style="margin:16px 0;border-color:#e2e8f0;">
                 <h4 style="margin-bottom:12px;">📋 Page 2 Activities</h4>
                 <div class="form-group" style="display:flex;align-items:center;gap:10px;">
@@ -1235,7 +1437,29 @@
                     <input type="checkbox" id="tocToggle" onchange="bookMeta.showToc=this.checked;saveBookMeta()" style="width:18px;height:18px;accent-color:#f59e0b;"> Include Table of Contents
                   </label>
                 </div>
-                <button class="btn btn-primary" onclick="saveBookMeta()">💾 Save Cover & TOC Settings</button>
+                <hr style="margin:20px 0;border-color:#e2e8f0;">
+                <div class="form-group" style="display:flex;align-items:center;gap:12px;">
+                  <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600;font-size:14px;">
+                    <input type="checkbox" id="sightWordsToggle" onchange="toggleSightWordsFields()" style="width:18px;height:18px;accent-color:#f59e0b;"> Include Sight Words Pages
+                  </label>
+                </div>
+                <div id="sightWordsFields" style="display:none;">
+                  <div class="form-group">
+                    <label>Sight Words Page Title</label>
+                    <input id="sightWordsTitle" value="${escapeHtml(bookMeta.sightWords.title)}" placeholder="e.g. Sight Words">
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label>Columns (2-6)</label>
+                      <input type="number" id="sightColumns" min="${MIN_SIGHT_COLUMNS}" max="${MAX_SIGHT_COLUMNS}" value="${bookMeta.sightWords.columns}" onchange="this.value = Math.min(Math.max(parseInt(this.value) || ${DEFAULT_SIGHT_COLUMNS}, ${MIN_SIGHT_COLUMNS}), ${MAX_SIGHT_COLUMNS})">
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label>Sight Words (comma separated, line breaks create new pages)</label>
+                    <textarea id="sightWordsText" rows="6" placeholder="Example:&#10;the, and, you, was&#10;for, are, with, his&#10;they, I, at, be, this">${escapeHtml(bookMeta.sightWords.rawText)}</textarea>
+                  </div>
+                </div>
+                <button class="btn btn-primary" onclick="saveBookMeta()">💾 Save Cover, TOC &amp; Sight Words Settings</button>
               </div>
               <div style="margin-top:24px;">
                 <h3 style="margin-bottom:12px;">📋 Table of Contents Preview</h3>
@@ -1249,6 +1473,13 @@
             <div class="view-toolbar"><span class="info" id="viewInfo">0 lessons</span><button class="btn btn-success" onclick="exportAllPages()">⬇ Export All</button></div>
             <div class="view-container" id="viewContainer"></div>
           </div>`;
+
+        // Set initial values for sight words toggle and fields
+        document.getElementById('sightWordsToggle').checked = bookMeta.sightWords.enabled;
+        document.getElementById('sightWordsTitle').value = bookMeta.sightWords.title;
+        document.getElementById('sightColumns').value = bookMeta.sightWords.columns;
+        document.getElementById('sightWordsText').value = bookMeta.sightWords.rawText;
+        toggleSightWordsFields();
 
         resetForm();
         if (lessons.length) fillForm(lessons[0]);
