@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>📖 Decodable Reader Publisher with Cover & TOC</title>
+  <title>📖 Decodable Reader Publisher with Cover, TOC & Sight Words</title>
   <style>
     :root {
       --bg: #f1f5f9;
@@ -27,6 +27,8 @@
       --orange-hover: #c2410c;
       --blue: #2563eb;
       --blue-soft: #eff6ff;
+      --scarlet: #b91c1c;      /* deep scarlet */
+      --scarlet-light: #fff5f5;
       --radius-sm: 8px;
       --radius: 12px;
       --radius-lg: 16px;
@@ -287,6 +289,29 @@
     .toc-item .toc-page-num { font-weight: 800; color: #b91c1c; min-width: 70px; text-align: right; }
     .toc-page-footer { margin-top: auto; text-align: right; font-weight: 800; font-size: 15px; color: #1e293b; }
 
+    /* ========== SIGHT WORDS PAGES ========== */
+    .sight-word-page .card { border-color: var(--scarlet); }
+    .sight-word-header { background: var(--scarlet); color: #fff; padding: 10px 18px; border-radius: 12px 12px 0 0; font-size: 22px; font-weight: 800; text-align: center; letter-spacing: 0.04em; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .sight-word-grid { display: grid; gap: 20px; padding: 20px 28px; flex: 1; align-content: start; }
+    .sight-word-item { 
+      border: 3px solid var(--scarlet);
+      border-radius: 16px;
+      background: var(--scarlet-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px;
+      min-height: 60px;
+      text-align: center;
+      font-weight: 700;
+      color: #1e293b;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+      word-break: break-word;
+    }
+    .sight-word-footer { margin-top: auto; }
+    /* Shrink-to-fit handled inline via JS */
+
     @media print {
       @page { size: 850px 1100px; margin: 0; }
       body { padding: 0 !important; background: #fff !important; margin: 0 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
@@ -307,6 +332,7 @@
       .comp-section.last-section .activity-blank-large { flex: 1 !important; }
       .image-only-page .image-full-placeholder { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
       .image-only-page .image-full-label { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      .sight-word-header, .sight-word-item { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
     }
 
     @media (max-width: 900px) {
@@ -344,6 +370,10 @@
       const DEFAULT_IMAGE_PAGE_LABEL = "Picture Page";
       const DEFAULT_IMAGE_PATH = "./read.png";
       const MAX_OPTIONS = 5;
+      const DEFAULT_SIGHT_WORDS_TITLE = 'Sight Words';
+      const DEFAULT_SIGHT_COLUMNS = 4;
+      const MIN_SIGHT_COLUMNS = 2;
+      const MAX_SIGHT_COLUMNS = 6;
 
       // ---------- IndexedDB Utility ----------
       let dbPromise = null;
@@ -503,7 +533,18 @@
       }];
 
       let lessons = [], editingId = null, nextId = 1;
-      let bookMeta = { title: 'Decodable Readers', subtitle: 'Grade 1', grade: '1', showToc: true };
+      let bookMeta = { 
+        title: 'Decodable Readers', 
+        subtitle: 'Grade 1', 
+        grade: '1', 
+        showToc: true,
+        sightWords: {
+          enabled: false,
+          title: DEFAULT_SIGHT_WORDS_TITLE,
+          columns: DEFAULT_SIGHT_COLUMNS,
+          rawText: ''
+        }
+      };
       window.searchQuery = '';
 
       // ---------- Data Loading / Saving ----------
@@ -535,10 +576,26 @@
             showImagePage: typeof l.showImagePage === 'boolean' ? l.showImagePage : false,
             page2: l.page2
           })).filter(l => l.id);
-          bookMeta = data.bookMeta || { title: 'Decodable Readers', subtitle: 'Grade 1', grade: '1', showToc: true };
+          bookMeta = data.bookMeta || { title: 'Decodable Readers', subtitle: 'Grade 1', grade: '1', showToc: true, sightWords: { enabled: false, title: DEFAULT_SIGHT_WORDS_TITLE, columns: DEFAULT_SIGHT_COLUMNS, rawText: '' } };
+          // Ensure sightWords exists
+          if (!bookMeta.sightWords) {
+            bookMeta.sightWords = { enabled: false, title: DEFAULT_SIGHT_WORDS_TITLE, columns: DEFAULT_SIGHT_COLUMNS, rawText: '' };
+          } else {
+            bookMeta.sightWords.enabled = (typeof bookMeta.sightWords.enabled === 'boolean') ? bookMeta.sightWords.enabled : false;
+            bookMeta.sightWords.title = String(bookMeta.sightWords.title || DEFAULT_SIGHT_WORDS_TITLE);
+            bookMeta.sightWords.columns = parseInt(bookMeta.sightWords.columns) || DEFAULT_SIGHT_COLUMNS;
+            bookMeta.sightWords.columns = Math.min(Math.max(bookMeta.sightWords.columns, MIN_SIGHT_COLUMNS), MAX_SIGHT_COLUMNS);
+            bookMeta.sightWords.rawText = String(bookMeta.sightWords.rawText || '');
+          }
         } else {
           lessons = JSON.parse(JSON.stringify(DEFAULT_LESSONS)).map(l => migrateLesson(l));
-          bookMeta = { title: 'Decodable Readers', subtitle: 'Grade 1', grade: '1', showToc: true };
+          bookMeta = { 
+            title: 'Decodable Readers', 
+            subtitle: 'Grade 1', 
+            grade: '1', 
+            showToc: true,
+            sightWords: { enabled: false, title: DEFAULT_SIGHT_WORDS_TITLE, columns: DEFAULT_SIGHT_COLUMNS, rawText: '' }
+          };
         }
         bookMeta.grade = String(bookMeta.grade || '1');
         bookMeta.showToc = (typeof bookMeta.showToc === 'boolean') ? bookMeta.showToc : true;
@@ -554,6 +611,37 @@
 
       function generateId() { return 'r' + (nextId++); }
       function renumberByOrder(arr) { arr.forEach((l, idx) => l.lessonNumber = idx + 1); }
+
+      // ---------- Sight Words Parsing ----------
+      function parseSightWords(rawText) {
+        if (!rawText || !rawText.trim()) return [];
+        const lines = rawText.split(/\r?\n/).map(line => line.trim()).filter(line => line.length > 0);
+        if (lines.length === 0) return [];
+        // If more than one line, each line is a page
+        let pages = [];
+        if (lines.length === 1) {
+          // All words in one line: split into three equal pages
+          const words = lines[0].split(',').map(w => w.trim()).filter(w => w.length > 0);
+          if (words.length === 0) return [];
+          const pagesCount = 3;
+          const perPage = Math.ceil(words.length / pagesCount);
+          for (let i = 0; i < pagesCount; i++) {
+            const chunk = words.slice(i * perPage, (i + 1) * perPage);
+            if (chunk.length > 0) pages.push(chunk);
+          }
+        } else {
+          // Manual page breaks: each non-empty line is a page
+          pages = lines.map(line => line.split(',').map(w => w.trim()).filter(w => w.length > 0));
+          // Remove empty pages
+          pages = pages.filter(page => page.length > 0);
+        }
+        return pages;
+      }
+
+      function countSightWordPages() {
+        if (!bookMeta.sightWords.enabled) return 0;
+        return parseSightWords(bookMeta.sightWords.rawText).length;
+      }
 
       // ---------- Build View Pages ----------
       function buildPageOne(lesson, pageNum) {
@@ -667,6 +755,43 @@
         return page;
       }
 
+      function buildSightWordPage(words, pageNum, columns) {
+        const page = document.createElement('div'); page.className = 'page sight-word-page';
+        page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export Page</button></div>`;
+        const card = document.createElement('div'); card.className = 'card';
+        card.style.borderColor = 'var(--scarlet)';
+        // Header
+        const header = document.createElement('div');
+        header.className = 'sight-word-header';
+        header.textContent = bookMeta.sightWords.title || DEFAULT_SIGHT_WORDS_TITLE;
+        card.appendChild(header);
+        // Grid
+        const grid = document.createElement('div');
+        grid.className = 'sight-word-grid';
+        grid.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
+        // Determine font size based on word length and columns
+        const baseFontSize = 28; // adjust as needed
+        const columnWidthApprox = Math.floor((850 - 70 - (columns - 1) * 20) / columns); // page width 850, padding 35*2, gap 20
+        words.forEach(word => {
+          const item = document.createElement('div');
+          item.className = 'sight-word-item';
+          // shrink to fit: compute font-size based on word length and available width
+          const lengthFactor = Math.max(1, word.length);
+          const fontSize = Math.max(14, Math.min(baseFontSize, Math.floor(columnWidthApprox / (lengthFactor * 0.6))));
+          item.style.fontSize = fontSize + 'px';
+          item.textContent = word;
+          grid.appendChild(item);
+        });
+        card.appendChild(grid);
+        // Footer with page number
+        const footer = document.createElement('div');
+        footer.className = 'page-footer-red sight-word-footer';
+        footer.textContent = pageNum;
+        card.appendChild(footer);
+        page.appendChild(card);
+        return page;
+      }
+
       function buildCoverPage() {
         const page = document.createElement('div'); page.className = 'page';
         page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export Page</button></div>`;
@@ -690,13 +815,33 @@
         const container = document.getElementById('viewContainer');
         container.innerHTML = '';
         container.appendChild(buildCoverPage());
-        if (!lessons.length) return;
+        if (!lessons.length) {
+          // still show sight words if enabled? We'll show cover only.
+          // But if sight words enabled, we should still show them. However, no lessons means no TOC, so they can appear.
+          if (bookMeta.sightWords.enabled) {
+            const sightPages = parseSightWords(bookMeta.sightWords.rawText);
+            let pageNum = 2;
+            sightPages.forEach(chunk => {
+              if (chunk.length > 0) container.appendChild(buildSightWordPage(chunk, pageNum++, bookMeta.sightWords.columns));
+            });
+          }
+          return;
+        }
         const activeLessons = lessons.filter(l => l.title.trim());
-
-        let pageNum = 1;
+        const sightWordPages = bookMeta.sightWords.enabled ? parseSightWords(bookMeta.sightWords.rawText) : [];
+        const sightPageCount = sightWordPages.length;
         const tocPageCount = (bookMeta.showToc && activeLessons.length) ? Math.ceil(activeLessons.length / MAX_TOC_PER_PAGE) : 0;
-        pageNum += tocPageCount;
-        const firstLessonPage = pageNum + 1;
+        let pageNum = 1; // cover is page 1
+        // Sight words pages start at page 2
+        if (sightPageCount > 0) {
+          sightWordPages.forEach((chunk, idx) => {
+            if (chunk.length > 0) {
+              container.appendChild(buildSightWordPage(chunk, pageNum + idx + 1, bookMeta.sightWords.columns));
+            }
+          });
+        }
+        pageNum += sightPageCount + 1; // now pageNum is first TOC page number
+        const firstLessonPage = pageNum + tocPageCount;
         const tocEntries = [];
         let runningPage = firstLessonPage;
 
@@ -707,10 +852,10 @@
           else runningPage += 2;
         });
 
-        if (bookMeta.showToc) {
+        if (bookMeta.showToc && tocPageCount > 0) {
           for (let p = 0; p < tocPageCount; p++) {
             const slice = tocEntries.slice(p * MAX_TOC_PER_PAGE, (p + 1) * MAX_TOC_PER_PAGE);
-            container.appendChild(buildTocPage(p + 2, slice));
+            container.appendChild(buildTocPage(pageNum + p, slice));
           }
         }
 
@@ -733,7 +878,7 @@
         win.document.close(); win.focus(); setTimeout(() => win.print(), 500);
       };
       window.exportAllPages = function() {
-        if (!lessons.length) return showToast('No lessons to export.', 'warning');
+        if (!lessons.length && !bookMeta.sightWords.enabled) return showToast('No lessons to export.', 'warning');
         const container = document.querySelector('.view-container').cloneNode(true);
         container.querySelectorAll('.page-actions').forEach(el => el.remove());
         const win = window.open('', '_blank');
@@ -1052,7 +1197,8 @@
             if (validated.length === 0) throw new Error('No valid lessons');
             confirmDialog('Replace all lessons with imported data?', () => {
               lessons = validated;
-              bookMeta = data.bookMeta || { title: 'Decodable Readers', subtitle: 'Grade 1', grade: '1', showToc: true };
+              bookMeta = data.bookMeta || { title: 'Decodable Readers', subtitle: 'Grade 1', grade: '1', showToc: true, sightWords: { enabled: false, title: DEFAULT_SIGHT_WORDS_TITLE, columns: DEFAULT_SIGHT_COLUMNS, rawText: '' } };
+              if (!bookMeta.sightWords) bookMeta.sightWords = { enabled: false, title: DEFAULT_SIGHT_WORDS_TITLE, columns: DEFAULT_SIGHT_COLUMNS, rawText: '' };
               bookMeta.grade = String(bookMeta.grade || '1');
               bookMeta.showToc = (typeof bookMeta.showToc === 'boolean') ? bookMeta.showToc : true;
               renumberByOrder(lessons);
@@ -1070,11 +1216,19 @@
         bookMeta.subtitle = document.getElementById('coverSubtitleInput').value.trim() || 'Grade 1';
         bookMeta.grade = document.getElementById('globalGradeInput').value.trim() || '1';
         bookMeta.showToc = document.getElementById('tocToggle').checked;
+        // Save sight words settings
+        const sightEnabled = document.getElementById('sightWordsToggle').checked;
+        bookMeta.sightWords.enabled = sightEnabled;
+        bookMeta.sightWords.title = document.getElementById('sightWordsTitle').value.trim() || DEFAULT_SIGHT_WORDS_TITLE;
+        bookMeta.sightWords.columns = parseInt(document.getElementById('sightColumns').value) || DEFAULT_SIGHT_COLUMNS;
+        bookMeta.sightWords.columns = Math.min(Math.max(bookMeta.sightWords.columns, MIN_SIGHT_COLUMNS), MAX_SIGHT_COLUMNS);
+        bookMeta.sightWords.rawText = document.getElementById('sightWordsText').value;
+
         saveData();
         renderAllView();
         renderTocPreview();
         updateCounts();
-        showToast('Cover & TOC settings saved.', 'success');
+        showToast('Cover, TOC & Sight Words settings saved.', 'success');
       };
 
       function renderEditList() {
@@ -1100,11 +1254,12 @@
       function updateCounts() {
         document.getElementById('lessonCount').textContent = lessons.length + ' lessons';
         const activeLessons = lessons.filter(l => l.title.trim());
+        const sightPages = bookMeta.sightWords.enabled ? parseSightWords(bookMeta.sightWords.rawText).length : 0;
         const tocPages = (bookMeta.showToc && activeLessons.length) ? Math.ceil(activeLessons.length / MAX_TOC_PER_PAGE) : 0;
         let lessonPages = 0;
         activeLessons.forEach(l => { lessonPages += l.showImagePage ? 3 : 2; });
-        const totalPages = 1 + tocPages + lessonPages;
-        document.getElementById('viewInfo').textContent = `📄 ${lessons.length} lessons · ${totalPages} pages (Grade ${bookMeta.grade})`;
+        const totalPages = 1 + sightPages + tocPages + lessonPages;
+        document.getElementById('viewInfo').textContent = `📄 ${lessons.length} lessons · ${totalPages} pages (Grade ${bookMeta.grade}) · Sight Words: ${sightPages} pages`;
       }
       function refreshUI() { renderEditList(); renderAllView(); updateCounts(); renderTocPreview(); }
 
@@ -1114,8 +1269,9 @@
         if (!bookMeta.showToc) { tocPreview.innerHTML = '<p style="color:#64748b; font-style:italic;">Table of Contents is disabled.</p>'; return; }
         const activeLessons = lessons.filter(l => l.title.trim());
         if (!activeLessons.length) { tocPreview.innerHTML = '<p style="color:#64748b;">No active lessons.</p>'; return; }
+        const sightPages = bookMeta.sightWords.enabled ? parseSightWords(bookMeta.sightWords.rawText).length : 0;
         const tocPageCount = Math.ceil(activeLessons.length / MAX_TOC_PER_PAGE);
-        const firstLessonPage = 1 + tocPageCount + 1;
+        const firstLessonPage = 1 + sightPages + tocPageCount + 1;
         let runningPage = firstLessonPage;
         let html = '<ul style="list-style:none;padding:0;margin:0;">';
         activeLessons.forEach(l => {
@@ -1136,9 +1292,20 @@
           document.getElementById('coverSubtitleInput').value = bookMeta.subtitle;
           document.getElementById('globalGradeInput').value = bookMeta.grade;
           document.getElementById('tocToggle').checked = bookMeta.showToc;
+          // Sight words fields
+          document.getElementById('sightWordsToggle').checked = bookMeta.sightWords.enabled;
+          document.getElementById('sightWordsTitle').value = bookMeta.sightWords.title;
+          document.getElementById('sightColumns').value = bookMeta.sightWords.columns;
+          document.getElementById('sightWordsText').value = bookMeta.sightWords.rawText;
+          toggleSightWordsFields();
           renderTocPreview();
         }
         updateCounts();
+      };
+
+      window.toggleSightWordsFields = function() {
+        const enabled = document.getElementById('sightWordsToggle').checked;
+        document.getElementById('sightWordsFields').style.display = enabled ? 'block' : 'none';
       };
 
       // ---------- Initialization ----------
@@ -1235,7 +1402,29 @@
                     <input type="checkbox" id="tocToggle" onchange="bookMeta.showToc=this.checked;saveBookMeta()" style="width:18px;height:18px;accent-color:#f59e0b;"> Include Table of Contents
                   </label>
                 </div>
-                <button class="btn btn-primary" onclick="saveBookMeta()">💾 Save Cover & TOC Settings</button>
+                <hr style="margin:20px 0;border-color:#e2e8f0;">
+                <div class="form-group" style="display:flex;align-items:center;gap:12px;">
+                  <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600;font-size:14px;">
+                    <input type="checkbox" id="sightWordsToggle" onchange="toggleSightWordsFields()" style="width:18px;height:18px;accent-color:#f59e0b;"> Include Sight Words Pages
+                  </label>
+                </div>
+                <div id="sightWordsFields" style="display:none;">
+                  <div class="form-group">
+                    <label>Sight Words Page Title</label>
+                    <input id="sightWordsTitle" value="${escapeHtml(bookMeta.sightWords.title)}" placeholder="e.g. Sight Words">
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label>Columns (2-6)</label>
+                      <input type="number" id="sightColumns" min="${MIN_SIGHT_COLUMNS}" max="${MAX_SIGHT_COLUMNS}" value="${bookMeta.sightWords.columns}" onchange="this.value = Math.min(Math.max(parseInt(this.value) || ${DEFAULT_SIGHT_COLUMNS}, ${MIN_SIGHT_COLUMNS}), ${MAX_SIGHT_COLUMNS})">
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label>Sight Words (comma separated, line breaks create new pages)</label>
+                    <textarea id="sightWordsText" rows="6" placeholder="Example:&#10;the, and, you, was&#10;for, are, with, his&#10;they, I, at, be, this">${escapeHtml(bookMeta.sightWords.rawText)}</textarea>
+                  </div>
+                </div>
+                <button class="btn btn-primary" onclick="saveBookMeta()">💾 Save Cover, TOC &amp; Sight Words Settings</button>
               </div>
               <div style="margin-top:24px;">
                 <h3 style="margin-bottom:12px;">📋 Table of Contents Preview</h3>
@@ -1249,6 +1438,13 @@
             <div class="view-toolbar"><span class="info" id="viewInfo">0 lessons</span><button class="btn btn-success" onclick="exportAllPages()">⬇ Export All</button></div>
             <div class="view-container" id="viewContainer"></div>
           </div>`;
+
+        // Initial field values for sight words in book tab
+        document.getElementById('sightWordsToggle').checked = bookMeta.sightWords.enabled;
+        document.getElementById('sightWordsTitle').value = bookMeta.sightWords.title;
+        document.getElementById('sightColumns').value = bookMeta.sightWords.columns;
+        document.getElementById('sightWordsText').value = bookMeta.sightWords.rawText;
+        toggleSightWordsFields();
 
         resetForm();
         if (lessons.length) fillForm(lessons[0]);
