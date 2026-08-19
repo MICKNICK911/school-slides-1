@@ -138,11 +138,11 @@
     .modal-overlay .modal .actions { display: flex; gap: 10px; justify-content: flex-end; }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-    /* ========== VIEW TAB – EXACT 850×1080 LAYOUT ========== */
+    /* ========== VIEW TAB – EXACT 850×1100 LAYOUT ========== */
     .view-container { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 8px; display: flex; flex-direction: column; align-items: center; gap: 24px; }
     .lesson-spread { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; width: 100%; }
 
-    .view-container .page { width: 850px; min-width: 850px; min-height: 1080px; height: 1080px; padding: 30px 35px; position: relative; margin: 0 auto; background: #fff; border-radius: 10px; box-shadow: 0 2px 16px rgba(0,0,0,0.07); box-sizing: border-box; overflow: hidden; flex-shrink: 0; }
+    .view-container .page { width: 850px; min-width: 850px; min-height: 1100px; height: 1100px; padding: 30px 35px; position: relative; margin: 0 auto; background: #fff; border-radius: 10px; box-shadow: 0 2px 16px rgba(0,0,0,0.07); box-sizing: border-box; overflow: hidden; flex-shrink: 0; }
     .view-container .page:last-child { page-break-after: auto; }
 
     .view-container .card { border: 3px solid #f59e0b; border-radius: 26px; min-height: 1010px; height: 1010px; padding: 0; position: relative; display: flex; flex-direction: column; overflow: hidden; -webkit-print-color-adjust: exact; print-color-adjust: exact; background: #fff; }
@@ -209,7 +209,7 @@
 
     .image-only-page { display: flex; flex-direction: column; }
     .image-only-page .image-full-placeholder { flex: 1; border: 3px solid #f59e0b; border-radius: 16px; background: #f8fafc; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .image-only-page .image-full-placeholder img { width: 100%; height: 100%; object-fit: contain; display: block; }
+    .image-only-page .image-full-placeholder img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .image-only-page .image-full-placeholder .placeholder-text { font-size: 24px; font-weight: 700; color: #94a3b8; }
     .image-only-page .image-full-label { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.65); color: #fff; text-align: center; padding: 8px 10px; font-size: 16px; font-weight: 700; letter-spacing: 0.03em; -webkit-print-color-adjust: exact; print-color-adjust: exact; z-index: 1; }
     .image-only-page .page-footer-red { margin-top: auto; }
@@ -241,19 +241,66 @@
     .thumbnail-container { display: flex; gap: 10px; overflow-x: auto; padding: 5px; border: 2px solid #dee2e6; border-radius: 8px; background: #fff; width: 100%; height: 270px; flex-shrink: 0; }
     .thumb-page-wrapper { position: relative; width: 212px; height: 270px; flex-shrink: 0; overflow: hidden; border: 1px solid #e2e8f0; border-radius: 4px; }
     .thumb-page-wrapper .thumb-label-small { position: absolute; bottom: 2px; left: 2px; right: 2px; background: rgba(0,0,0,0.5); color: #fff; padding: 2px 6px; font-size: 10px; text-align: center; border-radius: 3px; z-index: 5; }
-    .thumbnail-container .page { transform: scale(0.25); transform-origin: top left; position: absolute; top: 0; left: 0; width: 850px; min-width: 850px; min-height: 1080px; height: 1080px; padding: 30px 35px; margin: 0; border-radius: 0; box-shadow: none; page-break-after: auto; }
+    .thumbnail-container .page { transform: scale(0.25); transform-origin: top left; position: absolute; top: 0; left: 0; width: 850px; min-width: 850px; min-height: 1100px; height: 1100px; padding: 30px 35px; margin: 0; border-radius: 0; box-shadow: none; page-break-after: auto; }
 
     @media print {
-      body { padding: 0 !important; background: #fff !important; margin: 0 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important; }
+      body {
+        padding: 0 !important;
+        background: #fff !important;
+        margin: 0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important;
+      }
       .story-line .sentence, .comp-q .qtext, .comp-inst, .pc-body p { font-family: 'Georgia', 'Times New Roman', serif !important; }
       .app, .app-header, .tabs, .tab-panel, .view-toolbar, .no-print, .page-actions, .toast-container, .modal-overlay { display: none !important; }
       .view-container { overflow-x: visible !important; display: block !important; padding: 0 !important; gap: 0 !important; }
-      .view-container .page { box-shadow: none !important; border-radius: 0 !important; margin: 0 auto !important; padding: 30px 35px !important; width: 850px !important; min-width: 850px !important; min-height: 1080px !important; height: 1080px !important; page-break-after: always !important; background: #fff !important; transform: scale(1) !important; overflow: hidden !important; }
-      .view-container .page:last-child { page-break-after: auto !important; }
-      .lesson-spread { page-break-after: always !important; gap: 0 !important; display: block !important; }
-      .lesson-spread:last-child { page-break-after: auto !important; }
-      .lesson-spread > .page:not(:last-child) { page-break-after: always !important; }
-      .view-container .card { border-radius: 0 !important; min-height: 1010px !important; height: 1010px !important; border: 3px solid #f59e0b !important; overflow: hidden !important; }
+
+      /* Page breaks: direct children of view-container break after, except last */
+      .view-container > .page,
+      .view-container > .lesson-spread {
+        page-break-after: always !important;
+        break-after: page !important;
+      }
+      .view-container > .page:last-child,
+      .view-container > .lesson-spread:last-child {
+        page-break-after: auto !important;
+        break-after: auto !important;
+      }
+
+      /* Inside each spread: each page breaks except last of the spread */
+      .lesson-spread > .page {
+        page-break-after: always !important;
+        break-after: page !important;
+      }
+      .lesson-spread > .page:last-child {
+        page-break-after: auto !important;
+        break-after: auto !important;
+      }
+
+      .view-container .page {
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        margin: 0 auto !important;
+        padding: 30px 35px !important;
+        width: 850px !important;
+        min-width: 850px !important;
+        min-height: 1100px !important;
+        height: 1100px !important;
+        background: #fff !important;
+        transform: scale(1) !important;
+        overflow: hidden !important;
+        page-break-after: auto !important;
+        break-after: auto !important;
+      }
+
+      .view-container .card {
+        border-radius: 0 !important;
+        min-height: 1010px !important;
+        height: 1010px !important;
+        border: 3px solid #f59e0b !important;
+        overflow: hidden !important;
+      }
       .inner-pad { padding: 20px 28px 0 28px !important; }
       .page-footer-red { border-radius: 0 !important; height: 26px !important; }
       .story-img-container { border: 1px solid #cbd5e1 !important; width: 420px !important; height: 160px !important; }
@@ -263,7 +310,8 @@
       .cover-line, .cover-title, .cover-subtitle { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
       .comp-section.last-section { flex: 1 !important; }
       .comp-section.last-section .activity-blank-large { flex: 1 !important; }
-      .image-only-page .image-full-placeholder { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      .image-only-page .image-full-placeholder { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; border: none !important; border-radius: 0 !important; }
+      .image-only-page .image-full-placeholder img { object-fit: cover !important; }
       .image-only-page .image-full-label { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
       .sight-word-header, .sight-word-item { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
     }
@@ -824,7 +872,8 @@
         container.querySelectorAll('.page-actions').forEach(el => el.remove());
         const win = window.open('', '_blank');
         const styles = document.querySelector('style').outerHTML;
-        win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>All Pages</title>${styles}</head><body style="padding:0;background:#fff;margin:0;display:flex;justify-content:center;"><div class="view-container" style="overflow:visible;display:flex;flex-direction:column;align-items:center;">${container.outerHTML}</div></body></html>`);
+        // Fix: Write container directly, no extra wrapper to avoid breaking page-break CSS
+        win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>All Pages</title>${styles}</head><body style="padding:0;background:#fff;margin:0;">${container.outerHTML}</body></html>`);
         win.document.close(); win.focus(); setTimeout(() => win.print(), 500);
       };
 
@@ -971,8 +1020,8 @@
           pageEl.style.left = '0';
           pageEl.style.width = '850px';
           pageEl.style.minWidth = '850px';
-          pageEl.style.minHeight = '1080px';
-          pageEl.style.height = '1080px';
+          pageEl.style.minHeight = '1100px';
+          pageEl.style.height = '1100px';
           pageEl.style.padding = '30px 35px';
           pageEl.style.margin = '0';
           pageEl.style.borderRadius = '0';
@@ -1295,6 +1344,7 @@
         saveData();
         renderAllView();
         renderEditList();
+        renderTocPreview();
         updateCounts();
         showToast('Cover, TOC & Sight Words settings saved.', 'success');
       };
@@ -1476,7 +1526,7 @@
                 <div class="form-group"><label>Global Grade</label><input id="globalGradeInput" value="${escapeHtml(bookMeta.grade)}" placeholder="e.g. 1, 2, K"></div>
                 <div class="form-group" style="display:flex;align-items:center;gap:12px;margin-top:16px;">
                   <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600;font-size:14px;">
-                    <input type="checkbox" id="tocToggle" onchange="bookMeta.showToc=this.checked" style="width:18px;height:18px;accent-color:#f59e0b;"> Include Table of Contents
+                    <input type="checkbox" id="tocToggle" style="width:18px;height:18px;accent-color:#f59e0b;"> Include Table of Contents
                   </label>
                 </div>
                 <hr style="margin:20px 0;border-color:#e2e8f0;">
