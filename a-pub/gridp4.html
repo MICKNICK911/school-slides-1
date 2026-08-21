@@ -3,17 +3,11 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>📚 Phonics Grid Publisher — Production Ready</title>
+<title>📚 Phonics Grid Publisher — Manual Highlight Formatting</title>
 <style>
 @page { size: 850px 1100px; margin: 0; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-/* Changed body font to cross-browser print-friendly stack */
-body {
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-    background: #f0f2f5;
-    color: #1a1a1a;
-    padding: 16px;
-}
+body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background: #f0f2f5; color: #1a1a1a; padding: 16px; }
 .app { max-width: 1600px; margin: 0 auto; background: #fff; border-radius: 20px; box-shadow: 0 12px 40px rgba(0,0,0,0.08); overflow: hidden; }
 .app-header { background: #1a1a2e; color: #fff; padding: 16px 28px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .app-header h1 { font-size: 22px; font-weight: 800; }
@@ -210,7 +204,6 @@ body {
     font-size: 13px; line-height: 1.4; background: #fff; overflow-y: auto; word-break: break-word;
 }
 .rich-editor:focus { outline: none; border-color: #F5A623; }
-/* Preview boxes now use print-safe font and reflect block-level font family */
 .preview-box {
     border: 2px dashed #dee2e6;
     border-radius: 8px;
@@ -251,7 +244,6 @@ body {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
 }
-/* Print-safe font stack for page content */
 .page-card {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
@@ -351,6 +343,13 @@ body {
     .app-header h1 { font-size: 18px; }
     .tab-btn { padding: 10px 12px; font-size: 12px; }
     .tab-panel { padding: 14px 12px 20px; }
+}
+
+/* Temporary highlight style */
+.temp-highlight {
+    background-color: #fff3bf !important;
+    border-radius: 2px;
+    padding: 0 1px;
 }
 </style>
 </head>
@@ -800,7 +799,127 @@ body {
         return html || '<p></p>';
     }
 
+    // ========== MANUAL HIGHLIGHT HELPERS ==========
+    function getTempHighlights(prefix) {
+        const editor = prefix === 'active' ? document.getElementById('activeText') : document.getElementById('editText');
+        if (!editor) return [];
+        return Array.from(editor.querySelectorAll('.temp-highlight'));
+    }
+
+    function clearTempHighlights(prefix, updateText = true) {
+        const editor = prefix === 'active' ? document.getElementById('activeText') : document.getElementById('editText');
+        if (!editor) return;
+        const highlights = getTempHighlights(prefix);
+        highlights.forEach(span => {
+            // Remove the class and style if only temporary highlight
+            span.classList.remove('temp-highlight');
+            if (span.style.backgroundColor === 'rgb(255, 243, 191)' || span.style.backgroundColor === '#fff3bf') {
+                span.style.backgroundColor = '';
+            }
+            // Unwrap if span has no other attributes or classes
+            if (span.attributes.length === 0 || (span.attributes.length === 1 && span.getAttribute('style') === '')) {
+                const parent = span.parentNode;
+                while (span.firstChild) {
+                    parent.insertBefore(span.firstChild, span);
+                }
+                parent.removeChild(span);
+            } else {
+                // If span still has formatting, keep it but remove highlight styling
+                span.style.backgroundColor = '';
+            }
+        });
+        if (updateText) {
+            if (prefix === 'active') {
+                window.activeText = sanitizeHTML(editor.innerHTML);
+                window.activeRichText = true;
+                updatePreview('active');
+            } else if (expandedBlockIdx !== null) {
+                const page = getCurrentPage();
+                if (page && page.blocks[expandedBlockIdx]) {
+                    page.blocks[expandedBlockIdx].text = sanitizeHTML(editor.innerHTML);
+                    page.blocks[expandedBlockIdx].richText = true;
+                    updatePreview('edit');
+                    updateThumbnail();
+                    renderView();
+                }
+            }
+            save();
+        }
+    }
+
+    window.applyTempHighlight = function(prefix) {
+        const editor = prefix === 'active' ? document.getElementById('activeText') : document.getElementById('editText');
+        if (!editor) return;
+        editor.focus({ preventScroll: true });
+        const selection = window.getSelection();
+        if (!selection.rangeCount || selection.isCollapsed) {
+            showToast('Select text first', 'warning');
+            return;
+        }
+        const range = selection.getRangeAt(0);
+        if (!editor.contains(range.commonAncestorContainer)) return;
+
+        // Check if selection is already inside a temp-highlight? Could merge but for simplicity just wrap.
+        const span = document.createElement('span');
+        span.className = 'temp-highlight';
+        span.style.backgroundColor = '#fff3bf';
+
+        try {
+            range.surroundContents(span);
+        } catch (e) {
+            const fragment = range.extractContents();
+            span.appendChild(fragment);
+            range.insertNode(span);
+        }
+
+        selection.removeAllRanges();
+        // No text update yet; we keep the highlight in DOM but not saved.
+        // Update activeText preview? We'll not change preview to avoid showing highlight.
+        // But we should keep track that highlights exist.
+        showToast('Highlight applied. Now select a formatting option.', 'info');
+    };
+
+    window.clearHighlightManually = function(prefix) {
+        clearTempHighlights(prefix, true);
+        showToast('Highlights cleared', 'info');
+    };
+
+    // ========== TEXT FORMATTING WITH HIGHLIGHT SUPPORT ==========
+    function applyCommandToHighlights(prefix, command, value = null) {
+        const highlights = getTempHighlights(prefix);
+        if (highlights.length === 0) return false;
+        const editor = prefix === 'active' ? document.getElementById('activeText') : document.getElementById('editText');
+        if (!editor) return false;
+
+        // Store current selection (likely none) and focus editor to allow execCommand
+        editor.focus({ preventScroll: true });
+        const sel = window.getSelection();
+        const originalRanges = [];
+        for (let i = 0; i < sel.rangeCount; i++) originalRanges.push(sel.getRangeAt(i).cloneRange());
+
+        highlights.forEach(span => {
+            // Create a range that selects the contents of the highlight span
+            const range = document.createRange();
+            range.selectNodeContents(span);
+            sel.removeAllRanges();
+            sel.addRange(range);
+            document.execCommand(command, false, value);
+        });
+
+        // Restore original selection (probably none)
+        sel.removeAllRanges();
+        originalRanges.forEach(r => sel.addRange(r));
+        editor.blur(); // Blur to avoid focus stealing? But we already had it. May not need.
+
+        // Clear highlights (will update text and preview)
+        clearTempHighlights(prefix, true);
+        return true;
+    }
+
+    // Override execInline to support highlights
     window.execInline = function (prefix, command, value = null) {
+        if (applyCommandToHighlights(prefix, command, value)) return;
+        // Fallback to original behavior
         let editor;
         if (prefix === 'active') editor = document.getElementById('activeText');
         else if (prefix === 'edit') editor = document.getElementById('editText');
@@ -826,23 +945,36 @@ body {
         }
     };
 
+    // Override applyInlineSizePreset to support highlights
     window.applyInlineSizePreset = function(prefix, size) {
+        const highlights = getTempHighlights(prefix);
+        if (highlights.length > 0) {
+            highlights.forEach(span => {
+                const newSpan = document.createElement('span');
+                newSpan.style.fontSize = size + 'px';
+                while (span.firstChild) {
+                    newSpan.appendChild(span.firstChild);
+                }
+                span.parentNode.insertBefore(newSpan, span);
+                span.parentNode.removeChild(span);
+            });
+            // Clear any remaining (should be none)
+            clearTempHighlights(prefix, true);
+            return;
+        }
+        // Fallback original
         const editor = (prefix === 'active') ? document.getElementById('activeText') : document.getElementById('editText');
         if (!editor) return;
         editor.focus();
-
         const selection = window.getSelection();
         if (!selection.rangeCount || selection.isCollapsed) {
             showToast('Select text first', 'warning');
             return;
         }
-
         const range = selection.getRangeAt(0);
         if (!editor.contains(range.commonAncestorContainer)) return;
-
         const span = document.createElement('span');
         span.style.fontSize = size + 'px';
-
         try {
             range.surroundContents(span);
         } catch (e) {
@@ -850,10 +982,8 @@ body {
             span.appendChild(fragment);
             range.insertNode(span);
         }
-
         selection.removeAllRanges();
         editor.focus();
-
         if (prefix === 'active') {
             window.activeText = sanitizeHTML(editor.innerHTML);
             window.activeRichText = true;
@@ -872,28 +1002,39 @@ body {
         }
     };
 
+    // Override applyInlineFont to support highlights
     window.applyInlineFont = function(prefix, fontFamily) {
-        const editor = (prefix === 'active') ? document.getElementById('activeText') : document.getElementById('editText');
-        if (!editor) return;
-        editor.focus();
-
-        const selection = window.getSelection();
-        if (!selection.rangeCount || selection.isCollapsed) {
-            showToast('Select text first', 'warning');
-            return;
-        }
-
-        const range = selection.getRangeAt(0);
-        if (!editor.contains(range.commonAncestorContainer)) return;
-
         if (!fontFamily) {
             showToast('Select a font from the dropdown', 'info');
             return;
         }
-
+        const highlights = getTempHighlights(prefix);
+        if (highlights.length > 0) {
+            highlights.forEach(span => {
+                const newSpan = document.createElement('span');
+                newSpan.style.fontFamily = fontFamily;
+                while (span.firstChild) {
+                    newSpan.appendChild(span.firstChild);
+                }
+                span.parentNode.insertBefore(newSpan, span);
+                span.parentNode.removeChild(span);
+            });
+            clearTempHighlights(prefix, true);
+            return;
+        }
+        // Fallback original
+        const editor = (prefix === 'active') ? document.getElementById('activeText') : document.getElementById('editText');
+        if (!editor) return;
+        editor.focus();
+        const selection = window.getSelection();
+        if (!selection.rangeCount || selection.isCollapsed) {
+            showToast('Select text first', 'warning');
+            return;
+        }
+        const range = selection.getRangeAt(0);
+        if (!editor.contains(range.commonAncestorContainer)) return;
         const span = document.createElement('span');
         span.style.fontFamily = fontFamily;
-
         try {
             range.surroundContents(span);
         } catch (e) {
@@ -901,10 +1042,8 @@ body {
             span.appendChild(fragment);
             range.insertNode(span);
         }
-
         selection.removeAllRanges();
         editor.focus();
-
         if (prefix === 'active') {
             window.activeText = sanitizeHTML(editor.innerHTML);
             window.activeRichText = true;
@@ -923,6 +1062,7 @@ body {
         }
     };
 
+    // Keep applyList as is (not highlight-aware)
     window.applyList = function (prefix, type) {
         let editor;
         if (prefix === 'active') editor = document.getElementById('activeText');
@@ -947,6 +1087,7 @@ body {
         }
     };
 
+    // ========== UPDATE FMT VALUE, ALIGN, etc. (unchanged mostly, but may need to sync active state) ==========
     window.updateFmtValue = function (prefix, prop, value) {
         if (prefix === 'active') {
             if (prop === 'fontSize') window.activeFontSize = Math.max(1, parseInt(value) || 18);
@@ -995,7 +1136,6 @@ body {
         }
     };
 
-    // Updated updatePreview to include font family
     function updatePreview(prefix) {
         const preview = document.getElementById(prefix === 'active' ? 'activePreview' : 'editPreview');
         if (!preview) return;
@@ -1042,6 +1182,9 @@ body {
     function fmtToolbarHtml(prefix, state) {
         return `
             <div class="fmt-toolbar">
+                <button type="button" class="btn btn-outline btn-sm" onmousedown="event.preventDefault()" onclick="applyTempHighlight('${prefix}')" title="Highlight selection for formatting">🖍 Highlight</button>
+                <button type="button" class="btn btn-outline btn-sm" onclick="clearHighlightManually('${prefix}')" title="Clear highlights">Clear</button>
+                <div class="sep"></div>
                 <div class="select-group">
                     <label>Font</label>
                     <select onchange="updateFmtValue('${prefix}','fontFamily',this.value)">
@@ -1103,10 +1246,7 @@ body {
                 </div>
                 <div class="select-group">
                     <label>Inline Color</label>
-                    <input type="color" id="${prefix}InlineColor" value="${escapeStyle(state.color)}" style="width:28px;height:28px;border:none;padding:0;background:none;cursor:pointer;">
-                    <button type="button" class="fmt-btn" title="Apply color to selection" onmousedown="event.preventDefault()" onclick="execInline('${prefix}','foreColor', document.getElementById('${prefix}InlineColor').value)">
-                        <span style="display:inline-block;width:16px;height:16px;border-radius:3px;border:1px solid #ccc;background:${escapeStyle(state.color)};"></span>
-                    </button>
+                    <input type="color" id="${prefix}InlineColor" value="${escapeStyle(state.color)}" style="width:28px;height:28px;border:none;padding:0;background:none;cursor:pointer;" onchange="execInline('${prefix}','foreColor', this.value)">
                 </div>
                 <div class="sep"></div>
                 <div class="select-group">
@@ -2181,7 +2321,7 @@ body {
         showToast('Page reset', 'info');
     };
 
-    // ========== RENDER EDITOR (with accordion & thumbnail) ==========
+    // ========== RENDER EDITOR ==========
     function renderEditor() {
         const page = getCurrentPage();
         if (!page) return;
@@ -2204,7 +2344,7 @@ body {
                 </div>
             </div>
 
-            <!-- Page Settings (collapsed) -->
+            <!-- Page Settings -->
             <div class="accordion-header" onclick="togglePageSettings()">
                 <span>📄 Page Settings</span>
                 <span>${escapeHtml(page.title || 'Untitled')}</span>
@@ -2236,7 +2376,7 @@ body {
                 </div>
             </div>
 
-            <!-- Blocks Accordion -->
+            <!-- Blocks -->
             <div style="margin-top:16px;">
                 <h3 style="font-size:14px;font-weight:800;color:#E2571C;margin-bottom:10px;">📦 Blocks</h3>
         `;
@@ -2392,7 +2532,6 @@ body {
             html += `<div style="padding:16px;text-align:center;color:#6c757d;font-weight:600;">Layout is locked. You can still edit content of any block. Unlock to change structure.</div>`;
         }
 
-        // Undo/Redo and lock buttons
         html += `
             <div class="editor-toolbar" style="margin-top:16px;">
                 <span class="info">Page ${currentPageIndex + 1} · ${page.blocks.length} block(s) · ${freeCount} free cells ${locked ? '· 🔒 Layout locked' : ''}</span>
@@ -2408,7 +2547,6 @@ body {
 
         container.innerHTML = html;
 
-        // Paint active grid
         const activeGrid = document.getElementById('activeGrid');
         if (activeGrid) {
             for (let r = 0; r < ROWS; r++) {
@@ -2431,7 +2569,7 @@ body {
         updateThumbnail();
     }
 
-    // ========== RENDER EDIT PANEL (for expanded block) ==========
+    // ========== RENDER EDIT PANEL ==========
     function renderEditPanel(b, idx) {
         if (b.type === 'text') {
             const state = {
@@ -2525,7 +2663,7 @@ body {
         return '';
     }
 
-    // ========== TABLE EDIT PANEL (dropdowns) ==========
+    // ========== TABLE EDIT PANEL ==========
     function renderTableEditPanel(b, idx) {
         const rows = b.tableRows || (b.rowSpan * 2);
         const cols = b.tableCols || b.colSpan;
