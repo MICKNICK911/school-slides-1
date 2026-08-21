@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>📚 Phonics Grid Publisher — Manual Highlight Formatting</title>
+<title>📚 Phonics Grid Publisher — Word‑Like Formatting</title>
 <style>
 @page { size: 850px 1100px; margin: 0; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -195,6 +195,12 @@ body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background: 
 }
 .fmt-toolbar .sep { width: 1px; height: 22px; background: #dee2e6; margin: 0 2px; }
 .fmt-toolbar input[type="color"] { width: 32px; height: 32px; border: 1px solid #ced4da; border-radius: 6px; padding: 2px; cursor: pointer; }
+.fmt-btn {
+    width: 32px; height: 32px; border: 1px solid #ced4da; border-radius: 6px;
+    background: #fff; font-weight: 700; font-size: 13px; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center; font-family: inherit;
+}
+.fmt-btn:hover { border-color: #F5A623; }
 .align-group { display: flex; gap: 4px; flex-wrap: wrap; }
 
 .edit-panel { grid-column: 1 / -1; background: #fff; border: 2px solid #F5A623; border-radius: 10px; padding: 14px; margin-top: 6px; }
@@ -344,13 +350,6 @@ body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background: 
     .tab-btn { padding: 10px 12px; font-size: 12px; }
     .tab-panel { padding: 14px 12px 20px; }
 }
-
-/* Temporary highlight style */
-.temp-highlight {
-    background-color: #fff3bf !important;
-    border-radius: 2px;
-    padding: 0 1px;
-}
 </style>
 </head>
 <body>
@@ -463,6 +462,7 @@ body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background: 
     let tableSel = new Set();
     let _editTextHistoryTimer = null;
     let _thumbnailTimer = null;
+    let savedRange = null; // For Word‑like formatting
 
     function generateUniqueId() {
         let id;
@@ -799,133 +799,58 @@ body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background: 
         return html || '<p></p>';
     }
 
-    // ========== MANUAL HIGHLIGHT HELPERS ==========
-    function getTempHighlights(prefix) {
-        const editor = prefix === 'active' ? document.getElementById('activeText') : document.getElementById('editText');
-        if (!editor) return [];
-        return Array.from(editor.querySelectorAll('.temp-highlight'));
-    }
-
-    function clearTempHighlights(prefix, updateText = true) {
-        const editor = prefix === 'active' ? document.getElementById('activeText') : document.getElementById('editText');
-        if (!editor) return;
-        const highlights = getTempHighlights(prefix);
-        highlights.forEach(span => {
-            // Remove the class and style if only temporary highlight
-            span.classList.remove('temp-highlight');
-            if (span.style.backgroundColor === 'rgb(255, 243, 191)' || span.style.backgroundColor === '#fff3bf') {
-                span.style.backgroundColor = '';
-            }
-            // Unwrap if span has no other attributes or classes
-            if (span.attributes.length === 0 || (span.attributes.length === 1 && span.getAttribute('style') === '')) {
-                const parent = span.parentNode;
-                while (span.firstChild) {
-                    parent.insertBefore(span.firstChild, span);
-                }
-                parent.removeChild(span);
-            } else {
-                // If span still has formatting, keep it but remove highlight styling
-                span.style.backgroundColor = '';
-            }
-        });
-        if (updateText) {
-            if (prefix === 'active') {
-                window.activeText = sanitizeHTML(editor.innerHTML);
-                window.activeRichText = true;
-                updatePreview('active');
-            } else if (expandedBlockIdx !== null) {
-                const page = getCurrentPage();
-                if (page && page.blocks[expandedBlockIdx]) {
-                    page.blocks[expandedBlockIdx].text = sanitizeHTML(editor.innerHTML);
-                    page.blocks[expandedBlockIdx].richText = true;
-                    updatePreview('edit');
-                    updateThumbnail();
-                    renderView();
-                }
-            }
-            save();
-        }
-    }
-
-    window.applyTempHighlight = function(prefix) {
-        const editor = prefix === 'active' ? document.getElementById('activeText') : document.getElementById('editText');
-        if (!editor) return;
-        editor.focus({ preventScroll: true });
+    // ========== SELECTION SAVING ==========
+    function saveSelectionFromEditor(editor) {
         const selection = window.getSelection();
-        if (!selection.rangeCount || selection.isCollapsed) {
-            showToast('Select text first', 'warning');
-            return;
+        if (selection.rangeCount > 0 && !selection.isCollapsed) {
+            const range = selection.getRangeAt(0);
+            if (editor.contains(range.commonAncestorContainer)) {
+                savedRange = range.cloneRange();
+            }
         }
-        const range = selection.getRangeAt(0);
-        if (!editor.contains(range.commonAncestorContainer)) return;
-
-        // Check if selection is already inside a temp-highlight? Could merge but for simplicity just wrap.
-        const span = document.createElement('span');
-        span.className = 'temp-highlight';
-        span.style.backgroundColor = '#fff3bf';
-
-        try {
-            range.surroundContents(span);
-        } catch (e) {
-            const fragment = range.extractContents();
-            span.appendChild(fragment);
-            range.insertNode(span);
-        }
-
-        selection.removeAllRanges();
-        // No text update yet; we keep the highlight in DOM but not saved.
-        // Update activeText preview? We'll not change preview to avoid showing highlight.
-        // But we should keep track that highlights exist.
-        showToast('Highlight applied. Now select a formatting option.', 'info');
-    };
-
-    window.clearHighlightManually = function(prefix) {
-        clearTempHighlights(prefix, true);
-        showToast('Highlights cleared', 'info');
-    };
-
-    // ========== TEXT FORMATTING WITH HIGHLIGHT SUPPORT ==========
-    function applyCommandToHighlights(prefix, command, value = null) {
-        const highlights = getTempHighlights(prefix);
-        if (highlights.length === 0) return false;
-        const editor = prefix === 'active' ? document.getElementById('activeText') : document.getElementById('editText');
-        if (!editor) return false;
-
-        // Store current selection (likely none) and focus editor to allow execCommand
-        editor.focus({ preventScroll: true });
-        const sel = window.getSelection();
-        const originalRanges = [];
-        for (let i = 0; i < sel.rangeCount; i++) originalRanges.push(sel.getRangeAt(i).cloneRange());
-
-        highlights.forEach(span => {
-            // Create a range that selects the contents of the highlight span
-            const range = document.createRange();
-            range.selectNodeContents(span);
-            sel.removeAllRanges();
-            sel.addRange(range);
-            document.execCommand(command, false, value);
-        });
-
-        // Restore original selection (probably none)
-        sel.removeAllRanges();
-        originalRanges.forEach(r => sel.addRange(r));
-        editor.blur(); // Blur to avoid focus stealing? But we already had it. May not need.
-
-        // Clear highlights (will update text and preview)
-        clearTempHighlights(prefix, true);
-        return true;
     }
 
-    // Override execInline to support highlights
+    // Attach listeners to editors after render
+    function attachSelectionListeners() {
+        const editors = document.querySelectorAll('.rich-editor');
+        editors.forEach(editor => {
+            editor.removeEventListener('mouseup', selectionHandler);
+            editor.removeEventListener('keyup', selectionHandler);
+            editor.addEventListener('mouseup', selectionHandler);
+            editor.addEventListener('keyup', selectionHandler);
+        });
+    }
+
+    function selectionHandler(e) {
+        const editor = e.currentTarget;
+        saveSelectionFromEditor(editor);
+    }
+
+    function restoreSelection(editor) {
+        if (savedRange && editor.contains(savedRange.commonAncestorContainer)) {
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(savedRange.cloneRange());
+            return true;
+        }
+        return false;
+    }
+
+    // ========== FORMATTING FUNCTIONS (Word‑like) ==========
     window.execInline = function (prefix, command, value = null) {
-        if (applyCommandToHighlights(prefix, command, value)) return;
-        // Fallback to original behavior
         let editor;
         if (prefix === 'active') editor = document.getElementById('activeText');
         else if (prefix === 'edit') editor = document.getElementById('editText');
         if (!editor) return;
-        editor.focus();
+
+        // Try to restore saved selection
+        const restored = restoreSelection(editor);
+        if (!restored) {
+            // Fallback: focus and use current selection
+            editor.focus();
+        }
         document.execCommand(command, false, value);
+
         if (prefix === 'active') {
             window.activeText = sanitizeHTML(editor.innerHTML);
             window.activeRichText = true;
@@ -945,130 +870,108 @@ body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background: 
         }
     };
 
-    // Override applyInlineSizePreset to support highlights
     window.applyInlineSizePreset = function(prefix, size) {
-        const highlights = getTempHighlights(prefix);
-        if (highlights.length > 0) {
-            highlights.forEach(span => {
-                const newSpan = document.createElement('span');
-                newSpan.style.fontSize = size + 'px';
-                while (span.firstChild) {
-                    newSpan.appendChild(span.firstChild);
-                }
-                span.parentNode.insertBefore(newSpan, span);
-                span.parentNode.removeChild(span);
-            });
-            // Clear any remaining (should be none)
-            clearTempHighlights(prefix, true);
-            return;
-        }
-        // Fallback original
         const editor = (prefix === 'active') ? document.getElementById('activeText') : document.getElementById('editText');
         if (!editor) return;
-        editor.focus();
+        const restored = restoreSelection(editor);
+        if (!restored) {
+            editor.focus();
+            const selection = window.getSelection();
+            if (!selection.rangeCount || selection.isCollapsed) {
+                showToast('Select text first', 'warning');
+                return;
+            }
+        }
         const selection = window.getSelection();
-        if (!selection.rangeCount || selection.isCollapsed) {
-            showToast('Select text first', 'warning');
-            return;
-        }
-        const range = selection.getRangeAt(0);
-        if (!editor.contains(range.commonAncestorContainer)) return;
-        const span = document.createElement('span');
-        span.style.fontSize = size + 'px';
-        try {
-            range.surroundContents(span);
-        } catch (e) {
-            const fragment = range.extractContents();
-            span.appendChild(fragment);
-            range.insertNode(span);
-        }
-        selection.removeAllRanges();
-        editor.focus();
-        if (prefix === 'active') {
-            window.activeText = sanitizeHTML(editor.innerHTML);
-            window.activeRichText = true;
-            updatePreview('active');
-        } else if (prefix === 'edit' && expandedBlockIdx !== null) {
-            const page = getCurrentPage();
-            if (page && page.blocks[expandedBlockIdx]) {
-                pushHistory();
-                page.blocks[expandedBlockIdx].text = sanitizeHTML(editor.innerHTML);
-                page.blocks[expandedBlockIdx].richText = true;
-                save();
-                updatePreview('edit');
-                updateThumbnail();
-                renderView();
+        if (selection.rangeCount && !selection.isCollapsed) {
+            const range = selection.getRangeAt(0);
+            if (!editor.contains(range.commonAncestorContainer)) return;
+            const span = document.createElement('span');
+            span.style.fontSize = size + 'px';
+            try {
+                range.surroundContents(span);
+            } catch (e) {
+                const fragment = range.extractContents();
+                span.appendChild(fragment);
+                range.insertNode(span);
+            }
+            selection.removeAllRanges();
+            editor.focus();
+
+            if (prefix === 'active') {
+                window.activeText = sanitizeHTML(editor.innerHTML);
+                window.activeRichText = true;
+                updatePreview('active');
+            } else if (prefix === 'edit' && expandedBlockIdx !== null) {
+                const page = getCurrentPage();
+                if (page && page.blocks[expandedBlockIdx]) {
+                    pushHistory();
+                    page.blocks[expandedBlockIdx].text = sanitizeHTML(editor.innerHTML);
+                    page.blocks[expandedBlockIdx].richText = true;
+                    save();
+                    updatePreview('edit');
+                    updateThumbnail();
+                    renderView();
+                }
             }
         }
     };
 
-    // Override applyInlineFont to support highlights
     window.applyInlineFont = function(prefix, fontFamily) {
-        if (!fontFamily) {
-            showToast('Select a font from the dropdown', 'info');
-            return;
-        }
-        const highlights = getTempHighlights(prefix);
-        if (highlights.length > 0) {
-            highlights.forEach(span => {
-                const newSpan = document.createElement('span');
-                newSpan.style.fontFamily = fontFamily;
-                while (span.firstChild) {
-                    newSpan.appendChild(span.firstChild);
-                }
-                span.parentNode.insertBefore(newSpan, span);
-                span.parentNode.removeChild(span);
-            });
-            clearTempHighlights(prefix, true);
-            return;
-        }
-        // Fallback original
+        if (!fontFamily) return;
         const editor = (prefix === 'active') ? document.getElementById('activeText') : document.getElementById('editText');
         if (!editor) return;
-        editor.focus();
+        const restored = restoreSelection(editor);
+        if (!restored) {
+            editor.focus();
+            const selection = window.getSelection();
+            if (!selection.rangeCount || selection.isCollapsed) {
+                showToast('Select text first', 'warning');
+                return;
+            }
+        }
         const selection = window.getSelection();
-        if (!selection.rangeCount || selection.isCollapsed) {
-            showToast('Select text first', 'warning');
-            return;
-        }
-        const range = selection.getRangeAt(0);
-        if (!editor.contains(range.commonAncestorContainer)) return;
-        const span = document.createElement('span');
-        span.style.fontFamily = fontFamily;
-        try {
-            range.surroundContents(span);
-        } catch (e) {
-            const fragment = range.extractContents();
-            span.appendChild(fragment);
-            range.insertNode(span);
-        }
-        selection.removeAllRanges();
-        editor.focus();
-        if (prefix === 'active') {
-            window.activeText = sanitizeHTML(editor.innerHTML);
-            window.activeRichText = true;
-            updatePreview('active');
-        } else if (prefix === 'edit' && expandedBlockIdx !== null) {
-            const page = getCurrentPage();
-            if (page && page.blocks[expandedBlockIdx]) {
-                pushHistory();
-                page.blocks[expandedBlockIdx].text = sanitizeHTML(editor.innerHTML);
-                page.blocks[expandedBlockIdx].richText = true;
-                save();
-                updatePreview('edit');
-                updateThumbnail();
-                renderView();
+        if (selection.rangeCount && !selection.isCollapsed) {
+            const range = selection.getRangeAt(0);
+            if (!editor.contains(range.commonAncestorContainer)) return;
+            const span = document.createElement('span');
+            span.style.fontFamily = fontFamily;
+            try {
+                range.surroundContents(span);
+            } catch (e) {
+                const fragment = range.extractContents();
+                span.appendChild(fragment);
+                range.insertNode(span);
+            }
+            selection.removeAllRanges();
+            editor.focus();
+
+            if (prefix === 'active') {
+                window.activeText = sanitizeHTML(editor.innerHTML);
+                window.activeRichText = true;
+                updatePreview('active');
+            } else if (prefix === 'edit' && expandedBlockIdx !== null) {
+                const page = getCurrentPage();
+                if (page && page.blocks[expandedBlockIdx]) {
+                    pushHistory();
+                    page.blocks[expandedBlockIdx].text = sanitizeHTML(editor.innerHTML);
+                    page.blocks[expandedBlockIdx].richText = true;
+                    save();
+                    updatePreview('edit');
+                    updateThumbnail();
+                    renderView();
+                }
             }
         }
     };
 
-    // Keep applyList as is (not highlight-aware)
     window.applyList = function (prefix, type) {
         let editor;
         if (prefix === 'active') editor = document.getElementById('activeText');
         else if (prefix === 'edit') editor = document.getElementById('editText');
         if (!editor) return;
-        editor.focus();
+        const restored = restoreSelection(editor);
+        if (!restored) editor.focus();
         document.execCommand(type === 'ul' ? 'insertUnorderedList' : 'insertOrderedList');
         if (prefix === 'active') {
             window.activeText = sanitizeHTML(editor.innerHTML);
@@ -1087,107 +990,20 @@ body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background: 
         }
     };
 
-    // ========== UPDATE FMT VALUE, ALIGN, etc. (unchanged mostly, but may need to sync active state) ==========
-    window.updateFmtValue = function (prefix, prop, value) {
-        if (prefix === 'active') {
-            if (prop === 'fontSize') window.activeFontSize = Math.max(1, parseInt(value) || 18);
-            if (prop === 'color') window.activeColor = value;
-            if (prop === 'bold') window.activeBold = value === true || value === 'true';
-            if (prop === 'italic') window.activeItalic = value === true || value === 'true';
-            if (prop === 'underline') window.activeUnderline = value === true || value === 'true';
-            if (prop === 'lineHeight') window.activeLineHeight = Math.min(3, Math.max(0.5, parseFloat(value) || 1.35));
-            if (prop === 'fontFamily') window.activeFontFamily = value;
-            updatePreview('active');
-        } else if (prefix === 'edit' && expandedBlockIdx !== null) {
-            const page = getCurrentPage();
-            if (!page) return;
-            const b = page.blocks[expandedBlockIdx];
-            if (!b || b.type !== 'text') return;
-            pushHistory();
-            if (prop === 'fontSize') b.fontSize = Math.max(1, parseInt(value) || 18);
-            if (prop === 'color') b.color = value;
-            if (prop === 'bold') b.bold = value === true || value === 'true';
-            if (prop === 'italic') b.italic = value === true || value === 'true';
-            if (prop === 'underline') b.underline = value === true || value === 'true';
-            if (prop === 'lineHeight') b.lineHeight = Math.min(3, Math.max(0.5, parseFloat(value) || 1.35));
-            if (prop === 'fontFamily') b.fontFamily = value;
-            save();
-            updatePreview('edit');
-            updateThumbnail();
-            renderView();
-        }
-    };
-
-    window.setAlign = function (prefix, prop, value) {
-        if (prefix === 'active') {
-            if (prop === 'textAlign') window.activeTextAlign = value;
-            if (prop === 'verticalAlign') window.activeVerticalAlign = value;
-            renderEditor();
-        } else if (prefix === 'edit' && expandedBlockIdx !== null) {
-            const page = getCurrentPage();
-            if (!page) return;
-            const b = page.blocks[expandedBlockIdx];
-            if (!b || b.type !== 'text') return;
-            pushHistory();
-            b[prop] = value;
-            save();
-            renderEditor();
-            renderView();
-        }
-    };
-
-    function updatePreview(prefix) {
-        const preview = document.getElementById(prefix === 'active' ? 'activePreview' : 'editPreview');
-        if (!preview) return;
-        let html = '', fontSize = 18, textAlign = 'center', color = '#1a1a1a', fontFamily = '';
-        if (prefix === 'active') {
-            html = window.activeText || '';
-            fontSize = window.activeFontSize;
-            textAlign = window.activeTextAlign;
-            color = window.activeColor;
-            fontFamily = window.activeFontFamily;
-        } else if (prefix === 'edit' && expandedBlockIdx !== null) {
-            const page = getCurrentPage();
-            if (!page) return;
-            const b = page.blocks[expandedBlockIdx];
-            html = b.text || '';
-            fontSize = b.fontSize || 18;
-            textAlign = b.textAlign || 'center';
-            color = b.color || '#1a1a1a';
-            fontFamily = b.fontFamily || '';
-        }
-        preview.innerHTML = html || '<p></p>';
-        preview.style.fontSize = fontSize + 'px';
-        preview.style.textAlign = textAlign;
-        preview.style.color = color;
-        preview.style.fontFamily = fontFamily ? fontFamily : '';
-    }
-
-    window.updateEditText = function (idx, html) {
-        const page = getCurrentPage();
-        if (!page || !page.blocks[idx]) return;
-        if (!_editTextHistoryTimer) pushHistory();
-        clearTimeout(_editTextHistoryTimer);
-        _editTextHistoryTimer = setTimeout(() => { _editTextHistoryTimer = null; }, 800);
-        page.blocks[idx].text = sanitizeHTML(html);
-        page.blocks[idx].richText = true;
-        save();
-        updatePreview('edit');
-        clearTimeout(_thumbnailTimer);
-        _thumbnailTimer = setTimeout(() => updateThumbnail(), 300);
-        renderView();
-    };
-
     // ========== TOOLBARS ==========
     function fmtToolbarHtml(prefix, state) {
         return `
             <div class="fmt-toolbar">
-                <button type="button" class="btn btn-outline btn-sm" onmousedown="event.preventDefault()" onclick="applyTempHighlight('${prefix}')" title="Highlight selection for formatting">🖍 Highlight</button>
-                <button type="button" class="btn btn-outline btn-sm" onclick="clearHighlightManually('${prefix}')" title="Clear highlights">Clear</button>
+                <button type="button" class="fmt-btn" title="Bold" onmousedown="event.preventDefault()" onclick="execInline('${prefix}','bold')"><b>B</b></button>
+                <button type="button" class="fmt-btn" title="Italic" onmousedown="event.preventDefault()" onclick="execInline('${prefix}','italic')"><i>I</i></button>
+                <button type="button" class="fmt-btn" title="Underline" onmousedown="event.preventDefault()" onclick="execInline('${prefix}','underline')"><u>U</u></button>
+                <div class="sep"></div>
+                <button type="button" class="fmt-btn" title="Bullet list" onmousedown="event.preventDefault()" onclick="applyList('${prefix}','ul')">•</button>
+                <button type="button" class="fmt-btn" title="Numbered list" onmousedown="event.preventDefault()" onclick="applyList('${prefix}','ol')">1.</button>
                 <div class="sep"></div>
                 <div class="select-group">
                     <label>Font</label>
-                    <select onchange="updateFmtValue('${prefix}','fontFamily',this.value)">
+                    <select onfocus="saveSelectionFromEditor(document.getElementById('${prefix === 'active' ? 'activeText' : 'editText'}'))" onchange="updateFmtValue('${prefix}','fontFamily',this.value)">
                         <option value="">Default</option>
                         <option value="Arial" ${state.fontFamily==='Arial'?'selected':''}>Arial</option>
                         <option value="Helvetica" ${state.fontFamily==='Helvetica'?'selected':''}>Helvetica</option>
@@ -1197,37 +1013,6 @@ body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background: 
                         <option value="Tahoma" ${state.fontFamily==='Tahoma'?'selected':''}>Tahoma</option>
                         <option value="Courier New" ${state.fontFamily==='Courier New'?'selected':''}>Courier New</option>
                         <option value="Trebuchet MS" ${state.fontFamily==='Trebuchet MS'?'selected':''}>Trebuchet MS</option>
-                    </select>
-                </div>
-                <div class="sep"></div>
-                <div class="select-group">
-                    <label>Bold</label>
-                    <select onchange="updateFmtValue('${prefix}','bold',this.value==='true')">
-                        <option value="false" ${!state.bold?'selected':''}>Off</option>
-                        <option value="true" ${state.bold?'selected':''}>On</option>
-                    </select>
-                </div>
-                <div class="select-group">
-                    <label>Italic</label>
-                    <select onchange="updateFmtValue('${prefix}','italic',this.value==='true')">
-                        <option value="false" ${!state.italic?'selected':''}>Off</option>
-                        <option value="true" ${state.italic?'selected':''}>On</option>
-                    </select>
-                </div>
-                <div class="select-group">
-                    <label>Underline</label>
-                    <select onchange="updateFmtValue('${prefix}','underline',this.value==='true')">
-                        <option value="false" ${!state.underline?'selected':''}>Off</option>
-                        <option value="true" ${state.underline?'selected':''}>On</option>
-                    </select>
-                </div>
-                <div class="sep"></div>
-                <div class="select-group">
-                    <label>List</label>
-                    <select onchange="applyList('${prefix}', this.value)">
-                        <option value="none" ${state.listType==='none'?'selected':''}>None</option>
-                        <option value="ul" ${state.listType==='ul'?'selected':''}>Bullet List</option>
-                        <option value="ol" ${state.listType==='ol'?'selected':''}>Numbered List</option>
                     </select>
                 </div>
                 <div class="sep"></div>
@@ -1246,12 +1031,12 @@ body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background: 
                 </div>
                 <div class="select-group">
                     <label>Inline Color</label>
-                    <input type="color" id="${prefix}InlineColor" value="${escapeStyle(state.color)}" style="width:28px;height:28px;border:none;padding:0;background:none;cursor:pointer;" onchange="execInline('${prefix}','foreColor', this.value)">
+                    <input type="color" id="${prefix}InlineColor" value="${escapeStyle(state.color)}" style="width:28px;height:28px;border:none;padding:0;background:none;cursor:pointer;" onfocus="saveSelectionFromEditor(document.getElementById('${prefix === 'active' ? 'activeText' : 'editText'}'))" onchange="execInline('${prefix}','foreColor', this.value)">
                 </div>
                 <div class="sep"></div>
                 <div class="select-group">
                     <label>Inline Font</label>
-                    <select onchange="applyInlineFont('${prefix}', this.value)">
+                    <select onfocus="saveSelectionFromEditor(document.getElementById('${prefix === 'active' ? 'activeText' : 'editText'}'))" onchange="applyInlineFont('${prefix}', this.value)">
                         <option value="">Default</option>
                         <option value="Arial">Arial</option>
                         <option value="Helvetica">Helvetica</option>
@@ -1265,7 +1050,7 @@ body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background: 
                 </div>
                 <div class="select-group">
                     <label>Inline Size</label>
-                    <select onchange="applyInlineSizePreset('${prefix}', this.value)">
+                    <select onfocus="saveSelectionFromEditor(document.getElementById('${prefix === 'active' ? 'activeText' : 'editText'}'))" onchange="applyInlineSizePreset('${prefix}', this.value)">
                         <option value="16">S</option>
                         <option value="24">M</option>
                         <option value="32">L</option>
@@ -2546,6 +2331,9 @@ body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background: 
         `;
 
         container.innerHTML = html;
+
+        // Attach selection listeners to new editors
+        attachSelectionListeners();
 
         const activeGrid = document.getElementById('activeGrid');
         if (activeGrid) {
