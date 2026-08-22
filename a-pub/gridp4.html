@@ -987,6 +987,49 @@ body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background: 
         }
     };
 
+    // ========== UPDATE PREVIEW (hoisted) ==========
+    function updatePreview(prefix) {
+        const preview = document.getElementById(prefix === 'active' ? 'activePreview' : 'editPreview');
+        if (!preview) return;
+        let html = '', fontSize = 18, textAlign = 'center', color = '#1a1a1a', fontFamily = '';
+        if (prefix === 'active') {
+            html = window.activeText || '';
+            fontSize = window.activeFontSize;
+            textAlign = window.activeTextAlign;
+            color = window.activeColor;
+            fontFamily = window.activeFontFamily;
+        } else if (prefix === 'edit' && expandedBlockIdx !== null) {
+            const page = getCurrentPage();
+            if (!page) return;
+            const b = page.blocks[expandedBlockIdx];
+            html = b.text || '';
+            fontSize = b.fontSize || 18;
+            textAlign = b.textAlign || 'center';
+            color = b.color || '#1a1a1a';
+            fontFamily = b.fontFamily || '';
+        }
+        preview.innerHTML = html || '<p></p>';
+        preview.style.fontSize = fontSize + 'px';
+        preview.style.textAlign = textAlign;
+        preview.style.color = color;
+        preview.style.fontFamily = fontFamily ? fontFamily : '';
+    }
+
+    window.updateEditText = function (idx, html) {
+        const page = getCurrentPage();
+        if (!page || !page.blocks[idx]) return;
+        if (!_editTextHistoryTimer) pushHistory();
+        clearTimeout(_editTextHistoryTimer);
+        _editTextHistoryTimer = setTimeout(() => { _editTextHistoryTimer = null; }, 800);
+        page.blocks[idx].text = sanitizeHTML(html);
+        page.blocks[idx].richText = true;
+        save();
+        updatePreview('edit');
+        clearTimeout(_thumbnailTimer);
+        _thumbnailTimer = setTimeout(() => updateThumbnail(), 300);
+        renderView();
+    };
+
     // ========== TOOLBARS ==========
     function fmtToolbarHtml(prefix, state) {
         return `
