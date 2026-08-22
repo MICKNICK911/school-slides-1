@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>📚 Phonics Grid Publisher — Word‑Like Formatting</title>
+<title>📚 Phonics Grid Publisher — Word‑Like Formatting (Fixed)</title>
 <style>
 @page { size: 850px 1100px; margin: 0; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -800,7 +800,7 @@ body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background: 
     }
 
     // ========== SELECTION SAVING ==========
-    function saveSelectionFromEditor(editor) {
+    window.saveSelectionFromEditor = function(editor) {
         const selection = window.getSelection();
         if (selection.rangeCount > 0 && !selection.isCollapsed) {
             const range = selection.getRangeAt(0);
@@ -808,9 +808,13 @@ body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background: 
                 savedRange = range.cloneRange();
             }
         }
+    };
+
+    function selectionHandler(e) {
+        const editor = e.currentTarget;
+        window.saveSelectionFromEditor(editor);
     }
 
-    // Attach listeners to editors after render
     function attachSelectionListeners() {
         const editors = document.querySelectorAll('.rich-editor');
         editors.forEach(editor => {
@@ -819,11 +823,6 @@ body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background: 
             editor.addEventListener('mouseup', selectionHandler);
             editor.addEventListener('keyup', selectionHandler);
         });
-    }
-
-    function selectionHandler(e) {
-        const editor = e.currentTarget;
-        saveSelectionFromEditor(editor);
     }
 
     function restoreSelection(editor) {
@@ -843,10 +842,8 @@ body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background: 
         else if (prefix === 'edit') editor = document.getElementById('editText');
         if (!editor) return;
 
-        // Try to restore saved selection
         const restored = restoreSelection(editor);
         if (!restored) {
-            // Fallback: focus and use current selection
             editor.focus();
         }
         document.execCommand(command, false, value);
@@ -1003,7 +1000,7 @@ body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background: 
                 <div class="sep"></div>
                 <div class="select-group">
                     <label>Font</label>
-                    <select onfocus="saveSelectionFromEditor(document.getElementById('${prefix === 'active' ? 'activeText' : 'editText'}'))" onchange="updateFmtValue('${prefix}','fontFamily',this.value)">
+                    <select onchange="updateFmtValue('${prefix}','fontFamily',this.value)">
                         <option value="">Default</option>
                         <option value="Arial" ${state.fontFamily==='Arial'?'selected':''}>Arial</option>
                         <option value="Helvetica" ${state.fontFamily==='Helvetica'?'selected':''}>Helvetica</option>
@@ -1031,12 +1028,12 @@ body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background: 
                 </div>
                 <div class="select-group">
                     <label>Inline Color</label>
-                    <input type="color" id="${prefix}InlineColor" value="${escapeStyle(state.color)}" style="width:28px;height:28px;border:none;padding:0;background:none;cursor:pointer;" onfocus="saveSelectionFromEditor(document.getElementById('${prefix === 'active' ? 'activeText' : 'editText'}'))" onchange="execInline('${prefix}','foreColor', this.value)">
+                    <input type="color" id="${prefix}InlineColor" value="${escapeStyle(state.color)}" style="width:28px;height:28px;border:none;padding:0;background:none;cursor:pointer;" onmousedown="saveSelectionFromEditor(document.getElementById('${prefix === 'active' ? 'activeText' : 'editText'}'))" onchange="execInline('${prefix}','foreColor', this.value)">
                 </div>
                 <div class="sep"></div>
                 <div class="select-group">
                     <label>Inline Font</label>
-                    <select onfocus="saveSelectionFromEditor(document.getElementById('${prefix === 'active' ? 'activeText' : 'editText'}'))" onchange="applyInlineFont('${prefix}', this.value)">
+                    <select onmousedown="saveSelectionFromEditor(document.getElementById('${prefix === 'active' ? 'activeText' : 'editText'}'))" onchange="applyInlineFont('${prefix}', this.value)">
                         <option value="">Default</option>
                         <option value="Arial">Arial</option>
                         <option value="Helvetica">Helvetica</option>
@@ -1050,7 +1047,7 @@ body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background: 
                 </div>
                 <div class="select-group">
                     <label>Inline Size</label>
-                    <select onfocus="saveSelectionFromEditor(document.getElementById('${prefix === 'active' ? 'activeText' : 'editText'}'))" onchange="applyInlineSizePreset('${prefix}', this.value)">
+                    <select onmousedown="saveSelectionFromEditor(document.getElementById('${prefix === 'active' ? 'activeText' : 'editText'}'))" onchange="applyInlineSizePreset('${prefix}', this.value)">
                         <option value="16">S</option>
                         <option value="24">M</option>
                         <option value="32">L</option>
@@ -2332,7 +2329,6 @@ body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background: 
 
         container.innerHTML = html;
 
-        // Attach selection listeners to new editors
         attachSelectionListeners();
 
         const activeGrid = document.getElementById('activeGrid');
