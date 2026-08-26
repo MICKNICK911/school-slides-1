@@ -128,6 +128,49 @@
     button.ghost:hover { background: #f1f3f5; }
     .btn-row { display: flex; gap: 6px; }
     .btn-row button { flex: 1; margin-bottom: 6px; }
+    /* Accordion groups (native dropdowns — no fragile JS) */
+    details.panel {
+      border: 1px solid #dee2e6;
+      border-radius: 10px;
+      background: #fafbfc;
+      margin-bottom: 8px;
+      overflow: hidden;
+    }
+    details.panel > summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 12px 14px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #1a1a2e;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      min-height: 44px;
+      background: #fff;
+    }
+    details.panel > summary::-webkit-details-marker { display: none; }
+    details.panel > summary::after {
+      content: '▾';
+      font-size: 12px;
+      color: #868e96;
+      transition: transform 0.15s ease;
+    }
+    details.panel[open] > summary {
+      border-bottom: 1px solid #dee2e6;
+      background: #fff9f0;
+    }
+    details.panel[open] > summary::after {
+      transform: rotate(-180deg);
+    }
+    details.panel .panel-body {
+      padding: 10px 12px 12px;
+    }
+    details.panel .panel-body > :last-child {
+      margin-bottom: 0;
+    }
     .emoji-grid {
       display: grid;
       grid-template-columns: repeat(6, 1fr);
@@ -162,21 +205,27 @@
       outline-offset: 2px;
     }
     .resize-handle {
-      fill: #ffffff;
-      stroke: #F5A623;
-      stroke-width: 2;
       cursor: pointer;
       pointer-events: all;
-    }
-    .resize-handle:hover {
-      fill: #F5A623;
+      touch-action: none;
     }
     .selection-box {
-      fill: none;
-      stroke: #F5A623;
-      stroke-width: 1;
-      stroke-dasharray: 4 3;
       pointer-events: none;
+    }
+    .select-hint {
+      display: none;
+      margin: 8px 0 0;
+      padding: 10px 12px;
+      background: #fff3cd;
+      border: 1px solid #F5A623;
+      border-radius: 8px;
+      font-size: 13px;
+      color: #1a1a2e;
+      line-height: 1.35;
+    }
+    .select-hint.show { display: block; }
+    @media (max-width: 768px) {
+      .select-hint { font-size: 14px; padding: 12px; }
     }
     .export-area {
       margin-top: 8px;
@@ -380,153 +429,208 @@
       </div>
 
       <div class="collapsible">
-        <h2>🧰 Tools</h2>
-        <div class="btn-row">
-          <button type="button" onclick="addShape('rect')" title="Rectangle">▭</button>
-          <button type="button" onclick="addShape('circle')" title="Circle">●</button>
-          <button type="button" onclick="addShape('ellipse')" title="Ellipse">◯</button>
-          <button type="button" onclick="addShape('line')" title="Line">➖</button>
-          <button type="button" onclick="addShape('polygon')" title="Polygon">⬡</button>
-        </div>
-        <div class="btn-row">
-          <button type="button" onclick="addText()">✏️ Text</button>
-          <button type="button" onclick="addEmoji('😀')">😀</button>
-        </div>
-        <div class="btn-row">
-          <button type="button" class="secondary" onclick="undo()">↩️ Undo</button>
-          <button type="button" class="secondary" onclick="redo()">↪️ Redo</button>
-        </div>
-        <div class="btn-row">
-          <button type="button" class="secondary" onclick="copyElement()">📋</button>
-          <button type="button" class="secondary" onclick="pasteElement()">📥</button>
-          <button type="button" class="danger" onclick="deleteSelected()">🗑️</button>
-        </div>
-        <button type="button" class="ghost" onclick="clearCanvas()">🧹 Clear All</button>
 
-        <h2>😊 Emoji</h2>
-        <div class="emoji-grid" id="emojiGrid"></div>
-
-        <h3>🖼️ Canvas</h3>
-        <div class="tool-group">
-          <div class="zoom-controls">
-            <button type="button" onclick="zoomCanvas(0.9)">−</button>
-            <input type="number" id="zoomVal" value="1" min="0.1" max="5" step="0.1" onchange="setZoomFromInput()">
-            <button type="button" onclick="zoomCanvas(1.1)">+</button>
-          </div>
-          <label>Width</label>
-          <input type="number" id="canvasWidth" value="400" min="50" max="4000" onchange="resizeCanvas()">
-          <label>Height</label>
-          <input type="number" id="canvasHeight" value="400" min="50" max="4000" onchange="resizeCanvas()">
-          <label>Background</label>
-          <input type="color" id="bgColor" value="#ffffff" oninput="setBackground()">
-        </div>
-
-        <h3>🎨 Properties</h3>
-        <div id="commonProps" class="tool-group">
-          <label>Fill</label>
-          <input type="color" id="fillColor" value="#F5A623" oninput="updateSelected('fill')">
-          <label>Stroke</label>
-          <input type="color" id="strokeColor" value="#000000" oninput="updateSelected('stroke')">
-          <div class="prop-row">
-            <div>
-              <label>Stroke W</label>
-              <input type="number" id="strokeWidth" value="2" min="0" max="50" step="0.5" onchange="updateSelected('strokeWidth')">
+        <details class="panel" open>
+          <summary>➕ Add shapes</summary>
+          <div class="panel-body">
+            <div class="btn-row">
+              <button type="button" onclick="addShape('rect')" title="Rectangle">▭</button>
+              <button type="button" onclick="addShape('circle')" title="Circle">●</button>
+              <button type="button" onclick="addShape('ellipse')" title="Ellipse">◯</button>
+              <button type="button" onclick="addShape('line')" title="Line">➖</button>
+              <button type="button" onclick="addShape('polygon')" title="Polygon">⬡</button>
             </div>
-            <div>
-              <label>Opacity</label>
-              <input type="range" id="opacity" value="1" min="0" max="1" step="0.05" oninput="updateSelected('opacity')">
+            <div class="btn-row">
+              <button type="button" onclick="addText()">✏️ Text</button>
+              <button type="button" onclick="addEmoji('😀')">😀</button>
             </div>
           </div>
-        </div>
+        </details>
 
-        <div id="geoProps" class="tool-group hidden">
-          <div class="prop-row" id="geoRect" class="hidden">
-            <div><label>X</label><input type="number" id="propX" step="1" onchange="updateGeo('x')"></div>
-            <div><label>Y</label><input type="number" id="propY" step="1" onchange="updateGeo('y')"></div>
-            <div><label>W</label><input type="number" id="propW" min="1" step="1" onchange="updateGeo('width')"></div>
-            <div><label>H</label><input type="number" id="propH" min="1" step="1" onchange="updateGeo('height')"></div>
+        <details class="panel">
+          <summary>😊 Emoji</summary>
+          <div class="panel-body">
+            <div class="emoji-grid" id="emojiGrid"></div>
           </div>
-          <div class="prop-row" id="geoCircle" class="hidden">
-            <div><label>CX</label><input type="number" id="propCX" step="1" onchange="updateGeo('cx')"></div>
-            <div><label>CY</label><input type="number" id="propCY" step="1" onchange="updateGeo('cy')"></div>
-            <div><label>R</label><input type="number" id="propR" min="1" step="1" onchange="updateGeo('r')"></div>
-          </div>
-          <div class="prop-row" id="geoEllipse" class="hidden">
-            <div><label>CX</label><input type="number" id="propECX" step="1" onchange="updateGeo('cx')"></div>
-            <div><label>CY</label><input type="number" id="propECY" step="1" onchange="updateGeo('cy')"></div>
-            <div><label>RX</label><input type="number" id="propRX" min="1" step="1" onchange="updateGeo('rx')"></div>
-            <div><label>RY</label><input type="number" id="propRY" min="1" step="1" onchange="updateGeo('ry')"></div>
-          </div>
-          <div class="prop-row" id="geoLine" class="hidden">
-            <div><label>X1</label><input type="number" id="propX1" step="1" onchange="updateGeo('x1')"></div>
-            <div><label>Y1</label><input type="number" id="propY1" step="1" onchange="updateGeo('y1')"></div>
-            <div><label>X2</label><input type="number" id="propX2" step="1" onchange="updateGeo('x2')"></div>
-            <div><label>Y2</label><input type="number" id="propY2" step="1" onchange="updateGeo('y2')"></div>
-          </div>
-          <div id="geoPolygon" class="hidden">
-            <label>Points (x,y x,y …)</label>
-            <input type="text" id="propPoints" onchange="updateGeo('points')">
-          </div>
-        </div>
+        </details>
 
-        <div id="textProps" class="tool-group hidden">
-          <label>Text</label>
-          <input type="text" id="textContent" placeholder="Enter text" oninput="updateSelected('text')">
-          <div class="prop-row">
-            <div>
-              <label>Size</label>
-              <input type="number" id="fontSize" value="24" min="6" max="400" onchange="updateSelected('fontSize')">
+        <details class="panel" open>
+          <summary>✂️ Edit</summary>
+          <div class="panel-body">
+            <div class="btn-row">
+              <button type="button" class="secondary" onclick="undo()">↩️ Undo</button>
+              <button type="button" class="secondary" onclick="redo()">↪️ Redo</button>
             </div>
-            <div>
-              <label>X</label>
-              <input type="number" id="textX" step="1" onchange="updateGeo('x')">
+            <div class="btn-row">
+              <button type="button" class="secondary" onclick="copyElement()">📋 Copy</button>
+              <button type="button" class="secondary" onclick="pasteElement()">📥 Paste</button>
+              <button type="button" class="danger" onclick="deleteSelected()">🗑️</button>
+            </div>
+            <button type="button" class="ghost" onclick="clearCanvas()">🧹 Clear All</button>
+          </div>
+        </details>
+
+        <details class="panel">
+          <summary>↔️ Move / 🔄 Rotate</summary>
+          <div class="panel-body">
+            <div class="btn-row">
+              <button type="button" class="secondary" onclick="nudgeBy(0,-1)" title="Up">⬆️</button>
+              <button type="button" class="secondary" onclick="nudgeBy(0,1)" title="Down">⬇️</button>
+              <button type="button" class="secondary" onclick="nudgeBy(-1,0)" title="Left">⬅️</button>
+              <button type="button" class="secondary" onclick="nudgeBy(1,0)" title="Right">➡️</button>
+            </div>
+            <div class="btn-row">
+              <button type="button" class="secondary" onclick="nudgeBy(0,-10)" title="Up 10px">⬆10</button>
+              <button type="button" class="secondary" onclick="nudgeBy(0,10)" title="Down 10px">⬇10</button>
+              <button type="button" class="secondary" onclick="nudgeBy(-10,0)" title="Left 10px">⬅10</button>
+              <button type="button" class="secondary" onclick="nudgeBy(10,0)" title="Right 10px">➡10</button>
+            </div>
+            <label>Rotate step (°)</label>
+            <input type="number" id="rotateStep" value="10" min="1" max="180" step="1" title="Degrees per rotate click">
+            <div class="btn-row">
+              <button type="button" class="secondary" onclick="rotateSelected(-1)" title="Rotate anti-clockwise">↺ Anti-CW</button>
+              <button type="button" class="secondary" onclick="rotateSelected(1)" title="Rotate clockwise">↻ CW</button>
+            </div>
+            <button type="button" class="ghost" onclick="rotateSelected(0, true)" title="Reset rotation to 0°">Reset 0°</button>
+          </div>
+        </details>
+
+        <details class="panel" open id="propsPanel">
+          <summary>🎨 Properties</summary>
+          <div class="panel-body">
+            <div id="commonProps" class="tool-group">
+              <label>Fill</label>
+              <input type="color" id="fillColor" value="#F5A623" oninput="updateSelected('fill')">
+              <label>Stroke</label>
+              <input type="color" id="strokeColor" value="#000000" oninput="updateSelected('stroke')">
+              <div class="prop-row">
+                <div>
+                  <label>Stroke W</label>
+                  <input type="number" id="strokeWidth" value="2" min="0" max="50" step="0.5" onchange="updateSelected('strokeWidth')">
+                </div>
+                <div>
+                  <label>Opacity</label>
+                  <input type="range" id="opacity" value="1" min="0" max="1" step="0.05" oninput="updateSelected('opacity')">
+                </div>
+              </div>
+            </div>
+
+            <div id="geoProps" class="tool-group hidden">
+              <div class="prop-row" id="geoRect" class="hidden">
+                <div><label>X</label><input type="number" id="propX" step="1" onchange="updateGeo('x')"></div>
+                <div><label>Y</label><input type="number" id="propY" step="1" onchange="updateGeo('y')"></div>
+                <div><label>W</label><input type="number" id="propW" min="1" step="1" onchange="updateGeo('width')"></div>
+                <div><label>H</label><input type="number" id="propH" min="1" step="1" onchange="updateGeo('height')"></div>
+              </div>
+              <div class="prop-row" id="geoCircle" class="hidden">
+                <div><label>CX</label><input type="number" id="propCX" step="1" onchange="updateGeo('cx')"></div>
+                <div><label>CY</label><input type="number" id="propCY" step="1" onchange="updateGeo('cy')"></div>
+                <div><label>R</label><input type="number" id="propR" min="1" step="1" onchange="updateGeo('r')"></div>
+              </div>
+              <div class="prop-row" id="geoEllipse" class="hidden">
+                <div><label>CX</label><input type="number" id="propECX" step="1" onchange="updateGeo('cx')"></div>
+                <div><label>CY</label><input type="number" id="propECY" step="1" onchange="updateGeo('cy')"></div>
+                <div><label>RX</label><input type="number" id="propRX" min="1" step="1" onchange="updateGeo('rx')"></div>
+                <div><label>RY</label><input type="number" id="propRY" min="1" step="1" onchange="updateGeo('ry')"></div>
+              </div>
+              <div class="prop-row" id="geoLine" class="hidden">
+                <div><label>X1</label><input type="number" id="propX1" step="1" onchange="updateGeo('x1')"></div>
+                <div><label>Y1</label><input type="number" id="propY1" step="1" onchange="updateGeo('y1')"></div>
+                <div><label>X2</label><input type="number" id="propX2" step="1" onchange="updateGeo('x2')"></div>
+                <div><label>Y2</label><input type="number" id="propY2" step="1" onchange="updateGeo('y2')"></div>
+              </div>
+              <div id="geoPolygon" class="hidden">
+                <label>Points (x,y x,y …)</label>
+                <input type="text" id="propPoints" onchange="updateGeo('points')">
+              </div>
+            </div>
+
+            <div id="textProps" class="tool-group hidden">
+              <label>Text</label>
+              <input type="text" id="textContent" placeholder="Enter text" oninput="updateSelected('text')">
+              <div class="prop-row">
+                <div>
+                  <label>Size</label>
+                  <input type="number" id="fontSize" value="24" min="6" max="400" onchange="updateSelected('fontSize')">
+                </div>
+                <div>
+                  <label>X</label>
+                  <input type="number" id="textX" step="1" onchange="updateGeo('x')">
+                </div>
+              </div>
+              <div class="prop-row">
+                <div>
+                  <label>Y (baseline)</label>
+                  <input type="number" id="textY" step="1" onchange="updateGeo('y')">
+                </div>
+                <div>
+                  <label>Color</label>
+                  <input type="color" id="textColor" value="#000000" oninput="updateSelected('textColor')">
+                </div>
+              </div>
+              <label>Font</label>
+              <select id="fontFamily" onchange="updateSelected('fontFamily')">
+                <option value="Arial">Arial</option>
+                <option value="Georgia">Georgia</option>
+                <option value="Courier New">Courier New</option>
+                <option value="Impact">Impact</option>
+                <option value="Comic Sans MS">Comic Sans MS</option>
+                <option value="Apple Color Emoji, Segoe UI Emoji, Noto Color Emoji, sans-serif">Emoji</option>
+              </select>
             </div>
           </div>
-          <div class="prop-row">
-            <div>
-              <label>Y (baseline)</label>
-              <input type="number" id="textY" step="1" onchange="updateGeo('y')">
-            </div>
-            <div>
-              <label>Color</label>
-              <input type="color" id="textColor" value="#000000" oninput="updateSelected('textColor')">
+        </details>
+
+        <details class="panel">
+          <summary>🖼️ Canvas size</summary>
+          <div class="panel-body">
+            <div class="tool-group">
+              <div class="zoom-controls">
+                <button type="button" onclick="zoomCanvas(0.9)">−</button>
+                <input type="number" id="zoomVal" value="1" min="0.1" max="5" step="0.1" onchange="setZoomFromInput()">
+                <button type="button" onclick="zoomCanvas(1.1)">+</button>
+              </div>
+              <label>Width</label>
+              <input type="number" id="canvasWidth" value="400" min="50" max="4000" onchange="resizeCanvas()">
+              <label>Height</label>
+              <input type="number" id="canvasHeight" value="400" min="50" max="4000" onchange="resizeCanvas()">
+              <label>Background</label>
+              <input type="color" id="bgColor" value="#ffffff" oninput="setBackground()">
             </div>
           </div>
-          <label>Font</label>
-          <select id="fontFamily" onchange="updateSelected('fontFamily')">
-            <option value="Arial">Arial</option>
-            <option value="Georgia">Georgia</option>
-            <option value="Courier New">Courier New</option>
-            <option value="Impact">Impact</option>
-            <option value="Comic Sans MS">Comic Sans MS</option>
-            <option value="Apple Color Emoji, Segoe UI Emoji, Noto Color Emoji, sans-serif">Emoji</option>
-          </select>
-        </div>
+        </details>
 
-        <h3>📚 Layers</h3>
-        <div class="layers" id="layerList"></div>
+        <details class="panel">
+          <summary>📚 Layers</summary>
+          <div class="panel-body">
+            <div class="layers" id="layerList"></div>
+          </div>
+        </details>
 
-        <h3>📁 File</h3>
-        <div class="file-drop" id="fileDrop" onclick="document.getElementById('fileInput').click()">
-          📥 Tap to import SVG
-        </div>
-        <input type="file" id="fileInput" accept=".svg,image/svg+xml" class="hidden" onchange="handleFileUpload(event)">
+        <details class="panel">
+          <summary>📁 File &amp; export</summary>
+          <div class="panel-body">
+            <div class="file-drop" id="fileDrop" onclick="document.getElementById('fileInput').click()">
+              📥 Tap to import SVG
+            </div>
+            <input type="file" id="fileInput" accept=".svg,image/svg+xml" class="hidden" onchange="handleFileUpload(event)">
+            <div class="save-load-row">
+              <input type="text" id="projectName" placeholder="Project name">
+            </div>
+            <button type="button" class="success" onclick="saveProject()">💾 Save Project</button>
+            <div class="btn-row">
+              <button type="button" class="secondary" onclick="loadProject()">📂 Load</button>
+              <button type="button" class="secondary" onclick="listProjects()">📁 List</button>
+            </div>
+            <div class="export-area">
+              <button type="button" onclick="exportSVG()">⬇️ Export SVG</button>
+              <button type="button" class="secondary" onclick="exportPNG()">🖼️ Export PNG</button>
+              <button type="button" class="secondary" onclick="copySVGCode()">📋 Copy SVG Code</button>
+              <textarea id="svgOutput" readonly placeholder="SVG code…"></textarea>
+            </div>
+          </div>
+        </details>
 
-        <div class="save-load-row">
-          <input type="text" id="projectName" placeholder="Project name">
-        </div>
-        <button type="button" class="success" onclick="saveProject()">💾 Save Project</button>
-        <div class="btn-row">
-          <button type="button" class="secondary" onclick="loadProject()">📂 Load</button>
-          <button type="button" class="secondary" onclick="listProjects()">📁 List</button>
-        </div>
-
-        <div class="export-area">
-          <button type="button" onclick="exportSVG()">⬇️ Export SVG</button>
-          <button type="button" class="secondary" onclick="exportPNG()">🖼️ Export PNG</button>
-          <button type="button" class="secondary" onclick="copySVGCode()">📋 Copy SVG Code</button>
-          <textarea id="svgOutput" readonly placeholder="SVG code…"></textarea>
-        </div>
       </div>
     </div>
 
@@ -535,9 +639,12 @@
       <div class="canvas-scroll" id="canvasScroll">
         <svg id="canvas" width="400" height="400" xmlns="http://www.w3.org/2000/svg"></svg>
       </div>
+      <div id="selectHint" class="select-hint">
+        <strong>Selected.</strong> Drag the orange □ boxes on the corners/edges to resize. Drag the shape itself to move.
+      </div>
       <div class="status">
         <span class="desktop-tip">Drag shape to move · Drag orange boxes to resize · Arrows nudge · Delete · Ctrl+Z/Y · Ctrl+C/V</span>
-        <span class="mobile-tip hidden">Tap to select · Drag to move · Drag small boxes to resize · Tools panel for colors / export</span>
+        <span class="mobile-tip hidden">Tap a shape to select · Drag orange boxes to resize · Drag shape to move</span>
       </div>
     </div>
   </div>
@@ -590,6 +697,14 @@
   function parseNum(v, fallback) {
     const n = parseFloat(v);
     return Number.isFinite(n) ? n : fallback;
+  }
+
+  /** Extract rotation angle from SVG transform attribute, e.g. rotate(15) or rotate(15 10 20) */
+  function parseRotationFromTransform(transformStr) {
+    if (!transformStr || typeof transformStr !== 'string') return 0;
+    const m = transformStr.match(/rotate\s*\(\s*([-+]?[\d.]+)(?:[\s,]+([-+]?[\d.]+)[\s,]+([-+]?[\d.]+))?\s*\)/i);
+    if (!m) return 0;
+    return parseNum(m[1], 0);
   }
 
   function isMobile() {
@@ -856,12 +971,41 @@
     if (el.type === 'line') {
       node.setAttribute('stroke-linecap', 'round');
     }
+    applyRotationTransform(node, el);
     node.addEventListener('pointerdown', onElementPointerDown);
     if (!window.PointerEvent) {
       node.addEventListener('touchstart', onElementTouchStart, { passive: false });
       node.addEventListener('mousedown', onElementMouseDownLegacy);
     }
     return node;
+  }
+
+  function getElementCenter(el) {
+    const b = getElementBounds(el);
+    return { cx: b.x + b.w / 2, cy: b.y + b.h / 2 };
+  }
+
+  function applyRotationTransform(node, el) {
+    const rot = Number(el.rotation) || 0;
+    if (!rot) {
+      node.removeAttribute('transform');
+      return;
+    }
+    const c = getElementCenter(el);
+    node.setAttribute('transform', 'rotate(' + rot + ' ' + c.cx + ' ' + c.cy + ')');
+  }
+
+  /** Map a canvas point into the element's local (unrotated) space */
+  function toLocalPoint(pt, center, rotationDeg) {
+    const rot = Number(rotationDeg) || 0;
+    if (!rot) return { x: pt.x, y: pt.y };
+    const rad = (-rot * Math.PI) / 180;
+    const dx = pt.x - center.cx;
+    const dy = pt.y - center.cy;
+    return {
+      x: center.cx + dx * Math.cos(rad) - dy * Math.sin(rad),
+      y: center.cy + dx * Math.sin(rad) + dy * Math.cos(rad)
+    };
   }
 
   function getElementBounds(el) {
@@ -895,7 +1039,10 @@
       return { x: minX, y: minY, w: Math.max(1, maxX - minX), h: Math.max(1, maxY - minY) };
     }
     if (el.type === 'text') {
-      // approximate text box (width guessed from chars)
+      // Prefer real glyph bounds measured after render
+      if (el._bbox && el._bbox.w > 0 && el._bbox.h > 0) {
+        return { x: el._bbox.x, y: el._bbox.y, w: el._bbox.w, h: el._bbox.h };
+      }
       const approxW = Math.max(20, (el.text || '').length * el.fontSize * 0.55);
       const h = el.fontSize;
       return { x: el.x, y: el.y - h, w: approxW, h: h };
@@ -903,9 +1050,27 @@
     return { x: 0, y: 0, w: 1, h: 1 };
   }
 
+  function measureTextBBox(node, el) {
+    if (!node || el.type !== 'text') return;
+    try {
+      const bb = node.getBBox();
+      if (bb && Number.isFinite(bb.width) && Number.isFinite(bb.height)) {
+        el._bbox = {
+          x: bb.x,
+          y: bb.y,
+          w: Math.max(1, bb.width),
+          h: Math.max(1, bb.height)
+        };
+      }
+    } catch (err) {
+      /* not in DOM yet or empty text */
+    }
+  }
+
   function handleSize() {
-    // Larger hit targets on touch / mobile
-    return isMobile() ? 14 : 10;
+    // Keep handles ~screen-pixel sized even when zoomed; much larger on phones
+    const screenPx = isMobile() ? 32 : 12;
+    return Math.max(10, screenPx / (zoom || 1));
   }
 
   function cursorForHandle(name) {
@@ -918,14 +1083,73 @@
     return map[name] || 'pointer';
   }
 
+  function makeHandleNode(x, y, name, id, hs) {
+    const ns = 'http://www.w3.org/2000/svg';
+    const half = hs / 2;
+    // Invisible larger hit area for fat fingers
+    const hit = Math.max(hs, isMobile() ? hs * 1.35 : hs);
+    const hitHalf = hit / 2;
+
+    const group = document.createElementNS(ns, 'g');
+    group.setAttribute('data-handle', name);
+    group.setAttribute('data-id', id);
+    group.classList.add('resize-handle');
+    group.style.cursor = cursorForHandle(name);
+    group.style.touchAction = 'none';
+
+    const hitRect = document.createElementNS(ns, 'rect');
+    hitRect.setAttribute('x', x - hitHalf);
+    hitRect.setAttribute('y', y - hitHalf);
+    hitRect.setAttribute('width', hit);
+    hitRect.setAttribute('height', hit);
+    hitRect.setAttribute('fill', 'transparent');
+    hitRect.setAttribute('stroke', 'none');
+    hitRect.setAttribute('pointer-events', 'all');
+    group.appendChild(hitRect);
+
+    const node = document.createElementNS(ns, 'rect');
+    node.setAttribute('x', x - half);
+    node.setAttribute('y', y - half);
+    node.setAttribute('width', hs);
+    node.setAttribute('height', hs);
+    node.setAttribute('rx', Math.max(2, hs * 0.15));
+    node.setAttribute('fill', '#ffffff');
+    node.setAttribute('stroke', '#F5A623');
+    node.setAttribute('stroke-width', Math.max(2, hs * 0.12));
+    node.setAttribute('pointer-events', 'none');
+    group.appendChild(node);
+
+    // Always bind both pointer and touch so mobile works even when PointerEvent exists but is flaky
+    group.addEventListener('pointerdown', onHandlePointerDown);
+    group.addEventListener('touchstart', onHandleTouchStart, { passive: false });
+    group.addEventListener('mousedown', onHandleMouseDownLegacy);
+
+    return group;
+  }
+
+  function updateSelectHint() {
+    const hint = document.getElementById('selectHint');
+    if (!hint) return;
+    if (selectedId) hint.classList.add('show');
+    else hint.classList.remove('show');
+  }
+
   function renderSelectionUI() {
     if (!selectedId) return;
     const el = elements.find(e => e.id === selectedId);
     if (!el) return;
 
     const hs = handleSize();
-    const half = hs / 2;
     const ns = 'http://www.w3.org/2000/svg';
+
+    // Group so handles rotate with the shape
+    const g = document.createElementNS(ns, 'g');
+    g.setAttribute('data-selection-ui', '1');
+    const rot = Number(el.rotation) || 0;
+    if (rot) {
+      const c = getElementCenter(el);
+      g.setAttribute('transform', 'rotate(' + rot + ' ' + c.cx + ' ' + c.cy + ')');
+    }
 
     // Line: endpoint handles only
     if (el.type === 'line') {
@@ -933,39 +1157,30 @@
         { name: 'p1', x: el.x1, y: el.y1 },
         { name: 'p2', x: el.x2, y: el.y2 }
       ].forEach(h => {
-        const node = document.createElementNS(ns, 'rect');
-        node.setAttribute('x', h.x - half);
-        node.setAttribute('y', h.y - half);
-        node.setAttribute('width', hs);
-        node.setAttribute('height', hs);
-        node.setAttribute('data-handle', h.name);
-        node.setAttribute('data-id', el.id);
-        node.classList.add('resize-handle');
-        node.style.cursor = cursorForHandle(h.name);
-        node.addEventListener('pointerdown', onHandlePointerDown);
-        if (!window.PointerEvent) {
-          node.addEventListener('touchstart', onHandleTouchStart, { passive: false });
-          node.addEventListener('mousedown', onHandleMouseDownLegacy);
-        }
-        svg.appendChild(node);
+        g.appendChild(makeHandleNode(h.x, h.y, h.name, el.id, hs));
       });
+      svg.appendChild(g);
       return;
     }
 
     const b = getElementBounds(el);
 
-    // dashed selection box
+    // dashed selection box (SVG attrs for mobile Safari)
     const box = document.createElementNS(ns, 'rect');
     box.setAttribute('x', b.x);
     box.setAttribute('y', b.y);
-    box.setAttribute('width', b.w);
-    box.setAttribute('height', b.h);
+    box.setAttribute('width', Math.max(1, b.w));
+    box.setAttribute('height', Math.max(1, b.h));
+    box.setAttribute('fill', 'none');
+    box.setAttribute('stroke', '#F5A623');
+    box.setAttribute('stroke-width', isMobile() ? 2 : 1.5);
+    box.setAttribute('stroke-dasharray', isMobile() ? '6 4' : '4 3');
+    box.setAttribute('pointer-events', 'none');
     box.classList.add('selection-box');
-    svg.appendChild(box);
+    g.appendChild(box);
 
     let handles;
     if (el.type === 'circle') {
-      // corners of bbox + right-side radius handle
       handles = [
         { name: 'nw', x: b.x, y: b.y },
         { name: 'ne', x: b.x + b.w, y: b.y },
@@ -978,7 +1193,6 @@
         { name: 'size', x: b.x + b.w, y: b.y + b.h }
       ];
     } else {
-      // rect, ellipse, polygon — 8 handles
       handles = [
         { name: 'nw', x: b.x, y: b.y },
         { name: 'n',  x: b.x + b.w / 2, y: b.y },
@@ -992,36 +1206,32 @@
     }
 
     handles.forEach(h => {
-      const node = document.createElementNS(ns, 'rect');
-      node.setAttribute('x', h.x - half);
-      node.setAttribute('y', h.y - half);
-      node.setAttribute('width', hs);
-      node.setAttribute('height', hs);
-      node.setAttribute('rx', 2);
-      node.setAttribute('data-handle', h.name);
-      node.setAttribute('data-id', el.id);
-      node.classList.add('resize-handle');
-      node.style.cursor = cursorForHandle(h.name);
-      node.addEventListener('pointerdown', onHandlePointerDown);
-      if (!window.PointerEvent) {
-        node.addEventListener('touchstart', onHandleTouchStart, { passive: false });
-        node.addEventListener('mousedown', onHandleMouseDownLegacy);
-      }
-      svg.appendChild(node);
+      g.appendChild(makeHandleNode(h.x, h.y, h.name, el.id, hs));
     });
+    svg.appendChild(g);
   }
 
   function render() {
     while (svg.firstChild) svg.removeChild(svg.firstChild);
     elements.forEach(el => {
       const node = createNode(el);
-      if (node) svg.appendChild(node);
+      if (node) {
+        svg.appendChild(node);
+        // Measure text after it is in the DOM (getBBox requirement)
+        if (el.type === 'text') measureTextBBox(node, el);
+      }
     });
     if (selectedId) {
-      const selectedEl = svg.querySelector('[data-id="' + selectedId + '"]');
+      const selectedEl = svg.querySelector('.element[data-id="' + selectedId + '"]');
       if (selectedEl) selectedEl.classList.add('selected');
+      // Re-measure selected text so handles match current glyphs, then draw UI
+      if (selectedEl && selectedEl.tagName && selectedEl.tagName.toLowerCase() === 'text') {
+        const el = elements.find(e => e.id === selectedId);
+        if (el) measureTextBBox(selectedEl, el);
+      }
       renderSelectionUI();
     }
+    updateSelectHint();
     renderLayers();
     updateCodeOutput();
   }
@@ -1088,7 +1298,18 @@
     loadProperties();
     render();
     const pt = getSVGPointFromClient(clientX, clientY);
-    dragStart = { x: pt.x, y: pt.y, id };
+    const center = el ? getElementCenter(resizeOrigin || el) : { cx: pt.x, cy: pt.y };
+    const rot = el ? (Number(el.rotation) || 0) : 0;
+    const local = toLocalPoint(pt, center, rot);
+    dragStart = {
+      x: pt.x,
+      y: pt.y,
+      localX: local.x,
+      localY: local.y,
+      center: center,
+      rot: rot,
+      id: id
+    };
     isDragging = true;
     if (pointerId != null && svg.setPointerCapture) {
       try { svg.setPointerCapture(pointerId); } catch (e) { /* ignore */ }
@@ -1098,8 +1319,12 @@
   function applyResize(el, pt) {
     if (!resizeOrigin || !resizeHandle) return;
     const o = resizeOrigin;
-    const dx = pt.x - dragStart.x;
-    const dy = pt.y - dragStart.y;
+    // Work in the shape's local (unrotated) space so handles feel correct after rotate
+    const center = (dragStart && dragStart.center) || getElementCenter(o);
+    const rot = (dragStart && dragStart.rot != null) ? dragStart.rot : (Number(o.rotation) || 0);
+    const local = toLocalPoint(pt, center, rot);
+    const dx = local.x - (dragStart.localX != null ? dragStart.localX : dragStart.x);
+    const dy = local.y - (dragStart.localY != null ? dragStart.localY : dragStart.y);
     const h = resizeHandle;
 
     if (el.type === 'line') {
@@ -1114,21 +1339,19 @@
     }
 
     if (el.type === 'text' && h === 'size') {
-      // grow font from top-left baseline box
       const startH = o.fontSize;
       const newH = Math.max(8, startH + dy);
       el.fontSize = Math.round(newH);
-      // keep baseline: y stays as baseline (bottom of approx box)
+      el._bbox = null; // force remeasure
       return;
     }
 
     if (el.type === 'circle') {
       if (h === 'radius') {
-        el.r = Math.max(2, Math.abs(pt.x - o.cx));
+        el.r = Math.max(2, Math.abs(local.x - o.cx));
         return;
       }
-      // corner handles: scale radius from center based on distance
-      const dist = Math.sqrt(Math.pow(pt.x - o.cx, 2) + Math.pow(pt.y - o.cy, 2));
+      const dist = Math.sqrt(Math.pow(local.x - o.cx, 2) + Math.pow(local.y - o.cy, 2));
       el.r = Math.max(2, dist / Math.SQRT2);
       return;
     }
@@ -1255,10 +1478,12 @@
   }
 
   // ===== Handle events =====
+  let lastHandleStart = 0;
   function onHandlePointerDown(e) {
     if (e.pointerType === 'mouse' && e.button !== 0) return;
     e.stopPropagation();
     e.preventDefault();
+    lastHandleStart = Date.now();
     const id = e.currentTarget.getAttribute('data-id');
     const handle = e.currentTarget.getAttribute('data-handle');
     startResize(id, handle, e.clientX, e.clientY, e.pointerId);
@@ -1266,8 +1491,15 @@
 
   function onHandleTouchStart(e) {
     if (!e.touches || !e.touches.length) return;
+    // Skip if pointer event already started this gesture (same ms window)
+    if (Date.now() - lastHandleStart < 80) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
     e.stopPropagation();
     e.preventDefault();
+    lastHandleStart = Date.now();
     const t = e.touches[0];
     const id = e.currentTarget.getAttribute('data-id');
     const handle = e.currentTarget.getAttribute('data-handle');
@@ -1276,8 +1508,10 @@
 
   function onHandleMouseDownLegacy(e) {
     if (e.button !== 0) return;
+    if (Date.now() - lastHandleStart < 80) return;
     e.stopPropagation();
     e.preventDefault();
+    lastHandleStart = Date.now();
     const id = e.currentTarget.getAttribute('data-id');
     const handle = e.currentTarget.getAttribute('data-handle');
     startResize(id, handle, e.clientX, e.clientY, null);
@@ -1509,6 +1743,9 @@
     clearProperties();
     const el = elements.find(e => e.id === selectedId);
     if (!el) return;
+    // Auto-open Properties group when something is selected
+    const propsPanel = document.getElementById('propsPanel');
+    if (propsPanel) propsPanel.open = true;
 
     if (el.type === 'text') {
       document.getElementById('textProps').classList.remove('hidden');
@@ -1544,6 +1781,7 @@
       if (prop === 'fontSize') el.fontSize = parseNum(document.getElementById('fontSize').value, 24);
       if (prop === 'fontFamily') el.fontFamily = document.getElementById('fontFamily').value;
       if (prop === 'textColor' || prop === 'fill') el.fill = document.getElementById('textColor').value;
+      el._bbox = null; // remeasure after text style changes
     } else {
       if (prop === 'fill' && 'fill' in el) el.fill = document.getElementById('fillColor').value;
       if (prop === 'stroke' && 'stroke' in el) el.stroke = document.getElementById('strokeColor').value;
@@ -1694,6 +1932,14 @@
     }
   }
 
+  function moveElementBy(el, dx, dy) {
+    if (el.type === 'rect') { el.x += dx; el.y += dy; }
+    else if (el.type === 'circle' || el.type === 'ellipse') { el.cx += dx; el.cy += dy; }
+    else if (el.type === 'line') { el.x1 += dx; el.y1 += dy; el.x2 += dx; el.y2 += dy; }
+    else if (el.type === 'polygon') { el.points = shiftPoints(el.points, dx, dy); }
+    else { el.x += dx; el.y += dy; }
+  }
+
   function nudgeSelected(key, step) {
     const el = elements.find(e => e.id === selectedId);
     if (!el) return;
@@ -1702,13 +1948,52 @@
     else if (key === 'ArrowDown') dy = step;
     else if (key === 'ArrowLeft') dx = -step;
     else if (key === 'ArrowRight') dx = step;
+    moveElementBy(el, dx, dy);
+    pushHistory();
+    render();
+    loadProperties();
+  }
 
-    if (el.type === 'rect') { el.x += dx; el.y += dy; }
-    else if (el.type === 'circle' || el.type === 'ellipse') { el.cx += dx; el.cy += dy; }
-    else if (el.type === 'line') { el.x1 += dx; el.y1 += dy; el.x2 += dx; el.y2 += dy; }
-    else if (el.type === 'polygon') { el.points = shiftPoints(el.points, dx, dy); }
-    else { el.x += dx; el.y += dy; }
+  /** Button nudge: dx/dy in pixels (e.g. nudgeBy(0,-1) = up 1px) */
+  function nudgeBy(dx, dy) {
+    if (!selectedId) {
+      alert('Select an element first.');
+      return;
+    }
+    const el = elements.find(e => e.id === selectedId);
+    if (!el) return;
+    moveElementBy(el, dx, dy);
+    pushHistory();
+    render();
+    loadProperties();
+  }
 
+  /**
+   * Rotate selected element.
+   * @param {number} direction -1 = anti-clockwise, +1 = clockwise
+   * @param {boolean} [reset] if true, set rotation to 0
+   */
+  function rotateSelected(direction, reset) {
+    if (!selectedId) {
+      alert('Select an element first.');
+      return;
+    }
+    const el = elements.find(e => e.id === selectedId);
+    if (!el) return;
+
+    if (reset) {
+      el.rotation = 0;
+    } else {
+      let step = parseNum(document.getElementById('rotateStep').value, 10);
+      step = Math.max(1, Math.min(180, step));
+      document.getElementById('rotateStep').value = step;
+      const cur = Number(el.rotation) || 0;
+      // SVG rotate is clockwise for positive angles
+      el.rotation = cur + direction * step;
+      // Keep in a reasonable range for readability
+      while (el.rotation > 360) el.rotation -= 360;
+      while (el.rotation < -360) el.rotation += 360;
+    }
     pushHistory();
     render();
     loadProperties();
@@ -1896,7 +2181,11 @@
         default:
           break;
       }
-      if (el) elements.push(el);
+      if (el) {
+        const rot = parseRotationFromTransform(child.getAttribute('transform') || '');
+        if (rot) el.rotation = rot;
+        elements.push(el);
+      }
     });
 
     selectedId = null;
@@ -2120,6 +2409,8 @@
   window.exportPNG = exportPNG;
   window.copySVGCode = copySVGCode;
   window.toggleToolsPanel = toggleToolsPanel;
+  window.nudgeBy = nudgeBy;
+  window.rotateSelected = rotateSelected;
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
