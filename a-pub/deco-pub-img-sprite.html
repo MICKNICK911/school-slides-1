@@ -1547,8 +1547,8 @@
       window.cancelEdit = function() { resetForm(); showToast('Edit cancelled.', 'info'); };
       window.saveLesson = async function() {
         const data = getFormData();
-        if (!data.title || !data.targetSound || data.storyLines.length < 5) {
-          return showToast('Please fill all required fields (title, target sound, at least 5 story lines).', 'error');
+        if (!data.title || !data.targetSound || data.storyLines.length < 1) {
+          return showToast('Please fill all required fields (title, target sound, at least 1 story line).', 'error');
         }
         if (data.page2.comprehension.enabled) {
           if (data.page2.comprehension.questions.length === 0) {
