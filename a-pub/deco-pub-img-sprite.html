@@ -486,10 +486,10 @@
             // Validate crop rectangle
             const naturalW = img.naturalWidth;
             const naturalH = img.naturalHeight;
-            const x = Math.max(0, Math.min(crop.x, naturalW));
-            const y = Math.max(0, Math.min(crop.y, naturalH));
-            const width = Math.min(crop.width, naturalW - x);
-            const height = Math.min(crop.height, naturalH - y);
+            const x = Math.max(0, Math.min(crop.x || 0, naturalW));
+            const y = Math.max(0, Math.min(crop.y || 0, naturalH));
+            const width = Math.min(Math.max(0, crop.width || 0), naturalW - x);
+            const height = Math.min(Math.max(0, crop.height || 0), naturalH - y);
             if (width <= 0 || height <= 0) {
               callback(null);
               return;
@@ -508,6 +508,86 @@
           callback(null);
         };
         img.src = spriteDataUrl;
+      }
+
+      function cropSpriteSheetPromise(spriteDataUrl, crop) {
+        return new Promise((resolve) => {
+          if (!spriteDataUrl || !crop) {
+            resolve(null);
+            return;
+          }
+          cropSpriteSheet(spriteDataUrl, crop, (result) => resolve(result || null));
+        });
+      }
+
+      /**
+       * Resolve the best image source for a lesson.
+       * Priority: live sprite crop (when useSprite) → existing imageUrl → null (caller uses default).
+       * Also caches the cropped data URL onto lesson.imageUrl when successful.
+       */
+      async function resolveLessonImageSrc(lesson) {
+        if (!lesson) return null;
+        try {
+          if (lesson.useSprite && lesson.spriteSheetId) {
+            const sheets = (bookMeta && bookMeta.spriteSheets) ? bookMeta.spriteSheets : [];
+            const sheet = sheets.find(s => s.id === lesson.spriteSheetId);
+            const crop = lesson.spriteCrop || {};
+            if (sheet && sheet.dataUrl && (crop.width > 0) && (crop.height > 0)) {
+              const cropped = await cropSpriteSheetPromise(sheet.dataUrl, crop);
+              if (cropped) {
+                lesson.imageUrl = cropped; // cache for print/export and future renders
+                return cropped;
+              }
+            }
+          }
+          if (lesson.imageUrl && String(lesson.imageUrl).trim()) {
+            return String(lesson.imageUrl).trim();
+          }
+        } catch (e) {
+          console.warn('resolveLessonImageSrc failed', e);
+        }
+        return null;
+      }
+
+      /** Fill imageUrl for any lesson that uses a sprite but has no usable imageUrl yet. */
+      async function ensureLessonSpriteImage(lesson) {
+        if (!lesson || !lesson.useSprite || !lesson.spriteSheetId) return false;
+        const existing = lesson.imageUrl && String(lesson.imageUrl).trim();
+        // If already has a data-URL crop, keep it (fast path). Still allow re-crop if crop coords matter on force.
+        if (existing && existing.indexOf('data:image') === 0) return false;
+        const src = await resolveLessonImageSrc(lesson);
+        return !!(src && src.indexOf('data:image') === 0);
+      }
+
+      /** Batch-resolve sprites for all lessons. Returns count of newly filled images. */
+      async function ensureAllSpriteImages() {
+        let filled = 0;
+        for (const lesson of lessons) {
+          const changed = await ensureLessonSpriteImage(lesson);
+          if (changed) filled++;
+        }
+        return filled;
+      }
+
+      /** Attach resolved src to an <img>, with placeholder fallback. Non-blocking. */
+      function bindLessonImage(imgEl, lesson, fallbackSrc) {
+        const fallback = fallbackSrc || DEFAULT_IMAGE_PATH;
+        const hasUrl = lesson && lesson.imageUrl && String(lesson.imageUrl).trim();
+        imgEl.src = hasUrl ? String(lesson.imageUrl).trim() : fallback;
+        imgEl.onerror = function() {
+          if (imgEl.dataset.fallbackApplied) return;
+          imgEl.dataset.fallbackApplied = '1';
+          imgEl.src = fallback;
+        };
+        // Always try live sprite resolve when flagged — updates src when ready and caches
+        if (lesson && lesson.useSprite && lesson.spriteSheetId) {
+          resolveLessonImageSrc(lesson).then((src) => {
+            if (src) {
+              imgEl.src = src;
+              imgEl.dataset.fallbackApplied = '';
+            }
+          }).catch(() => {});
+        }
       }
 
       // ---------- Default Page2 & Migration ----------
@@ -708,7 +788,19 @@
         bookMeta.showToc = (typeof bookMeta.showToc === 'boolean') ? bookMeta.showToc : true;
         renumberByOrder(lessons);
         nextId = Math.max(...lessons.map(l => parseInt(l.id.replace('r','')) || 0), 0) + 1;
-        await saveData();
+        // Fill missing cropped imageUrls from sprite sheets (robust for imports where imageUrl is empty)
+        try {
+          const filled = await ensureAllSpriteImages();
+          if (filled > 0) {
+            // Persist cached crops so print/export and reloads are instant
+            await saveData();
+          } else {
+            await saveData();
+          }
+        } catch (e) {
+          console.warn('ensureAllSpriteImages on load failed', e);
+          await saveData();
+        }
       }
 
       async function saveData() {
@@ -759,7 +851,7 @@
 
         if (lesson.showReadingImageBox) {
           html += `<div class="title-image-row"><div class="title-side"><div class="story-title">${escapeHtml(lesson.title)}</div><div class="target-pill">Target Sound: ${escapeHtml(lesson.targetSound)}</div></div>
-          <div class="story-img-container">${lesson.imageUrl ? `<img src="${escapeHtml(lesson.imageUrl)}" alt="Story Image">` : getDefaultImageHTML()}<div class="story-img-label">${escapeHtml(lesson.imageLabel || DEFAULT_IMAGE_LABEL)}</div></div></div>`;
+          <div class="story-img-container"><img class="lesson-story-img" alt="Story Image" src="${escapeHtml((lesson.imageUrl && String(lesson.imageUrl).trim()) || DEFAULT_IMAGE_PATH)}"><div class="story-img-label">${escapeHtml(lesson.imageLabel || DEFAULT_IMAGE_LABEL)}</div></div></div>`;
         } else {
           html += `<div class="title-block"><div class="story-title">${escapeHtml(lesson.title)}</div><div class="target-pill">Target Sound: ${escapeHtml(lesson.targetSound)}</div></div>`;
         }
@@ -778,6 +870,9 @@
         <tr><td>Errors</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
         <tr><td>Parent Initials</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr></tbody></table></div></div>`;
         inner.innerHTML = html;
+        // Robust sprite/image binding for reading-page image box
+        const storyImg = inner.querySelector('img.lesson-story-img');
+        if (storyImg) bindLessonImage(storyImg, lesson, DEFAULT_IMAGE_PATH);
         card.appendChild(inner);
         const footer = document.createElement('div'); footer.className = 'page-footer-red'; footer.textContent = pageNum;
         card.appendChild(footer);
@@ -862,8 +957,18 @@
         frame.style.setProperty('--image-page-width', (lesson.imagePageWidth || DEFAULT_IMAGE_PAGE_WIDTH) + 'px');
         frame.style.setProperty('--image-page-height', (lesson.imagePageHeight || DEFAULT_IMAGE_PAGE_HEIGHT) + 'px');
 
-        const imageSrc = lesson.imageUrl ? lesson.imageUrl : DEFAULT_IMAGE_PATH;
-        frame.innerHTML = `<img src="${escapeHtml(imageSrc)}" alt="Full Page Image" onerror="this.parentElement.innerHTML='<div class=&quot;placeholder-text&quot;>🖼️ Image Placeholder</div>'">`;
+        const img = document.createElement('img');
+        img.alt = 'Full Page Image';
+        img.addEventListener('error', function onImgErr() {
+          if (img.dataset.placeholderApplied) return;
+          img.dataset.placeholderApplied = '1';
+          // Only replace with placeholder text if we truly have nothing useful
+          if (!lesson.useSprite && !(lesson.imageUrl && String(lesson.imageUrl).trim())) {
+            frame.innerHTML = '<div class="placeholder-text">🖼️ Image Placeholder</div>';
+          }
+        });
+        bindLessonImage(img, lesson, DEFAULT_IMAGE_PATH);
+        frame.appendChild(img);
         if (lesson.imagePageLabel && lesson.imagePageLabel.trim() !== '') {
           const label = document.createElement('div');
           label.className = 'image-full-label';
@@ -932,6 +1037,7 @@
 
       function renderAllView() {
         const container = document.getElementById('viewContainer');
+        if (!container) return;
         container.innerHTML = '';
         container.appendChild(buildCoverPage());
         if (!lessons.length) {
@@ -990,6 +1096,11 @@
           spread.appendChild(buildPageTwo(l, currentPage++));
           container.appendChild(spread);
         });
+
+        // Background: ensure any missing sprite crops are filled & persisted (non-blocking)
+        ensureAllSpriteImages().then((filled) => {
+          if (filled > 0) saveData().catch(() => {});
+        }).catch(() => {});
       }
 
       // ---------- Export functions ----------
@@ -1001,15 +1112,21 @@
         win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Export Page</title>${styles}</head><body style="padding:0;background:#fff;margin:0;display:flex;justify-content:center;"><div class="view-container" style="overflow:visible;display:flex;flex-direction:column;align-items:center;">${clone.outerHTML}</div></body></html>`);
         win.document.close(); win.focus(); setTimeout(() => win.print(), 500);
       };
-      window.exportAllPages = function() {
+      window.exportAllPages = async function() {
         if (!lessons.length && !bookMeta.sightWords.enabled) return showToast('No lessons to export.', 'warning');
+        showToast('Preparing pages (resolving sprites)…', 'info');
+        try {
+          await ensureAllSpriteImages();
+        } catch (e) { /* continue with whatever we have */ }
         renderAllView();
+        // Give the browser a moment to paint async-bound images
+        await new Promise(r => setTimeout(r, 400));
         const container = document.querySelector('.view-container').cloneNode(true);
         container.querySelectorAll('.page-actions').forEach(el => el.remove());
         const win = window.open('', '_blank');
         const styles = document.querySelector('style').outerHTML;
         win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>All Pages</title>${styles}</head><body style="padding:0;background:#fff;margin:0;">${container.outerHTML}</body></html>`);
-        win.document.close(); win.focus(); setTimeout(() => win.print(), 500);
+        win.document.close(); win.focus(); setTimeout(() => win.print(), 600);
       };
 
       // ---------- Form Handling ----------
@@ -1548,7 +1665,7 @@
               page2: l.page2
             })).filter(l => l.id);
             if (validated.length === 0) throw new Error('No valid lessons');
-            confirmDialog('Replace all lessons with imported data?', () => {
+            confirmDialog('Replace all lessons with imported data?', async () => {
               lessons = validated;
               bookMeta = data.bookMeta || { title: 'Decodable Readers', subtitle: 'Grade 1', grade: '1', showToc: true, readingImageDefaultOffApplied: true, sightWords: { enabled: false, title: DEFAULT_SIGHT_WORDS_TITLE, columns: DEFAULT_SIGHT_COLUMNS, rawText: '' }, spriteSheets: [] };
               if (!bookMeta.sightWords) bookMeta.sightWords = { enabled: false, title: DEFAULT_SIGHT_WORDS_TITLE, columns: DEFAULT_SIGHT_COLUMNS, rawText: '' };
@@ -1558,7 +1675,19 @@
               renumberByOrder(lessons);
               nextId = Math.max(...lessons.map(l => parseInt(l.id.replace('r','')) || 0), 0) + 1;
               previewLessonOverride = null;
-              saveData(); resetForm(); refreshUI(); showToast('Imported successfully.', 'success');
+              showToast('Importing… resolving sprite images…', 'info');
+              try {
+                const filled = await ensureAllSpriteImages();
+                await saveData();
+                resetForm();
+                refreshUI();
+                showToast(filled > 0 ? `Imported successfully. Resolved ${filled} sprite image(s).` : 'Imported successfully.', 'success');
+              } catch (err) {
+                await saveData();
+                resetForm();
+                refreshUI();
+                showToast('Imported (some sprites may still resolve in preview).', 'warning');
+              }
               switchTab('book');
             });
           } catch(err) { showToast('Invalid JSON file.', 'error'); }
