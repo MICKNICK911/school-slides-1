@@ -214,10 +214,10 @@
     .image-only-page .image-full-label { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.65); color: #fff; text-align: center; padding: 8px 10px; font-size: 16px; font-weight: 700; letter-spacing: 0.03em; -webkit-print-color-adjust: exact; print-color-adjust: exact; z-index: 1; }
     .image-only-page .page-footer-red { margin-top: auto; }
 
-    /* NEW: Image page square container */
+    /* NEW: Image page square/rect container */
     .image-square-frame {
-      width: var(--image-square-size, 600px);
-      height: var(--image-square-size, 600px);
+      width: var(--image-page-width, 600px);
+      height: var(--image-page-height, 600px);
       border: 6px solid #b91c1c;
       outline: 4px solid #b91c1c;
       outline-offset: 4px;
@@ -252,6 +252,14 @@
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
       z-index: 1;
+    }
+
+    .image-page-content {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
     }
 
     .view-toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
@@ -395,8 +403,9 @@
       const DEFAULT_SIGHT_COLUMNS = 4;
       const MIN_SIGHT_COLUMNS = 2;
       const MAX_SIGHT_COLUMNS = 6;
-      // NEW: Dedicated variable for image page square size
-      const IMAGE_PAGE_SQUARE_SIZE = 600; // in pixels
+      // New per‑lesson image page dimensions (width, height)
+      const DEFAULT_IMAGE_PAGE_WIDTH = 600;
+      const DEFAULT_IMAGE_PAGE_HEIGHT = 600;
 
       // ---------- IndexedDB Utility ----------
       let dbPromise = null;
@@ -530,6 +539,9 @@
         if (typeof l.showImagePage !== 'boolean') l.showImagePage = false;
         if (typeof l.imagePageLabel !== 'string') l.imagePageLabel = DEFAULT_IMAGE_PAGE_LABEL;
         if (typeof l.showReadingImageBox !== 'boolean') l.showReadingImageBox = false;
+        // New: per‑lesson image page dimensions
+        if (typeof l.imagePageWidth !== 'number' || isNaN(l.imagePageWidth) || l.imagePageWidth <= 0) l.imagePageWidth = DEFAULT_IMAGE_PAGE_WIDTH;
+        if (typeof l.imagePageHeight !== 'number' || isNaN(l.imagePageHeight) || l.imagePageHeight <= 0) l.imagePageHeight = DEFAULT_IMAGE_PAGE_HEIGHT;
         return l;
       }
 
@@ -540,6 +552,8 @@
         imageLabel: DEFAULT_IMAGE_LABEL,
         imagePageLabel: DEFAULT_IMAGE_PAGE_LABEL,
         showReadingImageBox: false,
+        imagePageWidth: DEFAULT_IMAGE_PAGE_WIDTH,
+        imagePageHeight: DEFAULT_IMAGE_PAGE_HEIGHT,
         storyLines: [
           { sentence: "Ben went on a camping trip with Dad." },
           { sentence: "They set up the tent near the lake." },
@@ -604,6 +618,8 @@
             imageLabel: String(l.imageLabel ?? DEFAULT_IMAGE_LABEL),
             imagePageLabel: String(l.imagePageLabel ?? DEFAULT_IMAGE_PAGE_LABEL),
             showReadingImageBox: typeof l.showReadingImageBox === 'boolean' ? l.showReadingImageBox : false,
+            imagePageWidth: typeof l.imagePageWidth === 'number' ? l.imagePageWidth : DEFAULT_IMAGE_PAGE_WIDTH,
+            imagePageHeight: typeof l.imagePageHeight === 'number' ? l.imagePageHeight : DEFAULT_IMAGE_PAGE_HEIGHT,
             storyLines: (Array.isArray(l.storyLines) ? l.storyLines : []).map(sl => ({ sentence: String(sl.sentence || '') })).filter(sl => sl.sentence.trim() !== ''),
             comprehension: Array.isArray(l.comprehension) ? l.comprehension : [],
             showImagePage: typeof l.showImagePage === 'boolean' ? l.showImagePage : false,
@@ -776,13 +792,25 @@
         // Set orange background for image-only page
         card.style.backgroundColor = '#f59e0b';
         card.style.display = 'flex';
-        card.style.justifyContent = 'center';
-        card.style.alignItems = 'center';
-        card.style.borderColor = '#b91c1c'; // optional: change border color too? Actually keep orange outer border. But user wants background orange same as card border. We'll keep card border orange.
+        card.style.flexDirection = 'column';
+        card.style.borderColor = '#b91c1c'; // optional: keep orange or change? We'll keep orange outer border as default. 
+        // But maybe user wants card border same as background? It's fine.
+
+        // Content wrapper to center the frame both vertically and horizontally
+        const contentWrapper = document.createElement('div');
+        contentWrapper.className = 'image-page-content';
+        contentWrapper.style.flex = '1';
+        contentWrapper.style.display = 'flex';
+        contentWrapper.style.alignItems = 'center';
+        contentWrapper.style.justifyContent = 'center';
+        contentWrapper.style.width = '100%';
 
         const frame = document.createElement('div');
         frame.className = 'image-square-frame';
-        frame.style.setProperty('--image-square-size', IMAGE_PAGE_SQUARE_SIZE + 'px');
+        // Set custom properties for width and height
+        frame.style.setProperty('--image-page-width', (lesson.imagePageWidth || DEFAULT_IMAGE_PAGE_WIDTH) + 'px');
+        frame.style.setProperty('--image-page-height', (lesson.imagePageHeight || DEFAULT_IMAGE_PAGE_HEIGHT) + 'px');
+
         const imageSrc = lesson.imageUrl ? lesson.imageUrl : DEFAULT_IMAGE_PATH;
         frame.innerHTML = `<img src="${escapeHtml(imageSrc)}" alt="Full Page Image" onerror="this.parentElement.innerHTML='<div class=&quot;placeholder-text&quot;>🖼️ Image Placeholder</div>'">`;
         if (lesson.imagePageLabel && lesson.imagePageLabel.trim() !== '') {
@@ -791,7 +819,9 @@
           label.textContent = lesson.imagePageLabel.trim();
           frame.appendChild(label);
         }
-        card.appendChild(frame);
+        contentWrapper.appendChild(frame);
+        card.appendChild(contentWrapper);
+
         const footer = document.createElement('div'); footer.className = 'page-footer-red'; footer.textContent = pageNum;
         card.appendChild(footer);
         page.appendChild(card);
@@ -936,6 +966,8 @@
       let tempShowImagePage = false;
       let tempImagePageLabel = DEFAULT_IMAGE_PAGE_LABEL;
       let tempShowReadingImageBox = false;
+      let tempImagePageWidth = DEFAULT_IMAGE_PAGE_WIDTH;
+      let tempImagePageHeight = DEFAULT_IMAGE_PAGE_HEIGHT;
 
       function getFormData() {
         const storyRaw = document.getElementById('fStory').value;
@@ -964,6 +996,8 @@
           imageLabel: document.getElementById('fImageLabel').value.trim() || DEFAULT_IMAGE_LABEL,
           imagePageLabel: document.getElementById('fImagePageLabel').value.trim() || DEFAULT_IMAGE_PAGE_LABEL,
           showReadingImageBox: tempShowReadingImageBox,
+          imagePageWidth: tempImagePageWidth,
+          imagePageHeight: tempImagePageHeight,
           targetSound: document.getElementById('fTargetSound').value.trim(),
           storyLines,
           page2,
@@ -996,6 +1030,8 @@
         tempShowImagePage = !!lesson.showImagePage;
         tempImagePageLabel = lesson.imagePageLabel || DEFAULT_IMAGE_PAGE_LABEL;
         tempShowReadingImageBox = !!lesson.showReadingImageBox;
+        tempImagePageWidth = lesson.imagePageWidth || DEFAULT_IMAGE_PAGE_WIDTH;
+        tempImagePageHeight = lesson.imagePageHeight || DEFAULT_IMAGE_PAGE_HEIGHT;
 
         document.getElementById('compToggle').checked = tempPage2.comprehension.enabled;
         document.getElementById('findSoundToggle').checked = tempPage2.findSound.enabled;
@@ -1005,6 +1041,8 @@
         document.getElementById('sentenceLines').value = tempPage2.sentenceWriting.numberOfLines;
         document.getElementById('imagePageToggle').checked = tempShowImagePage;
         document.getElementById('readingImageToggle').checked = tempShowReadingImageBox;
+        document.getElementById('imagePageWidthInput').value = tempImagePageWidth;
+        document.getElementById('imagePageHeightInput').value = tempImagePageHeight;
 
         renderQuestionList();
         renderThumbnail();
@@ -1027,6 +1065,8 @@
         tempShowImagePage = false;
         tempImagePageLabel = DEFAULT_IMAGE_PAGE_LABEL;
         tempShowReadingImageBox = false;
+        tempImagePageWidth = DEFAULT_IMAGE_PAGE_WIDTH;
+        tempImagePageHeight = DEFAULT_IMAGE_PAGE_HEIGHT;
 
         document.getElementById('compToggle').checked = true;
         document.getElementById('findSoundToggle').checked = true;
@@ -1036,6 +1076,8 @@
         document.getElementById('sentenceLines').value = 1;
         document.getElementById('imagePageToggle').checked = false;
         document.getElementById('readingImageToggle').checked = false;
+        document.getElementById('imagePageWidthInput').value = tempImagePageWidth;
+        document.getElementById('imagePageHeightInput').value = tempImagePageHeight;
 
         renderQuestionList();
         renderThumbnail();
@@ -1226,6 +1268,14 @@
         tempShowReadingImageBox = checked;
         renderThumbnail();
       };
+      window.updateImagePageWidth = function(value) {
+        tempImagePageWidth = parseInt(value) || DEFAULT_IMAGE_PAGE_WIDTH;
+        renderThumbnail();
+      };
+      window.updateImagePageHeight = function(value) {
+        tempImagePageHeight = parseInt(value) || DEFAULT_IMAGE_PAGE_HEIGHT;
+        renderThumbnail();
+      };
 
       // ---------- Save / Edit / Delete / Import / Export ----------
       window.handleImageUpload = function(event) {
@@ -1332,6 +1382,8 @@
               imageLabel: String(l.imageLabel ?? DEFAULT_IMAGE_LABEL),
               imagePageLabel: String(l.imagePageLabel ?? DEFAULT_IMAGE_PAGE_LABEL),
               showReadingImageBox: typeof l.showReadingImageBox === 'boolean' ? l.showReadingImageBox : false,
+              imagePageWidth: typeof l.imagePageWidth === 'number' ? l.imagePageWidth : DEFAULT_IMAGE_PAGE_WIDTH,
+              imagePageHeight: typeof l.imagePageHeight === 'number' ? l.imagePageHeight : DEFAULT_IMAGE_PAGE_HEIGHT,
               storyLines: (Array.isArray(l.storyLines) ? l.storyLines : []).map(sl => ({ sentence: String(sl.sentence || '') })).filter(sl => sl.sentence.trim() !== ''),
               comprehension: Array.isArray(l.comprehension) ? l.comprehension : [],
               showImagePage: typeof l.showImagePage === 'boolean' ? l.showImagePage : false,
@@ -1533,6 +1585,16 @@
               <div class="form-group" style="display:flex;align-items:center;gap:10px;margin-top:16px;">
                 <input type="checkbox" id="imagePageToggle" onchange="toggleImagePage(this.checked)" style="width:18px;height:18px;accent-color:#f59e0b;">
                 <label for="imagePageToggle" style="margin:0;font-weight:600;">Include full-page image placeholder before reading page</label>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Image Page Width (px)</label>
+                  <input type="number" id="imagePageWidthInput" min="50" max="800" value="${DEFAULT_IMAGE_PAGE_WIDTH}" onchange="updateImagePageWidth(this.value)">
+                </div>
+                <div class="form-group">
+                  <label>Image Page Height (px)</label>
+                  <input type="number" id="imagePageHeightInput" min="50" max="1000" value="${DEFAULT_IMAGE_PAGE_HEIGHT}" onchange="updateImagePageHeight(this.value)">
+                </div>
               </div>
               <hr style="margin:16px 0;border-color:#e2e8f0;">
               <h4 style="margin-bottom:12px;">📋 Page 2 Activities</h4>
