@@ -1153,7 +1153,8 @@
       // ---------- Export functions ----------
       window.exportSinglePage = function(pageEl) {
         const clone = pageEl.cloneNode(true);
-        clone.querySelector('.page-actions')?.remove();
+        const actions = clone.querySelector('.page-actions');
+        if (actions) actions.remove();
         const win = window.open('', '_blank');
         const styles = document.querySelector('style').outerHTML;
         win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Export Page</title>${styles}</head><body style="padding:0;background:#fff;margin:0;display:flex;justify-content:center;"><div class="view-container" style="overflow:visible;display:flex;flex-direction:column;align-items:center;">${clone.outerHTML}</div></body></html>`);
@@ -1169,7 +1170,8 @@
         // Give the browser a moment to paint async-bound images
         await new Promise(r => setTimeout(r, 400));
         const container = document.querySelector('.view-container').cloneNode(true);
-        container.querySelectorAll('.page-actions').forEach(el => el.remove());
+        const actions = container.querySelectorAll('.page-actions');
+        actions.forEach(el => el.remove());
         const win = window.open('', '_blank');
         const styles = document.querySelector('style').outerHTML;
         win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>All Pages</title>${styles}</head><body style="padding:0;background:#fff;margin:0;">${container.outerHTML}</body></html>`);
@@ -1235,7 +1237,8 @@
       }
 
       function updateImagePreview(src) {
-        const img = document.getElementById('imagePreview'), ph = document.getElementById('imagePreviewPlaceholder');
+        const img = document.getElementById('imagePreview');
+        const ph = document.getElementById('imagePreviewPlaceholder');
         if (src) { img.src = src; img.style.display = 'block'; ph.style.display = 'none'; }
         else { img.src = ''; img.style.display = 'none'; ph.style.display = 'flex'; }
       }
@@ -1356,30 +1359,36 @@
         builders.push({ label: 'Page 2', builder: () => buildPageTwo(tempLesson, 3) });
 
         builders.forEach(item => {
-          const wrapper = document.createElement('div');
-          wrapper.className = 'thumb-page-wrapper';
-          const label = document.createElement('div');
-          label.className = 'thumb-label-small';
-          label.textContent = item.label;
-          const pageEl = item.builder();
-          pageEl.querySelector('.page-actions')?.remove();
-          pageEl.style.transform = 'scale(0.25)';
-          pageEl.style.transformOrigin = 'top left';
-          pageEl.style.position = 'absolute';
-          pageEl.style.top = '0';
-          pageEl.style.left = '0';
-          pageEl.style.width = '850px';
-          pageEl.style.minWidth = '850px';
-          pageEl.style.minHeight = '1100px';
-          pageEl.style.height = '1100px';
-          pageEl.style.padding = '30px 35px';
-          pageEl.style.margin = '0';
-          pageEl.style.borderRadius = '0';
-          pageEl.style.boxShadow = 'none';
-          pageEl.style.pageBreakAfter = 'auto';
-          wrapper.appendChild(pageEl);
-          wrapper.appendChild(label);
-          container.appendChild(wrapper);
+          try {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'thumb-page-wrapper';
+            const label = document.createElement('div');
+            label.className = 'thumb-label-small';
+            label.textContent = item.label;
+            const pageEl = item.builder();
+            const actions = pageEl.querySelector('.page-actions');
+            if (actions) actions.remove();
+            pageEl.style.transform = 'scale(0.25)';
+            pageEl.style.transformOrigin = 'top left';
+            pageEl.style.position = 'absolute';
+            pageEl.style.top = '0';
+            pageEl.style.left = '0';
+            pageEl.style.width = '850px';
+            pageEl.style.minWidth = '850px';
+            pageEl.style.minHeight = '1100px';
+            pageEl.style.height = '1100px';
+            pageEl.style.padding = '30px 35px';
+            pageEl.style.margin = '0';
+            pageEl.style.borderRadius = '0';
+            pageEl.style.boxShadow = 'none';
+            pageEl.style.pageBreakAfter = 'auto';
+            pageEl.style.pointerEvents = 'none';
+            wrapper.appendChild(pageEl);
+            wrapper.appendChild(label);
+            container.appendChild(wrapper);
+          } catch (err) {
+            console.warn('Thumbnail builder error:', err);
+          }
         });
       }
 
