@@ -1,0 +1,2001 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>📖 Decodable Reader Publisher with Cover, TOC & Sight Words</title>
+  <style>
+    :root {
+      --bg: #f1f5f9;
+      --surface: #ffffff;
+      --surface-alt: #f8fafc;
+      --border: #e2e8f0;
+      --text: #1e293b;
+      --text-secondary: #64748b;
+      --text-muted: #94a3b8;
+      --accent: #f59e0b;
+      --accent-hover: #d97706;
+      --accent-soft: #fef3c7;
+      --accent-ring: rgba(245, 158, 11, 0.25);
+      --red: #dc2626;
+      --red-hover: #b91c1c;
+      --red-soft: #fef2f2;
+      --green: #16a34a;
+      --green-hover: #15803d;
+      --green-soft: #f0fdf4;
+      --orange: #ea580c;
+      --orange-hover: #c2410c;
+      --blue: #2563eb;
+      --blue-soft: #eff6ff;
+      --scarlet: #b91c1c;
+      --scarlet-light: #fff5f5;
+      --radius-sm: 8px;
+      --radius: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 20px;
+      --radius-2xl: 24px;
+      --shadow-xs: 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+      --shadow: 0 4px 6px rgba(0,0,0,0.05), 0 2px 4px rgba(0,0,0,0.04);
+      --shadow-md: 0 10px 25px rgba(0,0,0,0.07), 0 4px 10px rgba(0,0,0,0.04);
+      --shadow-lg: 0 20px 50px rgba(0,0,0,0.10), 0 8px 20px rgba(0,0,0,0.05);
+      --shadow-xl: 0 30px 70px rgba(0,0,0,0.12), 0 12px 30px rgba(0,0,0,0.06);
+      --font: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+      --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    @page { size: 850px 1100px; margin: 0; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    body { font-family: var(--font); background: var(--bg); color: var(--text); padding: 16px; min-height: 100vh; line-height: 1.5; letter-spacing: -0.01em; }
+
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; border-radius: 20px; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 20px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+    .app { max-width: 1400px; margin: 0 auto; background: var(--surface); border-radius: var(--radius-2xl); box-shadow: var(--shadow-lg); overflow: hidden; border: 1px solid var(--border); }
+    .app-header { background: linear-gradient(135deg, #0f172a 0%, #1e293b 40%, #1a1a2e 100%); color: #fff; padding: 18px 28px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; position: relative; overflow: hidden; }
+    .app-header::before { content: ''; position: absolute; top: -60px; right: -60px; width: 200px; height: 200px; background: radial-gradient(circle, rgba(245, 158, 11, 0.25) 0%, transparent 70%); border-radius: 50%; pointer-events: none; }
+    .app-header h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; position: relative; z-index: 1; display: flex; align-items: center; gap: 8px; }
+    .app-header h1 .icon { font-size: 26px; }
+    .app-header .badge { background: var(--accent); color: #0f172a; padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; letter-spacing: 0.01em; position: relative; z-index: 1; box-shadow: 0 2px 8px rgba(245, 158, 11, 0.35); }
+
+    .tabs { display: flex; border-bottom: 1px solid var(--border); background: var(--surface-alt); padding: 0 28px; gap: 2px; position: relative; }
+    .tab-btn { padding: 14px 24px; border: none; background: transparent; font-size: 14px; font-weight: 600; color: var(--text-secondary); cursor: pointer; transition: all var(--transition); font-family: var(--font); position: relative; letter-spacing: -0.01em; white-space: nowrap; border-radius: 8px 8px 0 0; margin-bottom: -1px; }
+    .tab-btn:hover { color: var(--text); background: rgba(0,0,0,0.03); }
+    .tab-btn.active { color: var(--text); font-weight: 700; background: var(--surface); border: 1px solid var(--border); border-bottom-color: var(--surface); box-shadow: 0 -2px 8px rgba(0,0,0,0.03); }
+    .tab-btn.active::after { content: ''; position: absolute; bottom: 0; left: 8px; right: 8px; height: 3px; background: var(--accent); border-radius: 3px 3px 0 0; }
+
+    .tab-panel { display: none; padding: 24px 28px 28px; animation: fadeSlideIn 0.25s ease; }
+    .tab-panel.active { display: block; }
+    @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; max-width: 420px; width: 100%; pointer-events: none; }
+    .toast { padding: 13px 18px; border-radius: var(--radius); color: #fff; font-weight: 600; font-size: 13px; box-shadow: var(--shadow-lg); animation: toastSlideIn 0.35s cubic-bezier(0.22,0.61,0.36,1); display: flex; align-items: center; gap: 10px; pointer-events: auto; letter-spacing: -0.01em; backdrop-filter: blur(8px); }
+    .toast.success { background: #059669; } .toast.error { background: #dc2626; } .toast.warning { background: #ea580c; } .toast.info { background: #2563eb; }
+    .toast .close-toast { background: none; border: none; color: inherit; font-size: 16px; cursor: pointer; margin-left: auto; opacity: 0.7; padding: 2px; border-radius: 4px; transition: opacity var(--transition); }
+    .toast .close-toast:hover { opacity: 1; background: rgba(255,255,255,0.15); }
+    @keyframes toastSlideIn { from { opacity: 0; transform: translateX(40px) scale(0.95); } to { opacity: 1; transform: translateX(0) scale(1); } }
+
+    .form-section { background: var(--surface-alt); border-radius: var(--radius-xl); padding: 22px 24px; border: 1px solid var(--border); max-width: 800px; margin: 0 auto; box-shadow: var(--shadow-xs); }
+    .form-section h2 { font-size: 17px; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; letter-spacing: -0.01em; }
+    .form-section h2 .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); display: inline-block; }
+    .form-group { margin-bottom: 12px; }
+    .form-group label { display: block; font-weight: 600; font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; letter-spacing: 0.01em; text-transform: uppercase; }
+    .form-group label .req { color: var(--red); font-weight: 700; }
+    .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px 14px; border: 2px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; font-family: var(--font); transition: all var(--transition); background: var(--surface); color: var(--text); letter-spacing: -0.01em; resize: vertical; }
+    .form-group input:focus, .form-group textarea:focus, .form-group select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-ring); background: #fff; }
+    .form-group input::placeholder, .form-group textarea::placeholder { color: var(--text-muted); }
+    .form-group textarea { resize: vertical; min-height: 50px; line-height: 1.6; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+    .form-actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+
+    .btn { padding: 9px 18px; border: none; border-radius: var(--radius-sm); font-weight: 600; font-size: 13px; cursor: pointer; transition: all var(--transition); font-family: var(--font); display: inline-flex; align-items: center; gap: 6px; letter-spacing: -0.01em; white-space: nowrap; position: relative; overflow: hidden; }
+    .btn:active { transform: scale(0.97); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
+    .btn-primary { background: var(--accent); color: #0f172a; box-shadow: 0 2px 8px rgba(245,158,11,0.3); }
+    .btn-primary:hover:not(:disabled) { background: var(--accent-hover); box-shadow: 0 4px 14px rgba(245,158,11,0.4); transform: translateY(-1px); }
+    .btn-success { background: var(--green); color: #fff; box-shadow: 0 2px 8px rgba(22,163,74,0.3); }
+    .btn-success:hover:not(:disabled) { background: var(--green-hover); box-shadow: 0 4px 14px rgba(22,163,74,0.4); transform: translateY(-1px); }
+    .btn-danger { background: var(--red); color: #fff; box-shadow: 0 2px 8px rgba(220,38,38,0.25); }
+    .btn-danger:hover:not(:disabled) { background: var(--red-hover); box-shadow: 0 4px 14px rgba(220,38,38,0.35); transform: translateY(-1px); }
+    .btn-outline { background: transparent; border: 2px solid var(--border); color: var(--text-secondary); }
+    .btn-outline:hover:not(:disabled) { background: var(--surface-alt); border-color: #cbd5e1; color: var(--text); }
+    .btn-sm { padding: 7px 14px; font-size: 12px; border-radius: 6px; }
+    .btn-xs { padding: 5px 10px; font-size: 11px; border-radius: 5px; gap: 3px; }
+    .btn-warning { background: var(--orange); color: #fff; box-shadow: 0 2px 8px rgba(234,88,12,0.25); }
+    .btn-warning:hover:not(:disabled) { background: var(--orange-hover); box-shadow: 0 4px 14px rgba(234,88,12,0.35); transform: translateY(-1px); }
+
+    .list-section { min-height: 400px; }
+    .list-section h2 { font-size: 17px; font-weight: 700; margin-bottom: 12px; letter-spacing: -0.01em; display: flex; align-items: center; gap: 8px; }
+    .list-toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+    .search-box { flex: 1; min-width: 160px; padding: 9px 14px; border: 2px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; font-family: var(--font); background: var(--surface-alt); transition: all var(--transition); letter-spacing: -0.01em; }
+    .search-box:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-ring); background: #fff; }
+    .list-toolbar .count { font-weight: 700; color: var(--text-secondary); font-size: 13px; white-space: nowrap; background: var(--surface-alt); padding: 6px 12px; border-radius: 20px; border: 1px solid var(--border); }
+    .lesson-list { display: flex; flex-direction: column; gap: 6px; }
+    .lesson-list .empty-state { text-align: center; padding: 50px 20px; color: var(--text-muted); background: var(--surface-alt); border-radius: var(--radius-lg); border: 2px dashed var(--border); }
+    .lesson-list .empty-state .icon { font-size: 40px; margin-bottom: 10px; }
+    .lesson-list .empty-state h3 { color: var(--text); margin-bottom: 4px; font-size: 15px; }
+    .lesson-item { display: flex; align-items: center; gap: 10px; padding: 11px 14px; background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); transition: all var(--transition); cursor: grab; user-select: none; }
+    .lesson-item:hover { border-color: #cbd5e1; box-shadow: var(--shadow-sm); background: #fafbfc; }
+    .lesson-item.dragging { opacity: 0.35; border-color: var(--accent); background: var(--accent-soft); box-shadow: var(--shadow-md); }
+    .lesson-item .drag-handle { color: #cbd5e1; font-size: 18px; cursor: grab; line-height: 1; flex-shrink: 0; padding: 2px; border-radius: 4px; transition: color var(--transition); }
+    .lesson-item:hover .drag-handle { color: #94a3b8; }
+    .lesson-item .drag-handle:active { cursor: grabbing; }
+    .lesson-item .info { flex: 1; min-width: 0; }
+    .lesson-item .info .title { font-weight: 700; font-size: 14px; letter-spacing: -0.01em; }
+    .lesson-item .info .sub { font-size: 12px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 1px; }
+    .lesson-item .actions { display: flex; gap: 3px; flex-shrink: 0; }
+    .lesson-item.drag-over { border-color: var(--accent); background: var(--accent-soft); box-shadow: 0 0 0 3px var(--accent-ring); }
+
+    .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.5); display: flex; align-items: center; justify-content: center; z-index: 9998; animation: fadeIn 0.2s ease; backdrop-filter: blur(2px); }
+    .modal-overlay .modal { background: #fff; border-radius: var(--radius-xl); padding: 28px; max-width: 420px; width: 90%; box-shadow: var(--shadow-xl); animation: modalPop 0.25s cubic-bezier(0.22,0.61,0.36,1); }
+    @keyframes modalPop { from { opacity: 0; transform: scale(0.92) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+    .modal-overlay .modal h3 { margin-bottom: 6px; font-size: 18px; letter-spacing: -0.01em; }
+    .modal-overlay .modal p { color: var(--text-secondary); margin-bottom: 20px; font-size: 14px; line-height: 1.5; }
+    .modal-overlay .modal .actions { display: flex; gap: 10px; justify-content: flex-end; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    /* ========== VIEW TAB – EXACT 850×1100 LAYOUT ========== */
+    .view-container { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 8px; display: flex; flex-direction: column; align-items: center; gap: 24px; }
+    .lesson-spread { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; width: 100%; }
+
+    .view-container .page { width: 850px; min-width: 850px; min-height: 1100px; height: 1100px; padding: 30px 35px; position: relative; margin: 0 auto; background: #fff; border-radius: 10px; box-shadow: 0 2px 16px rgba(0,0,0,0.07); box-sizing: border-box; overflow: hidden; flex-shrink: 0; }
+    .view-container .page:last-child { page-break-after: auto; }
+
+    .view-container .card { border: 3px solid #f59e0b; border-radius: 26px; min-height: 1010px; height: 1010px; padding: 0; position: relative; display: flex; flex-direction: column; overflow: hidden; -webkit-print-color-adjust: exact; print-color-adjust: exact; background: #fff; }
+
+    .view-container .page .page-actions { text-align: right; padding: 8px 12px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; border-radius: 8px 8px 0 0; margin-bottom: 6px; }
+    .view-container .export-btn, .view-container .edit-btn { background: #b91c1c; color: #fff; border: none; border-radius: 6px; padding: 7px 16px; font-weight: 600; font-size: 12px; font-family: var(--font); cursor: pointer; transition: all var(--transition); margin-left: 8px; }
+    .view-container .edit-btn { background: #2563eb; }
+    .view-container .export-btn:hover, .view-container .edit-btn:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+
+    .inner-pad { flex: 1; padding: 20px 28px 0 28px; display: flex; flex-direction: column; }
+
+    .page-footer-red { margin-top: auto; height: 26px; width: 100%; background: #b91c1c; border-radius: 0 0 23px 23px; display: flex; justify-content: center; align-items: center; color: #fff; font-weight: 800; font-size: 17px; flex-shrink: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; letter-spacing: 0.02em; }
+
+    .header-row { display: flex; align-items: stretch; gap: 0; margin-bottom: 14px; font-weight: 800; height: 44px; flex-shrink: 0; }
+    .header-lesson { background: #f59e0b; color: #0f172a; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 2px 18px; border-radius: 10px 0 0 10px; line-height: 1.1; font-size: 11px; -webkit-print-color-adjust: exact; print-color-adjust: exact; font-weight: 800; }
+    .header-lesson span { font-size: 19px; font-weight: 900; }
+    .header-title { background: #b91c1c; color: #fff; flex: 1; display: flex; justify-content: center; align-items: center; font-size: 21px; letter-spacing: 0.04em; -webkit-print-color-adjust: exact; print-color-adjust: exact; font-weight: 800; }
+    .header-grade { background: #f59e0b; color: #0f172a; display: flex; justify-content: center; align-items: center; padding: 2px 18px; border-radius: 0 10px 10px 0; font-size: 15px; -webkit-print-color-adjust: exact; print-color-adjust: exact; font-weight: 800; }
+
+    /* Page 1 (original layout – with optional image box) */
+    .title-image-row { display: flex; gap: 18px; align-items: flex-start; margin-bottom: 18px; flex-shrink: 0; }
+    .title-side { flex: 1; display: flex; flex-direction: column; justify-content: flex-start; }
+    .story-title { font-size: 28px; font-weight: 800; color: #b91c1c; margin: 0 0 8px 0; line-height: 1.15; letter-spacing: -0.01em; }
+    .target-pill { display: inline-block; background: #fef9e7; border: 2px solid #f59e0b; border-radius: 26px; padding: 5px 16px; font-weight: 700; font-size: 16px; width: fit-content; align-self: flex-start; flex-shrink: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+    .story-img-container { flex: 0 0 420px; width: 420px; height: 160px; border-radius: 12px; overflow: hidden; background: #e2e8f0; position: relative; border: 1px solid #cbd5e1; -webkit-print-color-adjust: exact; print-color-adjust: exact; flex-shrink: 0; }
+    .story-img-container img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .story-img-placeholder { width: 100%; height: 100%; background: linear-gradient(135deg, #1e3a5f 0%, #2a4a7f 100%); display: flex; align-items: center; justify-content: center; position: relative; }
+    .story-img-placeholder svg { width: 100%; height: 100%; }
+    .story-img-label { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.65); color: #fff; text-align: center; padding: 5px 10px; font-size: 12px; font-weight: 700; letter-spacing: 0.03em; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+    .title-block { margin-bottom: 18px; flex-shrink: 0; display: flex; flex-direction: column; gap: 8px; }
+    .title-block .story-title { text-align: center; }
+    .title-block .target-pill { display: block; width: 100%; text-align: center; box-sizing: border-box; }
+
+    .story-lines-area { flex: 0 0 auto; position: relative; padding-bottom: 10px; margin-bottom: 15px; }
+    .story-line { display: flex; justify-content: space-between; align-items: baseline; padding: 3px 0; font-size: 18px; font-weight: 600; line-height: 1.65; }
+    .story-line .sentence { flex: 1; }
+    .story-line .wc { font-weight: 700; color: #b91c1c; min-width: 30px; text-align: right; font-size: 16px; }
+
+    .parent-corner { margin-top: 25px; margin-bottom: 12px; border: 3px solid #8B4513; border-radius: 12px; overflow: hidden; flex-shrink: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .pc-header { background: #f59e0b; color: #0f172a; font-weight: 800; font-size: 15px; text-align: center; padding: 5px; letter-spacing: 0.08em; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .pc-body { padding: 10px 14px; background: #fffdf7; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .pc-body p { font-size: 12px; margin-bottom: 8px; line-height: 1.45; font-weight: 700; color: #b91c1c; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .parent-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 12px; }
+    .parent-table th, .parent-table td { padding: 7px 5px; text-align: center; border: 2px solid #8B4513; }
+    .parent-table th:first-child { background: #fdfdfd; color: #0f172a; }
+    .parent-table th { background: #b91c1c; color: #fff; font-weight: 800; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .parent-table td:first-child { font-weight: 700; text-align: left; background: #fdfdfd; }
+
+    .comp-section { margin: 15px 0; flex-shrink: 0; }
+    .comp-section.last-section { flex: 1; display: flex; flex-direction: column; }
+    .comp-section.last-section .activity-blank-large { flex: 1; min-height: 120px; }
+    .comp-header { background: #b91c1c; color: #fff; border-radius: 12px; padding: 7px 18px; font-size: 16px; font-weight: 700; display: inline-block; margin-bottom: 10px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .comp-q { margin-bottom: 18px; }
+    .comp-q .qtext { font-weight: 700; font-size: 17px; margin-bottom: 5px; }
+    .comp-q .opt { display: flex; align-items: center; gap: 12px; font-size: 16px; padding: 2px 0; }
+    .comp-q .box-check { display: inline-block; width: 20px; height: 20px; border: 2px solid #b91c1c; border-radius: 4px; background: #fff; flex-shrink: 0; }
+    .theory-answer { border-bottom: 2px solid #b91c1c; height: 30px; margin-top: 8px; }
+    .activity-blank-large { flex: 0 0 auto; min-height: 120px; border: 3px solid #8B4513; border-radius: 16px; margin: 10px 0 18px 0; background: #fff; width: 100%; overflow: hidden; }
+    .writing-line { border-bottom: 2px dashed #8B4513; height: 40px; margin: 10px 0 15px 0; width: 100%; display: flex; align-items: flex-end; }
+    .writing-line .line-number { font-weight: 800; color: #8B4513; margin-right: 8px; font-size: 16px; }
+    .comp-inst { font-size: 15px; color: #334155; margin-bottom: 5px; line-height: 1.55; }
+
+    .image-only-page { display: flex; flex-direction: column; }
+    .image-only-page .image-full-placeholder { flex: 1; border: 3px solid #f59e0b; border-radius: 16px; background: #f8fafc; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .image-only-page .image-full-placeholder img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .image-only-page .image-full-placeholder .placeholder-text { font-size: 24px; font-weight: 700; color: #94a3b8; }
+    .image-only-page .image-full-label { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.65); color: #fff; text-align: center; padding: 8px 10px; font-size: 16px; font-weight: 700; letter-spacing: 0.03em; -webkit-print-color-adjust: exact; print-color-adjust: exact; z-index: 1; }
+    .image-only-page .page-footer-red { margin-top: auto; }
+
+    /* NEW: Image page square/rect container */
+    .image-square-frame {
+      width: var(--image-page-width, 600px);
+      height: var(--image-page-height, 600px);
+      border: 6px solid #b91c1c;
+      outline: 4px solid #b91c1c;
+      outline-offset: 4px;
+      border-radius: 16px;
+      overflow: hidden;
+      position: relative;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    .image-square-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .image-square-frame .image-full-label {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0,0,0,0.65);
+      color: #fff;
+      text-align: center;
+      padding: 8px 10px;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+      z-index: 1;
+    }
+
+    .image-page-content {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+    }
+
+    .view-toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+    .view-toolbar .info { font-weight: 600; color: var(--text-secondary); font-size: 13px; margin-right: auto; background: var(--surface-alt); padding: 6px 12px; border-radius: 20px; border: 1px solid var(--border); }
+
+    .image-upload-wrap { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .image-upload-wrap .preview { width: 80px; height: 50px; border-radius: 6px; object-fit: cover; border: 2px solid var(--border); background: #f1f5f9; flex-shrink: 0; }
+    .image-upload-wrap .preview-placeholder { width: 80px; height: 50px; border-radius: 6px; border: 2px dashed #cbd5e1; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #94a3b8; background: #f8fafc; flex-shrink: 0; }
+    .image-upload-wrap input[type="file"] { font-size: 12px; padding: 6px; border: none; background: none; color: var(--text); }
+
+    .cover-card { border: 3px solid #f59e0b; border-radius: 26px; min-height: 1010px; height: 1010px; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #fff; overflow: hidden; }
+    .cover-inner { text-align: center; padding: 40px; }
+    .cover-line { width: 120px; height: 4px; background-color: #f59e0b; margin: 30px auto; border-radius: 2px; }
+    .cover-title { font-size: 52px; font-weight: 800; color: #1e293b; letter-spacing: 2px; margin: 0; line-height: 1.2; }
+    .cover-subtitle { font-size: 26px; font-weight: 600; color: #b91c1c; margin-top: 14px; letter-spacing: 1px; font-style: italic; }
+
+    .toc-card { border: 3px solid #f59e0b; border-radius: 26px; min-height: 1010px; height: 1010px; padding: 32px 40px; position: relative; background: #fff; overflow: hidden; display: flex; flex-direction: column; }
+    .toc-title { font-size: 28px; font-weight: 800; color: #b91c1c; text-align: center; margin-bottom: 24px; border-bottom: 4px solid #f59e0b; padding-bottom: 12px; }
+    .toc-list { list-style: none; padding: 0; margin: 0; flex: 1; }
+    .toc-item { display: flex; justify-content: space-between; align-items: baseline; padding: 10px 8px; border-bottom: 1px dashed #e2e8f0; font-size: 15px; font-weight: 600; color: #1e293b; }
+    .toc-item .toc-page-num { font-weight: 800; color: #b91c1c; min-width: 70px; text-align: right; }
+    .toc-page-footer { margin-top: auto; text-align: right; font-weight: 800; font-size: 15px; color: #1e293b; }
+
+    /* Thumbnail Preview */
+    .thumbnail-wrapper { margin-bottom: 16px; display: flex; flex-direction: column; align-items: center; width: 100%; }
+    .thumb-label { font-size: 13px; font-weight: 700; margin-bottom: 6px; color: #495057; text-align: center; }
+    .thumbnail-container { display: flex; gap: 10px; overflow-x: auto; padding: 5px; border: 2px solid #dee2e6; border-radius: 8px; background: #fff; width: 100%; height: 270px; flex-shrink: 0; }
+    .thumb-page-wrapper { position: relative; width: 212px; height: 270px; flex-shrink: 0; overflow: hidden; border: 1px solid #e2e8f0; border-radius: 4px; }
+    .thumb-page-wrapper .thumb-label-small { position: absolute; bottom: 2px; left: 2px; right: 2px; background: rgba(0,0,0,0.5); color: #fff; padding: 2px 6px; font-size: 10px; text-align: center; border-radius: 3px; z-index: 5; }
+    .thumbnail-container .page { transform: scale(0.25); transform-origin: top left; position: absolute; top: 0; left: 0; width: 850px; min-width: 850px; min-height: 1100px; height: 1100px; padding: 30px 35px; margin: 0; border-radius: 0; box-shadow: none; page-break-after: auto; }
+
+    @media print {
+      body {
+        padding: 0 !important;
+        background: #fff !important;
+        margin: 0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important;
+      }
+      .story-line .sentence, .comp-q .qtext, .comp-inst, .pc-body p { font-family: 'Georgia', 'Times New Roman', serif !important; }
+      .app, .app-header, .tabs, .tab-panel, .view-toolbar, .no-print, .page-actions, .toast-container, .modal-overlay { display: none !important; }
+      .view-container { overflow-x: visible !important; display: block !important; padding: 0 !important; gap: 0 !important; }
+
+      /* Page breaks: direct children of view-container break after, except last */
+      .view-container > .page,
+      .view-container > .lesson-spread {
+        page-break-after: always !important;
+        break-after: page !important;
+      }
+      .view-container > .page:last-child,
+      .view-container > .lesson-spread:last-child {
+        page-break-after: auto !important;
+        break-after: auto !important;
+      }
+
+      /* Inside each spread: each page breaks except last of the spread */
+      .lesson-spread > .page {
+        page-break-after: always !important;
+        break-after: page !important;
+      }
+      .lesson-spread > .page:last-child {
+        page-break-after: auto !important;
+        break-after: auto !important;
+      }
+
+      .view-container .page {
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        margin: 0 auto !important;
+        padding: 30px 35px !important;
+        width: 850px !important;
+        min-width: 850px !important;
+        min-height: 1100px !important;
+        height: 1100px !important;
+        background: #fff !important;
+        transform: scale(1) !important;
+        overflow: hidden !important;
+        page-break-after: auto !important;
+        break-after: auto !important;
+      }
+
+      .view-container .card {
+        border-radius: 0 !important;
+        min-height: 1010px !important;
+        height: 1010px !important;
+        border: 3px solid #f59e0b !important;
+        overflow: hidden !important;
+      }
+      .inner-pad { padding: 20px 28px 0 28px !important; }
+      .page-footer-red { border-radius: 0 !important; height: 26px !important; }
+      .story-img-container { border: 1px solid #cbd5e1 !important; width: 420px !important; height: 160px !important; }
+      .parent-corner { margin-top: 25px !important; }
+      .view-container .card, .view-container .header-lesson, .view-container .header-title, .view-container .header-grade, .view-container .pc-header, .view-container .comp-header, .view-container .page-footer-red, .view-container .parent-table th, .view-container .target-pill, .view-container .story-img-placeholder, .view-container .parent-corner, .view-container .pc-body, .view-container .story-img-label { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      .cover-card, .toc-card { border-radius: 0 !important; min-height: 1010px !important; height: 1010px !important; border: 3px solid #f59e0b !important; }
+      .cover-line, .cover-title, .cover-subtitle { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      .comp-section.last-section { flex: 1 !important; }
+      .comp-section.last-section .activity-blank-large { flex: 1 !important; }
+      .image-only-page .image-full-placeholder { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; border: none !important; border-radius: 0 !important; }
+      .image-only-page .image-full-placeholder img { object-fit: cover !important; }
+      .image-only-page .image-full-label { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      .sight-word-header, .sight-word-item { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    }
+
+    @media (max-width: 900px) {
+      .view-container .page { transform: scale(0.75); transform-origin: top center; margin-bottom: -180px; }
+      .app-header h1 { font-size: 18px; }
+      .tabs { padding: 0 12px; }
+      .tab-btn { padding: 10px 14px; font-size: 12px; }
+      .tab-panel { padding: 14px; }
+      .form-section { max-width: 100%; }
+    }
+    @media (max-width: 600px) {
+      body { padding: 6px; }
+      .app-header { padding: 14px 16px; }
+      .app-header h1 { font-size: 16px; }
+      .view-container .page { transform: scale(0.55); transform-origin: top center; margin-bottom: -350px; }
+      .form-row { grid-template-columns: 1fr; }
+      .list-toolbar { gap: 6px; }
+      .btn { padding: 7px 12px; font-size: 11px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script>
+    (function() {
+      // ---------- Storage Configuration ----------
+      const IDB_NAME = 'DecodableReadersDB';
+      const IDB_STORE = 'appData';
+      const LEGACY_LOCAL_STORAGE_KEYS = ['decodable_readers_v7', 'decodable_readers_v6', 'decodable_readers_v5', 'decodable_readers_v4', 'decodable_readers_v3'];
+      const MAX_IMAGE_SIZE = 2 * 1024 * 1024;
+      const MAX_TOC_PER_PAGE = 20;
+      const DEFAULT_IMAGE_LABEL = "Let's read together!";
+      const DEFAULT_IMAGE_PAGE_LABEL = "Picture Page";
+      const DEFAULT_IMAGE_PATH = "./read.png";
+      const MAX_OPTIONS = 5;
+      const DEFAULT_SIGHT_WORDS_TITLE = 'Sight Words';
+      const DEFAULT_SIGHT_COLUMNS = 4;
+      const MIN_SIGHT_COLUMNS = 2;
+      const MAX_SIGHT_COLUMNS = 6;
+      const DEFAULT_IMAGE_PAGE_WIDTH = 600;
+      const DEFAULT_IMAGE_PAGE_HEIGHT = 600;
+
+      // ---------- IndexedDB Utility ----------
+      let dbPromise = null;
+      function getDB() {
+        if (!dbPromise) {
+          dbPromise = new Promise((resolve, reject) => {
+            const request = indexedDB.open(IDB_NAME, 1);
+            request.onupgradeneeded = (e) => {
+              const db = e.target.result;
+              if (!db.objectStoreNames.contains(IDB_STORE)) {
+                db.createObjectStore(IDB_STORE);
+              }
+            };
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
+          });
+        }
+        return dbPromise;
+      }
+
+      async function idbSet(data) {
+        try {
+          const db = await getDB();
+          return new Promise((resolve, reject) => {
+            const tx = db.transaction(IDB_STORE, 'readwrite');
+            const store = tx.objectStore(IDB_STORE);
+            store.put(data, 'appData');
+            tx.oncomplete = () => resolve();
+            tx.onerror = () => reject(tx.error);
+          });
+        } catch (e) {
+          localStorage.setItem(LEGACY_LOCAL_STORAGE_KEYS[0], JSON.stringify(data));
+        }
+      }
+
+      async function idbGet() {
+        try {
+          const db = await getDB();
+          return new Promise((resolve, reject) => {
+            const tx = db.transaction(IDB_STORE, 'readonly');
+            const store = tx.objectStore(IDB_STORE);
+            const request = store.get('appData');
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
+          });
+        } catch (e) {
+          return null;
+        }
+      }
+
+      // ---------- Helper Functions ----------
+      function escapeHtml(str) { return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+      function showToast(msg, type='info') {
+        const c = document.getElementById('toastContainer');
+        const t = document.createElement('div');
+        t.className = 'toast ' + type;
+        const icons = {success:'✓',error:'✕',warning:'⚠',info:'ℹ'};
+        t.innerHTML = `<span style="font-weight:700;font-size:15px;">${icons[type]||icons.info}</span> ${escapeHtml(msg)}<button class="close-toast" onclick="this.parentElement.remove()">×</button>`;
+        c.appendChild(t);
+        setTimeout(() => { if (t.parentElement) t.remove(); }, 4000);
+      }
+      function confirmDialog(msg, cb) {
+        const ov = document.createElement('div');
+        ov.className = 'modal-overlay';
+        ov.innerHTML = `<div class="modal"><h3>⚠️ Confirm</h3><p>${msg}</p><div class="actions"><button class="btn btn-outline cancel">Cancel</button><button class="btn btn-danger confirm">Yes, Proceed</button></div></div>`;
+        document.body.appendChild(ov);
+        ov.querySelector('.cancel').onclick = () => ov.remove();
+        ov.querySelector('.confirm').onclick = () => { ov.remove(); cb(); };
+        ov.addEventListener('click', (e) => { if (e.target === ov) ov.remove(); });
+      }
+      function countWords(sentence) { return sentence.trim().split(/\s+/).filter(w => w).length; }
+      function generateQuestionId() { return 'q' + Math.random().toString(36).substring(2, 9); }
+
+      // ---------- Sprite Sheet Utility ----------
+      function cropSpriteSheet(spriteDataUrl, crop, callback) {
+        const img = new Image();
+        img.onload = function() {
+          try {
+            // Validate crop rectangle
+            const naturalW = img.naturalWidth;
+            const naturalH = img.naturalHeight;
+            const x = Math.max(0, Math.min(crop.x, naturalW));
+            const y = Math.max(0, Math.min(crop.y, naturalH));
+            const width = Math.min(crop.width, naturalW - x);
+            const height = Math.min(crop.height, naturalH - y);
+            if (width <= 0 || height <= 0) {
+              callback(null);
+              return;
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, x, y, width, height, 0, 0, width, height);
+            callback(canvas.toDataURL('image/png'));
+          } catch (e) {
+            callback(null);
+          }
+        };
+        img.onerror = function() {
+          callback(null);
+        };
+        img.src = spriteDataUrl;
+      }
+
+      // ---------- Default Page2 & Migration ----------
+      function getDefaultPage2() {
+        return {
+          comprehension: {
+            enabled: true,
+            questions: [
+              { id: generateQuestionId(), type: 'objective', question: '', options: ['', '', ''] }
+            ]
+          },
+          findSound: {
+            enabled: true,
+            instruction: 'Find and list all the words in the story with the target sound.'
+          },
+          sentenceWriting: {
+            enabled: true,
+            instruction: 'Write any one sentence from the story.',
+            numberOfLines: 1
+          }
+        };
+      }
+
+      function migrateLesson(l) {
+        if (!l.page2) {
+          const oldComprehension = Array.isArray(l.comprehension) ? l.comprehension : [];
+          const questions = oldComprehension.map(q => ({
+            id: generateQuestionId(),
+            type: 'objective',
+            question: q.question || '',
+            options: q.options && q.options.length ? q.options.slice(0, MAX_OPTIONS) : ['', '', '']
+          }));
+          if (questions.length === 0) {
+            questions.push({ id: generateQuestionId(), type: 'objective', question: '', options: ['', '', ''] });
+          }
+          l.page2 = {
+            comprehension: { enabled: true, questions },
+            findSound: { enabled: true, instruction: 'Find and list all the words in the story with the target sound.' },
+            sentenceWriting: { enabled: true, instruction: 'Write any one sentence from the story.', numberOfLines: 1 }
+          };
+          delete l.comprehension;
+        } else {
+          if (!l.page2.comprehension) l.page2.comprehension = { enabled: true, questions: [] };
+          if (!l.page2.comprehension.questions) l.page2.comprehension.questions = [];
+          if (!l.page2.findSound) l.page2.findSound = { enabled: true, instruction: 'Find and list all the words in the story with the target sound.' };
+          if (!l.page2.sentenceWriting) l.page2.sentenceWriting = { enabled: true, instruction: 'Write any one sentence from the story.', numberOfLines: 1 };
+        }
+        l.page2.comprehension.questions.forEach(q => {
+          if (!q.id) q.id = generateQuestionId();
+          if (q.type !== 'objective' && q.type !== 'theory') q.type = 'objective';
+          if (q.type === 'objective') {
+            if (!Array.isArray(q.options)) q.options = ['', '', ''];
+            if (q.options.length < 2) while (q.options.length < 2) q.options.push('');
+            if (q.options.length > MAX_OPTIONS) q.options = q.options.slice(0, MAX_OPTIONS);
+          } else {
+            delete q.options;
+          }
+        });
+        l.page2.sentenceWriting.numberOfLines = parseInt(l.page2.sentenceWriting.numberOfLines) || 1;
+        if (typeof l.showImagePage !== 'boolean') l.showImagePage = false;
+        if (typeof l.imagePageLabel !== 'string') l.imagePageLabel = DEFAULT_IMAGE_PAGE_LABEL;
+        if (typeof l.showReadingImageBox !== 'boolean') l.showReadingImageBox = false;
+        if (typeof l.imagePageWidth !== 'number' || isNaN(l.imagePageWidth) || l.imagePageWidth <= 0) l.imagePageWidth = DEFAULT_IMAGE_PAGE_WIDTH;
+        if (typeof l.imagePageHeight !== 'number' || isNaN(l.imagePageHeight) || l.imagePageHeight <= 0) l.imagePageHeight = DEFAULT_IMAGE_PAGE_HEIGHT;
+        if (typeof l.useSprite !== 'boolean') l.useSprite = false;
+        if (!l.spriteSheetId) l.spriteSheetId = '';
+        if (!l.spriteCrop) l.spriteCrop = { x: 0, y: 0, width: 0, height: 0 };
+        if (!l.originalImageUrl) l.originalImageUrl = '';
+        return l;
+      }
+
+      // ---------- Default Data ----------
+      const DEFAULT_LESSONS = [{
+        id: 'r1', lessonNumber: 1, imageUrl: "", title: "Ben's Camping Trip",
+        targetSound: "short e (/ɛ/)",
+        imageLabel: DEFAULT_IMAGE_LABEL,
+        imagePageLabel: DEFAULT_IMAGE_PAGE_LABEL,
+        showReadingImageBox: false,
+        imagePageWidth: DEFAULT_IMAGE_PAGE_WIDTH,
+        imagePageHeight: DEFAULT_IMAGE_PAGE_HEIGHT,
+        useSprite: false,
+        spriteSheetId: '',
+        spriteCrop: { x: 0, y: 0, width: 0, height: 0 },
+        originalImageUrl: '',
+        storyLines: [
+          { sentence: "Ben went on a camping trip with Dad." },
+          { sentence: "They set up the tent near the lake." },
+          { sentence: "Ben helped gather wood for the fire." },
+          { sentence: "They lit the fire and cooked their food." },
+          { sentence: "Ben had a hot dog and some bread." },
+          { sentence: "After dinner, they told fun stories." },
+          { sentence: "Ben saw the stars light up the sky." },
+          { sentence: "He heard crickets and a soft breeze." },
+          { sentence: "In the morning, they packed up camp." },
+          { sentence: "Ben was happy about the great trip." }
+        ],
+        comprehension: [
+          { question: "Where did Ben and his Dad set up the tent?", options: ["by the river","near the lake","in the forest"] },
+          { question: "What did Ben and his Dad cook over the fire?", options: ["pizza and cookies","hot dogs and bread","fish and rice"] },
+          { question: "How did Ben feel about the trip?", options: ["tired and bored","sad and cold","happy and glad"] }
+        ],
+        showImagePage: false
+      }];
+
+      // ---------- State ----------
+      let lessons = [], editingId = null, nextId = 1;
+      let bookMeta = { 
+        title: 'Decodable Readers', 
+        subtitle: 'Grade 1', 
+        grade: '1', 
+        showToc: true,
+        readingImageDefaultOffApplied: false,
+        sightWords: {
+          enabled: false,
+          title: DEFAULT_SIGHT_WORDS_TITLE,
+          columns: DEFAULT_SIGHT_COLUMNS,
+          rawText: ''
+        },
+        spriteSheets: [] // array of { id, name, dataUrl }
+      };
+      let previewLessonOverride = null;
+      window.searchQuery = '';
+
+      // ---------- Data Loading / Saving ----------
+      async function loadData() {
+        let data = null;
+        try { data = await idbGet(); } catch (e) { data = null; }
+        if (!data || !data.lessons) {
+          for (const key of LEGACY_LOCAL_STORAGE_KEYS) {
+            try {
+              const raw = localStorage.getItem(key);
+              if (raw) {
+                const parsed = JSON.parse(raw);
+                if (parsed.lessons) { data = parsed; break; }
+              }
+            } catch (e) {}
+          }
+        }
+
+        if (data && data.lessons) {
+          lessons = data.lessons.map(l => migrateLesson({
+            id: String(l.id || ''),
+            lessonNumber: typeof l.lessonNumber === 'number' ? l.lessonNumber : 0,
+            imageUrl: String(l.imageUrl || ''),
+            title: String(l.title || 'Untitled'),
+            targetSound: String(l.targetSound || ''),
+            imageLabel: String(l.imageLabel ?? DEFAULT_IMAGE_LABEL),
+            imagePageLabel: String(l.imagePageLabel ?? DEFAULT_IMAGE_PAGE_LABEL),
+            showReadingImageBox: typeof l.showReadingImageBox === 'boolean' ? l.showReadingImageBox : false,
+            imagePageWidth: typeof l.imagePageWidth === 'number' ? l.imagePageWidth : DEFAULT_IMAGE_PAGE_WIDTH,
+            imagePageHeight: typeof l.imagePageHeight === 'number' ? l.imagePageHeight : DEFAULT_IMAGE_PAGE_HEIGHT,
+            useSprite: typeof l.useSprite === 'boolean' ? l.useSprite : false,
+            spriteSheetId: String(l.spriteSheetId || ''),
+            spriteCrop: l.spriteCrop || { x: 0, y: 0, width: 0, height: 0 },
+            originalImageUrl: String(l.originalImageUrl || ''),
+            storyLines: (Array.isArray(l.storyLines) ? l.storyLines : []).map(sl => ({ sentence: String(sl.sentence || '') })).filter(sl => sl.sentence.trim() !== ''),
+            comprehension: Array.isArray(l.comprehension) ? l.comprehension : [],
+            showImagePage: typeof l.showImagePage === 'boolean' ? l.showImagePage : false,
+            page2: l.page2
+          })).filter(l => l.id);
+          bookMeta = data.bookMeta || { 
+            title: 'Decodable Readers', 
+            subtitle: 'Grade 1', 
+            grade: '1', 
+            showToc: true, 
+            readingImageDefaultOffApplied: false, 
+            sightWords: { enabled: false, title: DEFAULT_SIGHT_WORDS_TITLE, columns: DEFAULT_SIGHT_COLUMNS, rawText: '' },
+            spriteSheets: []
+          };
+          if (!bookMeta.sightWords) {
+            bookMeta.sightWords = { enabled: false, title: DEFAULT_SIGHT_WORDS_TITLE, columns: DEFAULT_SIGHT_COLUMNS, rawText: '' };
+          } else {
+            bookMeta.sightWords.enabled = (typeof bookMeta.sightWords.enabled === 'boolean') ? bookMeta.sightWords.enabled : false;
+            bookMeta.sightWords.title = String(bookMeta.sightWords.title || DEFAULT_SIGHT_WORDS_TITLE);
+            bookMeta.sightWords.columns = parseInt(bookMeta.sightWords.columns) || DEFAULT_SIGHT_COLUMNS;
+            bookMeta.sightWords.columns = Math.min(Math.max(bookMeta.sightWords.columns, MIN_SIGHT_COLUMNS), MAX_SIGHT_COLUMNS);
+            bookMeta.sightWords.rawText = String(bookMeta.sightWords.rawText || '');
+          }
+          if (!Array.isArray(bookMeta.spriteSheets)) bookMeta.spriteSheets = [];
+
+          if (!bookMeta.readingImageDefaultOffApplied) {
+            lessons.forEach(l => l.showReadingImageBox = false);
+            bookMeta.readingImageDefaultOffApplied = true;
+          }
+        } else {
+          lessons = JSON.parse(JSON.stringify(DEFAULT_LESSONS)).map(l => migrateLesson(l));
+          bookMeta = { 
+            title: 'Decodable Readers', 
+            subtitle: 'Grade 1', 
+            grade: '1', 
+            showToc: true,
+            readingImageDefaultOffApplied: true,
+            sightWords: { enabled: false, title: DEFAULT_SIGHT_WORDS_TITLE, columns: DEFAULT_SIGHT_COLUMNS, rawText: '' },
+            spriteSheets: []
+          };
+        }
+        bookMeta.grade = String(bookMeta.grade || '1');
+        bookMeta.showToc = (typeof bookMeta.showToc === 'boolean') ? bookMeta.showToc : true;
+        renumberByOrder(lessons);
+        nextId = Math.max(...lessons.map(l => parseInt(l.id.replace('r','')) || 0), 0) + 1;
+        await saveData();
+      }
+
+      async function saveData() {
+        const payload = { lessons, bookMeta };
+        await idbSet(payload);
+      }
+
+      function generateId() { return 'r' + (nextId++); }
+      function generateSpriteSheetId() { return 'ss' + Date.now() + '_' + Math.floor(Math.random() * 1000); }
+      function renumberByOrder(arr) { arr.forEach((l, idx) => l.lessonNumber = idx + 1); }
+
+      // ---------- Sight Words Parsing ----------
+      function parseSightWords(rawText) {
+        if (!rawText || !rawText.trim()) return [];
+        const lines = rawText.split(/\r?\n/).map(line => line.trim()).filter(line => line.length > 0);
+        if (lines.length === 0) return [];
+        let pages = [];
+        if (lines.length === 1) {
+          const words = lines[0].split(',').map(w => w.trim()).filter(w => w.length > 0);
+          if (words.length === 0) return [];
+          const pagesCount = 3;
+          const perPage = Math.ceil(words.length / pagesCount);
+          for (let i = 0; i < pagesCount; i++) {
+            pages.push(words.slice(i * perPage, (i + 1) * perPage));
+          }
+        } else {
+          pages = lines.map(line => line.split(',').map(w => w.trim()).filter(w => w.length > 0));
+          pages = pages.filter(page => page.length > 0);
+        }
+        return pages;
+      }
+
+      function countSightWordPages() {
+        if (!bookMeta.sightWords.enabled) return 0;
+        return parseSightWords(bookMeta.sightWords.rawText).length;
+      }
+
+      // ---------- Build View Pages ----------
+      function getDefaultImageHTML() { return '<img src="./read.png" alt="Story Image">'; }
+
+      function buildPageOne(lesson, pageNum) {
+        const page = document.createElement('div'); page.className = 'page';
+        page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button><button class="edit-btn" onclick="editLessonFromView('${escapeHtml(lesson.id)}')">✏️ Edit</button></div>`;
+        const card = document.createElement('div'); card.className = 'card';
+        const inner = document.createElement('div'); inner.className = 'inner-pad';
+
+        let html = `<div class="header-row"><div class="header-lesson">LESSON <span>${escapeHtml(lesson.lessonNumber)}</span></div><div class="header-title">Reading Practice</div><div class="header-grade">${escapeHtml(bookMeta.grade)}</div></div>`;
+
+        if (lesson.showReadingImageBox) {
+          html += `<div class="title-image-row"><div class="title-side"><div class="story-title">${escapeHtml(lesson.title)}</div><div class="target-pill">Target Sound: ${escapeHtml(lesson.targetSound)}</div></div>
+          <div class="story-img-container">${lesson.imageUrl ? `<img src="${escapeHtml(lesson.imageUrl)}" alt="Story Image">` : getDefaultImageHTML()}<div class="story-img-label">${escapeHtml(lesson.imageLabel || DEFAULT_IMAGE_LABEL)}</div></div></div>`;
+        } else {
+          html += `<div class="title-block"><div class="story-title">${escapeHtml(lesson.title)}</div><div class="target-pill">Target Sound: ${escapeHtml(lesson.targetSound)}</div></div>`;
+        }
+
+        html += `<div class="story-lines-area">`;
+        let runningTotal = 0;
+        lesson.storyLines.forEach(line => {
+          const wc = countWords(line.sentence);
+          runningTotal += wc;
+          html += `<div class="story-line"><span class="sentence">${escapeHtml(line.sentence)}</span><span class="wc">${runningTotal}</span></div>`;
+        });
+        html += `</div><div class="parent-corner"><div class="pc-header">PARENT CORNER</div><div class="pc-body"><p>Parents are to listen to their child read aloud every day. Please kindly record your child's daily reading progress in the table below. Your consistent support plays a vital role in building their reading fluency and confidence.</p>
+        <table class="parent-table"><thead><tr><th></th><th>Monday</th><th>Tuesday</th><th>Wednesday</th><th>Thursday</th><th>Friday</th></tr></thead>
+        <tbody><tr><td>Minutes Read</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+        <tr><td>Words Read</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+        <tr><td>Errors</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+        <tr><td>Parent Initials</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr></tbody></table></div></div>`;
+        inner.innerHTML = html;
+        card.appendChild(inner);
+        const footer = document.createElement('div'); footer.className = 'page-footer-red'; footer.textContent = pageNum;
+        card.appendChild(footer);
+        page.appendChild(card);
+        return page;
+      }
+
+      function buildPageTwo(lesson, pageNum) {
+        const page = document.createElement('div'); page.className = 'page';
+        page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button><button class="edit-btn" onclick="editLessonFromView('${escapeHtml(lesson.id)}')">✏️ Edit</button></div>`;
+        const card = document.createElement('div'); card.className = 'card';
+        const inner = document.createElement('div'); inner.className = 'inner-pad';
+
+        const compEnabled = lesson.page2.comprehension.enabled && lesson.page2.comprehension.questions.length > 0;
+        const findSoundEnabled = lesson.page2.findSound.enabled;
+        const sentenceEnabled = lesson.page2.sentenceWriting.enabled;
+        const sectionArray = [compEnabled, findSoundEnabled, sentenceEnabled];
+        const lastEnabledIndex = sectionArray.lastIndexOf(true);
+        const findSoundIsLast = lastEnabledIndex === 1;
+
+        let html = `<div class="header-row"><div class="header-lesson">LESSON <span>${escapeHtml(lesson.lessonNumber)}</span></div><div class="header-title">Comprehension &amp; Phonics</div><div class="header-grade">${escapeHtml(bookMeta.grade)}</div></div>`;
+
+        if (compEnabled) {
+          html += `<div class="comp-section"><div class="comp-header">A. Comprehension – Choose the best answer.</div>`;
+          lesson.page2.comprehension.questions.forEach((q, idx) => {
+            html += `<div class="comp-q"><div class="qtext">${idx+1}. ${escapeHtml(q.question)}</div>`;
+            if (q.type === 'objective') {
+              q.options.forEach(opt => html += `<div class="opt"><span class="box-check"></span> ${escapeHtml(opt)}</div>`);
+            } else {
+              html += `<div class="theory-answer"></div>`;
+            }
+            html += `</div>`;
+          });
+          html += `</div>`;
+        }
+
+        if (findSoundEnabled) {
+          html += `<div class="comp-section ${findSoundIsLast ? 'last-section' : ''}"><div class="comp-header">B. Find the Target Sound</div>`;
+          html += `<div class="comp-inst">${escapeHtml(lesson.page2.findSound.instruction)}</div>`;
+          html += `<div class="activity-blank-large"></div>`;
+          html += `</div>`;
+        }
+
+        if (sentenceEnabled) {
+          html += `<div class="comp-section"><div class="comp-header">C. Write One Sentence from the Story</div>`;
+          html += `<div class="comp-inst">${escapeHtml(lesson.page2.sentenceWriting.instruction)}</div>`;
+          const numLines = parseInt(lesson.page2.sentenceWriting.numberOfLines) || 1;
+          for (let i = 1; i <= numLines; i++) {
+            html += `<div class="writing-line"><span class="line-number">${i}.</span></div>`;
+          }
+          html += `</div>`;
+        }
+
+        inner.innerHTML = html;
+        card.appendChild(inner);
+        const footer = document.createElement('div'); footer.className = 'page-footer-red'; footer.textContent = pageNum;
+        card.appendChild(footer);
+        page.appendChild(card);
+        return page;
+      }
+
+      function buildImagePage(lesson, pageNum) {
+        const page = document.createElement('div'); page.className = 'page image-only-page';
+        page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button><button class="edit-btn" onclick="editLessonFromView('${escapeHtml(lesson.id)}')">✏️ Edit</button></div>`;
+        const card = document.createElement('div'); card.className = 'card';
+        // Outer card border stays orange, background orange
+        card.style.backgroundColor = '#f59e0b';
+        card.style.display = 'flex';
+        card.style.flexDirection = 'column';
+        // No change to borderColor – keep orange
+
+        const contentWrapper = document.createElement('div');
+        contentWrapper.className = 'image-page-content';
+        contentWrapper.style.flex = '1';
+        contentWrapper.style.display = 'flex';
+        contentWrapper.style.alignItems = 'center';
+        contentWrapper.style.justifyContent = 'center';
+        contentWrapper.style.width = '100%';
+
+        const frame = document.createElement('div');
+        frame.className = 'image-square-frame';
+        frame.style.setProperty('--image-page-width', (lesson.imagePageWidth || DEFAULT_IMAGE_PAGE_WIDTH) + 'px');
+        frame.style.setProperty('--image-page-height', (lesson.imagePageHeight || DEFAULT_IMAGE_PAGE_HEIGHT) + 'px');
+
+        const imageSrc = lesson.imageUrl ? lesson.imageUrl : DEFAULT_IMAGE_PATH;
+        frame.innerHTML = `<img src="${escapeHtml(imageSrc)}" alt="Full Page Image" onerror="this.parentElement.innerHTML='<div class=&quot;placeholder-text&quot;>🖼️ Image Placeholder</div>'">`;
+        if (lesson.imagePageLabel && lesson.imagePageLabel.trim() !== '') {
+          const label = document.createElement('div');
+          label.className = 'image-full-label';
+          label.textContent = lesson.imagePageLabel.trim();
+          frame.appendChild(label);
+        }
+        contentWrapper.appendChild(frame);
+        card.appendChild(contentWrapper);
+
+        const footer = document.createElement('div'); footer.className = 'page-footer-red'; footer.textContent = pageNum;
+        card.appendChild(footer);
+        page.appendChild(card);
+        return page;
+      }
+
+      function buildSightWordPage(words, pageNum, columns) {
+        const page = document.createElement('div'); page.className = 'page sight-word-page';
+        page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
+        const card = document.createElement('div'); card.className = 'card';
+        card.style.borderColor = 'var(--scarlet)';
+        const header = document.createElement('div');
+        header.className = 'sight-word-header';
+        header.textContent = bookMeta.sightWords.title || DEFAULT_SIGHT_WORDS_TITLE;
+        card.appendChild(header);
+        const grid = document.createElement('div');
+        grid.className = 'sight-word-grid';
+        grid.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
+        const baseFontSize = 28;
+        const columnWidthApprox = Math.floor((850 - 70 - (columns - 1) * 20) / columns);
+        words.forEach(word => {
+          const item = document.createElement('div');
+          item.className = 'sight-word-item';
+          const lengthFactor = Math.max(1, word.length);
+          const fontSize = Math.max(14, Math.min(baseFontSize, Math.floor(columnWidthApprox / (lengthFactor * 0.6))));
+          item.style.fontSize = fontSize + 'px';
+          item.textContent = word;
+          grid.appendChild(item);
+        });
+        card.appendChild(grid);
+        const footer = document.createElement('div');
+        footer.className = 'page-footer-red sight-word-footer';
+        footer.textContent = pageNum;
+        card.appendChild(footer);
+        page.appendChild(card);
+        return page;
+      }
+
+      function buildCoverPage() {
+        const page = document.createElement('div'); page.className = 'page';
+        page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
+        const card = document.createElement('div'); card.className = 'cover-card';
+        card.innerHTML = `<div class="cover-inner"><div class="cover-line"></div><div class="cover-title">${escapeHtml(bookMeta.title)}</div><div class="cover-subtitle">${escapeHtml(bookMeta.subtitle)}</div><div class="cover-line"></div></div>`;
+        page.appendChild(card);
+        return page;
+      }
+      function buildTocPage(pageNum, entries) {
+        const page = document.createElement('div'); page.className = 'page';
+        page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
+        const card = document.createElement('div'); card.className = 'toc-card';
+        card.innerHTML = `<div class="toc-title">Table of Contents</div><ul class="toc-list">` +
+          entries.map(e => `<li class="toc-item"><span>Lesson ${e.lessonNumber}: ${escapeHtml(e.title)}</span><span class="toc-page-num">Page ${e.firstPage}</span></li>`).join('') +
+          `</ul><div class="toc-page-footer">${pageNum}</div>`;
+        page.appendChild(card);
+        return page;
+      }
+
+      function renderAllView() {
+        const container = document.getElementById('viewContainer');
+        container.innerHTML = '';
+        container.appendChild(buildCoverPage());
+        if (!lessons.length) {
+          if (bookMeta.sightWords.enabled) {
+            const sightPages = parseSightWords(bookMeta.sightWords.rawText);
+            let pageNum = 2;
+            sightPages.forEach(chunk => {
+              container.appendChild(buildSightWordPage(chunk, pageNum, bookMeta.sightWords.columns));
+              pageNum++;
+            });
+          }
+          return;
+        }
+        const activeLessons = lessons.filter(l => l.title.trim());
+        const sightWordPages = bookMeta.sightWords.enabled ? parseSightWords(bookMeta.sightWords.rawText) : [];
+        const sightPageCount = sightWordPages.length;
+        const tocPageCount = (bookMeta.showToc && activeLessons.length) ? Math.ceil(activeLessons.length / MAX_TOC_PER_PAGE) : 0;
+
+        let pageNum = 1;
+        if (sightPageCount > 0) {
+          sightWordPages.forEach((chunk, idx) => {
+            container.appendChild(buildSightWordPage(chunk, pageNum + idx + 1, bookMeta.sightWords.columns));
+          });
+        }
+        pageNum += sightPageCount + 1;
+        const firstLessonPage = pageNum + tocPageCount;
+
+        const effectiveLessons = activeLessons.map(l => {
+          if (previewLessonOverride && previewLessonOverride.id === l.id) {
+            return { ...l, ...previewLessonOverride };
+          }
+          return l;
+        });
+
+        const tocEntries = [];
+        let runningPage = firstLessonPage;
+        effectiveLessons.forEach(l => {
+          tocEntries.push({ lessonNumber: l.lessonNumber, title: l.title, firstPage: runningPage });
+          runningPage += l.showImagePage ? 3 : 2;
+        });
+
+        if (bookMeta.showToc && tocPageCount > 0) {
+          for (let p = 0; p < tocPageCount; p++) {
+            const slice = tocEntries.slice(p * MAX_TOC_PER_PAGE, (p + 1) * MAX_TOC_PER_PAGE);
+            container.appendChild(buildTocPage(pageNum + p, slice));
+          }
+        }
+
+        let currentPage = firstLessonPage;
+        effectiveLessons.forEach(l => {
+          const spread = document.createElement('div');
+          spread.className = 'lesson-spread';
+          spread.setAttribute('data-lesson-id', l.id);
+          if (l.showImagePage) spread.appendChild(buildImagePage(l, currentPage++));
+          spread.appendChild(buildPageOne(l, currentPage++));
+          spread.appendChild(buildPageTwo(l, currentPage++));
+          container.appendChild(spread);
+        });
+      }
+
+      // ---------- Export functions ----------
+      window.exportSinglePage = function(pageEl) {
+        const clone = pageEl.cloneNode(true);
+        clone.querySelector('.page-actions')?.remove();
+        const win = window.open('', '_blank');
+        const styles = document.querySelector('style').outerHTML;
+        win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Export Page</title>${styles}</head><body style="padding:0;background:#fff;margin:0;display:flex;justify-content:center;"><div class="view-container" style="overflow:visible;display:flex;flex-direction:column;align-items:center;">${clone.outerHTML}</div></body></html>`);
+        win.document.close(); win.focus(); setTimeout(() => win.print(), 500);
+      };
+      window.exportAllPages = function() {
+        if (!lessons.length && !bookMeta.sightWords.enabled) return showToast('No lessons to export.', 'warning');
+        renderAllView();
+        const container = document.querySelector('.view-container').cloneNode(true);
+        container.querySelectorAll('.page-actions').forEach(el => el.remove());
+        const win = window.open('', '_blank');
+        const styles = document.querySelector('style').outerHTML;
+        win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>All Pages</title>${styles}</head><body style="padding:0;background:#fff;margin:0;">${container.outerHTML}</body></html>`);
+        win.document.close(); win.focus(); setTimeout(() => win.print(), 500);
+      };
+
+      // ---------- Form Handling ----------
+      let tempPage2 = null;
+      let tempShowImagePage = false;
+      let tempImagePageLabel = DEFAULT_IMAGE_PAGE_LABEL;
+      let tempShowReadingImageBox = false;
+      let tempImagePageWidth = DEFAULT_IMAGE_PAGE_WIDTH;
+      let tempImagePageHeight = DEFAULT_IMAGE_PAGE_HEIGHT;
+      let tempUseSprite = false;
+      let tempSpriteSheetId = '';
+      let tempSpriteCrop = { x: 0, y: 0, width: 0, height: 0 };
+      let tempOriginalImageUrl = '';
+
+      function getFormData() {
+        const storyRaw = document.getElementById('fStory').value;
+        const lines = storyRaw.split('\n').map(s => s.trim()).filter(Boolean);
+        const storyLines = lines.map(s => ({ sentence: s }));
+
+        const page2 = JSON.parse(JSON.stringify(tempPage2));
+        page2.comprehension.questions = page2.comprehension.questions.filter(q => q.question.trim() !== '');
+
+        page2.comprehension.questions.forEach(q => {
+          if (q.type === 'objective') {
+            q.options = q.options.map(o => o.trim()).filter(o => o !== '');
+            if (q.options.length < 2) {
+              while (q.options.length < 2) q.options.push('');
+            }
+            if (q.options.length > MAX_OPTIONS) q.options = q.options.slice(0, MAX_OPTIONS);
+          } else {
+            delete q.options;
+          }
+        });
+
+        let imageUrl = document.getElementById('fImageUrl').value.trim();
+        const originalImageUrl = tempOriginalImageUrl;
+        // If sprite mode, imageUrl will be set later in saveLesson
+        // But for preview (renderThumbnail), we keep imageUrl as is (maybe empty)
+        // No change here.
+
+        return {
+          title: document.getElementById('fTitle').value.trim(),
+          lessonNumber: parseInt(document.getElementById('fLessonNumber').value)||1,
+          imageUrl: imageUrl,
+          originalImageUrl: originalImageUrl,
+          imageLabel: document.getElementById('fImageLabel').value.trim() || DEFAULT_IMAGE_LABEL,
+          imagePageLabel: document.getElementById('fImagePageLabel').value.trim() || DEFAULT_IMAGE_PAGE_LABEL,
+          showReadingImageBox: tempShowReadingImageBox,
+          imagePageWidth: tempImagePageWidth,
+          imagePageHeight: tempImagePageHeight,
+          useSprite: tempUseSprite,
+          spriteSheetId: tempSpriteSheetId,
+          spriteCrop: { ...tempSpriteCrop },
+          targetSound: document.getElementById('fTargetSound').value.trim(),
+          storyLines,
+          page2,
+          showImagePage: tempShowImagePage
+        };
+      }
+
+      function updateImagePreview(src) {
+        const img = document.getElementById('imagePreview'), ph = document.getElementById('imagePreviewPlaceholder');
+        if (src) { img.src = src; img.style.display = 'block'; ph.style.display = 'none'; }
+        else { img.src = ''; img.style.display = 'none'; ph.style.display = 'flex'; }
+      }
+
+      function fillForm(lesson) {
+        document.getElementById('fTitle').value = lesson.title || '';
+        document.getElementById('fLessonNumber').value = lesson.lessonNumber || '';
+        document.getElementById('fImageUrl').value = lesson.imageUrl || '';
+        document.getElementById('fImageLabel').value = lesson.imageLabel || DEFAULT_IMAGE_LABEL;
+        document.getElementById('fImagePageLabel').value = lesson.imagePageLabel || DEFAULT_IMAGE_PAGE_LABEL;
+        document.getElementById('fTargetSound').value = lesson.targetSound || '';
+        document.getElementById('fStory').value = lesson.storyLines.map(l => l.sentence).join('\n');
+        updateImagePreview(lesson.imageUrl || '');
+
+        tempPage2 = JSON.parse(JSON.stringify(lesson.page2 || getDefaultPage2()));
+        if (!tempPage2.comprehension) tempPage2.comprehension = { enabled: true, questions: [] };
+        if (!tempPage2.comprehension.questions) tempPage2.comprehension.questions = [];
+        if (!tempPage2.findSound) tempPage2.findSound = { enabled: true, instruction: 'Find and list all the words in the story with the target sound.' };
+        if (!tempPage2.sentenceWriting) tempPage2.sentenceWriting = { enabled: true, instruction: 'Write any one sentence from the story.', numberOfLines: 1 };
+
+        tempShowImagePage = !!lesson.showImagePage;
+        tempImagePageLabel = lesson.imagePageLabel || DEFAULT_IMAGE_PAGE_LABEL;
+        tempShowReadingImageBox = !!lesson.showReadingImageBox;
+        tempImagePageWidth = lesson.imagePageWidth || DEFAULT_IMAGE_PAGE_WIDTH;
+        tempImagePageHeight = lesson.imagePageHeight || DEFAULT_IMAGE_PAGE_HEIGHT;
+        tempUseSprite = !!lesson.useSprite;
+        tempSpriteSheetId = lesson.spriteSheetId || '';
+        tempSpriteCrop = lesson.spriteCrop || { x: 0, y: 0, width: 0, height: 0 };
+        tempOriginalImageUrl = lesson.originalImageUrl || '';
+
+        document.getElementById('compToggle').checked = tempPage2.comprehension.enabled;
+        document.getElementById('findSoundToggle').checked = tempPage2.findSound.enabled;
+        document.getElementById('sentenceToggle').checked = tempPage2.sentenceWriting.enabled;
+        document.getElementById('findSoundInstruction').value = tempPage2.findSound.instruction;
+        document.getElementById('sentenceInstruction').value = tempPage2.sentenceWriting.instruction;
+        document.getElementById('sentenceLines').value = tempPage2.sentenceWriting.numberOfLines;
+        document.getElementById('imagePageToggle').checked = tempShowImagePage;
+        document.getElementById('readingImageToggle').checked = tempShowReadingImageBox;
+        document.getElementById('imagePageWidthInput').value = tempImagePageWidth;
+        document.getElementById('imagePageHeightInput').value = tempImagePageHeight;
+        document.getElementById('spriteToggle').checked = tempUseSprite;
+        document.getElementById('spriteSheetSelect').value = tempSpriteSheetId;
+        document.getElementById('spriteCropX').value = tempSpriteCrop.x;
+        document.getElementById('spriteCropY').value = tempSpriteCrop.y;
+        document.getElementById('spriteCropWidth').value = tempSpriteCrop.width;
+        document.getElementById('spriteCropHeight').value = tempSpriteCrop.height;
+
+        toggleSpriteFields();
+        populateSpriteSheetSelect(); // ensure options are up-to-date and selected
+
+        renderQuestionList();
+        renderThumbnail();
+      }
+
+      function resetForm() {
+        editingId = null;
+        previewLessonOverride = null;
+        document.getElementById('formTitle').innerHTML = '<span class="dot"></span> Add New Reader';
+        document.getElementById('fTitle').value = '';
+        document.getElementById('fLessonNumber').value = lessons.length + 1;
+        document.getElementById('fImageUrl').value = '';
+        document.getElementById('fImageLabel').value = DEFAULT_IMAGE_LABEL;
+        document.getElementById('fImagePageLabel').value = DEFAULT_IMAGE_PAGE_LABEL;
+        document.getElementById('fTargetSound').value = '';
+        document.getElementById('fStory').value = '';
+        updateImagePreview('');
+
+        tempPage2 = getDefaultPage2();
+        tempShowImagePage = false;
+        tempImagePageLabel = DEFAULT_IMAGE_PAGE_LABEL;
+        tempShowReadingImageBox = false;
+        tempImagePageWidth = DEFAULT_IMAGE_PAGE_WIDTH;
+        tempImagePageHeight = DEFAULT_IMAGE_PAGE_HEIGHT;
+        tempUseSprite = false;
+        tempSpriteSheetId = '';
+        tempSpriteCrop = { x: 0, y: 0, width: 0, height: 0 };
+        tempOriginalImageUrl = '';
+
+        document.getElementById('compToggle').checked = true;
+        document.getElementById('findSoundToggle').checked = true;
+        document.getElementById('sentenceToggle').checked = true;
+        document.getElementById('findSoundInstruction').value = tempPage2.findSound.instruction;
+        document.getElementById('sentenceInstruction').value = tempPage2.sentenceWriting.instruction;
+        document.getElementById('sentenceLines').value = 1;
+        document.getElementById('imagePageToggle').checked = false;
+        document.getElementById('readingImageToggle').checked = false;
+        document.getElementById('imagePageWidthInput').value = tempImagePageWidth;
+        document.getElementById('imagePageHeightInput').value = tempImagePageHeight;
+        document.getElementById('spriteToggle').checked = false;
+        document.getElementById('spriteSheetSelect').value = '';
+        document.getElementById('spriteCropX').value = 0;
+        document.getElementById('spriteCropY').value = 0;
+        document.getElementById('spriteCropWidth').value = 0;
+        document.getElementById('spriteCropHeight').value = 0;
+
+        toggleSpriteFields();
+
+        renderQuestionList();
+        renderThumbnail();
+
+        document.getElementById('saveBtn').textContent = '💾 Save Lesson';
+        document.getElementById('cancelBtn').style.display = 'none';
+        document.getElementById('viewLessonBtn').style.display = 'none';
+      }
+
+      function renderThumbnail() {
+        const container = document.getElementById('thumbnailContainer');
+        if (!container) return;
+        container.innerHTML = '';
+        const tempLesson = getFormData();
+        tempLesson.id = editingId || 'preview';
+
+        const builders = [];
+        if (tempLesson.showImagePage) {
+          builders.push({ label: 'Image Page', builder: () => buildImagePage(tempLesson, 1) });
+        }
+        builders.push({ label: 'Page 1', builder: () => buildPageOne(tempLesson, 2) });
+        builders.push({ label: 'Page 2', builder: () => buildPageTwo(tempLesson, 3) });
+
+        builders.forEach(item => {
+          const wrapper = document.createElement('div');
+          wrapper.className = 'thumb-page-wrapper';
+          const label = document.createElement('div');
+          label.className = 'thumb-label-small';
+          label.textContent = item.label;
+          const pageEl = item.builder();
+          pageEl.querySelector('.page-actions')?.remove();
+          pageEl.style.transform = 'scale(0.25)';
+          pageEl.style.transformOrigin = 'top left';
+          pageEl.style.position = 'absolute';
+          pageEl.style.top = '0';
+          pageEl.style.left = '0';
+          pageEl.style.width = '850px';
+          pageEl.style.minWidth = '850px';
+          pageEl.style.minHeight = '1100px';
+          pageEl.style.height = '1100px';
+          pageEl.style.padding = '30px 35px';
+          pageEl.style.margin = '0';
+          pageEl.style.borderRadius = '0';
+          pageEl.style.boxShadow = 'none';
+          pageEl.style.pageBreakAfter = 'auto';
+          wrapper.appendChild(pageEl);
+          wrapper.appendChild(label);
+          container.appendChild(wrapper);
+        });
+      }
+
+      function renderQuestionList() {
+        const container = document.getElementById('compQuestionsContainer');
+        if (!container) return;
+        if (!tempPage2 || !tempPage2.comprehension) return;
+        const questions = tempPage2.comprehension.questions;
+        let html = '';
+        questions.forEach((q, idx) => {
+          html += `<div class="question-card" data-index="${idx}">
+            <div class="q-header">
+              <span class="q-title">Question ${idx+1}</span>
+              <div class="q-controls">
+                <button class="btn btn-outline btn-xs" onclick="moveQuestion(${idx}, -1)" ${idx === 0 ? 'disabled' : ''} title="Move up">▲</button>
+                <button class="btn btn-outline btn-xs" onclick="moveQuestion(${idx}, 1)" ${idx === questions.length-1 ? 'disabled' : ''} title="Move down">▼</button>
+                <button class="btn btn-danger btn-xs" onclick="deleteQuestion(${idx})" title="Delete">🗑️</button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Type</label>
+              <select onchange="changeQuestionType(${idx}, this.value)">
+                <option value="objective" ${q.type === 'objective' ? 'selected' : ''}>Objective (Multiple Choice)</option>
+                <option value="theory" ${q.type === 'theory' ? 'selected' : ''}>Theory (Open Ended)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Question Text</label>
+              <input type="text" value="${escapeHtml(q.question)}" onchange="updateQuestionText(${idx}, this.value)">
+            </div>`;
+          if (q.type === 'objective') {
+            html += `<div class="form-group">
+              <label>Options (2-5)</label>`;
+            q.options.forEach((opt, optIdx) => {
+              html += `<div class="option-row">
+                <input type="text" value="${escapeHtml(opt)}" placeholder="Option ${optIdx+1}" onchange="updateOption(${idx}, ${optIdx}, this.value)">
+                <button class="btn btn-danger btn-xs" onclick="deleteOption(${idx}, ${optIdx})" ${q.options.length <= 2 ? 'disabled' : ''}>✕</button>
+              </div>`;
+            });
+            html += `<button class="btn btn-outline btn-xs add-option-btn" onclick="addOption(${idx})" ${q.options.length >= MAX_OPTIONS ? 'disabled' : ''}>+ Add Option</button>
+            </div>`;
+          }
+          html += `</div>`;
+        });
+        if (questions.length === 0) {
+          html = '<p style="color:#94a3b8; text-align:center; padding:12px;">No questions yet. Click "Add Question" to create.</p>';
+        }
+        container.innerHTML = html;
+      }
+
+      // Question CRUD
+      window.addQuestion = function() {
+        if (!tempPage2) return;
+        tempPage2.comprehension.questions.push({ id: generateQuestionId(), type: 'objective', question: '', options: ['', '', ''] });
+        renderQuestionList();
+        renderThumbnail();
+      };
+      window.deleteQuestion = function(idx) {
+        if (!tempPage2) return;
+        tempPage2.comprehension.questions.splice(idx, 1);
+        renderQuestionList();
+        renderThumbnail();
+      };
+      window.moveQuestion = function(idx, dir) {
+        if (!tempPage2) return;
+        const arr = tempPage2.comprehension.questions;
+        const newIdx = idx + dir;
+        if (newIdx < 0 || newIdx >= arr.length) return;
+        const temp = arr[idx]; arr[idx] = arr[newIdx]; arr[newIdx] = temp;
+        renderQuestionList();
+        renderThumbnail();
+      };
+      window.changeQuestionType = function(idx, type) {
+        if (!tempPage2) return;
+        const q = tempPage2.comprehension.questions[idx];
+        if (!q) return;
+        q.type = type;
+        if (type === 'objective' && !q.options) q.options = ['', '', ''];
+        else if (type === 'theory') delete q.options;
+        renderQuestionList();
+        renderThumbnail();
+      };
+      window.updateQuestionText = function(idx, value) {
+        if (!tempPage2) return;
+        const q = tempPage2.comprehension.questions[idx];
+        if (q) q.question = value.trim();
+        renderThumbnail();
+      };
+      window.updateOption = function(qIdx, optIdx, value) {
+        if (!tempPage2) return;
+        const q = tempPage2.comprehension.questions[qIdx];
+        if (q && q.options) q.options[optIdx] = value.trim();
+        renderThumbnail();
+      };
+      window.addOption = function(qIdx) {
+        if (!tempPage2) return;
+        const q = tempPage2.comprehension.questions[qIdx];
+        if (q && q.options && q.options.length < MAX_OPTIONS) {
+          q.options.push('');
+          renderQuestionList();
+          renderThumbnail();
+        }
+      };
+      window.deleteOption = function(qIdx, optIdx) {
+        if (!tempPage2) return;
+        const q = tempPage2.comprehension.questions[qIdx];
+        if (q && q.options && q.options.length > 2) {
+          q.options.splice(optIdx, 1);
+          renderQuestionList();
+          renderThumbnail();
+        }
+      };
+
+      // Section toggles
+      window.toggleSection = function(section, checked) {
+        if (!tempPage2) return;
+        if (section === 'comp') tempPage2.comprehension.enabled = checked;
+        else if (section === 'findSound') tempPage2.findSound.enabled = checked;
+        else if (section === 'sentence') tempPage2.sentenceWriting.enabled = checked;
+        renderQuestionList();
+        renderThumbnail();
+      };
+      window.updateFindSoundInstruction = function(value) {
+        if (tempPage2) tempPage2.findSound.instruction = value;
+        renderThumbnail();
+      };
+      window.updateSentenceInstruction = function(value) {
+        if (tempPage2) tempPage2.sentenceWriting.instruction = value;
+        renderThumbnail();
+      };
+      window.updateSentenceLines = function(value) {
+        if (tempPage2) tempPage2.sentenceWriting.numberOfLines = parseInt(value) || 1;
+        renderThumbnail();
+      };
+      window.toggleImagePage = function(checked) {
+        tempShowImagePage = checked;
+        renderThumbnail();
+      };
+      window.toggleReadingImage = function(checked) {
+        tempShowReadingImageBox = checked;
+        renderThumbnail();
+      };
+      window.updateImagePageWidth = function(value) {
+        tempImagePageWidth = parseInt(value) || DEFAULT_IMAGE_PAGE_WIDTH;
+        renderThumbnail();
+      };
+      window.updateImagePageHeight = function(value) {
+        tempImagePageHeight = parseInt(value) || DEFAULT_IMAGE_PAGE_HEIGHT;
+        renderThumbnail();
+      };
+      window.toggleSprite = function(checked) {
+        tempUseSprite = checked;
+        toggleSpriteFields();
+        renderThumbnail();
+      };
+      window.updateSpriteSheet = function(value) {
+        tempSpriteSheetId = value;
+        renderThumbnail();
+      };
+      window.updateSpriteCropX = function(value) {
+        tempSpriteCrop.x = parseInt(value) || 0;
+        renderThumbnail();
+      };
+      window.updateSpriteCropY = function(value) {
+        tempSpriteCrop.y = parseInt(value) || 0;
+        renderThumbnail();
+      };
+      window.updateSpriteCropWidth = function(value) {
+        tempSpriteCrop.width = parseInt(value) || 0;
+        renderThumbnail();
+      };
+      window.updateSpriteCropHeight = function(value) {
+        tempSpriteCrop.height = parseInt(value) || 0;
+        renderThumbnail();
+      };
+
+      function toggleSpriteFields() {
+        const spriteSection = document.getElementById('spriteFields');
+        if (spriteSection) spriteSection.style.display = tempUseSprite ? 'block' : 'none';
+      }
+
+      // ---------- Save / Edit / Delete / Import / Export ----------
+      window.handleImageUpload = function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        if (file.size > MAX_IMAGE_SIZE) { showToast('Image must be less than 2 MB.', 'error'); event.target.value = ''; return; }
+        if (!file.type.startsWith('image/')) { showToast('Please select a valid image file.', 'error'); event.target.value = ''; return; }
+        const reader = new FileReader();
+        reader.onload = e => {
+          const dataUrl = e.target.result;
+          document.getElementById('fImageUrl').value = dataUrl;
+          tempOriginalImageUrl = dataUrl;
+          updateImagePreview(dataUrl);
+          renderThumbnail();
+          showToast('Image uploaded and embedded!', 'success');
+        };
+        reader.readAsDataURL(file);
+      };
+
+      window.editLesson = function(id) {
+        const lesson = lessons.find(l => l.id === id);
+        if (!lesson) return showToast('Lesson not found.', 'error');
+        editingId = id;
+        document.getElementById('formTitle').innerHTML = '<span class="dot" style="background:#2563eb;"></span> Edit Reader';
+        fillForm(lesson);
+        document.getElementById('saveBtn').textContent = '💾 Update Lesson';
+        document.getElementById('cancelBtn').style.display = 'inline-flex';
+        document.getElementById('viewLessonBtn').style.display = 'inline-flex';
+        document.querySelector('.form-section').scrollIntoView({behavior:'smooth'});
+        switchTab('edit');
+      };
+      window.cancelEdit = function() { resetForm(); showToast('Edit cancelled.', 'info'); };
+      window.saveLesson = async function() {
+        const data = getFormData();
+        if (!data.title || !data.targetSound || data.storyLines.length < 5) {
+          return showToast('Please fill all required fields (title, target sound, at least 5 story lines).', 'error');
+        }
+        if (data.page2.comprehension.enabled) {
+          if (data.page2.comprehension.questions.length === 0) {
+            return showToast('Please add at least one comprehension question or disable the section.', 'error');
+          }
+          for (const q of data.page2.comprehension.questions) {
+            if (q.type === 'objective') {
+              const validOptions = q.options.filter(o => o.trim() !== '');
+              if (validOptions.length < 2) {
+                return showToast('Each objective question must have at least 2 non-empty options.', 'error');
+              }
+            }
+          }
+        }
+
+        // Validate sprite mode
+        if (data.useSprite) {
+          if (!data.spriteSheetId) {
+            return showToast('Please select a sprite sheet when sprite mode is enabled.', 'error');
+          }
+          if (data.spriteCrop.width <= 0 || data.spriteCrop.height <= 0) {
+            return showToast('Crop width and height must be greater than zero.', 'error');
+          }
+        }
+
+        try {
+          if (data.useSprite) {
+            const sprite = bookMeta.spriteSheets.find(s => s.id === data.spriteSheetId);
+            if (!sprite) {
+              return showToast('Selected sprite sheet not found.', 'error');
+            }
+            const croppedUrl = await new Promise((resolve, reject) => {
+              cropSpriteSheet(sprite.dataUrl, data.spriteCrop, (cropped) => {
+                if (cropped) resolve(cropped);
+                else reject('Failed to crop sprite sheet. Check crop coordinates and image bounds.');
+              });
+            });
+            data.imageUrl = croppedUrl;
+          } else {
+            data.imageUrl = document.getElementById('fImageUrl').value.trim();
+          }
+        } catch (err) {
+          showToast(err, 'error');
+          return;
+        }
+
+        data.originalImageUrl = tempOriginalImageUrl;
+
+        if (editingId) {
+          const idx = lessons.findIndex(l => l.id === editingId);
+          if (idx === -1) return showToast('Not found.', 'error');
+          data.lessonNumber = idx + 1;
+          lessons[idx] = { ...lessons[idx], ...data, id: editingId };
+        } else {
+          data.lessonNumber = lessons.length + 1;
+          lessons.push({ ...data, id: generateId() });
+        }
+        previewLessonOverride = null;
+        saveData(); resetForm(); refreshUI(); showToast('Lesson saved!', 'success');
+        switchTab('edit');
+      };
+      window.deleteLesson = function(id) {
+        const l = lessons.find(l => l.id === id);
+        if (!l) return;
+        confirmDialog(`Delete "<strong>${escapeHtml(l.title)}</strong>"?`, () => {
+          lessons = lessons.filter(l => l.id !== id);
+          if (editingId === id) resetForm();
+          renumberByOrder(lessons);
+          previewLessonOverride = null;
+          saveData(); refreshUI();
+        });
+      };
+      window.duplicateLesson = function(id) {
+        const l = lessons.find(l => l.id === id);
+        if (!l) return;
+        const copy = JSON.parse(JSON.stringify(l));
+        delete copy.id; copy.id = generateId();
+        lessons.push(copy);
+        renumberByOrder(lessons);
+        previewLessonOverride = null;
+        saveData(); refreshUI(); showToast('Duplicated.', 'success');
+      };
+      window.exportJSON = function() {
+        const payload = { lessons, bookMeta };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'readers.json'; a.click();
+      };
+      window.importJSON = function(input) {
+        const file = input.files[0]; if (!file) return;
+        const reader = new FileReader();
+        reader.onload = e => {
+          try {
+            const data = JSON.parse(e.target.result);
+            if (!data || typeof data !== 'object') throw new Error('Invalid');
+            const importedLessons = Array.isArray(data.lessons) ? data.lessons : [];
+            const validated = importedLessons.map(l => migrateLesson({
+              id: String(l.id || ''),
+              lessonNumber: typeof l.lessonNumber === 'number' ? l.lessonNumber : 0,
+              imageUrl: String(l.imageUrl || ''),
+              title: String(l.title || 'Untitled'),
+              targetSound: String(l.targetSound || ''),
+              imageLabel: String(l.imageLabel ?? DEFAULT_IMAGE_LABEL),
+              imagePageLabel: String(l.imagePageLabel ?? DEFAULT_IMAGE_PAGE_LABEL),
+              showReadingImageBox: typeof l.showReadingImageBox === 'boolean' ? l.showReadingImageBox : false,
+              imagePageWidth: typeof l.imagePageWidth === 'number' ? l.imagePageWidth : DEFAULT_IMAGE_PAGE_WIDTH,
+              imagePageHeight: typeof l.imagePageHeight === 'number' ? l.imagePageHeight : DEFAULT_IMAGE_PAGE_HEIGHT,
+              useSprite: typeof l.useSprite === 'boolean' ? l.useSprite : false,
+              spriteSheetId: String(l.spriteSheetId || ''),
+              spriteCrop: l.spriteCrop || { x: 0, y: 0, width: 0, height: 0 },
+              originalImageUrl: String(l.originalImageUrl || ''),
+              storyLines: (Array.isArray(l.storyLines) ? l.storyLines : []).map(sl => ({ sentence: String(sl.sentence || '') })).filter(sl => sl.sentence.trim() !== ''),
+              comprehension: Array.isArray(l.comprehension) ? l.comprehension : [],
+              showImagePage: typeof l.showImagePage === 'boolean' ? l.showImagePage : false,
+              page2: l.page2
+            })).filter(l => l.id);
+            if (validated.length === 0) throw new Error('No valid lessons');
+            confirmDialog('Replace all lessons with imported data?', () => {
+              lessons = validated;
+              bookMeta = data.bookMeta || { title: 'Decodable Readers', subtitle: 'Grade 1', grade: '1', showToc: true, readingImageDefaultOffApplied: true, sightWords: { enabled: false, title: DEFAULT_SIGHT_WORDS_TITLE, columns: DEFAULT_SIGHT_COLUMNS, rawText: '' }, spriteSheets: [] };
+              if (!bookMeta.sightWords) bookMeta.sightWords = { enabled: false, title: DEFAULT_SIGHT_WORDS_TITLE, columns: DEFAULT_SIGHT_COLUMNS, rawText: '' };
+              if (!Array.isArray(bookMeta.spriteSheets)) bookMeta.spriteSheets = [];
+              bookMeta.grade = String(bookMeta.grade || '1');
+              bookMeta.showToc = (typeof bookMeta.showToc === 'boolean') ? bookMeta.showToc : true;
+              renumberByOrder(lessons);
+              nextId = Math.max(...lessons.map(l => parseInt(l.id.replace('r','')) || 0), 0) + 1;
+              previewLessonOverride = null;
+              saveData(); resetForm(); refreshUI(); showToast('Imported successfully.', 'success');
+              switchTab('book');
+            });
+          } catch(err) { showToast('Invalid JSON file.', 'error'); }
+        };
+        reader.readAsText(file);
+        input.value = '';
+      };
+
+      // ---------- Sprite Sheet Management (Book Setup) ----------
+      window.addSpriteSheet = function(fileInput) {
+        const file = fileInput.files[0];
+        if (!file) return;
+        if (file.size > MAX_IMAGE_SIZE) { showToast('Sprite sheet must be less than 2 MB.', 'error'); fileInput.value = ''; return; }
+        if (!file.type.startsWith('image/')) { showToast('Please select a valid image file.', 'error'); fileInput.value = ''; return; }
+        const reader = new FileReader();
+        reader.onload = e => {
+          const dataUrl = e.target.result;
+          const name = prompt('Enter a name for this sprite sheet:', 'Sprite Sheet ' + (bookMeta.spriteSheets.length + 1));
+          fileInput.value = ''; // clear input regardless
+          if (!name) return;
+          const newSheet = { id: generateSpriteSheetId(), name: name.trim() || 'Unnamed', dataUrl };
+          bookMeta.spriteSheets.push(newSheet);
+          saveData();
+          renderSpriteSheetsList();
+          showToast('Sprite sheet added!', 'success');
+        };
+        reader.readAsDataURL(file);
+      };
+
+      window.deleteSpriteSheet = function(id) {
+        const sheet = bookMeta.spriteSheets.find(s => s.id === id);
+        if (!sheet) return;
+        confirmDialog(`Delete sprite sheet "<strong>${escapeHtml(sheet.name)}</strong>"? Lessons using it may lose their cropped image.`, () => {
+          bookMeta.spriteSheets = bookMeta.spriteSheets.filter(s => s.id !== id);
+          lessons.forEach(l => {
+            if (l.spriteSheetId === id) {
+              l.useSprite = false;
+              l.spriteSheetId = '';
+              l.spriteCrop = { x: 0, y: 0, width: 0, height: 0 };
+            }
+          });
+          saveData();
+          renderSpriteSheetsList();
+          renderEditList();
+          showToast('Sprite sheet deleted.', 'info');
+        });
+      };
+
+      function renderSpriteSheetsList() {
+        const container = document.getElementById('spriteSheetsList');
+        if (!container) return;
+        if (!bookMeta.spriteSheets.length) {
+          container.innerHTML = '<p style="color:#94a3b8;">No sprite sheets uploaded yet.</p>';
+        } else {
+          container.innerHTML = bookMeta.spriteSheets.map(s => `
+            <div class="sprite-sheet-item" style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+              <img src="${escapeHtml(s.dataUrl)}" alt="${escapeHtml(s.name)}" style="max-width:80px;max-height:60px;object-fit:cover;border-radius:4px;border:1px solid #e2e8f0;">
+              <span style="flex:1;font-weight:600;">${escapeHtml(s.name)}</span>
+              <button class="btn btn-danger btn-xs" onclick="deleteSpriteSheet('${s.id}')">🗑️</button>
+            </div>
+          `).join('');
+        }
+      }
+
+      function populateSpriteSheetSelect() {
+        const select = document.getElementById('spriteSheetSelect');
+        if (!select) return;
+        select.innerHTML = '<option value="">-- Select a sprite sheet --</option>' + 
+          bookMeta.spriteSheets.map(s => `<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('');
+        if (tempSpriteSheetId) select.value = tempSpriteSheetId;
+      }
+
+      // ---------- View / Edit Switching ----------
+      window.editLessonFromView = function(id) {
+        if (editingId === id) {
+          switchTab('edit');
+          return;
+        }
+        editLesson(id);
+      };
+
+      window.viewLessonFromEdit = function() {
+        if (!editingId) return;
+        const data = getFormData();
+        previewLessonOverride = { ...data, id: editingId };
+        switchTab('view');
+        setTimeout(() => {
+          const targetSpread = document.querySelector(`.lesson-spread[data-lesson-id="${editingId}"]`);
+          if (targetSpread) {
+            targetSpread.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            targetSpread.style.outline = '3px solid #f59e0b';
+            setTimeout(() => { targetSpread.style.outline = 'none'; }, 2000);
+          }
+        }, 150);
+        showToast('Showing unsaved changes. Remember to save!', 'warning');
+      };
+
+      // ---------- Book Meta Save ----------
+      window.saveBookMeta = function() {
+        bookMeta.title = document.getElementById('coverTitleInput').value.trim() || 'Decodable Readers';
+        bookMeta.subtitle = document.getElementById('coverSubtitleInput').value.trim() || 'Grade 1';
+        bookMeta.grade = document.getElementById('globalGradeInput').value.trim() || '1';
+        bookMeta.showToc = document.getElementById('tocToggle').checked;
+        const sightEnabled = document.getElementById('sightWordsToggle').checked;
+        bookMeta.sightWords.enabled = sightEnabled;
+        bookMeta.sightWords.title = document.getElementById('sightWordsTitle').value.trim() || DEFAULT_SIGHT_WORDS_TITLE;
+        bookMeta.sightWords.columns = parseInt(document.getElementById('sightColumns').value) || DEFAULT_SIGHT_COLUMNS;
+        bookMeta.sightWords.columns = Math.min(Math.max(bookMeta.sightWords.columns, MIN_SIGHT_COLUMNS), MAX_SIGHT_COLUMNS);
+        bookMeta.sightWords.rawText = document.getElementById('sightWordsText').value;
+
+        previewLessonOverride = null;
+        saveData();
+        renderAllView();
+        renderEditList();
+        renderTocPreview();
+        renderSpriteSheetsList();
+        updateCounts();
+        showToast('Cover, TOC & Sight Words settings saved.', 'success');
+      };
+
+      // ---------- Render list and counts ----------
+      function renderEditList() {
+        const container = document.getElementById('lessonList');
+        if (!container) return;
+        const q = (window.searchQuery||'').toLowerCase();
+        const filtered = lessons.filter(l => !q || l.title.toLowerCase().includes(q) || l.targetSound.toLowerCase().includes(q) || l.storyLines.some(sl => sl.sentence.toLowerCase().includes(q)) || (l.page2?.comprehension?.questions || []).some(c => c.question.toLowerCase().includes(q) || (c.options || []).some(o => o.toLowerCase().includes(q))));
+        container.innerHTML = filtered.length ? filtered.map(l => `
+          <div class="lesson-item" draggable="true" data-id="${l.id}">
+            <span class="drag-handle" title="Drag to reorder">⋮⋮</span>
+            <div class="info">
+              <div class="title">Lesson ${l.lessonNumber} — ${escapeHtml(l.title)}</div>
+              <div class="sub">🎯 ${escapeHtml(l.targetSound)} · 📝 ${l.storyLines.length} lines · 🏫 ${escapeHtml(bookMeta.grade)} · 🖼️ ${escapeHtml(l.imageLabel || DEFAULT_IMAGE_LABEL)} · 📚 ${l.page2?.comprehension?.questions?.length || 0} questions ${l.showImagePage ? '· 🖼️ Image Page' : ''} ${l.showReadingImageBox ? '· 📷 Reading Image' : ''} ${l.useSprite ? '· 🧩 Sprite' : ''}</div>
+            </div>
+            <div class="actions">
+              <button class="btn btn-primary btn-xs" onclick="editLesson('${l.id}')" title="Edit">✏️</button>
+              <button class="btn btn-warning btn-xs" onclick="duplicateLesson('${l.id}')" title="Duplicate">📋</button>
+              <button class="btn btn-danger btn-xs" onclick="deleteLesson('${l.id}')" title="Delete">🗑️</button>
+            </div>
+          </div>`).join('') : '<div class="empty-state"><div class="icon">📭</div><h3>No lessons found</h3></div>';
+        document.getElementById('listCount').textContent = filtered.length + ' / ' + lessons.length;
+        updateCounts();
+      }
+
+      function updateCounts() {
+        document.getElementById('lessonCount').textContent = lessons.length + ' lessons';
+        const activeLessons = lessons.filter(l => l.title.trim());
+        const sightPages = bookMeta.sightWords.enabled ? parseSightWords(bookMeta.sightWords.rawText).length : 0;
+        const tocPages = (bookMeta.showToc && activeLessons.length) ? Math.ceil(activeLessons.length / MAX_TOC_PER_PAGE) : 0;
+        let lessonPages = 0;
+        activeLessons.forEach(l => { lessonPages += l.showImagePage ? 3 : 2; });
+        const totalPages = 1 + sightPages + tocPages + lessonPages;
+        document.getElementById('viewInfo').textContent = `📄 ${lessons.length} lessons · ${totalPages} pages (${escapeHtml(bookMeta.grade)}) · Sight Words: ${sightPages} pages`;
+      }
+
+      function refreshUI() { renderEditList(); renderAllView(); updateCounts(); renderSpriteSheetsList(); }
+
+      // ---------- TOC Preview ----------
+      function renderTocPreview() {
+        const container = document.getElementById('tocPreview');
+        if (!container) return;
+        if (!bookMeta.showToc) {
+          container.innerHTML = '<p style="color:#64748b; font-style:italic;">Table of Contents is disabled.</p>';
+          return;
+        }
+        const activeLessons = lessons.filter(l => l.title.trim());
+        if (!activeLessons.length) {
+          container.innerHTML = '<p style="color:#64748b;">No active lessons.</p>';
+          return;
+        }
+        const sightPages = bookMeta.sightWords.enabled ? parseSightWords(bookMeta.sightWords.rawText).length : 0;
+        const tocPageCount = Math.ceil(activeLessons.length / MAX_TOC_PER_PAGE);
+        const firstLessonPage = 1 + sightPages + tocPageCount + 1;
+        let runningPage = firstLessonPage;
+        let html = '<ul style="list-style:none;padding:0;margin:0;">';
+        activeLessons.forEach(l => {
+          html += `<li style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #e2e8f0;"><span>Lesson ${l.lessonNumber}: ${escapeHtml(l.title)}</span><span style="color:#b91c1c;font-weight:700;">Page ${runningPage}</span></li>`;
+          runningPage += l.showImagePage ? 3 : 2;
+        });
+        html += '</ul>';
+        container.innerHTML = html;
+      }
+
+      window.switchTab = function(tab) {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === tab+'Panel'));
+        if (tab === 'edit') { renderEditList(); renderThumbnail(); populateSpriteSheetSelect(); }
+        if (tab === 'view') renderAllView();
+        if (tab === 'book') {
+          document.getElementById('coverTitleInput').value = bookMeta.title;
+          document.getElementById('coverSubtitleInput').value = bookMeta.subtitle;
+          document.getElementById('globalGradeInput').value = bookMeta.grade;
+          document.getElementById('tocToggle').checked = bookMeta.showToc;
+          document.getElementById('sightWordsToggle').checked = bookMeta.sightWords.enabled;
+          document.getElementById('sightWordsTitle').value = bookMeta.sightWords.title;
+          document.getElementById('sightColumns').value = bookMeta.sightWords.columns;
+          document.getElementById('sightWordsText').value = bookMeta.sightWords.rawText;
+          toggleSightWordsFields();
+          renderSpriteSheetsList();
+          renderEditList();
+          renderTocPreview();
+        }
+        if (tab !== 'view') previewLessonOverride = null;
+        updateCounts();
+      };
+
+      window.toggleSightWordsFields = function() {
+        const enabled = document.getElementById('sightWordsToggle').checked;
+        document.getElementById('sightWordsFields').style.display = enabled ? 'block' : 'none';
+      };
+
+      // ---------- Initialization ----------
+      async function initApp() {
+        await loadData();
+
+        document.getElementById('app').innerHTML = `
+          <div class="app-header"><h1><span class="icon">📖</span> Decodable Reader Publisher</h1><span class="badge" id="lessonCount">0</span></div>
+          <div class="tabs">
+            <button class="tab-btn active" data-tab="edit" onclick="switchTab('edit')">✏️ Edit Readers</button>
+            <button class="tab-btn" data-tab="book" onclick="switchTab('book')">📘 Book Setup</button>
+            <button class="tab-btn" data-tab="view" onclick="switchTab('view')">👁️ Preview &amp; Export</button>
+          </div>
+          <div class="tab-panel active" id="editPanel">
+            <div class="form-section">
+              <h2 id="formTitle"><span class="dot"></span> Add New Reader</h2>
+              <div class="thumbnail-wrapper">
+                <div class="thumb-label">📄 Live Preview (All Pages)</div>
+                <div class="thumbnail-container" id="thumbnailContainer"></div>
+              </div>
+              <div class="form-row">
+                <div class="form-group"><label>Title <span class="req">*</span></label><input id="fTitle" placeholder="e.g. Ben's Camping Trip" oninput="renderThumbnail()"></div>
+                <div class="form-group"><label>Lesson Number (auto)</label><input id="fLessonNumber" type="number" readonly style="background:#f0f0f0;"></div>
+                <div class="form-group"><label>Image</label>
+                  <div class="image-upload-wrap">
+                    <img id="imagePreview" class="preview" style="display:none;">
+                    <div id="imagePreviewPlaceholder" class="preview-placeholder">🖼️</div>
+                    <input type="file" id="imageUploadFile" accept="image/*" onchange="handleImageUpload(event)">
+                    <input type="hidden" id="fImageUrl">
+                  </div>
+                </div>
+              </div>
+              <div class="form-group"><label>Image Label (overlay on image)</label><input id="fImageLabel" placeholder="e.g. Let's read together!" value="${escapeHtml(DEFAULT_IMAGE_LABEL)}" oninput="renderThumbnail()"></div>
+              <div class="form-group"><label>Full-Page Image Label (overlay on image page)</label><input id="fImagePageLabel" placeholder="e.g. Picture Page" value="${escapeHtml(DEFAULT_IMAGE_PAGE_LABEL)}" oninput="renderThumbnail()"></div>
+              <div class="form-group" style="display:flex;align-items:center;gap:10px;margin-top:16px;">
+                <input type="checkbox" id="readingImageToggle" onchange="toggleReadingImage(this.checked)" style="width:18px;height:18px;accent-color:#f59e0b;">
+                <label for="readingImageToggle" style="margin:0;font-weight:600;">Include image box on reading page</label>
+              </div>
+              <div class="form-group"><label>Target Sound <span class="req">*</span></label><input id="fTargetSound" placeholder="short e (/ɛ/)" oninput="renderThumbnail()"></div>
+              <div class="form-group"><label>Story Text <span class="req">*</span></label><textarea id="fStory" rows="8" placeholder="One sentence per line..." oninput="renderThumbnail()"></textarea></div>
+              <div class="form-group" style="display:flex;align-items:center;gap:10px;margin-top:16px;">
+                <input type="checkbox" id="imagePageToggle" onchange="toggleImagePage(this.checked)" style="width:18px;height:18px;accent-color:#f59e0b;">
+                <label for="imagePageToggle" style="margin:0;font-weight:600;">Include full-page image placeholder before reading page</label>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Image Page Width (px)</label>
+                  <input type="number" id="imagePageWidthInput" min="50" max="800" value="${DEFAULT_IMAGE_PAGE_WIDTH}" onchange="updateImagePageWidth(this.value)">
+                </div>
+                <div class="form-group">
+                  <label>Image Page Height (px)</label>
+                  <input type="number" id="imagePageHeightInput" min="50" max="1000" value="${DEFAULT_IMAGE_PAGE_HEIGHT}" onchange="updateImagePageHeight(this.value)">
+                </div>
+              </div>
+              <div class="form-group" style="display:flex;align-items:center;gap:10px;margin-top:16px;">
+                <input type="checkbox" id="spriteToggle" onchange="toggleSprite(this.checked)" style="width:18px;height:18px;accent-color:#f59e0b;">
+                <label for="spriteToggle" style="margin:0;font-weight:600;">Use sprite sheet for image</label>
+              </div>
+              <div id="spriteFields" style="display:none;margin-top:8px;">
+                <div class="form-group">
+                  <label>Sprite Sheet</label>
+                  <select id="spriteSheetSelect" onchange="updateSpriteSheet(this.value)"></select>
+                </div>
+                <div class="form-row">
+                  <div class="form-group"><label>Crop X</label><input type="number" id="spriteCropX" min="0" value="0" onchange="updateSpriteCropX(this.value)"></div>
+                  <div class="form-group"><label>Crop Y</label><input type="number" id="spriteCropY" min="0" value="0" onchange="updateSpriteCropY(this.value)"></div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group"><label>Crop Width</label><input type="number" id="spriteCropWidth" min="1" value="0" onchange="updateSpriteCropWidth(this.value)"></div>
+                  <div class="form-group"><label>Crop Height</label><input type="number" id="spriteCropHeight" min="1" value="0" onchange="updateSpriteCropHeight(this.value)"></div>
+                </div>
+              </div>
+              <hr style="margin:16px 0;border-color:#e2e8f0;">
+              <h4 style="margin-bottom:12px;">📋 Page 2 Activities</h4>
+              <div class="form-group" style="display:flex;align-items:center;gap:10px;">
+                <input type="checkbox" id="compToggle" onchange="toggleSection('comp', this.checked)" style="width:18px;height:18px;accent-color:#f59e0b;">
+                <label for="compToggle" style="margin:0;font-weight:600;">Comprehension Section</label>
+              </div>
+              <div id="compQuestionsContainer" style="margin-bottom:16px;"></div>
+              <button class="btn btn-outline btn-sm" onclick="addQuestion()">+ Add Question</button>
+              <hr style="margin:16px 0;border-color:#e2e8f0;">
+              <div class="form-group" style="display:flex;align-items:center;gap:10px;">
+                <input type="checkbox" id="findSoundToggle" onchange="toggleSection('findSound', this.checked)" style="width:18px;height:18px;accent-color:#f59e0b;">
+                <label for="findSoundToggle" style="margin:0;font-weight:600;">Find Sound Section</label>
+              </div>
+              <div class="form-group">
+                <label>Find Sound Instruction</label>
+                <textarea id="findSoundInstruction" rows="2" onchange="updateFindSoundInstruction(this.value)"></textarea>
+              </div>
+              <hr style="margin:16px 0;border-color:#e2e8f0;">
+              <div class="form-group" style="display:flex;align-items:center;gap:10px;">
+                <input type="checkbox" id="sentenceToggle" onchange="toggleSection('sentence', this.checked)" style="width:18px;height:18px;accent-color:#f59e0b;">
+                <label for="sentenceToggle" style="margin:0;font-weight:600;">Sentence Writing Section</label>
+              </div>
+              <div class="form-group">
+                <label>Sentence Writing Instruction</label>
+                <textarea id="sentenceInstruction" rows="2" onchange="updateSentenceInstruction(this.value)"></textarea>
+              </div>
+              <div class="form-group">
+                <label>Number of Lines</label>
+                <input type="number" id="sentenceLines" min="1" max="10" value="1" onchange="updateSentenceLines(this.value)">
+              </div>
+              <div class="form-actions">
+                <button class="btn btn-primary" id="saveBtn" onclick="saveLesson()">💾 Save Lesson</button>
+                <button class="btn btn-outline" id="cancelBtn" onclick="cancelEdit()" style="display:none">Cancel</button>
+                <button class="btn btn-outline" id="viewLessonBtn" onclick="viewLessonFromEdit()" style="display:none">👁️ View Lesson</button>
+              </div>
+            </div>
+          </div>
+          <div class="tab-panel" id="bookPanel">
+            <div style="max-width:900px;margin:0 auto;">
+              <h2 style="margin-bottom:20px;">📘 Book Cover &amp; Setup</h2>
+              <div class="form-section" style="position:static;max-height:none;margin-bottom:24px;">
+                <div class="form-group"><label>Cover Title</label><input id="coverTitleInput" value="${escapeHtml(bookMeta.title)}"></div>
+                <div class="form-group"><label>Cover Subtitle</label><input id="coverSubtitleInput" value="${escapeHtml(bookMeta.subtitle)}"></div>
+                <div class="form-group"><label>Global Grade</label><input id="globalGradeInput" value="${escapeHtml(bookMeta.grade)}" placeholder="e.g. 1, 2, K"></div>
+                <div class="form-group" style="display:flex;align-items:center;gap:12px;margin-top:16px;">
+                  <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600;font-size:14px;">
+                    <input type="checkbox" id="tocToggle" style="width:18px;height:18px;accent-color:#f59e0b;"> Include Table of Contents
+                  </label>
+                </div>
+                <hr style="margin:20px 0;border-color:#e2e8f0;">
+                <div class="form-group" style="display:flex;align-items:center;gap:12px;">
+                  <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600;font-size:14px;">
+                    <input type="checkbox" id="sightWordsToggle" onchange="toggleSightWordsFields()" style="width:18px;height:18px;accent-color:#f59e0b;"> Include Sight Words Pages
+                  </label>
+                </div>
+                <div id="sightWordsFields" style="display:none;">
+                  <div class="form-group">
+                    <label>Sight Words Page Title</label>
+                    <input id="sightWordsTitle" value="${escapeHtml(bookMeta.sightWords.title)}" placeholder="e.g. Sight Words">
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label>Columns (2-6)</label>
+                      <input type="number" id="sightColumns" min="${MIN_SIGHT_COLUMNS}" max="${MAX_SIGHT_COLUMNS}" value="${bookMeta.sightWords.columns}" onchange="this.value = Math.min(Math.max(parseInt(this.value) || ${DEFAULT_SIGHT_COLUMNS}, ${MIN_SIGHT_COLUMNS}), ${MAX_SIGHT_COLUMNS})">
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label>Sight Words (comma separated, line breaks create new pages)</label>
+                    <textarea id="sightWordsText" rows="6" placeholder="Example:&#10;the, and, you, was&#10;for, are, with, his&#10;they, I, at, be, this">${escapeHtml(bookMeta.sightWords.rawText)}</textarea>
+                  </div>
+                </div>
+                <hr style="margin:20px 0;border-color:#e2e8f0;">
+                <h3>🧩 Sprite Sheets</h3>
+                <div class="sprite-sheet-upload" style="margin-bottom:10px;">
+                  <input type="file" id="spriteSheetFile" accept="image/*" onchange="addSpriteSheet(this)">
+                  <label for="spriteSheetFile" class="btn btn-outline btn-sm">Upload Sprite Sheet</label>
+                </div>
+                <div id="spriteSheetsList" style="margin-top:10px;"></div>
+                <button class="btn btn-primary" onclick="saveBookMeta()">💾 Save Cover, TOC &amp; Sprite Settings</button>
+              </div>
+
+              <div class="list-section">
+                <h2>📖 All Readers</h2>
+                <div class="list-toolbar">
+                  <input class="search-box" id="searchInput" placeholder="🔍 Search..." oninput="window.searchQuery=this.value;renderEditList()">
+                  <span class="count" id="listCount">0/0</span>
+                  <button class="btn btn-success btn-sm" onclick="exportJSON()">📤 Export JSON</button>
+                  <button class="btn btn-outline btn-sm" onclick="document.getElementById('importFile').click()">📥 Import</button>
+                  <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(this)">
+                </div>
+                <div class="lesson-list" id="lessonList"></div>
+              </div>
+            </div>
+          </div>
+          <div class="tab-panel" id="viewPanel">
+            <div class="view-toolbar"><span class="info" id="viewInfo">0 lessons</span><button class="btn btn-success" onclick="exportAllPages()">⬇ Export All</button></div>
+            <div class="view-container" id="viewContainer"></div>
+          </div>`;
+
+        // Initialize UI after DOM insertion
+        populateSpriteSheetSelect();
+        toggleSpriteFields();
+        renderSpriteSheetsList();
+        document.getElementById('sightWordsToggle').checked = bookMeta.sightWords.enabled;
+        document.getElementById('sightWordsTitle').value = bookMeta.sightWords.title;
+        document.getElementById('sightColumns').value = bookMeta.sightWords.columns;
+        document.getElementById('sightWordsText').value = bookMeta.sightWords.rawText;
+        toggleSightWordsFields();
+
+        resetForm();
+        renderEditList();
+        renderAllView();
+        updateCounts();
+        renderTocPreview();
+
+        const list = document.getElementById('lessonList');
+        list.addEventListener('dragstart', e => {
+          const item = e.target.closest('.lesson-item');
+          if (item) { item.classList.add('dragging'); e.dataTransfer.setData('text/plain', item.dataset.id); }
+        });
+        list.addEventListener('dragend', e => {
+          const item = e.target.closest('.lesson-item');
+          if (item) item.classList.remove('dragging');
+          list.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+        });
+        list.addEventListener('dragover', e => {
+          e.preventDefault();
+          const target = e.target.closest('.lesson-item');
+          list.querySelectorAll('.drag-over').forEach(el => { if (el !== target) el.classList.remove('drag-over'); });
+          if (target && !target.classList.contains('dragging')) target.classList.add('drag-over');
+        });
+        list.addEventListener('dragleave', e => {
+          const target = e.target.closest('.lesson-item');
+          if (target) target.classList.remove('drag-over');
+        });
+        list.addEventListener('drop', e => {
+          e.preventDefault();
+          list.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+          const id = e.dataTransfer.getData('text/plain');
+          const target = e.target.closest('.lesson-item');
+          if (id && target && target.dataset.id !== id) {
+            const fromIdx = lessons.findIndex(l => l.id === id);
+            const toIdx = lessons.findIndex(l => l.id === target.dataset.id);
+            if (fromIdx !== -1 && toIdx !== -1) {
+              const [moved] = lessons.splice(fromIdx, 1);
+              lessons.splice(toIdx, 0, moved);
+              renumberByOrder(lessons);
+              saveData(); refreshUI(); showToast('Order updated.', 'info');
+            }
+          }
+        });
+
+        renderThumbnail();
+      }
+
+      initApp();
+    })();
+  </script>
+</body>
+</html>
