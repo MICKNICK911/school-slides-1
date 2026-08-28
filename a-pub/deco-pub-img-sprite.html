@@ -1359,36 +1359,31 @@
         builders.push({ label: 'Page 2', builder: () => buildPageTwo(tempLesson, 3) });
 
         builders.forEach(item => {
-          try {
-            const wrapper = document.createElement('div');
-            wrapper.className = 'thumb-page-wrapper';
-            const label = document.createElement('div');
-            label.className = 'thumb-label-small';
-            label.textContent = item.label;
-            const pageEl = item.builder();
-            const actions = pageEl.querySelector('.page-actions');
-            if (actions) actions.remove();
-            pageEl.style.transform = 'scale(0.25)';
-            pageEl.style.transformOrigin = 'top left';
-            pageEl.style.position = 'absolute';
-            pageEl.style.top = '0';
-            pageEl.style.left = '0';
-            pageEl.style.width = '850px';
-            pageEl.style.minWidth = '850px';
-            pageEl.style.minHeight = '1100px';
-            pageEl.style.height = '1100px';
-            pageEl.style.padding = '30px 35px';
-            pageEl.style.margin = '0';
-            pageEl.style.borderRadius = '0';
-            pageEl.style.boxShadow = 'none';
-            pageEl.style.pageBreakAfter = 'auto';
-            pageEl.style.pointerEvents = 'none';
-            wrapper.appendChild(pageEl);
-            wrapper.appendChild(label);
-            container.appendChild(wrapper);
-          } catch (err) {
-            console.warn('Thumbnail builder error:', err);
-          }
+          const wrapper = document.createElement('div');
+          wrapper.className = 'thumb-page-wrapper';
+          const label = document.createElement('div');
+          label.className = 'thumb-label-small';
+          label.textContent = item.label;
+          const pageEl = item.builder();
+          const actions = pageEl.querySelector('.page-actions');
+          if (actions) actions.remove();
+          pageEl.style.transform = 'scale(0.25)';
+          pageEl.style.transformOrigin = 'top left';
+          pageEl.style.position = 'absolute';
+          pageEl.style.top = '0';
+          pageEl.style.left = '0';
+          pageEl.style.width = '850px';
+          pageEl.style.minWidth = '850px';
+          pageEl.style.minHeight = '1100px';
+          pageEl.style.height = '1100px';
+          pageEl.style.padding = '30px 35px';
+          pageEl.style.margin = '0';
+          pageEl.style.borderRadius = '0';
+          pageEl.style.boxShadow = 'none';
+          pageEl.style.pageBreakAfter = 'auto';
+          wrapper.appendChild(pageEl);
+          wrapper.appendChild(label);
+          container.appendChild(wrapper);
         });
       }
 
