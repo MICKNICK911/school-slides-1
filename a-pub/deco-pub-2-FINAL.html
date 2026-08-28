@@ -644,7 +644,7 @@
         const card = document.createElement('div'); card.className = 'card';
         const inner = document.createElement('div'); inner.className = 'inner-pad';
 
-        let html = `<div class="header-row"><div class="header-lesson">LESSON <span>${escapeHtml(lesson.lessonNumber)}</span></div><div class="header-title">Reading Practice</div><div class="header-grade">Grade ${escapeHtml(bookMeta.grade)}</div></div>`;
+        let html = `<div class="header-row"><div class="header-lesson">LESSON <span>${escapeHtml(lesson.lessonNumber)}</span></div><div class="header-title">Reading Practice</div><div class="header-grade">${escapeHtml(bookMeta.grade)}</div></div>`;
 
         if (lesson.showReadingImageBox) {
           html += `<div class="title-image-row"><div class="title-side"><div class="story-title">${escapeHtml(lesson.title)}</div><div class="target-pill">Target Sound: ${escapeHtml(lesson.targetSound)}</div></div>
@@ -687,7 +687,7 @@
         const lastEnabledIndex = sectionArray.lastIndexOf(true);
         const findSoundIsLast = lastEnabledIndex === 1;
 
-        let html = `<div class="header-row"><div class="header-lesson">LESSON <span>${escapeHtml(lesson.lessonNumber)}</span></div><div class="header-title">Comprehension &amp; Phonics</div><div class="header-grade">Grade ${escapeHtml(bookMeta.grade)}</div></div>`;
+        let html = `<div class="header-row"><div class="header-lesson">LESSON <span>${escapeHtml(lesson.lessonNumber)}</span></div><div class="header-title">Comprehension &amp; Phonics</div><div class="header-grade">${escapeHtml(bookMeta.grade)}</div></div>`;
 
         if (compEnabled) {
           html += `<div class="comp-section"><div class="comp-header">A. Comprehension – Choose the best answer.</div>`;
@@ -1367,7 +1367,7 @@
             <span class="drag-handle" title="Drag to reorder">⋮⋮</span>
             <div class="info">
               <div class="title">Lesson ${l.lessonNumber} — ${escapeHtml(l.title)}</div>
-              <div class="sub">🎯 ${escapeHtml(l.targetSound)} · 📝 ${l.storyLines.length} lines · 🏫 Grade ${escapeHtml(bookMeta.grade)} · 🖼️ ${escapeHtml(l.imageLabel || DEFAULT_IMAGE_LABEL)} · 📚 ${l.page2?.comprehension?.questions?.length || 0} questions ${l.showImagePage ? '· 🖼️ Image Page' : ''} ${l.showReadingImageBox ? '· 📷 Reading Image' : ''}</div>
+              <div class="sub">🎯 ${escapeHtml(l.targetSound)} · 📝 ${l.storyLines.length} lines · 🏫 ${escapeHtml(bookMeta.grade)} · 🖼️ ${escapeHtml(l.imageLabel || DEFAULT_IMAGE_LABEL)} · 📚 ${l.page2?.comprehension?.questions?.length || 0} questions ${l.showImagePage ? '· 🖼️ Image Page' : ''} ${l.showReadingImageBox ? '· 📷 Reading Image' : ''}</div>
             </div>
             <div class="actions">
               <button class="btn btn-primary btn-xs" onclick="editLesson('${l.id}')" title="Edit">✏️</button>
@@ -1387,7 +1387,7 @@
         let lessonPages = 0;
         activeLessons.forEach(l => { lessonPages += l.showImagePage ? 3 : 2; });
         const totalPages = 1 + sightPages + tocPages + lessonPages;
-        document.getElementById('viewInfo').textContent = `📄 ${lessons.length} lessons · ${totalPages} pages (Grade ${bookMeta.grade}) · Sight Words: ${sightPages} pages`;
+        document.getElementById('viewInfo').textContent = `📄 ${lessons.length} lessons · ${totalPages} pages (${escapeHtml(bookMeta.grade)}) · Sight Words: ${sightPages} pages`;
       }
 
       function refreshUI() { renderEditList(); renderAllView(); updateCounts(); }
