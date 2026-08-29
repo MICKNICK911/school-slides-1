@@ -341,24 +341,31 @@
       min-width: 850px;
       min-height: 1100px;
       height: 1100px;
-      padding: 18px 24px;
+      max-height: 1100px;
+      padding: 16px 22px;
       position: relative;
       page-break-after: always;
+      page-break-inside: avoid;
       margin: 0 auto 28px;
       background: #fff;
       border-radius: 6px;
       box-shadow: 0 4px 18px rgba(0,0,0,0.06);
+      overflow: hidden;
+      box-sizing: border-box;
     }
-    .view-container .page:last-child { margin-bottom: 0; }
+    .view-container .page:last-child {
+      margin-bottom: 0;
+      page-break-after: auto;
+    }
 
     /* Unified card chrome — same for Structured and Code */
     .view-container .card {
       border: 4px solid #E2571C;
       border-radius: 12px;
       width: 100%;
-      height: 1060px;
-      min-height: 1060px;
-      max-height: 1060px;
+      height: 1068px;
+      min-height: 1068px;
+      max-height: 1068px;
       padding: 0;
       position: relative;
       overflow: hidden;
@@ -367,6 +374,7 @@
       background: #fff;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
+      box-sizing: border-box;
     }
 
     /* Structured header */
@@ -664,7 +672,9 @@
       justify-content: center;
       align-items: center;
       font-family: 'Times New Roman', Times, serif;
-      height: 1060px;
+      height: 1068px;
+      min-height: 1068px;
+      max-height: 1068px;
       border: 3px solid #F5A623;
       border-radius: 24px;
     }
@@ -696,10 +706,14 @@
     .toc-card {
       border: 3px solid #F5A623;
       border-radius: 24px;
-      height: 1060px;
+      height: 1068px;
+      min-height: 1068px;
+      max-height: 1068px;
       padding: 26px 36px;
       position: relative;
       font-family: 'Times New Roman', Times, serif;
+      overflow: hidden;
+      box-sizing: border-box;
     }
     .toc-title {
       font-size: 26px;
@@ -764,8 +778,12 @@
     .view-container .card.sight-card {
       border: 3px solid #F5A623;
       border-radius: 24px;
-      height: 1060px;
+      height: 1068px;
+      min-height: 1068px;
+      max-height: 1068px;
       padding: 20px 28px;
+      overflow: hidden;
+      box-sizing: border-box;
     }
     .view-container .title {
       font-size: 26px;
@@ -808,17 +826,18 @@
 
     /* Code page content area (inside the shared card) */
     .code-content-area {
-      flex: 1;
+      flex: 1 1 auto;
       overflow: hidden;
       position: relative;
       width: 100%;
-      height: 100%;
+      min-height: 0;
     }
     .code-content-area .code-inner {
       width: 100%;
       height: 100%;
       overflow: auto;
       padding: 16px 20px;
+      box-sizing: border-box;
     }
 
     .view-toolbar {
@@ -836,7 +855,14 @@
       font-size: 13px;
       margin-right: auto;
     }
-    .page-actions { text-align: right; margin-bottom: 6px; }
+    .page-actions {
+      position: absolute;
+      top: 4px;
+      right: 8px;
+      z-index: 5;
+      text-align: right;
+      margin: 0;
+    }
     .export-btn {
       background: #E2571C;
       color: #fff;
@@ -883,16 +909,18 @@
       min-width: 850px;
       min-height: 1100px;
       height: 1100px;
-      padding: 18px 24px;
+      max-height: 1100px;
+      padding: 16px 22px;
       margin: 0;
       border-radius: 0;
       box-shadow: none;
       page-break-after: auto;
+      overflow: hidden;
     }
 
     /* Print */
     @media print {
-      body { padding: 0; background: #fff; }
+      body { padding: 0; background: #fff; margin: 0; }
       .app-header, .tabs, .tab-panel, .form-section, .list-section,
       .view-toolbar, .no-print, .page-actions, .thumbnail-wrapper,
       .modal-overlay, .toast-container { display: none !important; }
@@ -901,17 +929,27 @@
       #viewPanel .view-container .page {
         box-shadow: none !important;
         border-radius: 0 !important;
-        margin: 0 auto !important;
-        padding: 12px !important;
+        margin: 0 !important;
+        padding: 16px 22px !important;
         width: 850px !important;
         min-width: 850px !important;
         min-height: 1100px !important;
         height: 1100px !important;
+        max-height: 1100px !important;
         page-break-after: always;
+        page-break-inside: avoid;
         background: #fff !important;
+        overflow: hidden !important;
       }
       #viewPanel .view-container .page .page-actions { display: none !important; }
-      #viewPanel .view-container .page:last-child { page-break-after: auto; }
+      #viewPanel .view-container .page:last-child {
+        page-break-after: auto !important;
+      }
+      #viewPanel .view-container .card {
+        height: 1068px !important;
+        min-height: 1068px !important;
+        max-height: 1068px !important;
+      }
       #viewPanel .view-container .card,
       .todays-sound-header,
       .cvc-header-right,
@@ -949,7 +987,7 @@
     const HISTORY_LIMIT = 60;
     const PAGE_W = 850;
     const PAGE_H = 1100;
-    const CARD_H = 1060;
+    const CARD_H = 1068;
 
     // ========== STORAGE ==========
     let dbPromise = null;
@@ -1526,23 +1564,44 @@
       const card = document.createElement('div');
       card.className = 'card';
 
-      // Content area with user background
+      // Content area with user background — fills the card
       const contentArea = document.createElement('div');
       contentArea.className = 'code-content-area';
       contentArea.style.background = page.contentBackground || '#ffffff';
 
-      const scopeClass = 'scope-' + String(page.id || 'x').replace(/[^a-zA-Z0-9]/g, '');
+      const scopeClass = 'scope-' + String(page.id || 'preview').replace(/[^a-zA-Z0-9]/g, '');
       contentArea.classList.add(scopeClass);
 
-      const scopedCSS = sanitizeCSS(page.css || '').split('}').map(rule => {
-        if (!rule.trim()) return rule;
-        const parts = rule.split('{');
-        if (parts.length === 2) {
-          const selectors = parts[0].split(',').map(s => `.${scopeClass} ${s.trim()}`).join(', ');
-          return `${selectors} {${parts[1]}}`;
+      // More robust CSS scoping (handles basic rules; ignores @rules that break simple split)
+      const rawCSS = sanitizeCSS(page.css || '');
+      let scopedCSS = '';
+      try {
+        // Split on } but keep simple rules intact
+        const chunks = rawCSS.split('}');
+        for (let i = 0; i < chunks.length; i++) {
+          const chunk = chunks[i].trim();
+          if (!chunk) continue;
+          const brace = chunk.indexOf('{');
+          if (brace === -1) {
+            // leftover or @rule without block — skip dangerous, keep safe at-rules lightly
+            if (chunk.startsWith('@')) scopedCSS += chunk + '}';
+            continue;
+          }
+          const selectors = chunk.slice(0, brace).trim();
+          const body = chunk.slice(brace + 1).trim();
+          if (!selectors) continue;
+          const scopedSelectors = selectors.split(',').map(s => {
+            s = s.trim();
+            if (!s) return s;
+            // Don't double-scope if already has the class
+            if (s.includes('.' + scopeClass)) return s;
+            return `.${scopeClass} ${s}`;
+          }).filter(Boolean).join(', ');
+          scopedCSS += `${scopedSelectors} { ${body} }\n`;
         }
-        return rule;
-      }).join('}');
+      } catch (e) {
+        scopedCSS = rawCSS;
+      }
 
       const style = document.createElement('style');
       style.textContent = scopedCSS;
@@ -1635,20 +1694,27 @@
     window.exportSinglePage = function (pageEl) {
       const cloneEl = pageEl.cloneNode(true);
       cloneEl.querySelector('.page-actions')?.remove();
+      // Ensure no trailing break on a single page
+      cloneEl.style.pageBreakAfter = 'auto';
       const win = window.open('', '_blank');
       if (!win) return showToast('Popup blocked. Allow pop-ups to export/print.', 'warning');
       const styleEl = document.querySelector('style');
       if (!styleEl) return showToast('Export styles unavailable.', 'error');
-      win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Export</title>${styleEl.outerHTML}</head>
+      const extra = `<style>
+        html, body { margin:0; padding:0; background:#fff; }
+        .view-container .page { page-break-after: auto !important; margin: 0 auto !important; }
+        .page-actions { display: none !important; }
+      </style>`;
+      win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Export</title>${styleEl.outerHTML}${extra}</head>
         <body style="padding:0;background:#fff;margin:0;display:flex;justify-content:center;">
           <div class="view-container" style="overflow:visible;display:flex;flex-direction:column;align-items:center;">
             ${cloneEl.outerHTML}
           </div>
         </body></html>`);
       win.document.close();
-      const doPrint = () => { win.focus(); win.print(); };
+      const doPrint = () => { try { win.focus(); win.print(); } catch (_) {} };
       win.onload = doPrint;
-      setTimeout(doPrint, 400);
+      setTimeout(doPrint, 450);
     };
 
     window.exportAllPages = function () {
@@ -1657,18 +1723,28 @@
       if (!container) return;
       const cloneEl = container.cloneNode(true);
       cloneEl.querySelectorAll('.page-actions').forEach(el => el.remove());
+      // Last page must not force a break
+      const pageNodes = cloneEl.querySelectorAll('.page');
+      if (pageNodes.length) {
+        pageNodes[pageNodes.length - 1].style.pageBreakAfter = 'auto';
+      }
       const win = window.open('', '_blank');
       if (!win) return showToast('Popup blocked. Allow pop-ups to print.', 'warning');
       const styleEl = document.querySelector('style');
       if (!styleEl) return showToast('Export styles unavailable.', 'error');
-      win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>All Pages</title>${styleEl.outerHTML}</head>
+      const extra = `<style>
+        html, body { margin:0; padding:0; background:#fff; }
+        .view-container .page:last-child { page-break-after: auto !important; }
+        .page-actions { display: none !important; }
+      </style>`;
+      win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>All Pages</title>${styleEl.outerHTML}${extra}</head>
         <body style="padding:0;background:#fff;margin:0;">
           <div class="view-container" style="overflow:visible;display:block;">${cloneEl.innerHTML}</div>
         </body></html>`);
       win.document.close();
-      const doPrint = () => { win.focus(); win.print(); };
+      const doPrint = () => { try { win.focus(); win.print(); } catch (_) {} };
       win.onload = doPrint;
-      setTimeout(doPrint, 400);
+      setTimeout(doPrint, 450);
     };
 
     // ========== VIEW ==========
@@ -1910,47 +1986,65 @@
       const container = document.getElementById('thumbnailContainer');
       if (!container) return;
 
-      const pageType = document.getElementById('pageTypeSelect')?.value || 'structured';
+      const pageType = document.getElementById('pageTypeSelect')?.value || tempPageType || 'structured';
       let pageEl;
 
-      if (pageType === 'structured') {
-        const tempPage = {
-          type: 'structured',
-          mainTitle: document.getElementById('fMainTitle')?.value || 'Untitled',
-          subtitle: document.getElementById('fSubtitle')?.value || 'SHORT VOWEL',
-          sections: clone(tempSections)
-        };
-        pageEl = buildStructuredPage(tempPage, 1);
-      } else {
-        const tempPage = {
-          type: 'code',
-          id: 'preview',
-          html: document.getElementById('codeHTML')?.value || '',
-          css: document.getElementById('codeCSS')?.value || '',
-          contentBackground: document.getElementById('codeBg')?.value || '#ffffff'
-        };
-        pageEl = buildCodePage(tempPage, 1);
+      try {
+        if (pageType === 'structured') {
+          const tempPage = {
+            type: 'structured',
+            mainTitle: document.getElementById('fMainTitle')?.value || 'Untitled',
+            subtitle: document.getElementById('fSubtitle')?.value || 'SHORT VOWEL',
+            sections: clone(tempSections)
+          };
+          pageEl = buildStructuredPage(tempPage, 1);
+        } else {
+          const tempPage = {
+            type: 'code',
+            id: 'preview',
+            html: document.getElementById('codeHTML')?.value || '',
+            css: document.getElementById('codeCSS')?.value || '',
+            contentBackground: document.getElementById('codeBg')?.value || '#ffffff'
+          };
+          pageEl = buildCodePage(tempPage, 1);
+        }
+      } catch (err) {
+        console.error('Thumbnail build error:', err);
+        container.innerHTML = '<div style="padding:20px;color:#dc3545;font-size:13px;">Preview error</div>';
+        return;
       }
 
       pageEl.querySelector('.page-actions')?.remove();
-      pageEl.style.transform = 'scale(0.4)';
-      pageEl.style.transformOrigin = 'top left';
-      pageEl.style.position = 'absolute';
-      pageEl.style.top = '0';
-      pageEl.style.left = '0';
-      pageEl.style.width = PAGE_W + 'px';
-      pageEl.style.minWidth = PAGE_W + 'px';
-      pageEl.style.minHeight = PAGE_H + 'px';
-      pageEl.style.height = PAGE_H + 'px';
-      pageEl.style.padding = '18px 24px';
-      pageEl.style.margin = '0';
-      pageEl.style.borderRadius = '0';
-      pageEl.style.boxShadow = 'none';
-      pageEl.style.pageBreakAfter = 'auto';
+      // Apply thumbnail transform styles
+      Object.assign(pageEl.style, {
+        transform: 'scale(0.4)',
+        transformOrigin: 'top left',
+        position: 'absolute',
+        top: '0',
+        left: '0',
+        width: PAGE_W + 'px',
+        minWidth: PAGE_W + 'px',
+        minHeight: PAGE_H + 'px',
+        height: PAGE_H + 'px',
+        maxHeight: PAGE_H + 'px',
+        padding: '16px 22px',
+        margin: '0',
+        borderRadius: '0',
+        boxShadow: 'none',
+        pageBreakAfter: 'auto',
+        overflow: 'hidden'
+      });
 
+      // Clear and append (forces fresh DOM + styles)
       container.innerHTML = '';
       container.appendChild(pageEl);
+
+      // Force a reflow so scoped <style> tags inside code pages apply immediately
+      void container.offsetHeight;
     }
+
+    // Expose for inline oninput / onchange handlers in the form HTML
+    window.renderThumbnail = renderThumbnail;
 
     function fillForm(page) {
       document.getElementById('pageTypeSelect').value = page.type;
