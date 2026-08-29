@@ -1234,5 +1234,406 @@
             initApp();
         })();
     </script>
+
+<!-- ==================== V13 PAGE AUTHORING STUDIO ==================== -->
+<style>
+#studioPanel{padding:0!important;background:#eef1f5;min-height:calc(100vh - 110px)}
+.studio-shell{display:grid;grid-template-columns:250px minmax(560px,1fr) 290px;min-height:calc(100vh - 110px);height:calc(100vh - 110px)}
+.studio-left,.studio-right{background:#fff;border-right:1px solid #dfe4ea;overflow:auto;padding:12px}
+.studio-right{border-right:0;border-left:1px solid #dfe4ea}
+.studio-center{display:flex;flex-direction:column;min-width:0;overflow:hidden}
+.studio-bar{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:8px;background:#fff;border-bottom:1px solid #dfe4ea}
+.studio-bar .st-group{display:flex;gap:4px;align-items:center;padding-right:7px;border-right:1px solid #e1e5ea}
+.studio-bar button,.studio-tool{border:1px solid #d7dce2;background:#fff;border-radius:7px;padding:6px 8px;font-size:12px;font-weight:700;cursor:pointer}
+.studio-bar button:hover,.studio-tool:hover{background:#f3f5f7}
+.studio-bar button.active{background:#1a1a2e;color:#fff}
+.studio-pages{height:34px;display:flex;align-items:center;gap:6px;padding:4px 8px;background:#fafbfc;border-bottom:1px solid #dfe4ea}
+.studio-pages button{border:1px solid #d7dce2;background:#fff;border-radius:5px;padding:3px 8px}
+.studio-workspace{position:relative;flex:1;overflow:auto;background:#cfd5dc;padding:40px}
+#studioCanvas{position:relative;width:850px;height:1100px;background:#fff;margin:0 auto;box-shadow:0 8px 30px rgba(0,0,0,.18);transform-origin:top left}
+#studioCanvas.studio-grid{background-image:linear-gradient(#dfe4ea 1px,transparent 1px),linear-gradient(90deg,#dfe4ea 1px,transparent 1px);background-size:10px 10px}
+.studio-guides-x,.studio-guides-y{position:absolute;z-index:1000;pointer-events:none}
+.studio-guides-x{top:0;bottom:0;border-left:1px dashed #2c7be5}.studio-guides-y{left:0;right:0;border-top:1px dashed #2c7be5}
+.studio-el{position:absolute;box-sizing:border-box;transform-origin:center center;user-select:none}
+.studio-el.selected{outline:2px solid #2c7be5;outline-offset:1px}
+.studio-el.multi-selected{outline:2px dashed #2c7be5;outline-offset:1px}
+.studio-el.hidden{display:none!important}
+.studio-text{overflow:hidden;white-space:pre-wrap;word-break:break-word;line-height:normal}.studio-text p{margin:0 0 var(--studio-p-spacing,0px)}.studio-group{overflow:visible}.studio-group-children{position:absolute;inset:0}
+.studio-text[contenteditable=true]{user-select:text;cursor:text}.studio-group-children .studio-el{pointer-events:none!important}
+.studio-image{overflow:hidden}
+.studio-image img{width:100%;height:100%;display:block}
+.studio-shape{width:100%;height:100%}
+.studio-line{position:absolute;height:0;border-top:2px solid #1a1a1a;transform-origin:0 0;overflow:visible}
+.studio-line:after{content:"";position:absolute;right:-1px;top:-5px;border-left:8px solid currentColor;border-top:4px solid transparent;border-bottom:4px solid transparent;display:none}.studio-line:has(.studio-arrowhead):after{display:block}
+.studio-table{display:grid;width:100%;height:100%;overflow:hidden}
+.studio-cell{display:flex;align-items:center;justify-content:center;overflow:hidden;border-right:1px solid #999;border-bottom:1px solid #999;padding:3px;font-size:14px}
+.studio-handle{position:absolute;width:8px;height:8px;background:#fff;border:1px solid #2c7be5;border-radius:2px;z-index:10}
+.studio-handle.nw{left:-5px;top:-5px;cursor:nwse-resize}.studio-handle.ne{right:-5px;top:-5px;cursor:nesw-resize}.studio-handle.sw{left:-5px;bottom:-5px;cursor:nesw-resize}.studio-handle.se{right:-5px;bottom:-5px;cursor:nwse-resize}
+.studio-resize-handle{position:absolute;width:9px;height:9px;background:#fff;border:1px solid #2c7be5;border-radius:2px;z-index:10}.studio-resize-handle.se{right:-5px;bottom:-5px;cursor:nwse-resize}.studio-resize-handle.sw{left:-5px;bottom:-5px;cursor:nesw-resize}.studio-resize-handle.ne{right:-5px;top:-5px;cursor:nesw-resize}.studio-resize-handle.nw{left:-5px;top:-5px;cursor:nwse-resize}
+.studio-rotate{position:absolute;left:50%;top:-27px;width:10px;height:10px;border-radius:50%;background:#2c7be5;transform:translateX(-50%);cursor:grab}
+.studio-title{font-weight:800;font-size:13px;padding:6px 4px;border-bottom:1px solid #e5e8eb;margin-bottom:8px}
+.studio-toolgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.studio-tool{width:100%;text-align:left}
+.studio-field{margin-bottom:7px}.studio-field label{display:block;font-size:10px;font-weight:800;color:#66717d;margin-bottom:3px}.studio-field input,.studio-field select,.studio-field textarea{width:100%;padding:6px 7px;border:1px solid #d7dce2;border-radius:6px;font-size:12px;background:#fff}.studio-field input[type=color]{height:30px;padding:2px}.studio-field input[type=checkbox]{width:auto}
+.studio-row{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.studio-check{font-size:11px;display:flex;gap:6px;align-items:center;margin:6px 0}
+.studio-layer{display:flex;align-items:center;gap:5px;padding:6px;border:1px solid #e1e5ea;border-radius:6px;margin-bottom:4px;font-size:11px;cursor:pointer;background:#fff}
+.studio-layer.sel{background:#eaf3ff;border-color:#9fc9f5}
+.studio-layer .nm{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.studio-layer .eye{cursor:pointer}
+.studio-muted{font-size:10px;color:#77818c;line-height:1.4}
+.studio-ref{position:absolute;inset:0;z-index:900;pointer-events:none;background-position:center;background-repeat:no-repeat;background-size:contain}
+.studio-compare{position:absolute;inset:0;z-index:1100;display:none;background:#fff}
+.studio-compare.show{display:block}
+.studio-compare .cmp-ref{position:absolute;inset:0;background-position:center;background-repeat:no-repeat;background-size:contain}
+.studio-compare .cmp-live{position:absolute;inset:0;overflow:hidden}
+.studio-compare .cmp-live .studio-compare-page{width:850px;height:1100px}
+.studio-compare .cmp-label{position:absolute;top:8px;left:8px;background:rgba(26,26,46,.85);color:#fff;padding:4px 7px;border-radius:4px;font-size:10px;z-index:5}
+@media(max-width:1050px){.studio-shell{grid-template-columns:205px minmax(500px,1fr)}.studio-right{display:none}}
+@media(max-width:720px){.studio-shell{grid-template-columns:1fr}.studio-left{display:none}}
+@media print{#studioPanel{display:none!important}}
+</style>
+<script>
+(function(){
+'use strict';
+const KEY='phonics_studio_v13';
+const W=850,H=1100;
+let studio={pages:[],current:0,zoom:0.72,grid:false,snap:true,gridSize:10,elementSnap:false,reference:null,refOpacity:.35,refPage:1,refMode:'overlay',margins:{top:24,right:24,bottom:24,left:24},bleed:0,safe:24};
+let selected=new Set(), clipboard=[], drag=null, resize=null, activeTool='select', studioUndoStack=[], studioRedoStack=[];
+
+function uid(p='e'){return p+Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
+function esc(x){return String(x??'').replace(/[&<>\"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[m]))}
+function clampNum(v,min,max,def=min){v=Number(v);return Number.isFinite(v)?Math.min(max,Math.max(min,v)):def}
+function sanitizeRichHTML(html){
+ try{
+  const doc=new DOMParser().parseFromString(String(html||''),'text/html');
+  doc.body.querySelectorAll('FONT').forEach(n=>{
+   const span=doc.createElement('span');
+   const face=n.getAttribute('face'), size=n.getAttribute('size'), color=n.getAttribute('color');
+   if(face)span.style.fontFamily=face;
+   if(color)span.style.color=color;
+   if(size){const map={1:'10px',2:'12px',3:'14px',4:'18px',5:'24px',6:'32px',7:'48px'};span.style.fontSize=map[size]||'14px';}
+   span.append(...Array.from(n.childNodes)); n.replaceWith(span);
+  });
+  const allowed=new Set(['B','I','U','STRONG','EM','SPAN','BR','DIV','P']);
+  const cssAllowed=new Set(['font-family','font-size','font-weight','font-style','color','background-color','text-decoration','letter-spacing','vertical-align']);
+  doc.body.querySelectorAll('*').forEach(n=>{
+   if(!allowed.has(n.tagName)){n.replaceWith(...Array.from(n.childNodes));return}
+   Array.from(n.attributes).forEach(x=>{if(x.name!=='style'&&x.name!=='class')n.removeAttribute(x.name)});
+   if(n.hasAttribute('style')){
+    const vals={};for(const k of cssAllowed){const v=n.style.getPropertyValue(k);if(v)vals[k]=v}
+    n.removeAttribute('style');Object.entries(vals).forEach(([k,v])=>n.style.setProperty(k,v));
+   }
+  });
+  return doc.body.innerHTML;
+ }catch(_){return esc(html)}
+}
+function clone(x){return JSON.parse(JSON.stringify(x))}
+function defaultPage(){return {id:uid('pg'),name:'Page 1',width:W,height:H,background:'#fff',backgroundGradient:'',backgroundImageFit:'contain',backgroundImagePosition:'center',backgroundImage:'',elements:[]}}
+function defaultEl(type){
+ const base={id:uid(),type,x:80,y:80,w:240,h:80,rotation:0,opacity:1,visible:true,name:type,locked:false};
+ if(type==='text') Object.assign(base,{html:'Double-click to edit',fontFamily:'Arial',fontSize:28,fontWeight:400,fontStyle:'normal',color:'#1a1a1a',letterSpacing:0,lineHeight:1.2,paragraphSpacing:0,textAlign:'left',verticalAlign:'top',padding:4,background:'transparent',backgroundGradient:'',border:{top:'none',right:'none',bottom:'none',left:'none'},borderRadius:0});
+ if(type==='rect') Object.assign(base,{fill:'#ffffff',gradient:'',border:{top:'1px solid #1a1a1a',right:'1px solid #1a1a1a',bottom:'1px solid #1a1a1a',left:'1px solid #1a1a1a'},borderRadius:0});
+ if(type==='ellipse') Object.assign(base,{fill:'#ffffff',gradient:'',border:{top:'1px solid #1a1a1a',right:'1px solid #1a1a1a',bottom:'1px solid #1a1a1a',left:'1px solid #1a1a1a'},borderRadius:'50%'});
+ if(type==='line') Object.assign(base,{x:80,y:120,w:240,h:0,color:'#1a1a1a',stroke:2,arrow:true});
+ if(type==='image') Object.assign(base,{src:'',fit:'contain',cropX:0,cropY:0,cropW:100,cropH:100,mask:'rect',borderRadius:0});
+ if(type==='table') Object.assign(base,{rows:3,cols:3,cellTexts:[['','',''],['','',''],['','','']],cellFill:'#fff',borderColor:'#777',fontFamily:'Arial',fontSize:14,color:'#1a1a1a'});
+ if(type==='polygon') Object.assign(base,{points:'50,0 100,100 0,100',fill:'#fff',border:{top:'1px solid #1a1a1a',right:'1px solid #1a1a1a',bottom:'1px solid #1a1a1a',left:'1px solid #1a1a1a'}});
+ return base
+}
+function normalizeStudio(x){
+ const z=(x&&typeof x==='object')?x:{};const pages=Array.isArray(z.pages)?z.pages.slice(0,200):[];
+ const ids=new Set();
+ function fixEl(e){if(!e||typeof e!=='object')return null;const n=clone(e);n.id=typeof n.id==='string'&&/^[A-Za-z0-9_-]+$/.test(n.id)&&!ids.has(n.id)?n.id:uid();ids.add(n.id);n.type=['text','image','rect','ellipse','line','polygon','table','group'].includes(n.type)?n.type:'rect';n.x=clampNum(n.x,-10000,20000,80);n.y=clampNum(n.y,-10000,20000,80);n.w=clampNum(n.w,1,20000,240);n.h=clampNum(n.h,0,20000,80);n.rotation=Number.isFinite(Number(n.rotation))?Number(n.rotation):0;n.opacity=clampNum(n.opacity,0,1,1);n.visible=n.visible!==false;n.locked=!!n.locked;n.name=String(n.name||n.type).slice(0,120);if(n.type==='text')n.html=sanitizeRichHTML(n.html||'');if(n.type==='group')n.children=Array.isArray(n.children)?n.children.map(fixEl).filter(Boolean):[];return n}
+ const out=pages.map((q,i)=>{q=q&&typeof q==='object'?q:{};return {id:typeof q.id==='string'&&q.id?q.id:uid('pg'),name:String(q.name||('Page '+(i+1))).slice(0,100),width:clampNum(q.width,100,10000,W),height:clampNum(q.height,100,10000,H),background:String(q.background||'#fff').slice(0,500),backgroundGradient:String(q.backgroundGradient||'').slice(0,1500),backgroundImage:typeof q.backgroundImage==='string'?q.backgroundImage:'',backgroundImageFit:['contain','cover','fill'].includes(q.backgroundImageFit)?q.backgroundImageFit:'contain',backgroundImagePosition:typeof q.backgroundImagePosition==='string'?q.backgroundImagePosition:'center',elements:Array.isArray(q.elements)?q.elements.map(fixEl).filter(Boolean):[]}});
+ return {pages:out.length?out:[defaultPage()],current:clampNum(z.current,0,Math.max(0,out.length-1),0),zoom:clampNum(z.zoom,.25,1.5,.72),grid:!!z.grid,snap:!!z.snap,gridSize:clampNum(z.gridSize,1,100,10),reference:z.reference&&typeof z.reference==='object'&&typeof z.reference.image==='string'?{type:'image',image:z.reference.image,name:String(z.reference.name||'Reference').slice(0,100),pages:1}:null,refOpacity:clampNum(z.refOpacity,0,1,.35),refPage:Math.max(1,Number(z.refPage)||1),refMode:z.refMode==='side'?'side':'overlay',margins:{top:clampNum(z.margins?.top,0,500,24),right:clampNum(z.margins?.right,0,500,24),bottom:clampNum(z.margins?.bottom,0,500,24),left:clampNum(z.margins?.left,0,500,24)},bleed:clampNum(z.bleed,0,500,0),safe:clampNum(z.safe,0,500,24)};
+}
+function initStudio(){try{const x=JSON.parse(localStorage.getItem(KEY));studio=normalizeStudio(x)}catch(e){studio=normalizeStudio(null)}if(!studio.pages.length)studio.pages=[defaultPage()];studio.current=Math.min(studio.current,studio.pages.length-1);injectUI();renderStudio();saveStudio()}
+function saveStudio(){
+ try{
+   localStorage.setItem(KEY,JSON.stringify(studio));
+ }catch(e){
+   showToast('Studio data could not be saved. Export the design JSON as a backup.','error');
+   console.error('Studio persistence failed',e);
+ }
+}
+function studioSnapshot(){return clone(studio)}
+function studioCommit(before){const after=studioSnapshot();if(JSON.stringify(before)!==JSON.stringify(after)){studioUndoStack.push(before);if(studioUndoStack.length>60)studioUndoStack.shift();studioRedoStack=[]}}
+function studioMutate(fn){const before=studioSnapshot();fn();studioCommit(before);saveStudio();renderStudio()}
+function page(){if(!Array.isArray(studio.pages)||!studio.pages.length)studio.pages=[defaultPage()];studio.current=clampNum(studio.current,0,studio.pages.length-1,0);return studio.pages[studio.current]}
+function injectUI(){
+ const tab=document.querySelector('.tabs'); if(!tab)return;
+ if(!document.querySelector('[data-tab="studio"]')){
+  const b=document.createElement('button');b.className='tab-btn';b.dataset.tab='studio';b.textContent='🎨 Design Studio';b.onclick=()=>switchTab('studio');tab.appendChild(b)
+ }
+ const view=document.getElementById('viewPanel'); if(!view||document.getElementById('studioPanel'))return;
+ const panel=document.createElement('div');panel.className='tab-panel';panel.id='studioPanel';
+ panel.innerHTML=`<div class="studio-shell">
+ <aside class="studio-left">
+  <div class="studio-title">Page Authoring</div>
+  <div class="studio-toolgrid">
+   <button class="studio-tool" onclick="studioAdd('text')">T Text</button><button class="studio-tool" onclick="studioAdd('image')">▧ Image</button>
+   <button class="studio-tool" onclick="studioAdd('rect')">□ Rectangle</button><button class="studio-tool" onclick="studioAdd('ellipse')">○ Ellipse</button>
+   <button class="studio-tool" onclick="studioAdd('line')">↗ Line / Arrow</button><button class="studio-tool" onclick="studioAdd('polygon')">△ Polygon</button>
+   <button class="studio-tool" onclick="studioAdd('table')">▦ Table</button>
+  </div>
+  <div class="studio-title" style="margin-top:12px">Arrange</div>
+  <div class="studio-toolgrid">
+   <button class="studio-tool" onclick="studioAlign('left')">⇤ Left</button><button class="studio-tool" onclick="studioAlign('center')">↔ Center</button>
+   <button class="studio-tool" onclick="studioAlign('right')">⇥ Right</button><button class="studio-tool" onclick="studioAlign('top')">⇡ Top</button>
+   <button class="studio-tool" onclick="studioAlign('middle')">↕ Middle</button><button class="studio-tool" onclick="studioAlign('bottom')">⇣ Bottom</button>
+   <button class="studio-tool" onclick="studioAlign('distributeX')">⋮ Distribute X</button><button class="studio-tool" onclick="studioAlign('distributeY')">⋯ Distribute Y</button>
+  </div>
+  <div class="studio-title" style="margin-top:12px">Tools</div>
+  <label class="studio-check"><input id="stGrid" type="checkbox" onchange="studio.grid=this.checked;studio.snap=this.checked;renderStudio();saveStudio()"> Snap to grid</label><label class="studio-check"><input id="stElementSnap" type="checkbox" onchange="studio.elementSnap=this.checked;saveStudio()"> Snap to elements</label>
+  <div class="studio-field"><label>Grid size</label><input type="number" min="1" max="100" value="${studio.gridSize}" onchange="studio.gridSize=Math.max(1,+this.value||10);saveStudio()"></div>
+  <div class="studio-toolgrid">
+   <button class="studio-tool" onclick="studioDuplicate()">⧉ Duplicate</button><button class="studio-tool" onclick="studioGroup()">Group</button>
+   <button class="studio-tool" onclick="studioUngroup()">Ungroup</button><button class="studio-tool" onclick="studioCopy()">Copy</button>
+   <button class="studio-tool" onclick="studioPaste()">Paste</button><button class="studio-tool" onclick="studioDelete()">Delete</button>
+  </div>
+  <div class="studio-title" style="margin-top:12px">Pages</div>
+  <button class="studio-tool" style="width:100%;margin-bottom:5px" onclick="studioAddPage()">＋ Add Page</button>
+  <button class="studio-tool" style="width:100%" onclick="studioDuplicatePage()">⧉ Duplicate Page</button>
+  <div class="studio-muted" style="margin-top:8px">Ctrl/Cmd-click selects multiple elements. Shift-click adds to selection. Arrow keys move selected objects; Shift+Arrow moves by 10px.</div>
+ </aside>
+ <main class="studio-center">
+  <div class="studio-bar">
+   <div class="st-group"><button onclick="studioZoom(-.1)">−</button><span id="stZoom">72%</span><button onclick="studioZoom(.1)">+</button></div>
+   <div class="st-group"><button onclick="studioUndo()">↶</button><button onclick="studioRedo()">↷</button></div>
+   <div class="st-group"><button onclick="studioBring(1)">Bring Front</button><button onclick="studioBring(-1)">Send Back</button></div>
+   <div class="st-group"><button onclick="studioPrint()">🖨 Print</button><button onclick="studioExportJSON()">Export Design</button><button onclick="document.getElementById('stImport').click()">Import Design</button><input id="stImport" type="file" accept=".json" hidden onchange="studioImportJSON(this)"></div>
+   <div class="st-group"><button onclick="document.getElementById('stImg').click()">Reference Image</button><input id="stImg" type="file" accept="image/*" hidden onchange="studioLoadImageRef(this)"></div>
+   <div class="st-group"><button onclick="studioToggleCompare()">Compare</button><button onclick="studioClearReference()">Clear Ref</button></div>
+  </div>
+  <div class="studio-pages" id="studioPages"></div>
+  <div class="studio-workspace" id="studioWorkspace"><div id="studioCanvas"></div></div>
+ </main>
+ <aside class="studio-right">
+  <div class="studio-title">Properties</div><div id="studioProps"></div>
+  <div class="studio-title" style="margin-top:12px">Reference</div>
+  <div class="studio-field"><label>Opacity</label><input id="stRefOpacity" type="range" min="0" max="1" step=".01" value="${studio.refOpacity}" oninput="studio.refOpacity=clampNum(this.value,0,1,.35);saveStudio();applyReference()"></div>
+  <div class="studio-row"><div class="studio-field"><label>Reference page</label><input type="number" min="1" value="${studio.refPage}" onchange="studio.refPage=Math.max(1,+this.value||1);saveStudio();renderStudio()"></div><div class="studio-field"><label>Mode</label><select onchange="studio.refMode=this.value;saveStudio();renderStudio()"><option value="overlay">Overlay</option><option value="side">Comparison</option></select></div></div>
+  <div class="studio-title">Page Geometry</div>
+  <div class="studio-row"><div class="studio-field"><label>Width</label><input type="number" value="${W}" disabled></div><div class="studio-field"><label>Height</label><input type="number" value="${H}" disabled></div></div>
+  <div class="studio-row"><div class="studio-field"><label>Safe area</label><input type="number" value="${studio.safe}" onchange="studio.safe=clampNum(this.value,0,500,studio.safe);saveStudio();renderStudio()"></div><div class="studio-field"><label>Bleed</label><input type="number" value="${studio.bleed}" onchange="studio.bleed=clampNum(this.value,0,500,studio.bleed);saveStudio();renderStudio()"></div></div>
+  <div class="studio-row"><div class="studio-field"><label>Margin L</label><input type="number" value="${studio.margins.left}" onchange="studio.margins.left=clampNum(this.value,0,500,studio.margins.left);saveStudio();renderStudio()"></div><div class="studio-field"><label>Margin R</label><input type="number" value="${studio.margins.right}" onchange="studio.margins.right=clampNum(this.value,0,500,studio.margins.right);saveStudio();renderStudio()"></div></div>
+  <div class="studio-row"><div class="studio-field"><label>Margin T</label><input type="number" value="${studio.margins.top}" onchange="studio.margins.top=clampNum(this.value,0,500,studio.margins.top);saveStudio();renderStudio()"></div><div class="studio-field"><label>Margin B</label><input type="number" value="${studio.margins.bottom}" onchange="studio.margins.bottom=clampNum(this.value,0,500,studio.margins.bottom);saveStudio();renderStudio()"></div></div>
+  <div class="studio-title">Page Background</div><div class="studio-field"><label>Background color</label><input value="${esc(page().background||'#fff')}" onchange="studioSetPage('background',this.value)"></div><div class="studio-field"><label>Gradient</label><input value="${esc(page().backgroundGradient||'')}" placeholder="linear-gradient(...)" onchange="studioSetPage('backgroundGradient',this.value)"></div><div class="studio-field"><label>Background image</label><input type="file" accept="image/*" onchange="studioSetPageImage(this)"></div><div class="studio-row"><div class="studio-field"><label>Image fit</label><select onchange="studioSetPage('backgroundImageFit',this.value)"><option value="contain">contain</option><option value="cover">cover</option><option value="fill">fill</option></select></div><div class="studio-field"><label>Position</label><select onchange="studioSetPage('backgroundImagePosition',this.value)"><option>center</option><option>top left</option><option>top center</option><option>top right</option><option>center left</option><option>center right</option><option>bottom left</option><option>bottom center</option><option>bottom right</option></select></div></div><div class="studio-title">Layers</div><div id="studioLayers"></div>
+ </aside></div>`;
+ document.getElementById('viewPanel').after(panel);
+ document.getElementById('stGrid').checked=studio.grid;const es=document.getElementById('stElementSnap');if(es)es.checked=studio.elementSnap;
+}
+function switchTab(tab){
+ document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
+ document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active',p.id===tab+'Panel'));
+ if(tab==='studio'){renderStudio()}
+ else if(tab==='lessons'){renderEditList()}
+ else if(tab==='view'){renderAllView()}
+ updateCounts()
+}
+window.switchTab=switchTab;
+
+function styleBorders(b){return b?`${b.top||'none'};${b.right||'none'};${b.bottom||'none'};${b.left||'none'}`:''}
+function borderCSS(b){return `border-top:${b?.top||'none'};border-right:${b?.right||'none'};border-bottom:${b?.bottom||'none'};border-left:${b?.left||'none'};`}
+function elHTML(e){
+ let style=`left:${e.x}px;top:${e.y}px;width:${e.w}px;height:${e.h}px;opacity:${e.opacity??1};transform:rotate(${e.rotation||0}deg);`;
+ if(e.type==='text'){
+  style+=`font-family:${esc(e.fontFamily||'Arial')};font-size:${e.fontSize||28}px;font-weight:${e.fontWeight||400};font-style:${e.fontStyle||'normal'};color:${e.color||'#1a1a1a'};letter-spacing:${e.letterSpacing||0}px;line-height:${e.lineHeight||1.2};text-align:${e.textAlign||'left'};--studio-p-spacing:${Math.max(0,Number(e.paragraphSpacing)||0)}px;padding:${e.padding||0}px;background:${e.background||'transparent'};${e.backgroundGradient?'background-image:'+e.backgroundGradient+';':''}${borderCSS(e.border)}border-radius:${e.borderRadius||0}px;`;
+  return `<div class="studio-el studio-text" data-id="${esc(e.id)}" style="${style}">${sanitizeRichHTML(e.html||'')}</div>`
+ }
+ if(e.type==='group'){
+  const children=(e.children||[]).map(ch=>{const n=clone(ch);n.x=(n.x||0)-(e.x||0);n.y=(n.y||0)-(e.y||0);n.visible=true;return elHTML(n).replace('data-id=\"'+n.id+'\"','data-id=\"'+esc(n.id)+'\" data-group-child=\"true\"')}).join('');
+  return `<div class=\"studio-el studio-group\" data-id=\"${esc(e.id)}\" style=\"${style}overflow:visible;pointer-events:auto;\"><div class=\"studio-group-children\" style=\"position:absolute;inset:0;pointer-events:none;\">${children}</div></div>`
+ }
+ if(e.type==='rect'||e.type==='ellipse'){
+  style+=`background:${e.fill||'#fff'};${e.gradient?'background-image:'+e.gradient+';':''}${borderCSS(e.border)}border-radius:${e.type==='ellipse'?'50%':(e.borderRadius||0)};`;
+  return `<div class="studio-el studio-shape" data-id="${e.id}" style="${style}"></div>`
+ }
+ if(e.type==='polygon'){
+  return `<svg class="studio-el" data-id="${e.id}" style="${style};overflow:visible" viewBox="0 0 100 100" preserveAspectRatio="none"><polygon points="${esc(e.points)}" fill="${esc(e.fill||'#fff')}" stroke="${esc(e.stroke||'#1a1a1a')}" stroke-width="${e.strokeWidth||1}"/></svg>`
+ }
+ if(e.type==='line'){
+  const len=Math.sqrt((e.w||0)**2+(e.h||0)**2), ang=Math.atan2(e.h||0,e.w||1)*180/Math.PI;
+  return `<div class="studio-el studio-line" data-id="${e.id}" style="left:${e.x}px;top:${e.y}px;width:${len}px;border-top:${e.stroke||2}px solid ${e.color||'#1a1a1a'};color:${e.color||'#1a1a1a'};transform:rotate(${ang}deg);">${e.arrow?'<span class="studio-arrowhead"></span>':''}</div>`
+ }
+ if(e.type==='image'){
+  if(!e.src)return `<div class="studio-el studio-image" data-id="${e.id}" style="${style}background:#eee;display:flex;align-items:center;justify-content:center;color:#888">Drop image</div>`;
+  const mask=e.mask==='circle'?'50%':e.mask==='ellipse'?'50%':(e.borderRadius||0);
+  const objectPos=`${clampNum(50+(Number(e.cropX)||0)/2,0,100)}% ${clampNum(50+(Number(e.cropY)||0)/2,0,100)}%`;
+  return `<div class="studio-el studio-image" data-id="${e.id}" style="${style}border-radius:${mask};${e.mask==='circle'?'aspect-ratio:1':''};"><img src="${esc(e.src)}" style="object-fit:${e.fit||'contain'};object-position:${objectPos};transform:scale(${Math.max(1,100/Math.max(1,Number(e.cropW)||100),100/Math.max(1,Number(e.cropH)||100))})"></div>`
+ }
+ if(e.type==='table'){
+  const r=Math.max(1,e.rows||3),c=Math.max(1,e.cols||3), cells=(e.cellTexts||[]);let h='';
+  for(let i=0;i<r;i++)for(let j=0;j<c;j++)h+=`<div class="studio-cell" style="background:${e.cellFill||'#fff'};border-color:${e.borderColor||'#777'};font-family:${esc(e.fontFamily||'Arial')};font-size:${e.fontSize||14}px;color:${e.color||'#1a1a1a'}">${esc(cells[i]?.[j]||'')}</div>`;
+  return `<div class="studio-el studio-table" data-id="${e.id}" style="${style}grid-template-columns:repeat(${c},1fr);grid-template-rows:repeat(${r},1fr);border:1px solid ${e.borderColor||'#777'}">${h}</div>`
+ }
+ return '';
+}
+function renderStudio(){
+ const c=document.getElementById('studioCanvas');if(!c)return;
+ c.innerHTML='';
+ const p=page();c.style.width=p.width+'px';c.style.height=p.height+'px';c.style.transform=`scale(${studio.zoom})`;
+ c.style.background=p.background||'#fff';
+ const bgParts=[];
+ if(p.backgroundGradient) bgParts.push(p.backgroundGradient);
+ if(p.backgroundImage) bgParts.push(`url("${String(p.backgroundImage).replace(/\\/g,'\\\\').replace(/"/g,'%22')}")`);
+ c.style.backgroundImage=bgParts.length?bgParts.join(', '):'none';
+ c.style.backgroundSize=p.backgroundImage ? (p.backgroundImageFit==='cover'?'cover':p.backgroundImageFit==='fill'?'100% 100%':'contain') : 'auto';
+ c.style.backgroundPosition=p.backgroundImagePosition||'center';
+ c.style.backgroundRepeat='no-repeat'; 
+ if(studio.grid)c.classList.add('studio-grid');else c.classList.remove('studio-grid');
+ const ref=document.createElement('div');ref.className='studio-ref';ref.id='studioRef';c.appendChild(ref);
+ p.elements.forEach(e=>{if(!e.visible)return;const wrap=document.createElement('div');wrap.innerHTML=elHTML(e);const node=wrap.firstElementChild;if(!node)return;if(selected.has(e.id)){node.classList.add(selected.size>1?'multi-selected':'selected');if(e.type!=='group'){['nw','ne','sw','se'].forEach(h=>{const q=document.createElement('div');q.className='studio-resize-handle '+h;q.dataset.resize=h;node.appendChild(q)})}}c.appendChild(node)});
+ renderPages();renderLayers();renderProps();applyReference();document.getElementById('stZoom').textContent=Math.round(studio.zoom*100)+'%';
+}
+function renderPages(){const d=document.getElementById('studioPages');if(!d)return;d.innerHTML=studio.pages.map((p,i)=>`<button style="${i===studio.current?'font-weight:800;background:#1a1a2e;color:#fff':''}" onclick="studioGoPage(${i})">${i+1}</button>`).join('')+`<span class="studio-muted">${esc(page().name)}</span>`}
+function renderLayers(){const d=document.getElementById('studioLayers');if(!d)return;d.innerHTML=page().elements.slice().reverse().map(e=>`<div class="studio-layer ${selected.has(e.id)?'sel':''}" onclick="studioSelect('${e.id}',event)"><span class="eye" onclick="event.stopPropagation();studioToggleVis('${e.id}')">${e.visible?'👁':'🚫'}</span><span class="nm">${esc(e.name||e.type)}</span><span>${e.locked?'🔒':''}</span></div>`).join('')||'<div class="studio-muted">No elements</div>'}
+function selectedEls(){return page().elements.filter(e=>selected.has(e.id))}
+function renderProps(){
+ const d=document.getElementById('studioProps');if(!d)return;const es=selectedEls();
+ if(!es.length){d.innerHTML='<div class="studio-muted">Select an element to edit exact position, size, typography, fills, borders, image crop, or table structure.</div>';return}
+ if(es.length>1){d.innerHTML=`<div class="studio-muted">${es.length} elements selected.</div><div class="studio-row"><div class="studio-field"><label>X offset</label><input type="number" value="0" onchange="studioNudgeAll(+this.value,0)"></div><div class="studio-field"><label>Y offset</label><input type="number" value="0" onchange="studioNudgeAll(0,+this.value)"></div></div><label class="studio-check"><input type="checkbox" onchange="studioSetLocked(this.checked)"> Lock selection</label>`;return}
+ const e=es[0];
+ let h=`<div class="studio-row"><div class="studio-field"><label>X</label><input type="number" value="${e.x}" onchange="studioSet('x',+this.value)"></div><div class="studio-field"><label>Y</label><input type="number" value="${e.y}" onchange="studioSet('y',+this.value)"></div></div>
+ <div class="studio-row"><div class="studio-field"><label>Width</label><input type="number" value="${e.w}" onchange="studioSet('w',Math.max(1,+this.value))"></div><div class="studio-field"><label>Height</label><input type="number" value="${e.h}" onchange="studioSet('h',Math.max(1,+this.value))"></div></div>
+ <div class="studio-row"><div class="studio-field"><label>Rotation</label><input type="number" value="${e.rotation||0}" onchange="studioSet('rotation',+this.value)"></div><div class="studio-field"><label>Opacity</label><input type="number" step=".01" min="0" max="1" value="${e.opacity??1}" onchange="studioSet('opacity',+this.value)"></div></div>
+ <div class="studio-field"><label>Name</label><input value="${esc(e.name||e.type)}" onchange="studioSet('name',this.value)"></div>
+ <label class="studio-check"><input type="checkbox" ${e.locked?'checked':''} onchange="studioSet('locked',this.checked)"> Locked</label>`;
+ if(e.type==='text')h+=textProps(e);
+ if(e.type==='rect'||e.type==='ellipse'||e.type==='polygon')h+=shapeProps(e);
+ if(e.type==='line')h+=lineProps(e);
+ if(e.type==='image')h+=imageProps(e);
+ if(e.type==='table')h+=tableProps(e);
+ d.innerHTML=h;
+}
+function textProps(e){return `<div class="studio-title">Typography</div>
+ <div class="studio-field"><label>Rich text runs / content</label><div id="richEditor" contenteditable="true" style="min-height:70px;border:1px solid #d7dce2;border-radius:6px;padding:6px;font-size:12px">${e.html||''}</div></div>
+ <div class="studio-row"><div class="studio-field"><label>Font family</label><input value="${esc(e.fontFamily)}" onchange="studioSet('fontFamily',this.value)"></div><div class="studio-field"><label>Size px</label><input type="number" value="${e.fontSize}" onchange="studioSet('fontSize',+this.value)"></div></div>
+ <div class="studio-row"><div class="studio-field"><label>Weight</label><select onchange="studioSet('fontWeight',+this.value)"><option value="300" ${e.fontWeight==300?'selected':''}>300</option><option value="400" ${e.fontWeight==400?'selected':''}>400</option><option value="600" ${e.fontWeight==600?'selected':''}>600</option><option value="700" ${e.fontWeight==700?'selected':''}>700</option><option value="800" ${e.fontWeight==800?'selected':''}>800</option></select></div><div class="studio-field"><label>Style</label><select onchange="studioSet('fontStyle',this.value)"><option ${e.fontStyle==='normal'?'selected':''}>normal</option><option ${e.fontStyle==='italic'?'selected':''}>italic</option></select></div></div>
+ <div class="studio-row"><div class="studio-field"><label>Text color</label><input type="color" value="${e.color}" onchange="studioSet('color',this.value)"></div><div class="studio-field"><label>Alignment</label><select onchange="studioSet('textAlign',this.value)"><option>left</option><option ${e.textAlign==='center'?'selected':''}>center</option><option ${e.textAlign==='right'?'selected':''}>right</option><option ${e.textAlign==='justify'?'selected':''}>justify</option></select></div></div>
+ <div class="studio-row"><div class="studio-field"><label>Letter spacing</label><input type="number" step=".1" value="${e.letterSpacing}" onchange="studioSet('letterSpacing',+this.value)"></div><div class="studio-field"><label>Line height</label><input type="number" step=".05" value="${e.lineHeight}" onchange="studioSet('lineHeight',+this.value)"></div></div>
+ <div class="studio-row"><div class="studio-field"><label>Paragraph spacing</label><input type="number" value="${e.paragraphSpacing}" onchange="studioSet('paragraphSpacing',+this.value)"></div><div class="studio-field"><label>Padding</label><input type="number" value="${e.padding}" onchange="studioSet('padding',+this.value)"></div></div>
+ <div class="studio-field"><label>Background / gradient</label><input value="${esc(e.background||'transparent')}" onchange="studioSet('background',this.value)"><input style="margin-top:4px" placeholder="linear-gradient(...)" value="${esc(e.backgroundGradient||'')}" onchange="studioSet('backgroundGradient',this.value)"></div>
+ ${borderProps(e)}`+
+ `<div class="studio-field"><label>Rich text quick format (select text first)</label><div class="studio-toolgrid">
+ <button class="studio-tool" onclick="richCmd('bold')"><b>B</b></button><button class="studio-tool" onclick="richCmd('italic')"><i>I</i></button><button class="studio-tool" onclick="richCmd('underline')"><u>U</u></button><button class="studio-tool" onclick="richCmd('foreColor','#E2571C')">Color</button><button class="studio-tool" onclick="richCmd('fontName','Arial')">Arial</button><button class="studio-tool" onclick="richCmd('fontName','Georgia')">Georgia</button><button class="studio-tool" onclick="richCmd('fontSize','3')">14px</button><button class="studio-tool" onclick="richCmd('fontSize','5')">24px</button></div></div>
+ <div class="studio-muted">Content is stored as HTML runs, so mixed font weight, emphasis and color can coexist inside one text box.</div>`}
+function borderProps(e){return `<div class="studio-title">Individual Borders</div><div class="studio-field"><label>Top</label><input value="${esc(e.border?.top||'none')}" onchange="studioBorder('top',this.value)"></div><div class="studio-field"><label>Right</label><input value="${esc(e.border?.right||'none')}" onchange="studioBorder('right',this.value)"></div><div class="studio-field"><label>Bottom</label><input value="${esc(e.border?.bottom||'none')}" onchange="studioBorder('bottom',this.value)"></div><div class="studio-field"><label>Left</label><input value="${esc(e.border?.left||'none')}" onchange="studioBorder('left',this.value)"></div>`}
+function shapeProps(e){return `<div class="studio-title">Fill / Shape</div><div class="studio-field"><label>Fill</label><input value="${esc(e.fill||'#fff')}" onchange="studioSet('fill',this.value)"></div><div class="studio-field"><label>Gradient</label><input placeholder="linear-gradient(90deg,#fff,#ddd)" value="${esc(e.gradient||'')}" onchange="studioSet('gradient',this.value)"></div>${borderProps(e)}<div class="studio-field"><label>Border radius</label><input value="${esc(e.borderRadius||0)}" onchange="studioSet('borderRadius',this.value)"></div>`}
+function lineProps(e){return `<div class="studio-title">Line</div><div class="studio-row"><div class="studio-field"><label>Stroke</label><input type="number" value="${e.stroke||2}" onchange="studioSet('stroke',+this.value)"></div><div class="studio-field"><label>Color</label><input value="${esc(e.color||'#1a1a1a')}" onchange="studioSet('color',this.value)"></div></div><label class="studio-check"><input type="checkbox" ${e.arrow?'checked':''} onchange="studioSet('arrow',this.checked)"> Arrow head</label>`}
+function imageProps(e){return `<div class="studio-title">Image / Crop / Mask</div><div class="studio-field"><label>Image</label><input type="file" accept="image/*" onchange="studioReplaceImage(this)"></div><div class="studio-row"><div class="studio-field"><label>Fit</label><select onchange="studioSet('fit',this.value)"><option>contain</option><option ${e.fit==='cover'?'selected':''}>cover</option><option ${e.fit==='fill'?'selected':''}>fill</option></select></div><div class="studio-field"><label>Mask</label><select onchange="studioSet('mask',this.value)"><option>rect</option><option ${e.mask==='circle'?'selected':''}>circle</option><option ${e.mask==='ellipse'?'selected':''}>ellipse</option></select></div></div><div class="studio-row"><div class="studio-field"><label>Crop X</label><input type="number" value="${e.cropX||0}" onchange="studioSet('cropX',+this.value)"></div><div class="studio-field"><label>Crop Y</label><input type="number" value="${e.cropY||0}" onchange="studioSet('cropY',+this.value)"></div></div><div class="studio-row"><div class="studio-field"><label>Crop W %</label><input type="number" value="${e.cropW||100}" onchange="studioSet('cropW',Math.max(1,+this.value))"></div><div class="studio-field"><label>Crop H %</label><input type="number" value="${e.cropH||100}" onchange="studioSet('cropH',Math.max(1,+this.value))"></div></div>`}
+function tableProps(e){return `<div class="studio-title">Structured Grid</div><div class="studio-row"><div class="studio-field"><label>Rows</label><input type="number" min="1" value="${e.rows}" onchange="studioTableSize('rows',+this.value)"></div><div class="studio-field"><label>Columns</label><input type="number" min="1" value="${e.cols}" onchange="studioTableSize('cols',+this.value)"></div></div><div class="studio-row"><div class="studio-field"><label>Cell fill</label><input value="${esc(e.cellFill)}" onchange="studioSet('cellFill',this.value)"></div><div class="studio-field"><label>Border</label><input value="${esc(e.borderColor)}" onchange="studioSet('borderColor',this.value)"></div></div><div class="studio-field"><label>Cell text (one row per line; cells separated by |)</label><textarea rows="5" onchange="studioTableText(this.value)">${(e.cellTexts||[]).map(r=>r.join(' | ')).join('\n')}</textarea></div>`}
+function studioSelect(id,ev){if(ev?.shiftKey||ev?.ctrlKey||ev?.metaKey){selected.has(id)?selected.delete(id):selected.add(id)}else{selected.clear();selected.add(id)}renderStudio()}
+function studioAdd(type){const before=studioSnapshot();const e=defaultEl(type);if(type==='image')e.w=260,e.h=180;if(type==='line')e.h=80;if(type==='table')e.w=360,e.h=180;if(type==='polygon')e.w=180,e.h=140;page().elements.push(e);selected.clear();selected.add(e.id);saveStudio();renderStudio()}
+function studioSetPage(k,v){const p=page();if(k==='background')p.background=String(v||'').slice(0,500);else if(k==='backgroundGradient')p.backgroundGradient=String(v||'').slice(0,1500);else if(k==='backgroundImageFit')p.backgroundImageFit=['contain','cover','fill'].includes(v)?v:'contain';else if(k==='backgroundImagePosition')p.backgroundImagePosition=String(v||'center').slice(0,40);saveStudio();renderStudio()}
+function studioSetPageImage(inp){const f=inp.files?.[0];if(!f)return;if(!f.type.startsWith('image/')||f.size>3*1024*1024){showToast('Background image must be an image under 3MB.','error');inp.value='';return}const r=new FileReader();r.onerror=()=>showToast('Could not read background image.','error');r.onload=e=>{page().backgroundImage=e.target.result;saveStudio();renderStudio()};r.readAsDataURL(f);inp.value=''}
+function studioSet(k,v){
+ const e=selectedEls()[0];if(!e)return;const before=studioSnapshot();
+ if(['x','y'].includes(k)) v=clampNum(v,-10000,20000,e[k]);
+ if(['w','h'].includes(k)) v=clampNum(v,1,20000,e[k]);
+ if(k==='opacity') v=clampNum(v,0,1,e.opacity??1);
+ if(k==='rotation') v=clampNum(v,-3600,3600,e.rotation||0);
+ if(k==='fontSize') v=clampNum(v,1,500,e.fontSize||28);
+ if(k==='lineHeight') v=clampNum(v,.1,10,e.lineHeight||1.2);
+ if(k==='letterSpacing') v=clampNum(v,-100,100,e.letterSpacing||0);
+ if(k==='paragraphSpacing') v=clampNum(v,0,500,e.paragraphSpacing||0);
+ if(k==='padding') v=clampNum(v,0,500,e.padding||0);
+ e[k]=v;saveStudio();studioCommit(before);renderStudio()
+}
+function studioBorder(k,v){const e=selectedEls()[0];if(!e)return;const before=studioSnapshot();e.border=e.border||{};e.border[k]=String(v||'none');saveStudio();studioCommit(before);renderStudio()}
+function studioTableSize(k,v){const e=selectedEls()[0];if(!e)return;const before=studioSnapshot();v=Math.max(1,Math.min(30,v||1));e[k]=v;const r=e.rows,c=e.cols,a=[];for(let i=0;i<r;i++){a[i]=[];for(let j=0;j<c;j++)a[i][j]=e.cellTexts?.[i]?.[j]||''}e.cellTexts=a;saveStudio();studioCommit(before);renderStudio()}
+function studioTableText(v){const e=selectedEls()[0];if(!e)return;const before=studioSnapshot();e.cellTexts=v.split(/\n/).map(x=>x.split('|').map(y=>y.trim()));e.rows=Math.max(1,Math.min(30,e.cellTexts.length||1));e.cols=Math.max(1,Math.min(30,...e.cellTexts.map(x=>x.length||1)));e.cellTexts=e.cellTexts.slice(0,e.rows).map(r=>r.slice(0,e.cols));while(e.cellTexts.length<e.rows)e.cellTexts.push(Array(e.cols).fill(''));e.cellTexts.forEach(r=>{while(r.length<e.cols)r.push('')});saveStudio();studioCommit(before);renderStudio()}
+function richCmd(cmd,val){const ed=document.getElementById('richEditor');if(!ed)return;ed.focus();document.execCommand(cmd,false,val);const e=selectedEls()[0];if(e){e.html=ed.innerHTML;saveStudio();renderStudio()}}
+function studioToggleVis(id){const e=page().elements.find(x=>x.id===id);if(e){const before=studioSnapshot();e.visible=!e.visible;saveStudio();studioCommit(before);renderStudio()}}
+function studioSetLocked(v){const before=studioSnapshot();selectedEls().forEach(e=>e.locked=v);saveStudio();studioCommit(before);renderStudio()}
+function studioNudgeAll(dx,dy){const before=studioSnapshot();const p=page();selectedEls().forEach(e=>{e.x=clampNum(e.x+(Number(dx)||0),-p.width,2*p.width);e.y=clampNum(e.y+(Number(dy)||0),-p.height,2*p.height)});saveStudio();studioCommit(before);renderStudio()}
+function studioDuplicate(){const es=selectedEls();if(!es.length)return;const before=studioSnapshot();const copies=es.map(e=>{const n=clone(e);n.id=uid();n.x+=10;n.y+=10;n.name=(n.name||n.type)+' copy';return n});page().elements.push(...copies);selected=new Set(copies.map(e=>e.id));saveStudio();renderStudio()}
+function studioCopy(){clipboard=clone(selectedEls())}
+function studioPaste(){if(!clipboard.length)return;const before=studioSnapshot();const ns=clipboard.map(e=>{const n=clone(e);n.id=uid();n.x+=15;n.y+=15;return n});page().elements.push(...ns);selected=new Set(ns.map(e=>e.id));saveStudio();renderStudio()}
+function studioDelete(){const before=studioSnapshot();page().elements=page().elements.filter(e=>!selected.has(e.id));selected.clear();saveStudio();renderStudio()}
+function studioGroup(){const es=selectedEls();if(es.length<2)return;const before=studioSnapshot();const left=Math.min(...es.map(e=>e.x)),top=Math.min(...es.map(e=>e.y)),right=Math.max(...es.map(e=>e.x+e.w)),bottom=Math.max(...es.map(e=>e.y+e.h));const g={id:uid('g'),type:'group',x:left,y:top,w:Math.max(1,right-left),h:Math.max(1,bottom-top),rotation:0,opacity:1,visible:true,name:'Group',locked:false,children:clone(es)};page().elements=page().elements.filter(e=>!selected.has(e.id));page().elements.push(g);selected=new Set([g.id]);saveStudio();renderStudio()}
+function studioUngroup(){const g=selectedEls().find(e=>e.type==='group');if(!g)return;const before=studioSnapshot();page().elements=page().elements.filter(e=>e.id!==g.id);page().elements.push(...g.children);selected=new Set(g.children.map(e=>e.id));saveStudio();renderStudio()}
+function studioBring(dir){const es=selectedEls();if(!es.length)return;const before=studioSnapshot();es.forEach(e=>{const i=page().elements.indexOf(e),j=dir>0?page().elements.length-1:0;if(i!==j){page().elements.splice(i,1);page().elements.splice(j,0,e)}});saveStudio();studioCommit(before);renderStudio()}
+function studioAlign(mode){const es=selectedEls();if(!es.length)return;const before=studioSnapshot();const p=page();if(es.length===1){const e=es[0];if(mode==='left')e.x=studio.margins.left;if(mode==='right')e.x=p.width-studio.margins.right-e.w;if(mode==='center')e.x=(p.width-e.w)/2;if(mode==='top')e.y=studio.margins.top;if(mode==='bottom')e.y=p.height-studio.margins.bottom-e.h;if(mode==='middle')e.y=(p.height-e.h)/2}else{if(mode==='left'){const x=Math.min(...es.map(e=>e.x));es.forEach(e=>e.x=x)}if(mode==='right'){const r=Math.max(...es.map(e=>e.x+e.w));es.forEach(e=>e.x=r-e.w)}if(mode==='top'){const y=Math.min(...es.map(e=>e.y));es.forEach(e=>e.y=y)}if(mode==='bottom'){const b=Math.max(...es.map(e=>e.y+e.h));es.forEach(e=>e.y=b-e.h)}if(mode==='center'){const l=Math.min(...es.map(e=>e.x)),r=Math.max(...es.map(e=>e.x+e.w)),cx=(l+r)/2;es.forEach(e=>e.x=cx-e.w/2)}if(mode==='middle'){const t=Math.min(...es.map(e=>e.y)),b=Math.max(...es.map(e=>e.y+e.h)),cy=(t+b)/2;es.forEach(e=>e.y=cy-e.h/2)}if(mode==='distributeX'&&es.length>2){const a=[...es].sort((a,b)=>a.x-b.x),left=a[0].x,right=a.at(-1).x+a.at(-1).w,total=a.reduce((s,e)=>s+e.w,0),gap=(right-left-total)/(a.length-1);let x=left;a.forEach(e=>{e.x=x;x+=e.w+gap})}if(mode==='distributeY'&&es.length>2){const a=[...es].sort((a,b)=>a.y-b.y),top=a[0].y,bottom=a.at(-1).y+a.at(-1).h,total=a.reduce((s,e)=>s+e.h,0),gap=(bottom-top-total)/(a.length-1);let y=top;a.forEach(e=>{e.y=y;y+=e.h+gap})}}saveStudio();studioCommit(before);renderStudio()}
+function studioZoom(d){studio.zoom=Math.max(.25,Math.min(1.5,studio.zoom+d));renderStudio()}
+function studioGoPage(i){studio.current=i;selected.clear();renderStudio()}
+function studioAddPage(){const p=defaultPage();p.name='Page '+(studio.pages.length+1);studio.pages.push(p);studio.current=studio.pages.length-1;selected.clear();saveStudio();renderStudio()}
+function remapElementIds(e){e.id=uid();if(e.children)e.children.forEach(remapElementIds)}
+function studioDuplicatePage(){const p=clone(page());p.id=uid('pg');p.name='Page '+(studio.pages.length+1);p.elements.forEach(remapElementIds);studio.pages.push(p);studio.current=studio.pages.length-1;selected.clear();saveStudio();renderStudio()}
+
+function snap(v){return studio.grid?Math.round(v/Math.max(1,studio.gridSize))*Math.max(1,studio.gridSize):v}
+function snapPoint(x,y,ignoreIds=[]){
+ if(studio.grid){x=snap(x);y=snap(y)}
+ if(!studio.elementSnap)return {x,y};
+ const ignore=new Set(ignoreIds), threshold=6/Math.max(.25,studio.zoom);
+ for(const o of page().elements){
+  if(ignore.has(o.id)||o.visible===false)continue;
+  for(const q of [o.x,o.x+o.w/2,o.x+o.w])if(Math.abs(x-q)<=threshold)x=q;
+  for(const q of [o.y,o.y+o.h/2,o.y+o.h])if(Math.abs(y-q)<=threshold)y=q;
+ }
+ return {x,y}
+}
+function pointerPos(ev){const r=document.getElementById('studioCanvas').getBoundingClientRect();return {x:(ev.clientX-r.left)/studio.zoom,y:(ev.clientY-r.top)/studio.zoom}}
+document.addEventListener('pointerdown',ev=>{
+ const handle=ev.target.closest?.('.studio-resize-handle');
+ if(handle){const node=handle.closest('.studio-el'),id=node?.dataset.id,e=page().elements.find(x=>x.id===id);if(!e||e.locked)return;const p=pointerPos(ev);resize={id,handle:handle.dataset.resize,x:p.x,y:p.y,ox:e.x,oy:e.y,ow:e.w,oh:e.h,before:studioSnapshot()};ev.preventDefault();return}
+ const node=ev.target.closest?.('.studio-el');
+ if(!node){if(ev.target.id==='studioCanvas'){selected.clear();renderStudio()}return}
+ if(node.dataset.groupChild==='true')return;
+ const id=node.dataset.id,e=page().elements.find(x=>x.id===id);if(!e||e.locked)return;
+ if(ev.target.closest('.studio-text')&&ev.detail>=2){node.contentEditable='true';node.focus();return}
+ if(ev.shiftKey||ev.ctrlKey||ev.metaKey){selected.has(id)?selected.delete(id):selected.add(id)}else if(!selected.has(id)){selected.clear();selected.add(id)}
+ const pos=pointerPos(ev);const ids=Array.from(selected).map(s=>page().elements.find(x=>x.id===s)).filter(x=>x&&!x.locked);drag={x:pos.x,y:pos.y,items:ids.map(x=>({id:x.id,ox:x.x,oy:x.y})),before:studioSnapshot()};node.setPointerCapture?.(ev.pointerId);renderStudio();ev.preventDefault()
+});
+document.addEventListener('pointermove',ev=>{
+ if(resize){const e=page().elements.find(x=>x.id===resize.id);if(!e)return;const p=pointerPos(ev),dx=p.x-resize.x,dy=p.y-resize.y;let nx=resize.ox,ny=resize.oy,nw=resize.ow,nh=resize.oh;if(resize.handle.includes('e'))nw=Math.max(1,resize.ow+dx);if(resize.handle.includes('s'))nh=Math.max(1,resize.oh+dy);if(resize.handle.includes('w')){nw=Math.max(1,resize.ow-dx);nx=resize.ox+dx}if(resize.handle.includes('n')){nh=Math.max(1,resize.oh-dy);ny=resize.oy+dy}const sp=snapPoint(nx,ny,[e.id]);e.x=sp.x;e.y=sp.y;e.w=Math.max(1,snap(nw));e.h=Math.max(1,snap(nh));renderStudio();return}
+ if(drag){const p=pointerPos(ev),dx=p.x-drag.x,dy=p.y-drag.y;drag.items.forEach(it=>{const e=page().elements.find(x=>x.id===it.id);if(e){const sp=snapPoint(it.ox+dx,it.oy+dy,drag.items.map(z=>z.id));e.x=sp.x;e.y=sp.y}});renderStudio()}
+});
+document.addEventListener('pointerup',()=>{if(resize){const before=resize.before;resize=null;saveStudio();studioCommit(before);renderProps()}if(drag){const before=drag.before;drag=null;saveStudio();studioCommit(before);renderProps()}})
+document.addEventListener('keydown',ev=>{
+ const tag=(ev.target?.tagName||'').toLowerCase();if(tag==='input'||tag==='textarea'||tag==='select'||ev.target?.isContentEditable)return;
+ if(document.getElementById('studioPanel')?.classList.contains('active')){
+  if((ev.ctrlKey||ev.metaKey)&&ev.key.toLowerCase()==='c'){ev.preventDefault();studioCopy()}
+  else if((ev.ctrlKey||ev.metaKey)&&ev.key.toLowerCase()==='v'){ev.preventDefault();studioPaste()}
+  else if((ev.ctrlKey||ev.metaKey)&&ev.key.toLowerCase()==='d'){ev.preventDefault();studioDuplicate()}
+  else if(ev.key==='Delete'||ev.key==='Backspace'){ev.preventDefault();studioDelete()}
+  else if(ev.key.startsWith('Arrow')){const n=ev.shiftKey?10:1;const dx=ev.key==='ArrowLeft'?-n:ev.key==='ArrowRight'?n:0,dy=ev.key==='ArrowUp'?-n:ev.key==='ArrowDown'?n:0;studioNudgeAll(dx,dy)}
+ }
+});
+document.addEventListener('input',ev=>{
+ if(ev.target.id==='richEditor'){const e=selectedEls()[0];if(e){e.html=ev.target.innerHTML;saveStudio()}}
+});
+
+function applyReference(){const r=document.getElementById('studioRef');if(!r)return;r.style.opacity=clampNum(studio.refOpacity,0,1,0.35);r.style.backgroundImage='none';if(studio.reference?.image){r.style.backgroundImage=`url(\"${studio.reference.image.replace(/\"/g,'%22')}\")`}r.style.display=studio.reference?.image?'block':'none'}
+function studioLoadImageRef(inp){const f=inp.files?.[0];if(!f)return;if(!f.type.startsWith('image/')||f.size>3*1024*1024){showToast('Reference image must be an image under 3MB.','error');inp.value='';return}const rd=new FileReader();rd.onload=e=>{studio.reference={type:'image',image:e.target.result,pages:1};saveStudio();renderStudio()};rd.readAsDataURL(f);inp.value=''}
+function studioClearReference(){studio.reference=null;saveStudio();renderStudio()}
+function studioToggleCompare(){
+ const c=document.getElementById('studioCanvas');let x=c.querySelector('.studio-compare');if(!x){x=document.createElement('div');x.className='studio-compare';x.innerHTML='<div class="cmp-label">Reference comparison — toggle with Compare</div><div class="cmp-ref"></div><div class="cmp-live"></div>';c.appendChild(x)}
+ x.classList.toggle('show');if(x.classList.contains('show')){const ref=x.querySelector('.cmp-ref');ref.style.backgroundImage='none';if(studio.reference?.image)ref.style.backgroundImage=`url(\"${studio.reference.image.replace(/\"/g,'%22')}\")`;ref.style.opacity=studio.refOpacity;const live=x.querySelector('.cmp-live');live.innerHTML='';const clone=c.cloneNode(true);clone.querySelectorAll('.studio-ref,.studio-compare,.studio-resize-handle,.studio-rotate').forEach(q=>q.remove());clone.querySelectorAll('.selected,.multi-selected').forEach(q=>q.classList.remove('selected','multi-selected'));clone.removeAttribute('id');clone.style.transform='none';clone.style.position='absolute';clone.style.inset='0';live.appendChild(clone);live.style.opacity='.5'}}
+function studioPrint(){
+ const p=page(),c=document.getElementById('studioCanvas').cloneNode(true);c.querySelectorAll('.studio-ref,.studio-compare,.studio-handle,.studio-resize-handle,.studio-rotate').forEach(x=>x.remove());c.querySelectorAll('.selected,.multi-selected').forEach(x=>x.classList.remove('selected','multi-selected'));c.style.transform='none';
+ const w=window.open('','_blank');if(!w)return;w.document.write(`<html><head><title>${esc(p.name)}</title><style>@page{size:${p.width}px ${p.height}px;margin:0}html,body{margin:0!important;padding:0!important;width:${p.width}px;height:${p.height}px;overflow:hidden}body{overflow:hidden}.studio-el{position:absolute;box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}.studio-text{overflow:hidden;white-space:pre-wrap;word-break:break-word}.studio-image{overflow:hidden}.studio-image img{width:100%;height:100%;display:block}.studio-shape{width:100%;height:100%}.studio-table{display:grid;width:100%;height:100%;overflow:hidden}.studio-cell{display:flex;align-items:center;justify-content:center;overflow:hidden;padding:3px}.studio-line{position:absolute;height:0;transform-origin:0 0}</style></head><body>${c.outerHTML}</body></html>`);w.document.close();setTimeout(()=>{w.focus();w.print()},350)
+}
+function studioExportJSON(){const blob=new Blob([JSON.stringify(studio,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='page-authoring-v13.json';a.click();const href=a.href;setTimeout(()=>URL.revokeObjectURL(href),1000)}
+function studioImportJSON(inp){const f=inp.files?.[0];if(!f)return;const rd=new FileReader();rd.onerror=()=>showToast('Could not read design JSON.','error');rd.onload=e=>{try{const x=JSON.parse(e.target.result);if(!x||!Array.isArray(x.pages)||!x.pages.length)throw 0;x.pages=x.pages.slice(0,200).map((p,i)=>{p=p&&typeof p==='object'?p:{};p.id=typeof p.id==='string'&&p.id? p.id:uid('pg');p.name=String(p.name||('Page '+(i+1))).slice(0,100);p.width=clampNum(p.width,100,10000,W);p.height=clampNum(p.height,100,10000,H);p.background=String(p.background||'#fff').slice(0,500);p.backgroundGradient=String(p.backgroundGradient||'').slice(0,1000);p.backgroundImage=typeof p.backgroundImage==='string'?p.backgroundImage:'';p.elements=Array.isArray(p.elements)?p.elements.filter(Boolean):[];return p});studio={...studio,...x,current:clampNum(x.current,0,x.pages.length-1,0),zoom:clampNum(x.zoom,.25,1.5,.72),grid:!!x.grid,snap:!!x.snap,gridSize:clampNum(x.gridSize,1,100,10),refOpacity:clampNum(x.refOpacity,0,1,.35),refPage:Math.max(1,Number(x.refPage)||1),margins:{...studio.margins,...(x.margins||{})}};selected.clear();saveStudio();renderStudio();showToast('Design imported.','success')}catch(_){showToast('Invalid design JSON.','error')}};rd.readAsText(f);inp.value=''}
+function studioReplaceImage(inp){const f=inp.files?.[0],e=selectedEls()[0];if(!f||!e)return;if(!f.type.startsWith('image/')||f.size>3*1024*1024){showToast('Image must be an image under 3MB.','error');inp.value='';return}const rd=new FileReader();rd.onload=x=>{e.src=x.target.result;saveStudio();renderStudio()};rd.readAsDataURL(f)}
+function studioUndo(){if(!studioUndoStack.length)return;studioRedoStack.push(studioSnapshot());studio=studioUndoStack.pop();selected.clear();saveStudio();renderStudio()}
+function studioRedo(){if(!studioRedoStack.length)return;studioUndoStack.push(studioSnapshot());studio=studioRedoStack.pop();selected.clear();saveStudio();renderStudio()}
+window.studioSetPage=studioSetPage;window.studioSetPageImage=studioSetPageImage;window.studioAdd=studioAdd;
+;['studioSetPage','studioSetPageImage','studioAdd','studioDuplicate','studioGroup','studioUngroup','studioCopy','studioPaste','studioDelete','studioAlign','studioSet','studioBorder','studioTableSize','studioTableText','richCmd','studioToggleVis','studioNudgeAll','studioSetLocked','studioBring','studioAddPage','studioDuplicatePage','studioReplaceImage'].forEach(name=>{const raw=window[name];if(typeof raw!=='function')return;window[name]=function(...args){const before=studioSnapshot();const r=raw.apply(this,args);studioCommit(before);return r}});window.studioDuplicate=studioDuplicate;window.studioGroup=studioGroup;window.studioUngroup=studioUngroup;window.studioCopy=studioCopy;window.studioPaste=studioPaste;window.studioDelete=studioDelete;window.studioAlign=studioAlign;window.studioSet=studioSet;window.studioBorder=studioBorder;window.studioTableSize=studioTableSize;window.studioTableText=studioTableText;window.richCmd=richCmd;window.studioToggleVis=studioToggleVis;window.studioNudgeAll=studioNudgeAll;window.studioSetLocked=studioSetLocked;window.studioBring=studioBring;window.studioZoom=studioZoom;window.studioGoPage=studioGoPage;window.studioAddPage=studioAddPage;window.studioDuplicatePage=studioDuplicatePage;window.studioPrint=studioPrint;window.studioExportJSON=studioExportJSON;window.studioImportJSON=studioImportJSON;window.studioLoadImageRef=studioLoadImageRef;window.studioClearReference=studioClearReference;window.studioToggleCompare=studioToggleCompare;window.studioReplaceImage=studioReplaceImage;window.studioUndo=studioUndo;window.studioRedo=studioRedo;
+function bootStudioWhenReady(){
+ if(document.getElementById('viewPanel')) { initStudio(); return; }
+ let tries=0;
+ const timer=setInterval(()=>{
+   tries++;
+   if(document.getElementById('viewPanel')){ clearInterval(timer); initStudio(); }
+   else if(tries>=100){ clearInterval(timer); console.warn('Studio initialization timed out: base app UI was not created.'); }
+ },50);
+}
+window.addEventListener('load',bootStudioWhenReady);
+})();
+</script>
+
+
 </body>
 </html>

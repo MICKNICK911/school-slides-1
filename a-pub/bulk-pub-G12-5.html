@@ -3,15 +3,11 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>📚 Phonics Lesson Publisher v8 — Dynamic Sections</title>
+    <title>📚 Phonics Lesson Publisher v12 — Hardened — Dynamic Sections</title>
     <style>
         @page { size: 850px 1100px; margin: 0; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            background: #f5f7fa; color: #1a1a1a; padding: 20px;
-            -webkit-font-smoothing: antialiased;
-        }
+        body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f5f7fa; color: #1a1a1a; padding: 20px; }
         .app { max-width: 1500px; margin: 0 auto; background: #fff; border-radius: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.08); overflow: hidden; }
         .app-header { background: #1a1a2e; color: #fff; padding: 20px 32px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
         .app-header h1 { font-size: 24px; font-weight: 800; }
@@ -33,6 +29,9 @@
         .form-group input:focus, .form-group textarea:focus, .form-group select:focus { outline: none; border-color: #F5A623; box-shadow: 0 0 0 3px rgba(245,166,35,0.15); }
         .form-group textarea { resize: vertical; min-height: 50px; }
         .form-actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+        .btn:disabled { opacity:.45; cursor:not-allowed; transform:none !important; }
+        .history-status { font-size:12px; color:#6c757d; margin-left:auto; padding:0 8px; align-self:center; }
+        @media (max-width:600px){ .tabs{gap:4px; flex-wrap:wrap;} .tabs .btn{padding:8px 10px;font-size:12px;} .history-status{display:none;} }
         .btn { padding: 10px 22px; border: none; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; transition: background 0.2s, transform 0.15s; font-family: inherit; display: inline-flex; align-items: center; gap: 6px; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         .btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .btn:active:not(:disabled) { transform: scale(0.97); }
@@ -86,15 +85,6 @@
         .view-container { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 8px; }
         .view-container .page { width: 850px; min-width: 850px; min-height: 1080px; padding: 24px 32px; position: relative; page-break-after: always; margin: 0 auto 30px; background: #fff; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
         .view-container .page:last-child { margin-bottom: 0; }
-
-        /* Print‑friendly serif for reading passages */
-        .cvc-intro-box p,
-        .cvc-instruction-box p,
-        .custom-text-box p,
-        .act-box .sentence,
-        .act-box .act-title {
-            font-family: 'Georgia', 'Times New Roman', serif;
-        }
 
         .view-container .card {
             border: 4px solid #E2571C;
@@ -167,18 +157,18 @@
 
         .cvc-page-number { position: absolute; bottom: 10px; left: 0; right: 0; text-align: center; font-weight: 700; font-size: 14px; color: #6c757d; z-index: 2; pointer-events: none; }
 
-        .cover-card { display: flex; flex-direction: column; justify-content: center; align-items: center; font-family: 'Georgia', 'Times New Roman', serif; min-height: 1000px; border: 3px solid #F5A623; border-radius: 28px; }
+        .cover-card { display: flex; flex-direction: column; justify-content: center; align-items: center; font-family: 'Times New Roman', Times, serif; min-height: 1000px; border: 3px solid #F5A623; border-radius: 28px; }
         .cover-text-block { text-align: center; padding: 0 40px; }
         .cover-line { width: 120px; height: 4px; background-color: #F5A623; margin: 30px auto; border-radius: 2px; }
         .cover-title { font-size: 60px; font-weight: 800; color: #1a1a2e; letter-spacing: 2px; margin: 0; }
         .cover-subtitle { font-size: 32px; font-weight: 400; color: #E2571C; margin-top: 14px; letter-spacing: 1px; font-style: italic; }
 
-        .toc-card { border: 3px solid #F5A623; border-radius: 28px; min-height: 1000px; padding: 30px 40px; position: relative; font-family: 'Georgia', 'Times New Roman', serif; }
+        .toc-card { border: 3px solid #F5A623; border-radius: 28px; min-height: 1000px; padding: 30px 40px; position: relative; font-family: 'Times New Roman', Times, serif; }
         .toc-title { font-size: 28px; font-weight: 800; color: #1a1a2e; text-align: center; margin-bottom: 20px; border-bottom: 4px solid #F5A623; padding-bottom: 10px; }
         .toc-list { list-style: none; padding: 0; margin: 0; }
         .toc-item { display: flex; justify-content: space-between; align-items: baseline; padding: 7px 6px; border-bottom: 1px dashed #dee2e6; font-size: 14px; font-weight: 600; line-height: 1.3; }
         .toc-item .toc-page-num { font-weight: 800; color: #E2571C; min-width: 60px; text-align: right; }
-        .toc-card .page-number { position: absolute; bottom: 16px; right: 24px; font-weight: 800; font-size: 14px; font-family: 'Helvetica Neue', Arial, sans-serif; }
+        .toc-card .page-number { position: absolute; bottom: 16px; right: 24px; font-weight: 800; font-size: 14px; font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; }
 
         .sight-words-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-top: 8px; padding: 0 12px; }
         .sight-word-pill { display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 800; color: #E2571C; background: #fff; border: 3px solid #F5A623; border-radius: 14px; padding: 16px 6px; min-height: 76px; text-align: center; word-break: break-word; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -190,12 +180,11 @@
 
         .view-toolbar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 2px solid #e9ecef; }
         .view-toolbar .info { font-weight: 700; color: #6c757d; font-size: 14px; margin-right: auto; }
-        .page-actions { text-align: right; margin-bottom: 8px; display: flex; justify-content: flex-end; gap: 8px; }
-        .export-btn, .edit-btn { background: #E2571C; color: #fff; border: none; border-radius: 8px; padding: 8px 16px; font-weight: 700; font-size: 13px; font-family: inherit; cursor: pointer; }
-        .edit-btn { background: #2c7be5; }
+        .page-actions { text-align: right; margin-bottom: 8px; }
+        .export-btn { background: #E2571C; color: #fff; border: none; border-radius: 8px; padding: 8px 16px; font-weight: 700; font-size: 13px; font-family: inherit; cursor: pointer; }
 
         @media print {
-            body { padding: 0; background: #fff; font-size: 12pt; }
+            body { padding: 0; background: #fff; }
             .app-header, .tabs, .tab-panel, .edit-layout, .form-section, .list-section, .view-toolbar, .no-print, .page-actions, .thumbnail-wrapper, .modal-overlay, .toast-container { display: none !important; }
             .view-container { overflow: visible !important; display: block !important; }
             .view-container .page { box-shadow: none !important; border-radius: 0 !important; margin: 0 auto !important; padding: 18px !important; width: 850px !important; min-width: 850px !important; min-height: 1080px !important; page-break-after: always; background: #fff !important; }
@@ -203,17 +192,6 @@
             .view-container .page:last-child { page-break-after: auto; }
             .view-container .card, .todays-sound-header, .cvc-header-right, .sight-word-pill, .toc-card, .cover-card,
             .view-container .section-header .circle, .custom-text-box, .cvc-intro-box { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-            .cvc-main-title { font-size: 24pt; }
-            .cvc-subtitle { font-size: 11pt; }
-            .cvc-intro-box p,
-            .cvc-instruction-box p,
-            .custom-text-box p,
-            .act-box .sentence {
-                font-size: 12pt;
-                line-height: 1.5;
-            }
-            .word-cell { font-size: 20pt; }
-            .fill-item { font-size: 22pt; }
         }
 
         .thumbnail-wrapper { margin-bottom: 16px; display: flex; flex-direction: column; align-items: center; }
@@ -230,8 +208,8 @@
         (function () {
             const IDB_NAME = 'phonics_lessons_db';
             const IDB_STORE = 'app_data';
-            const LEGACY_STORAGE_KEY = 'phonics_lessons_v8';
-            const MAX_TOC_PER_PAGE = 22;
+            const LEGACY_STORAGE_KEY = 'phonics_lessons_v12';
+            const MAX_TOC_PER_PAGE = 20;
             const MAX_SIGHT_WORDS_PER_PAGE = 50;
             const MAX_GRID_WORDS = 24;
             const MAX_FILL_ITEMS = 18;
@@ -435,8 +413,100 @@
 
             let lessons = [], sightWords = [], coverData = { ...DEFAULT_COVER };
             let editingId = null, nextId = 1, tempSections = [];
-            let previewLessonOverride = null;
             window.searchQuery = '';
+
+            // V12 HARDENING: immutable snapshots, safe IDs, and bounded undo/redo.
+            const HISTORY_LIMIT = 60;
+            let undoStack = [], redoStack = [], historyBusy = false, saveBusy = Promise.resolve();
+            const cloneState = state => JSON.parse(JSON.stringify(state));
+            function currentState() { return { lessons: cloneState(lessons), sightWords: cloneState(sightWords), coverData: cloneState(coverData) }; }
+            function stateKey(state) { try { return JSON.stringify(state); } catch(e) { return ''; } }
+            function updateHistoryUI() {
+                const u=document.getElementById('undoBtn'), r=document.getElementById('redoBtn');
+                if(u) u.disabled = historyBusy || undoStack.length===0;
+                if(r) r.disabled = historyBusy || redoStack.length===0;
+                const el=document.getElementById('historyStatus');
+                if(el) el.textContent = `${undoStack.length ? undoStack.length+' undo' : 'No undo'} · ${redoStack.length ? redoStack.length+' redo' : 'No redo'}`;
+            }
+            function recordHistory(before, after) {
+                if (historyBusy || stateKey(before) === stateKey(after)) return;
+                undoStack.push(cloneState(before));
+                if (undoStack.length > HISTORY_LIMIT) undoStack.shift();
+                redoStack = [];
+                updateHistoryUI();
+            }
+            async function persistState() {
+                const snapshot=currentState();
+                saveBusy = saveBusy.then(async()=>{
+                    await saveData(snapshot);
+                }).catch(err=>{
+                    console.error(err);
+                    showToast('Could not save changes. Your data remains in memory; export JSON as a backup.', 'error');
+                });
+                return saveBusy;
+            }
+            async function restoreState(state) {
+                const normalized = normalizeImportedState(cloneState(state));
+                lessons = normalized.lessons; sightWords = normalized.sightWords; coverData = normalized.coverData;
+                resyncNextId();
+                resetForm(); refreshUI();
+                await persistState();
+            }
+            window.undoLast = async function() {
+                if(historyBusy || !undoStack.length) return;
+                historyBusy=true; updateHistoryUI();
+                try {
+                    const current=currentState(), previous=undoStack.pop();
+                    redoStack.push(current); if(redoStack.length>HISTORY_LIMIT) redoStack.shift();
+                    await restoreState(previous); showToast('Undid last change.','success');
+                } finally { historyBusy=false; updateHistoryUI(); }
+            };
+            window.redoLast = async function() {
+                if(historyBusy || !redoStack.length) return;
+                historyBusy=true; updateHistoryUI();
+                try {
+                    const current=currentState(), next=redoStack.pop();
+                    undoStack.push(current); if(undoStack.length>HISTORY_LIMIT) undoStack.shift();
+                    await restoreState(next); showToast('Redid last change.','success');
+                } finally { historyBusy=false; updateHistoryUI(); }
+            };
+            function normalizeImportedState(data) {
+                const rawLessons = Array.isArray(data?.lessons) ? data.lessons : [];
+                const seenIds = new Set(), seenSectionIds = new Set();
+                const safeLessons = rawLessons.map((raw, idx) => {
+                    const l = migrateToSections(raw && typeof raw==='object' ? raw : {});
+                    let id = (typeof l.id==='string' && /^l[\w-]+$/.test(l.id)) ? l.id : '';
+                    if (!id || seenIds.has(id)) id = 'l' + Date.now().toString(36) + Math.random().toString(36).slice(2,8);
+                    while(seenIds.has(id)) id='l'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+                    seenIds.add(id); l.id=id;
+                    l.mainTitle = typeof l.mainTitle==='string' ? l.mainTitle.slice(0,300) : 'Untitled Lesson';
+                    l.subtitle = typeof l.subtitle==='string' ? l.subtitle.slice(0,300) : 'SHORT VOWEL';
+                    l.sections = Array.isArray(l.sections) ? l.sections.filter(Boolean).map(sec=>{
+                        const x={...sec};
+                        let sid=(typeof x.id==='string' && x.id) ? x.id : '';
+                        if(!sid || seenSectionIds.has(sid)) sid=generateSectionId();
+                        while(seenSectionIds.has(sid)) sid=generateSectionId();
+                        seenSectionIds.add(sid); x.id=sid;
+                        if(!SECTION_TYPES[x.type]) return null;
+                        if(!['full','half','quarter','threequarter'].includes(x.width)) x.width='full';
+                        return x;
+                    }).filter(Boolean) : [];
+                    l.lessonNumber=idx+1;
+                    return l;
+                });
+                const sw = Array.isArray(data?.sightWords) ? data.sightWords : [...DEFAULT_SIGHT_WORDS];
+                const safeSW = sw.filter(x=>typeof x==='string').map(x=>x.trim().slice(0,100)).filter(Boolean).slice(0,5000);
+                const cd = data?.coverData && typeof data.coverData==='object' ? data.coverData : {...DEFAULT_COVER};
+                return {lessons:safeLessons, sightWords:safeSW, coverData:{title:typeof cd.title==='string'?cd.title.slice(0,200):DEFAULT_COVER.title, subtitle:typeof cd.subtitle==='string'?cd.subtitle.slice(0,200):DEFAULT_COVER.subtitle}};
+            }
+            window.addEventListener('keydown', e=>{
+                const mod=e.ctrlKey||e.metaKey;
+                if(!mod || e.altKey) return;
+                const tag=(e.target?.tagName||'').toLowerCase();
+                if((tag==='input'||tag==='textarea'||tag==='select') && !e.shiftKey) return;
+                if(e.key.toLowerCase()==='z'){ e.preventDefault(); e.shiftKey ? redoLast() : undoLast(); }
+                else if(e.key.toLowerCase()==='y'){ e.preventDefault(); redoLast(); }
+            });
 
             async function loadData() {
                 let data = null;
@@ -448,9 +518,10 @@
                     } catch (e) {}
                 }
                 if (data && data.lessons) {
-                    lessons = data.lessons.map(l => migrateToSections(l));
-                    sightWords = data.sightWords || [...DEFAULT_SIGHT_WORDS];
-                    coverData = data.coverData || { ...DEFAULT_COVER };
+                    const normalized = normalizeImportedState(data);
+                    lessons = normalized.lessons;
+                    sightWords = normalized.sightWords;
+                    coverData = normalized.coverData;
                     if (lessons.length) {
                         let maxId = 0;
                         lessons.forEach(l => {
@@ -471,13 +542,16 @@
                     nextId = lessons.length + 1;
                     renumberByOrder(lessons);
                 }
-                await saveData();
             }
 
-            async function saveData() {
-                const payload = { lessons, sightWords, coverData };
-                await idbSet(payload);
-                try { localStorage.setItem(LEGACY_STORAGE_KEY, JSON.stringify(payload)); } catch (e) {}
+            async function saveData(dataOverride) {
+                const payload = dataOverride ? cloneState(dataOverride) : currentState();
+                try { await idbSet(payload); } catch (e) {
+                    try { localStorage.setItem(LEGACY_STORAGE_KEY, JSON.stringify(payload)); }
+                    catch (fallbackErr) { throw new Error('Persistent storage unavailable'); }
+                    return;
+                }
+                try { localStorage.setItem(LEGACY_STORAGE_KEY, JSON.stringify(payload)); } catch (e) { /* IndexedDB remains authoritative */ }
             }
 
             function generateId() { return 'l' + (nextId++); }
@@ -670,12 +744,7 @@
             function buildLessonPage(lesson, pageNum) {
                 const page = document.createElement('div');
                 page.className = 'page';
-                page.setAttribute('data-lesson-id', lesson.id);
-                page.innerHTML = `
-                    <div class="page-actions no-print">
-                        <button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button>
-                        <button class="edit-btn" onclick="editPageFromView('${escapeHtml(lesson.id)}', 'lesson')">✏️ Edit</button>
-                    </div>`;
+                page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
                 const card = document.createElement('div');
                 card.className = 'card';
 
@@ -740,10 +809,10 @@
                     case 'customText':
                         return `<div class="custom-text-box"><p>${formatTextWithHighlight(section.text || '')}</p></div>`;
                     case 'wordGrid': {
-                        const columns = Math.max(1, section.columns || 4);
-                        const rows = Math.max(1, section.rows || 3);
-                        const words = (section.words || []).slice(0, columns * rows);
-                        const totalCells = columns * rows;
+                        const columns = Math.max(1, Math.min(8, Number(section.columns) || 4));
+                        const rows = Math.max(1, Math.min(8, Number(section.rows) || 3));
+                        const words = (Array.isArray(section.words) ? section.words : []).filter(w => typeof w === 'string').slice(0, Math.min(MAX_GRID_WORDS, columns * rows));
+                        const totalCells = Math.min(MAX_GRID_WORDS, columns * rows);
                         let cellsHtml = '';
                         for (let i = 0; i < totalCells; i++) {
                             const word = words[i] || '';
@@ -798,25 +867,17 @@
 
             function buildTocPage(pageNum, entries) {
                 const page = document.createElement('div'); page.className = 'page';
-                page.innerHTML = `
-                    <div class="page-actions no-print">
-                        <button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button>
-                        <button class="edit-btn" onclick="editPageFromView('toc', 'toc')">✏️ Edit</button>
-                    </div>`;
+                page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
                 const card = document.createElement('div'); card.className = 'toc-card';
                 card.innerHTML = `<div class="toc-title">Table of Contents</div><ul class="toc-list">` +
-                    entries.map(e => `<li class="toc-item"><span>Lesson ${e.lessonNumber}: ${escapeHtml(e.mainTitle)}${e.tile ? ' — ' + escapeHtml(e.tile) : ''}</span><span class="toc-page-num">Page ${e.firstPage}</span></li>`).join('') +
+                    entries.map(e => `<li class="toc-item"><span>Lesson ${e.lessonNumber}: ${escapeHtml(e.mainTitle)}${e.sections?.[0]?.letterTile ? ' — ' + escapeHtml(e.sections[0].letterTile) : ''}</span><span class="toc-page-num">Page ${e.firstPage}</span></li>`).join('') +
                     `</ul><div class="page-number">${pageNum}</div>`;
                 page.appendChild(card); return page;
             }
 
             function buildSightWordsPage(pageNum, words) {
                 const page = document.createElement('div'); page.className = 'page';
-                page.innerHTML = `
-                    <div class="page-actions no-print">
-                        <button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button>
-                        <button class="edit-btn" onclick="editPageFromView('sightwords', 'sightwords')">✏️ Edit</button>
-                    </div>`;
+                page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
                 const card = document.createElement('div'); card.className = 'card sight-card';
                 card.innerHTML = `<div class="title">Sight Words Practice</div><div class="section-header"><div class="circle">★</div><div class="label-box">Read and say each word</div></div>`;
                 const grid = document.createElement('div'); grid.className = 'sight-words-grid';
@@ -828,11 +889,7 @@
 
             function buildCoverPage() {
                 const page = document.createElement('div'); page.className = 'page';
-                page.innerHTML = `
-                    <div class="page-actions no-print">
-                        <button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button>
-                        <button class="edit-btn" onclick="editPageFromView('cover', 'cover')">✏️ Edit</button>
-                    </div>`;
+                page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
                 const card = document.createElement('div'); card.className = 'card cover-card';
                 card.innerHTML = `<div class="cover-text-block"><div class="cover-line"></div><div class="cover-title">${escapeHtml(coverData.title)}</div><div class="cover-subtitle">${escapeHtml(coverData.subtitle)}</div><div class="cover-line"></div></div>`;
                 page.appendChild(card); return page;
@@ -842,7 +899,10 @@
                 const clone = pageEl.cloneNode(true);
                 clone.querySelector('.page-actions')?.remove();
                 const win = window.open('', '_blank');
-                const styles = document.querySelector('style').outerHTML;
+                if (!win) return showToast('Popup blocked. Allow pop-ups to export/print.', 'warning');
+                const styleEl = document.querySelector('style');
+                if (!styleEl) return showToast('Export styles are unavailable.', 'error');
+                const styles = styleEl.outerHTML;
                 win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Export</title>${styles}</head><body style="padding:0;background:#fff;margin:0;display:flex;justify-content:center;"><div class="view-container" style="overflow:visible;display:flex;flex-direction:column;align-items:center;">${clone.outerHTML}</div></body></html>`);
                 win.document.close(); win.focus(); setTimeout(() => win.print(), 400);
             };
@@ -851,7 +911,10 @@
                 const container = document.querySelector('.view-container').cloneNode(true);
                 container.querySelectorAll('.page-actions').forEach(el => el.remove());
                 const win = window.open('', '_blank');
-                const styles = document.querySelector('style').outerHTML;
+                if (!win) return showToast('Popup blocked. Allow pop-ups to export/print.', 'warning');
+                const styleEl = document.querySelector('style');
+                if (!styleEl) return showToast('Export styles are unavailable.', 'error');
+                const styles = styleEl.outerHTML;
                 win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>All Pages</title>${styles}</head><body style="padding:0;background:#fff;margin:0;"><div class="view-container" style="overflow:visible;display:block;">${container.innerHTML}</div></body></html>`);
                 win.document.close(); win.focus(); setTimeout(() => win.print(), 400);
             };
@@ -863,32 +926,19 @@
                 if (!lessons.length && !sightWords.length) return;
                 const swPages = Math.ceil(sightWords.length / MAX_SIGHT_WORDS_PER_PAGE) || 0;
                 const tocPages = lessons.length ? Math.ceil(lessons.length / MAX_TOC_PER_PAGE) : 0;
-                let currentPage = 2;
-                const tocEntries = [];
-                let lessonPageNum = currentPage + tocPages + swPages;
-                lessons.forEach(l => {
-                    const displayLesson = (previewLessonOverride && previewLessonOverride.id === l.id) ? { ...l, ...previewLessonOverride } : l;
-                    const tileSection = displayLesson.sections?.find(s => s.type === 'tile');
-                    tocEntries.push({
-                        lessonNumber: l.lessonNumber,
-                        mainTitle: displayLesson.mainTitle,
-                        tile: tileSection ? tileSection.letterTile : null,
-                        firstPage: lessonPageNum
-                    });
-                    lessonPageNum++;
+                const lessonStart = tocPages + swPages + 2; // page 1 is the cover
+                let running = lessonStart;
+                const tocEntries = lessons.map(l => {
+                    const e = { lessonNumber: l.lessonNumber, mainTitle: l.mainTitle, firstPage: running };
+                    running += 1; return e;
                 });
-
-                for (let p = 0; p < tocPages; p++) {
-                    container.appendChild(buildTocPage(currentPage++, tocEntries.slice(p * MAX_TOC_PER_PAGE, (p + 1) * MAX_TOC_PER_PAGE)));
-                }
+                for (let p = 0; p < tocPages; p++) container.appendChild(buildTocPage(p + 1, tocEntries.slice(p * MAX_TOC_PER_PAGE, (p + 1) * MAX_TOC_PER_PAGE)));
+                let pageNum = tocPages + 2; // cover occupies page 1
                 for (let p = 0; p < swPages; p++) {
-                    container.appendChild(buildSightWordsPage(currentPage++, sightWords.slice(p * MAX_SIGHT_WORDS_PER_PAGE, (p + 1) * MAX_SIGHT_WORDS_PER_PAGE)));
+                    container.appendChild(buildSightWordsPage(pageNum++, sightWords.slice(p * MAX_SIGHT_WORDS_PER_PAGE, (p + 1) * MAX_SIGHT_WORDS_PER_PAGE)));
                 }
-                let pageNum = lessonPageNum - lessons.length;
-                lessons.forEach(l => {
-                    const displayLesson = (previewLessonOverride && previewLessonOverride.id === l.id) ? { ...l, ...previewLessonOverride } : l;
-                    container.appendChild(buildLessonPage(displayLesson, pageNum++));
-                });
+                pageNum = lessonStart;
+                lessons.forEach(l => container.appendChild(buildLessonPage(l, pageNum++)));
             }
 
             function fillForm(lesson) {
@@ -898,12 +948,10 @@
                 tempSections = JSON.parse(JSON.stringify(lesson.sections || []));
                 renderSectionsBuilder();
                 renderThumbnail();
-                document.getElementById('viewLessonBtn').style.display = 'inline-flex';
             }
 
             function resetForm() {
                 editingId = null;
-                previewLessonOverride = null;
                 document.getElementById('formTitle').textContent = '➕ Add New Lesson';
                 document.getElementById('fMainTitle').value = 'SHORT VOWEL CVC WORDS';
                 document.getElementById('fSubtitle').value = 'SHORT VOWEL';
@@ -913,7 +961,6 @@
                 renderThumbnail();
                 document.getElementById('saveBtn').textContent = '💾 Save Lesson';
                 document.getElementById('cancelBtn').style.display = 'none';
-                document.getElementById('viewLessonBtn').style.display = 'none';
             }
 
             window.toggleFields = function() {};
@@ -926,7 +973,11 @@
                 const reader = new FileReader();
                 reader.onload = ev => {
                     const dataUrl = ev.target.result;
-                    showToast('Image uploaded. Use path field in tile section for now.', 'info');
+                    const target = tempSections.find(s => s.type === 'tile' && s.tileMode === 'image') || tempSections.find(s => s.type === 'tile');
+                    if (!target) return showToast('Add a Letter/Image Tile section first.', 'warning');
+                    target.tileMode='image'; target.imagePath=dataUrl;
+                    renderSectionsBuilder(); renderThumbnail();
+                    showToast('Image uploaded into the lesson preview.', 'success');
                 };
                 reader.readAsDataURL(file);
             };
@@ -940,6 +991,7 @@
                 document.getElementById('saveBtn').textContent = '💾 Update Lesson';
                 document.getElementById('cancelBtn').style.display = 'inline-block';
                 switchTab('edit');
+                updateHistoryUI();
             };
             window.cancelEdit = function() { resetForm(); switchTab('lessons'); showToast('Edit cancelled.', 'info'); };
 
@@ -959,8 +1011,7 @@
                     lessons.push(newLesson);
                 }
                 renumberByOrder(lessons);
-                saveData();
-                previewLessonOverride = null;
+                persistState();
                 resetForm();
                 refreshUI();
                 switchTab('lessons');
@@ -974,8 +1025,7 @@
                     lessons = lessons.filter(l => l.id !== id);
                     if (editingId === id) resetForm();
                     renumberByOrder(lessons);
-                    saveData();
-                    previewLessonOverride = null;
+                    persistState();
                     refreshUI();
                 });
             };
@@ -986,143 +1036,48 @@
                 delete copy.id; copy.id = generateId();
                 lessons.push(copy);
                 renumberByOrder(lessons);
-                saveData();
-                previewLessonOverride = null;
+                persistState();
                 refreshUI();
                 showToast('Lesson duplicated.', 'success');
             };
-
-            window.moveLessonUp = function(id) {
-                const idx = lessons.findIndex(l => l.id === id);
-                if (idx <= 0) return;
-                const temp = lessons[idx - 1];
-                lessons[idx - 1] = lessons[idx];
-                lessons[idx] = temp;
-                renumberByOrder(lessons);
-                saveData();
-                previewLessonOverride = null;
-                refreshUI();
-                showToast('Lesson moved up.', 'success');
-            };
-
-            window.moveLessonDown = function(id) {
-                const idx = lessons.findIndex(l => l.id === id);
-                if (idx === -1 || idx >= lessons.length - 1) return;
-                const temp = lessons[idx + 1];
-                lessons[idx + 1] = lessons[idx];
-                lessons[idx] = temp;
-                renumberByOrder(lessons);
-                saveData();
-                previewLessonOverride = null;
-                refreshUI();
-                showToast('Lesson moved down.', 'success');
-            };
-
-            window.editPageFromView = function(id, type) {
-                if (type === 'lesson') {
-                    if (editingId === id) {
-                        switchTab('edit');
-                        return;
-                    }
-                    editLesson(id);
-                } else if (type === 'cover') {
-                    switchTab('lessons');
-                    setTimeout(() => {
-                        document.getElementById('coverSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        document.getElementById('coverTitleInput')?.focus();
-                    }, 100);
-                } else if (type === 'sightwords') {
-                    switchTab('lessons');
-                    setTimeout(() => {
-                        document.getElementById('sightWordsSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        document.getElementById('fSightWords')?.focus();
-                    }, 100);
-                } else if (type === 'toc') {
-                    switchTab('lessons');
-                    showToast('Table of Contents is generated from lessons. You can reorder or edit lessons from the list.', 'info');
-                } else {
-                    showToast('Unknown page type.', 'warning');
-                }
-            };
-
-            window.viewLessonFromEdit = function() {
-                if (!editingId) return;
-
-                const mainTitle = document.getElementById('fMainTitle').value.trim();
-                const subtitle = document.getElementById('fSubtitle').value.trim() || 'SHORT VOWEL';
-                const sections = JSON.parse(JSON.stringify(tempSections));
-
-                previewLessonOverride = {
-                    id: editingId,
-                    mainTitle,
-                    subtitle,
-                    sections
-                };
-
-                switchTab('view');
-                setTimeout(() => {
-                    const targetPage = document.querySelector(`.view-container .page[data-lesson-id="${editingId}"]`);
-                    if (targetPage) {
-                        targetPage.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        targetPage.style.transition = 'outline 0.3s ease';
-                        targetPage.style.outline = '3px solid #F5A623';
-                        setTimeout(() => {
-                            targetPage.style.outline = 'none';
-                        }, 2000);
-                    } else {
-                        showToast('Could not find the page in view.', 'warning');
-                    }
-                }, 150);
-
-                showToast('Showing unsaved changes in view. Remember to save!', 'warning');
-            };
-
             window.exportJSON = function() {
                 const blob = new Blob([JSON.stringify({ lessons, sightWords, coverData }, null, 2)], { type: 'application/json' });
-                const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'lessons_v8.json'; a.click();
+                const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'lessons_v12.json'; a.click();
             };
             window.importJSON = function(input) {
-                const file = input.files[0];
+                const file = input?.files?.[0];
                 if (!file) return;
                 const reader = new FileReader();
+                reader.onerror = () => showToast('Could not read the JSON file.', 'error');
                 reader.onload = e => {
                     try {
                         const data = JSON.parse(e.target.result);
-                        if (!data || typeof data !== 'object') throw new Error('Invalid');
-                        confirmDialog('Replace all data with imported file?', () => {
-                            if (Array.isArray(data.lessons)) {
-                                lessons = data.lessons.map(l => migrateToSections(l));
-                                resyncNextId();
-                                lessons.forEach(l => { if (!l.id) l.id = generateId(); });
-                                resyncNextId();
-                            } else {
-                                lessons = JSON.parse(JSON.stringify(DEFAULT_LESSONS));
-                                resyncNextId();
-                            }
-                            sightWords = Array.isArray(data.sightWords) ? [...data.sightWords] : [...DEFAULT_SIGHT_WORDS];
-                            coverData = data.coverData || { ...DEFAULT_COVER };
-                            renumberByOrder(lessons);
-                            saveData();
-                            previewLessonOverride = null;
-                            resetForm();
-                            refreshUI();
-                            showToast('Data imported.', 'success');
+                        if (!data || typeof data !== 'object' || !Array.isArray(data.lessons)) throw new Error('Invalid structure');
+                        const normalized = normalizeImportedState(data);
+                        confirmDialog(`Replace all data with ${normalized.lessons.length} imported lesson(s)?`, async () => {
+                            const before=currentState();
+                            lessons=normalized.lessons; sightWords=normalized.sightWords; coverData=normalized.coverData;
+                            resyncNextId(); renumberByOrder(lessons);
+                            await persistState();
+                            recordHistory(before,currentState());
+                            resetForm(); refreshUI(); showToast('Data imported and validated.', 'success');
                         });
-                    } catch (err) { showToast('Invalid JSON file.', 'error'); }
+                    } catch (err) { console.error(err); showToast('Invalid or unsupported JSON file.', 'error'); }
                 };
                 reader.readAsText(file);
                 input.value = '';
             };
+
             window.saveSightWords = function() {
                 sightWords = document.getElementById('fSightWords').value.split(',').map(s => s.trim()).filter(Boolean);
-                saveData(); refreshUI(); showToast('Sight words saved.', 'success');
+                persistState(); refreshUI(); showToast('Sight words saved.', 'success');
             };
             window.saveCover = function() {
                 coverData = {
                     title: document.getElementById('coverTitleInput').value.trim() || DEFAULT_COVER.title,
                     subtitle: document.getElementById('coverSubtitleInput').value.trim() || DEFAULT_COVER.subtitle
                 };
-                saveData(); renderAllView(); showToast('Cover updated.', 'success');
+                persistState(); renderAllView(); showToast('Cover updated.', 'success');
             };
 
             function refreshUI() { renderEditList(); renderAllView(); updateCounts(); }
@@ -1137,9 +1092,6 @@
                            (l.sections?.some(s => s.letterTile && s.letterTile.toLowerCase().includes(q)));
                 });
                 container.innerHTML = filtered.length ? filtered.map(l => {
-                    const origIdx = lessons.findIndex(x => x.id === l.id);
-                    const isFirst = origIdx === 0;
-                    const isLast = origIdx === lessons.length - 1;
                     const tileSection = l.sections?.find(s => s.type === 'tile');
                     const tileLabel = tileSection ? (tileSection.tileMode === 'letter' ? tileSection.letterTile : '🖼️') : '—';
                     return `<div class="lesson-item" data-id="${l.id}">
@@ -1149,8 +1101,6 @@
                             <div class="sub">${l.sections?.length || 0} sections</div>
                         </div>
                         <div class="actions">
-                            <button class="btn btn-outline btn-xs" onclick="moveLessonUp('${l.id}')" ${isFirst ? 'disabled' : ''}>▲</button>
-                            <button class="btn btn-outline btn-xs" onclick="moveLessonDown('${l.id}')" ${isLast ? 'disabled' : ''}>▼</button>
                             <button class="btn btn-primary btn-xs" onclick="editLesson('${l.id}')">✏️</button>
                             <button class="btn btn-warning btn-xs" onclick="duplicateLesson('${l.id}')">📋</button>
                             <button class="btn btn-danger btn-xs" onclick="deleteLesson('${l.id}')">🗑️</button>
@@ -1181,18 +1131,34 @@
                 if (tab === 'view') {
                     renderAllView();
                 }
-                if (tab !== 'view') {
-                    previewLessonOverride = null;
-                }
                 updateCounts();
             };
 
-            async function initApp() {
+            function wrapMutator(name) {
+                const original=window[name]; if(typeof original!=='function') return;
+                window[name]=async function(...args){
+                    const before=currentState();
+                    const result=await original.apply(this,args);
+                    const after=currentState();
+                    recordHistory(before,after);
+                    return result;
+                };
+            }
+            // Wrap committed document mutations. In-progress section edits remain transactional until Save Lesson.
+            ['saveLesson','deleteLesson','duplicateLesson','saveSightWords','saveCover'].forEach(wrapMutator);
+            const originalExportJSON=window.exportJSON;
+            window.exportJSON=function(){ try{return originalExportJSON();}catch(e){showToast('Export failed.','error');} };
+            const originalRenderAllView=renderAllView;
+
+                        async function initApp() {
                 await loadData();
+                undoStack=[]; redoStack=[];
                 document.getElementById('app').innerHTML = `
-                    <div class="app-header"><h1>📚 Phonics Lesson Publisher v8</h1><span class="badge" id="lessonCount">0</span></div>
+                    <div class="app-header"><h1>📚 Phonics Lesson Publisher v12 — Hardened</h1><span class="badge" id="lessonCount">0</span></div>
                     <div class="tabs">
                         <button class="tab-btn active" data-tab="edit" onclick="switchTab('edit')">✏️ Edit</button>
+                        <button class="btn btn-outline" id="undoBtn" onclick="undoLast()" title="Undo">↶ Undo</button>
+                        <button class="btn btn-outline" id="redoBtn" onclick="redoLast()" title="Redo">↷ Redo</button><span class="history-status" id="historyStatus">No undo · No redo</span>
                         <button class="tab-btn" data-tab="lessons" onclick="switchTab('lessons')">📖 Lessons</button>
                         <button class="tab-btn" data-tab="view" onclick="switchTab('view')">👁️ View</button>
                     </div>
@@ -1220,13 +1186,12 @@
                             <div class="form-actions">
                                 <button class="btn btn-primary" id="saveBtn" onclick="saveLesson()">💾 Save Lesson</button>
                                 <button class="btn btn-outline" id="cancelBtn" onclick="cancelEdit()" style="display:none">Cancel</button>
-                                <button class="btn btn-outline" id="viewLessonBtn" onclick="viewLessonFromEdit()" style="display:none">👁️ View Lesson</button>
                             </div>
                         </div>
                     </div>
                     <div class="tab-panel" id="lessonsPanel">
                         <div class="list-section">
-                            <div id="coverSection" style="margin-bottom:20px;border-bottom:2px solid #e9ecef;padding-bottom:20px;">
+                            <div style="margin-bottom:20px;border-bottom:2px solid #e9ecef;padding-bottom:20px;">
                                 <h3>📘 Cover Page</h3>
                                 <div class="form-group"><label>Cover Title</label><input id="coverTitleInput" value="${escapeHtml(coverData.title)}"></div>
                                 <div class="form-group"><label>Cover Subtitle</label><input id="coverSubtitleInput" value="${escapeHtml(coverData.subtitle)}"></div>
@@ -1241,7 +1206,7 @@
                                 <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(this)">
                             </div>
                             <div class="lesson-list" id="lessonList"></div>
-                            <div id="sightWordsSection" style="margin-top:28px;border-top:2px solid #e9ecef;padding-top:20px;">
+                            <div style="margin-top:28px;border-top:2px solid #e9ecef;padding-top:20px;">
                                 <h3>📝 Sight Words</h3>
                                 <div class="form-group"><textarea id="fSightWords" rows="3"></textarea></div>
                                 <button class="btn btn-success btn-sm" onclick="saveSightWords()">💾 Save Sight Words</button>
