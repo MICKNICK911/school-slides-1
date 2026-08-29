@@ -1,1341 +1,2526 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>📚 Phonics Lesson Publisher v12 — Hardened — Dynamic Sections</title>
-    <style>
-        @page { size: 850px 1100px; margin: 0; }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; background: #f5f7fa; color: #1a1a1a; padding: 20px; }
-        .app { max-width: 1500px; margin: 0 auto; background: #fff; border-radius: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.08); overflow: hidden; }
-        .app-header { background: #1a1a2e; color: #fff; padding: 20px 32px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
-        .app-header h1 { font-size: 24px; font-weight: 800; }
-        .app-header .badge { background: #F5A623; color: #1a1a1a; padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 700; }
-        .tabs { display: flex; border-bottom: 2px solid #e9ecef; background: #fafbfc; padding: 0 32px; gap: 4px; }
-        .tab-btn { padding: 16px 28px; border: none; background: transparent; font-size: 17px; font-weight: 700; color: #6c757d; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.2s; font-family: inherit; touch-action: manipulation; }
-        .tab-btn.active { color: #1a1a2e; border-bottom-color: #F5A623; }
-        .tab-panel { display: none; padding: 24px 32px 32px; }
-        .tab-panel.active { display: block; }
-        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; max-width: 420px; width: 100%; pointer-events: none; }
-        .toast { padding: 14px 20px; border-radius: 12px; color: #fff; font-weight: 600; font-size: 14px; box-shadow: 0 8px 30px rgba(0,0,0,0.15); animation: slideIn 0.3s ease; display: flex; align-items: center; gap: 10px; pointer-events: auto; }
-        .toast.success { background: #2d7d46; } .toast.error { background: #dc3545; } .toast.warning { background: #e67e22; } .toast.info { background: #2c7be5; }
-        @keyframes slideIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
-        .form-section { background: #f8f9fa; border-radius: 16px; padding: 24px; border: 2px solid #e9ecef; }
-        .form-section h2 { font-size: 21px; margin-bottom: 16px; }
-        .form-group { margin-bottom: 14px; }
-        .form-group label { display: block; font-weight: 700; font-size: 13px; color: #495057; margin-bottom: 4px; }
-        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px 14px; border: 2px solid #dee2e6; border-radius: 10px; font-size: 14px; font-family: inherit; transition: border 0.2s; background: #fff; }
-        .form-group input:focus, .form-group textarea:focus, .form-group select:focus { outline: none; border-color: #F5A623; box-shadow: 0 0 0 3px rgba(245,166,35,0.15); }
-        .form-group textarea { resize: vertical; min-height: 50px; }
-        .form-actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
-        .btn:disabled { opacity:.45; cursor:not-allowed; transform:none !important; }
-        .history-status { font-size:12px; color:#6c757d; margin-left:auto; padding:0 8px; align-self:center; }
-        @media (max-width:600px){ .tabs{gap:4px; flex-wrap:wrap;} .tabs .btn{padding:8px 10px;font-size:12px;} .history-status{display:none;} }
-        .btn { padding: 10px 22px; border: none; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; transition: background 0.2s, transform 0.15s; font-family: inherit; display: inline-flex; align-items: center; gap: 6px; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .btn:active:not(:disabled) { transform: scale(0.97); }
-        .btn-primary { background: #F5A623; color: #1a1a1a; }
-        .btn-success { background: #2d7d46; color: #fff; }
-        .btn-danger { background: #dc3545; color: #fff; }
-        .btn-outline { background: transparent; border: 2px solid #dee2e6; color: #495057; }
-        .btn-sm { padding: 6px 14px; font-size: 12px; }
-        .btn-xs { padding: 4px 10px; font-size: 11px; border-radius: 6px; }
-        .btn-warning { background: #e67e22; color: #fff; }
-        .list-section { min-height: 400px; }
-        .list-toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 2px solid #e9ecef; }
-        .search-box { flex: 1; min-width: 180px; padding: 10px 16px; border: 2px solid #dee2e6; border-radius: 10px; font-size: 14px; font-family: inherit; }
-        .search-box:focus { outline: none; border-color: #F5A623; }
-        .list-toolbar .count { font-weight: 700; color: #6c757d; font-size: 14px; white-space: nowrap; }
-        .lesson-list { display: flex; flex-direction: column; gap: 8px; }
-        .lesson-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #f8f9fa; border-radius: 12px; border: 2px solid transparent; transition: background 0.2s, border-color 0.2s; }
-        .lesson-item:active { border-color: #F5A623; background: #fff; }
-        .lesson-item .thumb { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; background: #e9ecef; border: 1px solid #dee2e6; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 21px; }
-        .lesson-item .info { flex: 1; min-width: 0; }
-        .lesson-item .info .title { font-weight: 700; font-size: 17px; }
-        .lesson-item .info .sub { font-size: 12px; color: #6c757d; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .lesson-item .actions { display: flex; gap: 4px; flex-shrink: 0; }
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 9998; }
-        .modal-overlay .modal { background: #fff; border-radius: 20px; padding: 32px; max-width: 440px; width: 90%; box-shadow: 0 30px 60px rgba(0,0,0,0.2); }
-        .modal-overlay .modal h3 { margin-bottom: 8px; }
-        .modal-overlay .modal p { color: #6c757d; margin-bottom: 20px; font-size: 17px; }
-        .modal-overlay .modal .actions { display: flex; gap: 10px; justify-content: flex-end; }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>📚 Phonics Lesson Publisher v14 — Robust Unified Pages</title>
+  <style>
+    @page { size: 850px 1100px; margin: 0; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Poppins', 'Segoe UI', Arial, sans-serif;
+      background: #f5f7fa;
+      color: #1a1a1a;
+      padding: 16px;
+      line-height: 1.45;
+    }
+    .app {
+      max-width: 1500px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 16px 48px rgba(0,0,0,0.08);
+      overflow: hidden;
+    }
+    .app-header {
+      background: #1a1a2e;
+      color: #fff;
+      padding: 18px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .app-header h1 { font-size: 22px; font-weight: 800; }
+    .app-header .badge {
+      background: #F5A623;
+      color: #1a1a1a;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .tabs {
+      display: flex;
+      border-bottom: 2px solid #e9ecef;
+      background: #fafbfc;
+      padding: 0 24px;
+      gap: 4px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .tab-btn {
+      padding: 14px 22px;
+      border: none;
+      background: transparent;
+      font-size: 16px;
+      font-weight: 700;
+      color: #6c757d;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s;
+      font-family: inherit;
+      touch-action: manipulation;
+    }
+    .tab-btn.active { color: #1a1a2e; border-bottom-color: #F5A623; }
+    .history-status {
+      font-size: 12px;
+      color: #6c757d;
+      margin-left: 8px;
+      white-space: nowrap;
+    }
+    .tab-panel { display: none; padding: 20px 28px 28px; }
+    .tab-panel.active { display: block; }
 
-        .section-card { background: #fff; border: 2px solid #e9ecef; border-radius: 12px; padding: 14px; margin-bottom: 12px; }
-        .section-card h4 { font-size: 14px; margin-bottom: 10px; color: #E2571C; }
-        .section-builder-item { background: #fff; border: 2px solid #dee2e6; border-radius: 12px; padding: 12px; margin-bottom: 10px; }
-        .section-builder-item .sb-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-        .section-builder-item .sb-header .sb-title { font-weight: 700; font-size: 14px; flex: 1; }
-        .section-builder-item .sb-header select { width: auto; padding: 4px 8px; border-radius: 8px; border: 2px solid #dee2e6; font-size: 12px; }
-        .section-builder-item .sb-body { display: flex; flex-direction: column; gap: 8px; }
-        .section-builder-item .sb-body textarea, .section-builder-item .sb-body input, .section-builder-item .sb-body select { width: 100%; padding: 6px 10px; border: 2px solid #dee2e6; border-radius: 8px; font-size: 13px; font-family: inherit; }
-        .section-builder-item .sb-actions { display: flex; gap: 4px; justify-content: flex-end; }
+    /* Toast */
+    .toast-container {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-width: 400px;
+      width: 100%;
+      pointer-events: none;
+    }
+    .toast {
+      padding: 12px 18px;
+      border-radius: 10px;
+      color: #fff;
+      font-weight: 600;
+      font-size: 14px;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.15);
+      animation: slideIn 0.28s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      pointer-events: auto;
+    }
+    .toast.success { background: #2d7d46; }
+    .toast.error { background: #dc3545; }
+    .toast.warning { background: #e67e22; }
+    .toast.info { background: #2c7be5; }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
 
-        @media (hover: hover) {
-            .tab-btn:hover { color: #1a1a2e; }
-            .btn-primary:hover:not(:disabled) { background: #e0950f; transform: translateY(-1px); }
-            .btn-success:hover:not(:disabled) { background: #1f5f34; }
-            .btn-danger:hover:not(:disabled) { background: #b02a37; }
-            .btn-outline:hover:not(:disabled) { background: #f1f3f5; }
-            .btn-warning:hover:not(:disabled) { background: #d35400; }
-            .lesson-item:hover { border-color: #F5A623; background: #fff; }
-        }
+    /* Forms */
+    .form-section {
+      background: #f8f9fa;
+      border-radius: 14px;
+      padding: 20px;
+      border: 2px solid #e9ecef;
+    }
+    .form-section h2 { font-size: 20px; margin-bottom: 14px; }
+    .form-group { margin-bottom: 12px; }
+    .form-group label {
+      display: block;
+      font-weight: 700;
+      font-size: 13px;
+      color: #495057;
+      margin-bottom: 4px;
+    }
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      width: 100%;
+      padding: 9px 12px;
+      border: 2px solid #dee2e6;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      background: #fff;
+      transition: border 0.2s;
+    }
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: #F5A623;
+      box-shadow: 0 0 0 3px rgba(245,166,35,0.15);
+    }
+    .form-group textarea { resize: vertical; min-height: 48px; }
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+      flex-wrap: wrap;
+    }
 
-        /* ----- VIEW ----- */
-        .view-container { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 8px; }
-        .view-container .page { width: 850px; min-width: 850px; min-height: 1080px; padding: 24px 32px; position: relative; page-break-after: always; margin: 0 auto 30px; background: #fff; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
-        .view-container .page:last-child { margin-bottom: 0; }
+    /* Buttons */
+    .btn {
+      padding: 9px 18px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+      font-family: inherit;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn:active:not(:disabled) { transform: scale(0.97); }
+    .btn-primary { background: #F5A623; color: #1a1a1a; }
+    .btn-success { background: #2d7d46; color: #fff; }
+    .btn-danger { background: #dc3545; color: #fff; }
+    .btn-outline { background: transparent; border: 2px solid #dee2e6; color: #495057; }
+    .btn-sm { padding: 6px 12px; font-size: 12px; }
+    .btn-xs { padding: 4px 9px; font-size: 11px; border-radius: 6px; }
+    .btn-warning { background: #e67e22; color: #fff; }
 
-        .view-container .card {
-            border: 4px solid #E2571C;
-            border-radius: 12px;
-            min-height: 1030px;
-            padding: 0;
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            background: #fff;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
-        }
+    /* List */
+    .list-section { min-height: 360px; }
+    .list-toolbar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 14px;
+      padding-bottom: 14px;
+      border-bottom: 2px solid #e9ecef;
+    }
+    .search-box {
+      flex: 1;
+      min-width: 160px;
+      padding: 9px 14px;
+      border: 2px solid #dee2e6;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+    }
+    .search-box:focus { outline: none; border-color: #F5A623; }
+    .list-toolbar .count {
+      font-weight: 700;
+      color: #6c757d;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+    .lesson-list { display: flex; flex-direction: column; gap: 8px; }
+    .lesson-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 11px 14px;
+      background: #f8f9fa;
+      border-radius: 10px;
+      border: 2px solid transparent;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .lesson-item:active { border-color: #F5A623; background: #fff; }
+    .lesson-item .thumb {
+      width: 42px;
+      height: 42px;
+      border-radius: 8px;
+      background: #e9ecef;
+      border: 1px solid #dee2e6;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+    .lesson-item .info { flex: 1; min-width: 0; }
+    .lesson-item .info .title { font-weight: 700; font-size: 16px; }
+    .lesson-item .info .sub {
+      font-size: 12px;
+      color: #6c757d;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .lesson-item .actions { display: flex; gap: 4px; flex-shrink: 0; }
 
-        .cvc-header { display: flex; align-items: stretch; border-bottom: 3px solid #E2571C; min-height: 68px; flex-shrink: 0; }
-        .cvc-header-left { flex: 1; padding: 12px 22px 8px; display: flex; flex-direction: column; justify-content: center; }
-        .cvc-main-title { font-size: 28px; font-weight: 800; color: #E2571C; letter-spacing: 0.4px; line-height: 1.1; margin: 0; }
-        .cvc-subtitle { font-size: 13px; font-weight: 700; color: #c45a12; letter-spacing: 1.2px; text-transform: uppercase; margin-top: 2px; }
-        .cvc-header-right { background: #E2571C; color: #fff; min-width: 150px; display: flex; align-items: center; justify-content: center; padding: 10px 18px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        .cvc-header-right .lesson-label { font-size: 13px; font-weight: 600; opacity: 0.95; margin-right: 6px; }
-        .cvc-header-right .lesson-num { font-size: 26px; font-weight: 800; line-height: 1; }
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9998;
+    }
+    .modal-overlay .modal {
+      background: #fff;
+      border-radius: 16px;
+      padding: 28px;
+      max-width: 420px;
+      width: 90%;
+      box-shadow: 0 24px 48px rgba(0,0,0,0.2);
+    }
+    .modal-overlay .modal h3 { margin-bottom: 8px; }
+    .modal-overlay .modal p { color: #6c757d; margin-bottom: 18px; font-size: 15px; }
+    .modal-overlay .modal .actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
 
-        .lesson-sections-container { display: flex; flex-wrap: wrap; gap: 10px; padding: 14px 22px 8px; flex: 1; align-content: flex-start; min-height: 0; }
-        .section-item { flex: 0 0 auto; }
-        .w-full { width: 100%; }
-        .w-half { width: calc(50% - 5px); }
-        .w-quarter { width: calc(25% - 7.5px); }
-        .w-threequarter { width: calc(75% - 2.5px); }
+    /* Section builder */
+    .section-card {
+      background: #fff;
+      border: 2px solid #e9ecef;
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+    .section-card h4 { font-size: 14px; margin-bottom: 8px; color: #E2571C; }
+    .section-builder-item {
+      background: #fff;
+      border: 2px solid #dee2e6;
+      border-radius: 10px;
+      padding: 10px;
+      margin-bottom: 8px;
+    }
+    .section-builder-item .sb-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .section-builder-item .sb-header .sb-title {
+      font-weight: 700;
+      font-size: 13px;
+      flex: 1;
+    }
+    .section-builder-item .sb-header select {
+      width: auto;
+      padding: 3px 7px;
+      border-radius: 6px;
+      border: 2px solid #dee2e6;
+      font-size: 12px;
+    }
+    .section-builder-item .sb-body {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .section-builder-item .sb-body textarea,
+    .section-builder-item .sb-body input,
+    .section-builder-item .sb-body select {
+      width: 100%;
+      padding: 6px 9px;
+      border: 2px solid #dee2e6;
+      border-radius: 6px;
+      font-size: 13px;
+      font-family: inherit;
+    }
+    .section-builder-item .sb-actions {
+      display: flex;
+      gap: 4px;
+      justify-content: flex-end;
+    }
 
-        .todays-sound-card { background: #fff; border: 2px solid #F5A623; border-radius: 12px; width: 100%; overflow: hidden; box-shadow: 0 2px 6px rgba(226,87,28,0.1); display: flex; flex-direction: column; }
-        .todays-sound-header { background: #E2571C; color: #fff; text-align: center; font-size: 11px; font-weight: 800; letter-spacing: 1px; padding: 5px 4px; text-transform: uppercase; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        .todays-sound-body { padding: 8px 6px 12px; text-align: center; flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .todays-sound-stars { color: #F5A623; font-size: 12px; letter-spacing: 3px; margin-bottom: 2px; }
-        .todays-sound-letter { font-weight: 800; color: #E2571C; line-height: 1; letter-spacing: -1px; }
-        .todays-sound-img { max-width: 90%; max-height: 90px; object-fit: contain; border-radius: 6px; }
+    @media (hover: hover) {
+      .tab-btn:hover { color: #1a1a2e; }
+      .btn-primary:hover:not(:disabled) { background: #e0950f; transform: translateY(-1px); }
+      .btn-success:hover:not(:disabled) { background: #1f5f34; }
+      .btn-danger:hover:not(:disabled) { background: #b02a37; }
+      .btn-outline:hover:not(:disabled) { background: #f1f3f5; }
+      .btn-warning:hover:not(:disabled) { background: #d35400; }
+      .lesson-item:hover { border-color: #F5A623; background: #fff; }
+    }
 
-        .cvc-intro-box { border: 2px dashed #E2571C; border-radius: 10px; padding: 10px 14px; background: #fff8f3; }
-        .cvc-intro-box p { margin: 0; font-size: 13px; line-height: 1.4; color: #1a1a1a; font-weight: 500; }
-        .cvc-intro-box .highlight { color: #E2571C; font-weight: 700; }
-        .cvc-instruction-box { border: 2px solid #F5A623; border-radius: 10px; padding: 9px 14px; background: #fffaf0; }
-        .cvc-instruction-box p { margin: 0; font-size: 13px; font-weight: 700; color: #1a1a2e; line-height: 1.35; }
+    /* ========== VIEW / PAGE STYLES (shared by Structured + Code) ========== */
+    .view-container {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 8px;
+    }
+    .view-container .page {
+      width: 850px;
+      min-width: 850px;
+      min-height: 1100px;
+      height: 1100px;
+      max-height: 1100px;
+      padding: 16px 22px;
+      position: relative;
+      page-break-after: always;
+      page-break-inside: avoid;
+      margin: 0 auto 28px;
+      background: #fff;
+      border-radius: 6px;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.06);
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+    .view-container .page:last-child {
+      margin-bottom: 0;
+      page-break-after: auto;
+    }
 
-        .custom-text-box { border: 2px dashed #E2571C; border-radius: 10px; padding: 10px 14px; background: #fff8f3; }
-        .custom-text-box p { margin: 0; font-size: 13px; line-height: 1.4; color: #1a1a1a; font-weight: 500; }
-        .custom-text-box .highlight { color: #E2571C; font-weight: 700; }
+    /* Unified card chrome — same for Structured and Code */
+    .view-container .card {
+      border: 4px solid #E2571C;
+      border-radius: 12px;
+      width: 100%;
+      height: 1068px;
+      min-height: 1068px;
+      max-height: 1068px;
+      padding: 0;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      background: #fff;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+      box-sizing: border-box;
+    }
 
-        .word-grid { display: grid; border: 2px solid #E2571C; border-radius: 10px; overflow: hidden; background: #fff; }
-        .word-cell { border-right: 1px solid #f0c9a8; border-bottom: 1px solid #f0c9a8; padding: 9px 4px; text-align: center; font-size: 23px; font-weight: 600; color: #1a1a1a; min-height: 40px; display: flex; align-items: center; justify-content: center; background: #fff; }
-        .word-cell.empty { background: #faf7f4; color: transparent; }
+    /* Structured header */
+    .cvc-header {
+      display: flex;
+      align-items: stretch;
+      border-bottom: 3px solid #E2571C;
+      min-height: 64px;
+      flex-shrink: 0;
+    }
+    .cvc-header-left {
+      flex: 1;
+      padding: 10px 18px 6px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .cvc-main-title {
+      font-size: 26px;
+      font-weight: 800;
+      color: #E2571C;
+      letter-spacing: 0.3px;
+      line-height: 1.1;
+      margin: 0;
+    }
+    .cvc-subtitle {
+      font-size: 12px;
+      font-weight: 700;
+      color: #c45a12;
+      letter-spacing: 1.1px;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+    .cvc-header-right {
+      background: #E2571C;
+      color: #fff;
+      min-width: 140px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 14px;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    .cvc-header-right .lesson-label {
+      font-size: 12px;
+      font-weight: 600;
+      opacity: 0.95;
+      margin-right: 5px;
+    }
+    .cvc-header-right .lesson-num {
+      font-size: 24px;
+      font-weight: 800;
+      line-height: 1;
+    }
 
-        .act-box { border: 2px solid #E2571C; border-radius: 12px; padding: 12px 16px; background: #fff; }
-        .act-box .act-title { font-size: 13px; font-weight: 700; color: #1a1a1a; margin-bottom: 8px; }
-        .act-box .sentence { font-size: 17px; font-weight: 600; color: #E2571C; margin: 3px 0; line-height: 1.35; }
+    .lesson-sections-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 12px 18px 6px;
+      flex: 1;
+      align-content: flex-start;
+      min-height: 0;
+      overflow: hidden;
+    }
+    .section-item { flex: 0 0 auto; }
+    .w-full { width: 100%; }
+    .w-half { width: calc(50% - 5px); }
+    .w-quarter { width: calc(25% - 7.5px); }
+    .w-threequarter { width: calc(75% - 2.5px); }
 
-        .fill-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-        .fill-item { border: 2px solid #F5A623; border-radius: 10px; padding: 10px 8px; text-align: center; font-size: 24px; font-weight: 700; color: #E2571C; background: #fffaf0; display: flex; align-items: center; justify-content: center; gap: 2px; min-height: 48px; overflow: hidden; word-break: break-word; }
-        .fill-item .blank-sq { display: inline-block; width: 32px; height: 32px; border: 2px solid #1a1a1a; border-radius: 4px; background: #fff; vertical-align: middle; }
+    .todays-sound-card {
+      background: #fff;
+      border: 2px solid #F5A623;
+      border-radius: 10px;
+      width: 100%;
+      overflow: hidden;
+      box-shadow: 0 2px 5px rgba(226,87,28,0.1);
+      display: flex;
+      flex-direction: column;
+    }
+    .todays-sound-header {
+      background: #E2571C;
+      color: #fff;
+      text-align: center;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      padding: 4px 4px;
+      text-transform: uppercase;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    .todays-sound-body {
+      padding: 6px 6px 10px;
+      text-align: center;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    .todays-sound-stars {
+      color: #F5A623;
+      font-size: 11px;
+      letter-spacing: 3px;
+      margin-bottom: 2px;
+    }
+    .todays-sound-letter {
+      font-weight: 800;
+      color: #E2571C;
+      line-height: 1;
+      letter-spacing: -1px;
+    }
+    .todays-sound-img {
+      max-width: 90%;
+      max-height: 80px;
+      object-fit: contain;
+      border-radius: 5px;
+    }
 
-        .sent-lines { margin-top: 4px; }
-        .sent-line { border-bottom: 1.5px solid #999; padding: 12px 0 4px; font-size: 14px; color: #666; font-weight: 600; }
+    .cvc-intro-box {
+      border: 2px dashed #E2571C;
+      border-radius: 8px;
+      padding: 8px 12px;
+      background: #fff8f3;
+    }
+    .cvc-intro-box p {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.4;
+      color: #1a1a1a;
+      font-weight: 500;
+    }
+    .cvc-intro-box .highlight { color: #E2571C; font-weight: 700; }
 
-        .writing-lines-area { display: flex; flex-direction: column; justify-content: space-evenly; min-height: 120px; padding-bottom: 26px; flex: 1; }
-        .writing-set { position: relative; height: 46px; width: 100%; flex: 0 0 auto; }
-        .writing-set .line { position: absolute; left: 0; right: 0; height: 0; border-top-width: 1.8px; border-top-style: solid; }
-        .writing-set .line.l1 { top: 0; border-top-color: #E2571C; }
-        .writing-set .line.l2 { top: 15px; border-top-color: #2c7be5; }
-        .writing-set .line.l3 { top: 30px; border-top-color: #2c7be5; }
-        .writing-set .line.l4 { top: 45px; border-top-color: #E2571C; }
+    .cvc-instruction-box {
+      border: 2px solid #F5A623;
+      border-radius: 8px;
+      padding: 8px 12px;
+      background: #fffaf0;
+    }
+    .cvc-instruction-box p {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 700;
+      color: #1a1a2e;
+      line-height: 1.35;
+    }
 
-        .cvc-page-number { position: absolute; bottom: 10px; left: 0; right: 0; text-align: center; font-weight: 700; font-size: 14px; color: #6c757d; z-index: 2; pointer-events: none; }
+    .custom-text-box {
+      border: 2px dashed #E2571C;
+      border-radius: 8px;
+      padding: 8px 12px;
+      background: #fff8f3;
+    }
+    .custom-text-box p {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.4;
+      color: #1a1a1a;
+      font-weight: 500;
+    }
+    .custom-text-box .highlight { color: #E2571C; font-weight: 700; }
 
-        .cover-card { display: flex; flex-direction: column; justify-content: center; align-items: center; font-family: 'Times New Roman', Times, serif; min-height: 1000px; border: 3px solid #F5A623; border-radius: 28px; }
-        .cover-text-block { text-align: center; padding: 0 40px; }
-        .cover-line { width: 120px; height: 4px; background-color: #F5A623; margin: 30px auto; border-radius: 2px; }
-        .cover-title { font-size: 60px; font-weight: 800; color: #1a1a2e; letter-spacing: 2px; margin: 0; }
-        .cover-subtitle { font-size: 32px; font-weight: 400; color: #E2571C; margin-top: 14px; letter-spacing: 1px; font-style: italic; }
+    .word-grid {
+      display: grid;
+      border: 2px solid #E2571C;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #fff;
+    }
+    .word-cell {
+      border-right: 1px solid #f0c9a8;
+      border-bottom: 1px solid #f0c9a8;
+      padding: 8px 3px;
+      text-align: center;
+      font-size: 21px;
+      font-weight: 600;
+      color: #1a1a1a;
+      min-height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #fff;
+    }
+    .word-cell.empty { background: #faf7f4; color: transparent; }
 
-        .toc-card { border: 3px solid #F5A623; border-radius: 28px; min-height: 1000px; padding: 30px 40px; position: relative; font-family: 'Times New Roman', Times, serif; }
-        .toc-title { font-size: 28px; font-weight: 800; color: #1a1a2e; text-align: center; margin-bottom: 20px; border-bottom: 4px solid #F5A623; padding-bottom: 10px; }
-        .toc-list { list-style: none; padding: 0; margin: 0; }
-        .toc-item { display: flex; justify-content: space-between; align-items: baseline; padding: 7px 6px; border-bottom: 1px dashed #dee2e6; font-size: 14px; font-weight: 600; line-height: 1.3; }
-        .toc-item .toc-page-num { font-weight: 800; color: #E2571C; min-width: 60px; text-align: right; }
-        .toc-card .page-number { position: absolute; bottom: 16px; right: 24px; font-weight: 800; font-size: 14px; font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; }
+    .act-box {
+      border: 2px solid #E2571C;
+      border-radius: 10px;
+      padding: 10px 14px;
+      background: #fff;
+    }
+    .act-box .act-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin-bottom: 6px;
+    }
+    .act-box .sentence {
+      font-size: 16px;
+      font-weight: 600;
+      color: #E2571C;
+      margin: 2px 0;
+      line-height: 1.35;
+    }
 
-        .sight-words-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-top: 8px; padding: 0 12px; }
-        .sight-word-pill { display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 800; color: #E2571C; background: #fff; border: 3px solid #F5A623; border-radius: 14px; padding: 16px 6px; min-height: 76px; text-align: center; word-break: break-word; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        .view-container .card.sight-card { border: 3px solid #F5A623; border-radius: 28px; min-height: 1000px; padding: 24px 32px; }
-        .view-container .title { font-size: 28px; font-weight: 800; color: #1a1a1a; letter-spacing: 0.5px; margin: 4px 0 16px 0; }
-        .view-container .section-header { display: flex; align-items: center; margin-bottom: 10px; margin-top: 10px; }
-        .view-container .section-header .circle { background: #F5A623; color: #fff; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 16px; margin-right: 12px; flex-shrink: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        .view-container .section-header .label-box { flex: 1; border: 3px dashed #E2571C; border-radius: 12px; padding: 7px 16px; font-weight: 800; font-size: 17px; color: #1a1a1a; }
+    .fill-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 7px;
+    }
+    .fill-item {
+      border: 2px solid #F5A623;
+      border-radius: 8px;
+      padding: 8px 6px;
+      text-align: center;
+      font-size: 22px;
+      font-weight: 700;
+      color: #E2571C;
+      background: #fffaf0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      min-height: 44px;
+      overflow: hidden;
+      word-break: break-word;
+    }
+    .fill-item .blank-sq {
+      display: inline-block;
+      width: 28px;
+      height: 28px;
+      border: 2px solid #1a1a1a;
+      border-radius: 4px;
+      background: #fff;
+      vertical-align: middle;
+    }
 
-        .view-toolbar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 2px solid #e9ecef; }
-        .view-toolbar .info { font-weight: 700; color: #6c757d; font-size: 14px; margin-right: auto; }
-        .page-actions { text-align: right; margin-bottom: 8px; }
-        .export-btn { background: #E2571C; color: #fff; border: none; border-radius: 8px; padding: 8px 16px; font-weight: 700; font-size: 13px; font-family: inherit; cursor: pointer; }
+    .sent-lines { margin-top: 4px; }
+    .sent-line {
+      border-bottom: 1.5px solid #999;
+      padding: 10px 0 3px;
+      font-size: 13px;
+      color: #666;
+      font-weight: 600;
+    }
 
-        @media print {
-            body { padding: 0; background: #fff; }
-            .app-header, .tabs, .tab-panel, .edit-layout, .form-section, .list-section, .view-toolbar, .no-print, .page-actions, .thumbnail-wrapper, .modal-overlay, .toast-container { display: none !important; }
-            .view-container { overflow: visible !important; display: block !important; }
-            .view-container .page { box-shadow: none !important; border-radius: 0 !important; margin: 0 auto !important; padding: 18px !important; width: 850px !important; min-width: 850px !important; min-height: 1080px !important; page-break-after: always; background: #fff !important; }
-            .view-container .page .page-actions { display: none !important; }
-            .view-container .page:last-child { page-break-after: auto; }
-            .view-container .card, .todays-sound-header, .cvc-header-right, .sight-word-pill, .toc-card, .cover-card,
-            .view-container .section-header .circle, .custom-text-box, .cvc-intro-box { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-        }
+    .writing-lines-area {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-evenly;
+      min-height: 110px;
+      padding-bottom: 22px;
+      flex: 1;
+    }
+    .writing-set {
+      position: relative;
+      height: 42px;
+      width: 100%;
+      flex: 0 0 auto;
+    }
+    .writing-set .line {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 0;
+      border-top-width: 1.7px;
+      border-top-style: solid;
+    }
+    .writing-set .line.l1 { top: 0; border-top-color: #E2571C; }
+    .writing-set .line.l2 { top: 14px; border-top-color: #2c7be5; }
+    .writing-set .line.l3 { top: 28px; border-top-color: #2c7be5; }
+    .writing-set .line.l4 { top: 42px; border-top-color: #E2571C; }
 
-        .thumbnail-wrapper { margin-bottom: 16px; display: flex; flex-direction: column; align-items: center; }
-        .thumbnail-wrapper .thumb-label { font-size: 13px; font-weight: 700; margin-bottom: 6px; color: #495057; text-align: center; }
-        .thumbnail-container { width: 255px; height: 324px; border: 2px solid #dee2e6; border-radius: 8px; overflow: hidden; background: #fff; position: relative; }
-        .thumbnail-container .page { transform: scale(0.3); transform-origin: top left; position: absolute; top: 0; left: 0; width: 850px; min-width: 850px; min-height: 1080px; padding: 24px 32px; margin: 0; border-radius: 0; box-shadow: none; page-break-after: auto; }
-    </style>
+    .cvc-page-number {
+      position: absolute;
+      bottom: 8px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-weight: 700;
+      font-size: 13px;
+      color: #6c757d;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    /* Cover */
+    .cover-card {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Times New Roman', Times, serif;
+      height: 1068px;
+      min-height: 1068px;
+      max-height: 1068px;
+      border: 3px solid #F5A623;
+      border-radius: 24px;
+    }
+    .cover-text-block { text-align: center; padding: 0 36px; }
+    .cover-line {
+      width: 110px;
+      height: 4px;
+      background-color: #F5A623;
+      margin: 26px auto;
+      border-radius: 2px;
+    }
+    .cover-title {
+      font-size: 56px;
+      font-weight: 800;
+      color: #1a1a2e;
+      letter-spacing: 2px;
+      margin: 0;
+    }
+    .cover-subtitle {
+      font-size: 28px;
+      font-weight: 400;
+      color: #E2571C;
+      margin-top: 12px;
+      letter-spacing: 1px;
+      font-style: italic;
+    }
+
+    /* TOC */
+    .toc-card {
+      border: 3px solid #F5A623;
+      border-radius: 24px;
+      height: 1068px;
+      min-height: 1068px;
+      max-height: 1068px;
+      padding: 26px 36px;
+      position: relative;
+      font-family: 'Times New Roman', Times, serif;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+    .toc-title {
+      font-size: 26px;
+      font-weight: 800;
+      color: #1a1a2e;
+      text-align: center;
+      margin-bottom: 18px;
+      border-bottom: 4px solid #F5A623;
+      padding-bottom: 8px;
+    }
+    .toc-list { list-style: none; padding: 0; margin: 0; }
+    .toc-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 6px 5px;
+      border-bottom: 1px dashed #dee2e6;
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.3;
+    }
+    .toc-item .toc-page-num {
+      font-weight: 800;
+      color: #E2571C;
+      min-width: 56px;
+      text-align: right;
+    }
+    .toc-card .page-number {
+      position: absolute;
+      bottom: 14px;
+      right: 22px;
+      font-weight: 800;
+      font-size: 13px;
+      font-family: 'Poppins', 'Segoe UI', Arial, sans-serif;
+    }
+
+    /* Sight words */
+    .sight-words-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+      margin-top: 8px;
+      padding: 0 10px;
+    }
+    .sight-word-pill {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: 800;
+      color: #E2571C;
+      background: #fff;
+      border: 3px solid #F5A623;
+      border-radius: 12px;
+      padding: 14px 5px;
+      min-height: 68px;
+      text-align: center;
+      word-break: break-word;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    .view-container .card.sight-card {
+      border: 3px solid #F5A623;
+      border-radius: 24px;
+      height: 1068px;
+      min-height: 1068px;
+      max-height: 1068px;
+      padding: 20px 28px;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+    .view-container .title {
+      font-size: 26px;
+      font-weight: 800;
+      color: #1a1a1a;
+      letter-spacing: 0.4px;
+      margin: 4px 0 14px 0;
+    }
+    .view-container .section-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+      margin-top: 8px;
+    }
+    .view-container .section-header .circle {
+      background: #F5A623;
+      color: #fff;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 15px;
+      margin-right: 10px;
+      flex-shrink: 0;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    .view-container .section-header .label-box {
+      flex: 1;
+      border: 3px dashed #E2571C;
+      border-radius: 10px;
+      padding: 6px 14px;
+      font-weight: 800;
+      font-size: 16px;
+      color: #1a1a1a;
+    }
+
+    /* Code page content area (inside the shared card) */
+    .code-content-area {
+      flex: 1 1 auto;
+      overflow: hidden;
+      position: relative;
+      width: 100%;
+      min-height: 0;
+    }
+    .code-content-area .code-inner {
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      padding: 16px 20px;
+      box-sizing: border-box;
+    }
+
+    .view-toolbar {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 16px;
+      padding-bottom: 14px;
+      border-bottom: 2px solid #e9ecef;
+    }
+    .view-toolbar .info {
+      font-weight: 700;
+      color: #6c757d;
+      font-size: 13px;
+      margin-right: auto;
+    }
+    .page-actions {
+      position: absolute;
+      top: 4px;
+      right: 8px;
+      z-index: 5;
+      text-align: right;
+      margin: 0;
+    }
+    .export-btn {
+      background: #E2571C;
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      padding: 7px 14px;
+      font-weight: 700;
+      font-size: 12px;
+      font-family: inherit;
+      cursor: pointer;
+    }
+
+    /* Thumbnail (larger) */
+    .thumbnail-wrapper {
+      margin-bottom: 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .thumbnail-wrapper .thumb-label {
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: #495057;
+      text-align: center;
+    }
+    .thumbnail-container {
+      width: 340px;
+      height: 440px;
+      border: 2px solid #dee2e6;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #fff;
+      position: relative;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+    }
+    .thumbnail-container .page {
+      transform: scale(0.4);
+      transform-origin: top left;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 850px;
+      min-width: 850px;
+      min-height: 1100px;
+      height: 1100px;
+      max-height: 1100px;
+      padding: 16px 22px;
+      margin: 0;
+      border-radius: 0;
+      box-shadow: none;
+      page-break-after: auto;
+      overflow: hidden;
+    }
+
+    /* Print */
+    @media print {
+      body { padding: 0; background: #fff; margin: 0; }
+      .app-header, .tabs, .tab-panel, .form-section, .list-section,
+      .view-toolbar, .no-print, .page-actions, .thumbnail-wrapper,
+      .modal-overlay, .toast-container { display: none !important; }
+      #viewPanel { display: block !important; padding: 0 !important; }
+      #viewPanel .view-container { overflow: visible !important; display: block !important; }
+      #viewPanel .view-container .page {
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        margin: 0 !important;
+        padding: 16px 22px !important;
+        width: 850px !important;
+        min-width: 850px !important;
+        min-height: 1100px !important;
+        height: 1100px !important;
+        max-height: 1100px !important;
+        page-break-after: always;
+        page-break-inside: avoid;
+        background: #fff !important;
+        overflow: hidden !important;
+      }
+      #viewPanel .view-container .page .page-actions { display: none !important; }
+      #viewPanel .view-container .page:last-child {
+        page-break-after: auto !important;
+      }
+      #viewPanel .view-container .card {
+        height: 1068px !important;
+        min-height: 1068px !important;
+        max-height: 1068px !important;
+      }
+      #viewPanel .view-container .card,
+      .todays-sound-header,
+      .cvc-header-right,
+      .sight-word-pill,
+      .toc-card,
+      .cover-card,
+      #viewPanel .view-container .section-header .circle,
+      .custom-text-box,
+      .cvc-intro-box {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+    }
+  </style>
 </head>
 <body>
-    <div id="app"></div>
-    <div class="toast-container" id="toastContainer"></div>
+  <div id="app"></div>
+  <div class="toast-container" id="toastContainer"></div>
 
-    <script>
-        (function () {
-            const IDB_NAME = 'phonics_lessons_db';
-            const IDB_STORE = 'app_data';
-            const LEGACY_STORAGE_KEY = 'phonics_lessons_v12';
-            const MAX_TOC_PER_PAGE = 20;
-            const MAX_SIGHT_WORDS_PER_PAGE = 50;
-            const MAX_GRID_WORDS = 24;
-            const MAX_FILL_ITEMS = 18;
+  <script>
+  (function () {
+    'use strict';
 
-            let dbPromise = null;
-            function getDB() {
-                if (!dbPromise) {
-                    dbPromise = new Promise((resolve, reject) => {
-                        const request = indexedDB.open(IDB_NAME, 1);
-                        request.onupgradeneeded = (e) => {
-                            const db = e.target.result;
-                            if (!db.objectStoreNames.contains(IDB_STORE)) {
-                                db.createObjectStore(IDB_STORE);
-                            }
-                        };
-                        request.onsuccess = () => resolve(request.result);
-                        request.onerror = () => reject(request.error);
+    // ========== CONSTANTS ==========
+    const IDB_NAME = 'phonics_lessons_db_v14';
+    const IDB_STORE = 'app_data';
+    const LEGACY_KEYS = ['phonics_lessons_v13', 'phonics_lessons_v12', 'phonics_html_css_pages_v1'];
+    const MAX_TOC_PER_PAGE = 20;
+    const MAX_SIGHT_WORDS_PER_PAGE = 50;
+    const MAX_GRID_WORDS = 24;
+    const MAX_FILL_ITEMS = 18;
+    const MAX_PAGES = 200;
+    const MAX_SECTIONS = 20;
+    const MAX_FILE_SIZE = 10 * 1024 * 1024;
+    const HISTORY_LIMIT = 60;
+    const PAGE_W = 850;
+    const PAGE_H = 1100;
+    const CARD_H = 1068;
+
+    // ========== STORAGE ==========
+    let dbPromise = null;
+
+    function getDB() {
+      if (!dbPromise) {
+        dbPromise = new Promise((resolve, reject) => {
+          const req = indexedDB.open(IDB_NAME, 1);
+          req.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains(IDB_STORE)) {
+              db.createObjectStore(IDB_STORE);
+            }
+          };
+          req.onsuccess = () => resolve(req.result);
+          req.onerror = () => reject(req.error);
+        });
+      }
+      return dbPromise;
+    }
+
+    async function idbSet(data) {
+      const db = await getDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(IDB_STORE, 'readwrite');
+        tx.objectStore(IDB_STORE).put(data, 'appData');
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+    }
+
+    async function idbGet() {
+      try {
+        const db = await getDB();
+        return new Promise((resolve, reject) => {
+          const tx = db.transaction(IDB_STORE, 'readonly');
+          const req = tx.objectStore(IDB_STORE).get('appData');
+          req.onsuccess = () => resolve(req.result);
+          req.onerror = () => reject(req.error);
+        });
+      } catch (e) {
+        return null;
+      }
+    }
+
+    // ========== UTILITIES ==========
+    function escapeHtml(str) {
+      return String(str ?? '').replace(/[&<>"']/g, m =>
+        ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])
+      );
+    }
+
+    function showToast(msg, type = 'info') {
+      const t = document.createElement('div');
+      t.className = 'toast ' + type;
+      const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️';
+      t.innerHTML = `<span>${icon}</span> ${escapeHtml(msg)}`;
+      document.getElementById('toastContainer').appendChild(t);
+      setTimeout(() => t.remove(), 3400);
+    }
+
+    function confirmDialog(msg, onYes) {
+      const o = document.createElement('div');
+      o.className = 'modal-overlay';
+      o.innerHTML = `
+        <div class="modal">
+          <h3>⚠️ Confirm</h3>
+          <p>${escapeHtml(msg)}</p>
+          <div class="actions">
+            <button class="btn btn-outline cancel">Cancel</button>
+            <button class="btn btn-danger confirm">Yes</button>
+          </div>
+        </div>`;
+      document.body.appendChild(o);
+      o.querySelector('.cancel').onclick = () => o.remove();
+      o.querySelector('.confirm').onclick = () => { o.remove(); onYes(); };
+    }
+
+    function generateId(prefix) {
+      return prefix + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+    }
+
+    // ========== SECTION TYPES ==========
+    const SECTION_TYPES = {
+      tile: { label: 'Letter/Image Tile', defaultWidth: 'full' },
+      introText: { label: 'Intro Text', defaultWidth: 'full' },
+      instruction: { label: 'Instruction', defaultWidth: 'full' },
+      wordGrid: { label: 'Word Grid', defaultWidth: 'full' },
+      decodable: { label: 'Decodable Reading', defaultWidth: 'full' },
+      fillBlanks: { label: 'Fill-in-Blanks', defaultWidth: 'full' },
+      sentenceWriting: { label: 'Sentence Writing', defaultWidth: 'full' },
+      customText: { label: 'Custom Text', defaultWidth: 'full' },
+      writingLines: { label: 'Writing Lines (expandable)', defaultWidth: 'full' }
+    };
+
+    function createDefaultSection(type) {
+      const id = generateId('sec');
+      const base = { id, type, width: SECTION_TYPES[type]?.defaultWidth || 'full' };
+      switch (type) {
+        case 'tile':
+          return { ...base, tileMode: 'letter', letterTile: 'Aa', letterFontSize: 56, imagePath: '', imageCaption: "TODAY'S SOUND" };
+        case 'introText':
+        case 'instruction':
+        case 'customText':
+          return { ...base, text: '' };
+        case 'wordGrid':
+          return { ...base, words: [], columns: 4, rows: 3 };
+        case 'decodable':
+          return { ...base, instruction: 'Read ALOUD and circle all words with the target sound', sentences: [] };
+        case 'fillBlanks':
+          return { ...base, title: 'A. Fill in the missing letters and say the word', items: [] };
+        case 'sentenceWriting':
+          return { ...base, title: 'C. Choose any word and form 2 sentences', lines: 2 };
+        case 'writingLines':
+          return { ...base, fillRemaining: true };
+        default:
+          return base;
+      }
+    }
+
+    function createDefaultStructuredPage() {
+      return {
+        id: generateId('p'),
+        type: 'structured',
+        name: 'Lesson Page',
+        mainTitle: 'SHORT VOWEL CVC WORDS',
+        subtitle: 'SHORT VOWEL',
+        sections: [
+          { ...createDefaultSection('tile'), letterTile: 'Aa' },
+          { ...createDefaultSection('introText'), text: 'Short a says /a/ like in <b>apple</b> — when a single vowel is boxed in between two consonants, it usually keeps this quick, clipped sound.' },
+          { ...createDefaultSection('instruction'), text: 'Say each picture word out loud and listen for this pattern.' },
+          { ...createDefaultSection('wordGrid'), words: ['bag','cat','mat','hat','rat','bat','sat','pat','fat','man','van','map'], columns: 4, rows: 3 },
+          { ...createDefaultSection('decodable'), sentences: ['I see a bag.','Look at the cat and the mat.','Is this a hat?','I like my rat.','We have a bat.'] },
+          { ...createDefaultSection('fillBlanks'), items: ['b_g','c_t','m_t','h_t','r_t','b_t','s_t','p_t','f_t'] },
+          { ...createDefaultSection('sentenceWriting') },
+          { ...createDefaultSection('writingLines') }
+        ]
+      };
+    }
+
+    function createDefaultCodePage() {
+      return {
+        id: generateId('p'),
+        type: 'code',
+        name: 'Code Page',
+        html: '<div class="content"><h1>Your Page</h1><p>Write HTML and CSS directly here.</p></div>',
+        css: '.content{padding:24px;font-family:Arial,sans-serif}h1{margin:0 0 12px;color:#E2571C}p{font-size:16px}',
+        contentBackground: '#ffffff'
+      };
+    }
+
+    // ========== STATE ==========
+    let pages = [];
+    let sightWords = [];
+    let coverData = { title: 'Crystal Phonics', subtitle: 'Grade 1' };
+    let editingPageId = null;
+    let tempSections = [];
+    let tempPageType = 'structured';
+    let formDirty = false;
+    window.searchQuery = '';
+
+    // History
+    let undoStack = [];
+    let redoStack = [];
+    let historyBusy = false;
+    let saveBusy = Promise.resolve();
+
+    const clone = (obj) => JSON.parse(JSON.stringify(obj));
+    function currentState() {
+      return { pages: clone(pages), sightWords: clone(sightWords), coverData: clone(coverData) };
+    }
+    function stateKey(s) {
+      try { return JSON.stringify(s); } catch (e) { return ''; }
+    }
+
+    function updateHistoryUI() {
+      const u = document.getElementById('undoBtn');
+      const r = document.getElementById('redoBtn');
+      if (u) u.disabled = historyBusy || undoStack.length === 0;
+      if (r) r.disabled = historyBusy || redoStack.length === 0;
+      const el = document.getElementById('historyStatus');
+      if (el) {
+        el.textContent = `${undoStack.length ? undoStack.length + ' undo' : 'No undo'} · ${redoStack.length ? redoStack.length + ' redo' : 'No redo'}`;
+      }
+    }
+
+    function recordHistory(before, after) {
+      if (historyBusy || stateKey(before) === stateKey(after)) return;
+      undoStack.push(clone(before));
+      if (undoStack.length > HISTORY_LIMIT) undoStack.shift();
+      redoStack = [];
+      updateHistoryUI();
+    }
+
+    async function persistState(override) {
+      const snapshot = override ? clone(override) : currentState();
+      snapshot.version = 3;
+      saveBusy = saveBusy.then(async () => {
+        try {
+          await idbSet(snapshot);
+          try { localStorage.setItem('phonics_lessons_v14', JSON.stringify(snapshot)); } catch (_) {}
+        } catch (err) {
+          console.error(err);
+          try {
+            localStorage.setItem('phonics_lessons_v14', JSON.stringify(snapshot));
+          } catch (e2) {
+            showToast('Could not save. Export JSON as backup.', 'error');
+            throw e2;
+          }
+        }
+      }).catch(() => {});
+      return saveBusy;
+    }
+
+    async function restoreState(state) {
+      const normalized = normalizeImportedState(clone(state));
+      pages = normalized.pages;
+      sightWords = normalized.sightWords;
+      coverData = normalized.coverData;
+      resetForm();
+      refreshUI();
+      await persistState();
+    }
+
+    window.undoLast = async function () {
+      if (historyBusy || !undoStack.length) return;
+      historyBusy = true;
+      updateHistoryUI();
+      try {
+        const current = currentState();
+        const previous = undoStack.pop();
+        redoStack.push(current);
+        if (redoStack.length > HISTORY_LIMIT) redoStack.shift();
+        await restoreState(previous);
+        showToast('Undid last change.', 'success');
+      } finally {
+        historyBusy = false;
+        updateHistoryUI();
+      }
+    };
+
+    window.redoLast = async function () {
+      if (historyBusy || !redoStack.length) return;
+      historyBusy = true;
+      updateHistoryUI();
+      try {
+        const current = currentState();
+        const next = redoStack.pop();
+        undoStack.push(current);
+        if (undoStack.length > HISTORY_LIMIT) undoStack.shift();
+        await restoreState(next);
+        showToast('Redid last change.', 'success');
+      } finally {
+        historyBusy = false;
+        updateHistoryUI();
+      }
+    };
+
+    window.addEventListener('keydown', (e) => {
+      const mod = e.ctrlKey || e.metaKey;
+      if (!mod || e.altKey) return;
+      const tag = (e.target?.tagName || '').toLowerCase();
+      if ((tag === 'input' || tag === 'textarea' || tag === 'select') && !e.shiftKey) return;
+      const k = e.key.toLowerCase();
+      if (k === 'z') {
+        e.preventDefault();
+        e.shiftKey ? redoLast() : undoLast();
+      } else if (k === 'y') {
+        e.preventDefault();
+        redoLast();
+      }
+    });
+
+    // ========== NORMALIZE / MIGRATE ==========
+    function normalizeImportedState(data) {
+      const rawPages = Array.isArray(data?.pages) ? data.pages : [];
+      const seenPageIds = new Set();
+      const seenSectionIds = new Set();
+
+      const safePages = rawPages.map((p) => {
+        let newId = p.id;
+        if (!newId || seenPageIds.has(newId)) newId = generateId('p');
+        seenPageIds.add(newId);
+
+        if (p.type === 'code') {
+          return {
+            ...createDefaultCodePage(),
+            ...p,
+            id: newId,
+            type: 'code',
+            html: String(p.html || ''),
+            css: String(p.css || ''),
+            contentBackground: String(p.contentBackground || p.background || '#ffffff')
+          };
+        }
+
+        // Structured
+        let sections = Array.isArray(p.sections) ? p.sections : [];
+        const rebuilt = [];
+        for (const sec of sections) {
+          if (!sec || !SECTION_TYPES[sec.type]) continue;
+          let secId = sec.id;
+          if (!secId || seenSectionIds.has(secId)) secId = generateId('sec');
+          seenSectionIds.add(secId);
+          rebuilt.push({ ...sec, id: secId });
+        }
+        return {
+          ...createDefaultStructuredPage(),
+          ...p,
+          id: newId,
+          type: 'structured',
+          mainTitle: String(p.mainTitle || 'Untitled'),
+          subtitle: String(p.subtitle || 'SHORT VOWEL'),
+          sections: rebuilt.slice(0, MAX_SECTIONS)
+        };
+      }).slice(0, MAX_PAGES);
+
+      const sw = Array.isArray(data?.sightWords) ? data.sightWords.map(String).filter(Boolean) : [];
+      const cd = data?.coverData || {};
+      return {
+        pages: safePages,
+        sightWords: sw,
+        coverData: {
+          title: String(cd.title || 'Crystal Phonics'),
+          subtitle: String(cd.subtitle || 'Grade 1')
+        }
+      };
+    }
+
+    function migrateLegacy() {
+      for (const key of LEGACY_KEYS) {
+        try {
+          const raw = localStorage.getItem(key);
+          if (!raw) continue;
+          const old = JSON.parse(raw);
+          if (old && Array.isArray(old.pages)) return old;
+          if (old && Array.isArray(old.lessons)) {
+            // v12 style
+            const migratedPages = old.lessons.map(l => ({
+              id: l.id || generateId('p'),
+              type: 'structured',
+              name: l.mainTitle || 'Lesson Page',
+              mainTitle: l.mainTitle,
+              subtitle: l.subtitle,
+              sections: l.sections || []
+            }));
+            try {
+              const codeRaw = localStorage.getItem('phonics_html_css_pages_v1');
+              if (codeRaw) {
+                const codeData = JSON.parse(codeRaw);
+                if (codeData && Array.isArray(codeData.pages)) {
+                  codeData.pages.forEach(p => {
+                    migratedPages.push({
+                      id: p.id || generateId('p'),
+                      type: 'code',
+                      name: p.name || 'Code Page',
+                      html: p.html || '',
+                      css: p.css || '',
+                      contentBackground: p.background || '#ffffff'
                     });
+                  });
                 }
-                return dbPromise;
-            }
-
-            async function idbSet(data) {
-                try {
-                    const db = await getDB();
-                    return new Promise((resolve, reject) => {
-                        const tx = db.transaction(IDB_STORE, 'readwrite');
-                        const store = tx.objectStore(IDB_STORE);
-                        store.put(data, 'appData');
-                        tx.oncomplete = () => resolve();
-                        tx.onerror = () => reject(tx.error);
-                    });
-                } catch (e) {
-                    localStorage.setItem(LEGACY_STORAGE_KEY, JSON.stringify(data));
-                }
-            }
-
-            async function idbGet() {
-                try {
-                    const db = await getDB();
-                    return new Promise((resolve, reject) => {
-                        const tx = db.transaction(IDB_STORE, 'readonly');
-                        const store = tx.objectStore(IDB_STORE);
-                        const request = store.get('appData');
-                        request.onsuccess = () => resolve(request.result);
-                        request.onerror = () => reject(request.error);
-                    });
-                } catch (e) {
-                    return null;
-                }
-            }
-
-            function sanitizeRichText(text) {
-                if (!text) return '';
-                let esc = escapeHtml(text);
-                esc = esc
-                    .replace(/&lt;b&gt;/g, '<b>').replace(/&lt;\/b&gt;/g, '</b>')
-                    .replace(/&lt;i&gt;/g, '<i>').replace(/&lt;\/i&gt;/g, '</i>')
-                    .replace(/&lt;u&gt;/g, '<u>').replace(/&lt;\/u&gt;/g, '</u>')
-                    .replace(/&lt;strong&gt;/g, '<strong>').replace(/&lt;\/strong&gt;/g, '</strong>')
-                    .replace(/&lt;em&gt;/g, '<em>').replace(/&lt;\/em&gt;/g, '</em>')
-                    .replace(/&lt;span class=&quot;highlight&quot;&gt;/g, '<span class="highlight">')
-                    .replace(/&lt;span class="highlight"&gt;/g, '<span class="highlight">')
-                    .replace(/&lt;\/span&gt;/g, '</span>');
-                return esc;
-            }
-
-            function formatTextWithHighlight(text) {
-                const formatted = sanitizeRichText(text);
-                return formatted.replace(/\b(apple|egg|igloo|octopus|umbrella)\b/gi, m => `<span class="highlight">${m}</span>`);
-            }
-
-            function flattenWords(arr) {
-                if (!Array.isArray(arr)) return [];
-                let r = [];
-                for (let row of arr) {
-                    if (Array.isArray(row)) r = r.concat(row);
-                    else r.push(row);
-                }
-                return r;
-            }
-            function escapeHtml(str) {
-                return String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
-            }
-            function showToast(msg, type = 'info') {
-                const t = document.createElement('div');
-                t.className = 'toast ' + type;
-                t.innerHTML = `<span>${type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️'}</span> ${escapeHtml(msg)}`;
-                document.getElementById('toastContainer').appendChild(t);
-                setTimeout(() => t.remove(), 3500);
-            }
-            function confirmDialog(msg, cb) {
-                const o = document.createElement('div');
-                o.className = 'modal-overlay';
-                o.innerHTML = `<div class="modal"><h3>⚠️ Confirm</h3><p>${msg}</p><div class="actions"><button class="btn btn-outline cancel">Cancel</button><button class="btn btn-danger confirm">Yes</button></div></div>`;
-                document.body.appendChild(o);
-                o.querySelector('.cancel').onclick = () => o.remove();
-                o.querySelector('.confirm').onclick = () => { o.remove(); cb(); };
-            }
-
-            const SECTION_TYPES = {
-                tile: { label: 'Letter/Image Tile', defaultWidth: 'full', fields: ['tileMode','letterTile','letterFontSize','imagePath','imageCaption'] },
-                introText: { label: 'Intro Text', defaultWidth: 'full', fields: ['text'] },
-                instruction: { label: 'Instruction', defaultWidth: 'full', fields: ['text'] },
-                wordGrid: { label: 'Word Grid', defaultWidth: 'full', fields: ['words','columns','rows'] },
-                decodable: { label: 'Decodable Reading', defaultWidth: 'full', fields: ['instruction','sentences'] },
-                fillBlanks: { label: 'Fill-in-Blanks', defaultWidth: 'full', fields: ['title','items'] },
-                sentenceWriting: { label: 'Sentence Writing', defaultWidth: 'full', fields: ['title','lines'] },
-                customText: { label: 'Custom Text', defaultWidth: 'full', fields: ['text'] },
-                writingLines: { label: 'Writing Lines (expandable)', defaultWidth: 'full', fields: ['fillRemaining'] }
+              }
+            } catch (_) {}
+            return {
+              pages: migratedPages,
+              sightWords: old.sightWords || [],
+              coverData: old.coverData || { title: 'Crystal Phonics', subtitle: 'Grade 1' }
             };
+          }
+        } catch (_) {}
+      }
+      return null;
+    }
 
-            function generateSectionId() { return 'sec' + Date.now() + Math.random().toString(36).slice(2, 7); }
+    async function loadData() {
+      let data = null;
+      try { data = await idbGet(); } catch (_) { data = null; }
 
-            function createDefaultSection(type) {
-                const id = generateSectionId();
-                const base = { id, type, width: SECTION_TYPES[type].defaultWidth };
-                switch (type) {
-                    case 'tile':
-                        return { ...base, tileMode: 'letter', letterTile: 'Aa', letterFontSize: 56, imagePath: '', imageCaption: "TODAY'S SOUND" };
-                    case 'introText':
-                    case 'instruction':
-                    case 'customText':
-                        return { ...base, text: '' };
-                    case 'wordGrid':
-                        return { ...base, words: [], columns: 4, rows: 3 };
-                    case 'decodable':
-                        return { ...base, instruction: 'Read ALOUD and circle all words with the target sound', sentences: [] };
-                    case 'fillBlanks':
-                        return { ...base, title: 'A. Fill in the missing letters and say the word', items: [] };
-                    case 'sentenceWriting':
-                        return { ...base, title: 'C. Choose any word and form 2 sentences', lines: 2 };
-                    case 'writingLines':
-                        return { ...base, fillRemaining: true };
-                    default:
-                        return { ...base };
-                }
+      let fromLegacy = false;
+      if (!data || !Array.isArray(data.pages)) {
+        try {
+          const raw = localStorage.getItem('phonics_lessons_v14');
+          if (raw) { data = JSON.parse(raw); fromLegacy = true; }
+        } catch (_) {}
+      }
+      if (!data || !Array.isArray(data.pages)) {
+        data = migrateLegacy();
+        if (data) fromLegacy = true;
+      }
+
+      if (data && Array.isArray(data.pages)) {
+        const normalized = normalizeImportedState(data);
+        pages = normalized.pages;
+        sightWords = normalized.sightWords;
+        coverData = normalized.coverData;
+        if (fromLegacy || !data.version) await persistState();
+      } else {
+        pages = [createDefaultStructuredPage()];
+        sightWords = ['the', 'of', 'and', 'a', 'to', 'in', 'is', 'you'];
+        coverData = { title: 'Crystal Phonics', subtitle: 'Grade 1' };
+      }
+    }
+
+    // ========== SANITIZATION ==========
+    function sanitizeHTML(html) {
+      const d = new DOMParser().parseFromString(String(html || ''), 'text/html');
+      d.querySelectorAll('script,iframe,object,embed,link,meta,base,form').forEach(n => n.remove());
+      d.querySelectorAll('*').forEach(n => {
+        [...n.attributes].forEach(a => {
+          if (/^on/i.test(a.name) || a.name === 'srcdoc') n.removeAttribute(a.name);
+        });
+      });
+      d.querySelectorAll('[href],[src]').forEach(n => {
+        ['href', 'src'].forEach(k => {
+          const v = n.getAttribute(k) || '';
+          if (/^\s*(javascript:|vbscript:|data:text\/html)/i.test(v)) n.removeAttribute(k);
+        });
+      });
+      return d.body.innerHTML;
+    }
+
+    function sanitizeCSS(css) {
+      return String(css || '')
+        .replace(/@import\s+[^;]+;?/gi, '')
+        .replace(/expression\s*\([^)]*\)/gi, '')
+        .replace(/url\s*\(\s*['"]?\s*javascript:[^)]*\)/gi, '');
+    }
+
+    function formatTextWithHighlight(text) {
+      let esc = escapeHtml(text || '');
+      // Allow limited rich tags
+      esc = esc
+        .replace(/&lt;b&gt;/g, '<b>').replace(/&lt;\/b&gt;/g, '</b>')
+        .replace(/&lt;i&gt;/g, '<i>').replace(/&lt;\/i&gt;/g, '</i>')
+        .replace(/&lt;u&gt;/g, '<u>').replace(/&lt;\/u&gt;/g, '</u>')
+        .replace(/&lt;strong&gt;/g, '<strong>').replace(/&lt;\/strong&gt;/g, '</strong>')
+        .replace(/&lt;em&gt;/g, '<em>').replace(/&lt;\/em&gt;/g, '</em>');
+      return esc.replace(/\b(apple|egg|igloo|octopus|umbrella)\b/gi, m =>
+        `<span class="highlight">${m}</span>`
+      );
+    }
+
+    // ========== RENDER SECTION CONTENT ==========
+    function renderSectionContent(section) {
+      switch (section.type) {
+        case 'tile': {
+          if ((section.tileMode || 'letter') === 'letter') {
+            return `<div class="todays-sound-card">
+              <div class="todays-sound-header">TODAY'S SOUND</div>
+              <div class="todays-sound-body">
+                <div class="todays-sound-stars">★ ★ ★</div>
+                <div class="todays-sound-letter" style="font-size:${Math.min(96, Math.max(24, Number(section.letterFontSize) || 56))}px">${escapeHtml(section.letterTile || 'Aa')}</div>
+              </div>
+            </div>`;
+          }
+          const img = section.imagePath
+            ? `<img class="todays-sound-img" src="${escapeHtml(section.imagePath)}" alt="" />`
+            : `<div style="font-size:28px;opacity:0.4">🖼️</div>`;
+          return `<div class="todays-sound-card">
+            <div class="todays-sound-header">${escapeHtml(section.imageCaption || "TODAY'S SOUND")}</div>
+            <div class="todays-sound-body">${img}</div>
+          </div>`;
+        }
+        case 'introText':
+          return `<div class="cvc-intro-box"><p>${formatTextWithHighlight(section.text || '')}</p></div>`;
+        case 'instruction':
+          return `<div class="cvc-instruction-box"><p>${escapeHtml(section.text || '')}</p></div>`;
+        case 'customText':
+          return `<div class="custom-text-box"><p>${formatTextWithHighlight(section.text || '')}</p></div>`;
+        case 'wordGrid': {
+          const columns = Math.max(1, Math.min(8, Number(section.columns) || 4));
+          const rows = Math.max(1, Math.min(8, Number(section.rows) || 3));
+          const words = (Array.isArray(section.words) ? section.words : []).slice(0, Math.min(MAX_GRID_WORDS, columns * rows));
+          const total = Math.min(MAX_GRID_WORDS, columns * rows);
+          let cells = '';
+          for (let i = 0; i < total; i++) {
+            const word = words[i] || '';
+            const isLastCol = (i % columns) === columns - 1;
+            const isLastRow = i >= total - columns;
+            let style = '';
+            if (!isLastCol) style += 'border-right:1px solid #f0c9a8;';
+            else style += 'border-right:none;';
+            if (!isLastRow) style += 'border-bottom:1px solid #f0c9a8;';
+            else style += 'border-bottom:none;';
+            cells += `<div class="word-cell${word ? '' : ' empty'}" style="${style}">${escapeHtml(word)}</div>`;
+          }
+          return `<div class="word-grid" style="grid-template-columns:repeat(${columns},1fr)">${cells}</div>`;
+        }
+        case 'decodable': {
+          const sents = (section.sentences || []).filter(Boolean);
+          if (!sents.length) return '';
+          const lines = sents.map((s, i) => `<div class="sentence">${i + 1}. ${escapeHtml(s)}</div>`).join('');
+          return `<div class="act-box"><div class="act-title">${escapeHtml(section.instruction || '')}</div>${lines}</div>`;
+        }
+        case 'fillBlanks': {
+          const items = (section.items || []).filter(Boolean).slice(0, MAX_FILL_ITEMS);
+          if (!items.length) return '';
+          const cells = items.map(item => {
+            let html = '';
+            for (const ch of String(item)) {
+              if (ch === '_') html += '<span class="blank-sq"></span>';
+              else html += `<span>${escapeHtml(ch)}</span>`;
             }
+            return `<div class="fill-item">${html}</div>`;
+          }).join('');
+          return `<div class="act-box"><div class="act-title">${escapeHtml(section.title || '')}</div><div class="fill-grid">${cells}</div></div>`;
+        }
+        case 'sentenceWriting': {
+          const n = Math.max(1, Math.min(8, Number(section.lines) || 2));
+          let lines = '';
+          for (let i = 0; i < n; i++) lines += `<div class="sent-line">${i + 1}.</div>`;
+          return `<div class="act-box"><div class="act-title">${escapeHtml(section.title || '')}</div><div class="sent-lines">${lines}</div></div>`;
+        }
+        case 'writingLines': {
+          let lines = '';
+          for (let i = 0; i < 3; i++) {
+            lines += `<div class="writing-set">
+              <div class="line l1"></div><div class="line l2"></div>
+              <div class="line l3"></div><div class="line l4"></div>
+            </div>`;
+          }
+          return `<div class="writing-lines-area">${lines}</div>`;
+        }
+        default:
+          return '';
+      }
+    }
 
-            function migrateToSections(lesson) {
-                if (Array.isArray(lesson.sections) && lesson.sections.length > 0) return lesson;
-                const sections = [];
-                if (lesson.tileMode && lesson.tileMode !== 'none') {
-                    sections.push({ id: generateSectionId(), type: 'tile', width: 'full', tileMode: lesson.tileMode, letterTile: lesson.letterTile || '', letterFontSize: lesson.letterFontSize || 56, imagePath: lesson.imagePath || '', imageCaption: lesson.imageCaption || "TODAY'S SOUND" });
-                }
-                if (lesson.showIntro !== false && lesson.introText) {
-                    sections.push({ id: generateSectionId(), type: 'introText', width: 'full', text: lesson.introText });
-                }
-                if (lesson.showInstruction !== false && lesson.instruction) {
-                    sections.push({ id: generateSectionId(), type: 'instruction', width: 'full', text: lesson.instruction });
-                }
-                if (lesson.showGrid !== false && lesson.words && lesson.words.length > 0) {
-                    sections.push({ id: generateSectionId(), type: 'wordGrid', width: 'full', words: lesson.words, columns: 4, rows: Math.ceil(lesson.words.length / 4) || 3 });
-                } else if (lesson.showGrid !== false && (!lesson.words || lesson.words.length === 0)) {
-                    sections.push({ id: generateSectionId(), type: 'wordGrid', width: 'full', words: [], columns: 4, rows: 3 });
-                }
-                if (lesson.showDecodable === true) {
-                    sections.push({ id: generateSectionId(), type: 'decodable', width: 'full', instruction: lesson.decodableInstruction || 'Read ALOUD and circle all words with the target sound', sentences: lesson.decodableSentences || [] });
-                }
-                if (lesson.showFillBlanks === true) {
-                    sections.push({ id: generateSectionId(), type: 'fillBlanks', width: 'full', title: lesson.fillTitle || 'A. Fill in the missing letters and say the word', items: lesson.fillItems || [] });
-                }
-                if (lesson.showSentenceWrite === true) {
-                    sections.push({ id: generateSectionId(), type: 'sentenceWriting', width: 'full', title: lesson.sentenceTitle || 'C. Choose any word and form 2 sentences', lines: lesson.sentenceLines || 2 });
-                }
-                if (lesson.showWritingLines !== false) {
-                    sections.push({ id: generateSectionId(), type: 'writingLines', width: 'full', fillRemaining: true });
-                }
-                if (Array.isArray(lesson.customBoxes)) {
-                    lesson.customBoxes.forEach(cb => {
-                        if (cb.enabled && cb.text) sections.push({ id: generateSectionId(), type: 'customText', width: 'full', text: cb.text });
-                    });
-                }
-                lesson.sections = sections;
-                delete lesson.tileMode; delete lesson.letterTile; delete lesson.letterFontSize; delete lesson.imagePath; delete lesson.imageCaption;
-                delete lesson.showIntro; delete lesson.introText; delete lesson.showInstruction; delete lesson.instruction;
-                delete lesson.showGrid; delete lesson.words; delete lesson.showDecodable; delete lesson.decodableInstruction; delete lesson.decodableSentences;
-                delete lesson.showFillBlanks; delete lesson.fillTitle; delete lesson.fillItems; delete lesson.showSentenceWrite; delete lesson.sentenceTitle; delete lesson.sentenceLines;
-                delete lesson.showWritingLines; delete lesson.customBoxes;
-                return lesson;
-            }
+    // ========== BUILD PAGES ==========
+    function buildStructuredPage(page, pageNum) {
+      const div = document.createElement('div');
+      div.className = 'page';
+      div.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
 
-            const DEFAULT_LESSONS = [
-                (() => {
-                    const l = { id: 'l1', mainTitle: 'SHORT VOWEL CVC WORDS', subtitle: 'SHORT VOWEL', lessonNumber: 1 };
-                    l.sections = [
-                        { id: generateSectionId(), type: 'tile', width: 'full', tileMode: 'letter', letterTile: 'Aa', letterFontSize: 56, imagePath: '', imageCaption: "TODAY'S SOUND" },
-                        { id: generateSectionId(), type: 'introText', width: 'full', text: 'Short a says /a/ like in <b>apple</b> — when a single vowel is boxed in between two consonants, it usually keeps this quick, clipped sound.' },
-                        { id: generateSectionId(), type: 'instruction', width: 'full', text: 'Say each picture word out loud and listen for this pattern.' },
-                        { id: generateSectionId(), type: 'wordGrid', width: 'full', words: ['bag','cat','mat','hat','rat','bat','sat','pat','fat','man','van','map'], columns: 4, rows: 3 },
-                        { id: generateSectionId(), type: 'decodable', width: 'full', instruction: 'Read ALOUD and circle all words with the target sound', sentences: ['I see a bag.','Look at the cat and the mat.','Is this a hat?','I like my rat.','We have a bat.'] },
-                        { id: generateSectionId(), type: 'fillBlanks', width: 'full', title: 'A. Fill in the missing letters and say the word', items: ['b_g','c_t','m_t','h_t','r_t','b_t','s_t','p_t','f_t'] },
-                        { id: generateSectionId(), type: 'sentenceWriting', width: 'full', title: 'C. Choose any word and form 2 sentences', lines: 2 },
-                        { id: generateSectionId(), type: 'writingLines', width: 'full', fillRemaining: true }
-                    ];
-                    return l;
-                })()
-            ];
-            const DEFAULT_SIGHT_WORDS = ['the','of','and','a','to','in','is','you','that','it','he','was','for','on','are','as','with','his','they','I','at','be','this','have','from','or','one','had','by','but','not','what','all','were','we','when','your','can','said','there','use','an','each','which','she','do','how','their','if','will','up','other','about','out','many','then','them','these','so','some','her','would','make','like','him','into','time','has','look','two','more','write','go','see','no','way','could','people','my','than','first','water','been','called','who','am','its','now','find','long','down','day','did','get','come','made','may','part'];
-            const DEFAULT_COVER = { title: 'Crystal Phonics', subtitle: 'Grade 1' };
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <div class="cvc-header">
+          <div class="cvc-header-left">
+            <h1 class="cvc-main-title">${escapeHtml(page.mainTitle || 'CVC WORDS')}</h1>
+            <div class="cvc-subtitle">${escapeHtml(page.subtitle || 'SHORT VOWEL')}</div>
+          </div>
+          <div class="cvc-header-right">
+            <span class="lesson-label">LESSON</span>
+            <span class="lesson-num">${pageNum}</span>
+          </div>
+        </div>`;
 
-            let lessons = [], sightWords = [], coverData = { ...DEFAULT_COVER };
-            let editingId = null, nextId = 1, tempSections = [];
-            window.searchQuery = '';
+      const sectionsContainer = document.createElement('div');
+      sectionsContainer.className = 'lesson-sections-container';
+      (page.sections || []).forEach(section => {
+        const el = document.createElement('div');
+        el.className = `section-item w-${section.width || 'full'}`;
+        el.innerHTML = renderSectionContent(section);
+        sectionsContainer.appendChild(el);
+      });
+      card.appendChild(sectionsContainer);
 
-            // V12 HARDENING: immutable snapshots, safe IDs, and bounded undo/redo.
-            const HISTORY_LIMIT = 60;
-            let undoStack = [], redoStack = [], historyBusy = false, saveBusy = Promise.resolve();
-            const cloneState = state => JSON.parse(JSON.stringify(state));
-            function currentState() { return { lessons: cloneState(lessons), sightWords: cloneState(sightWords), coverData: cloneState(coverData) }; }
-            function stateKey(state) { try { return JSON.stringify(state); } catch(e) { return ''; } }
-            function updateHistoryUI() {
-                const u=document.getElementById('undoBtn'), r=document.getElementById('redoBtn');
-                if(u) u.disabled = historyBusy || undoStack.length===0;
-                if(r) r.disabled = historyBusy || redoStack.length===0;
-                const el=document.getElementById('historyStatus');
-                if(el) el.textContent = `${undoStack.length ? undoStack.length+' undo' : 'No undo'} · ${redoStack.length ? redoStack.length+' redo' : 'No redo'}`;
-            }
-            function recordHistory(before, after) {
-                if (historyBusy || stateKey(before) === stateKey(after)) return;
-                undoStack.push(cloneState(before));
-                if (undoStack.length > HISTORY_LIMIT) undoStack.shift();
-                redoStack = [];
-                updateHistoryUI();
-            }
-            async function persistState() {
-                const snapshot=currentState();
-                saveBusy = saveBusy.then(async()=>{
-                    await saveData(snapshot);
-                }).catch(err=>{
-                    console.error(err);
-                    showToast('Could not save changes. Your data remains in memory; export JSON as a backup.', 'error');
-                });
-                return saveBusy;
-            }
-            async function restoreState(state) {
-                const normalized = normalizeImportedState(cloneState(state));
-                lessons = normalized.lessons; sightWords = normalized.sightWords; coverData = normalized.coverData;
-                resyncNextId();
-                resetForm(); refreshUI();
-                await persistState();
-            }
-            window.undoLast = async function() {
-                if(historyBusy || !undoStack.length) return;
-                historyBusy=true; updateHistoryUI();
-                try {
-                    const current=currentState(), previous=undoStack.pop();
-                    redoStack.push(current); if(redoStack.length>HISTORY_LIMIT) redoStack.shift();
-                    await restoreState(previous); showToast('Undid last change.','success');
-                } finally { historyBusy=false; updateHistoryUI(); }
-            };
-            window.redoLast = async function() {
-                if(historyBusy || !redoStack.length) return;
-                historyBusy=true; updateHistoryUI();
-                try {
-                    const current=currentState(), next=redoStack.pop();
-                    undoStack.push(current); if(undoStack.length>HISTORY_LIMIT) undoStack.shift();
-                    await restoreState(next); showToast('Redid last change.','success');
-                } finally { historyBusy=false; updateHistoryUI(); }
-            };
-            function normalizeImportedState(data) {
-                const rawLessons = Array.isArray(data?.lessons) ? data.lessons : [];
-                const seenIds = new Set(), seenSectionIds = new Set();
-                const safeLessons = rawLessons.map((raw, idx) => {
-                    const l = migrateToSections(raw && typeof raw==='object' ? raw : {});
-                    let id = (typeof l.id==='string' && /^l[\w-]+$/.test(l.id)) ? l.id : '';
-                    if (!id || seenIds.has(id)) id = 'l' + Date.now().toString(36) + Math.random().toString(36).slice(2,8);
-                    while(seenIds.has(id)) id='l'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
-                    seenIds.add(id); l.id=id;
-                    l.mainTitle = typeof l.mainTitle==='string' ? l.mainTitle.slice(0,300) : 'Untitled Lesson';
-                    l.subtitle = typeof l.subtitle==='string' ? l.subtitle.slice(0,300) : 'SHORT VOWEL';
-                    l.sections = Array.isArray(l.sections) ? l.sections.filter(Boolean).map(sec=>{
-                        const x={...sec};
-                        let sid=(typeof x.id==='string' && x.id) ? x.id : '';
-                        if(!sid || seenSectionIds.has(sid)) sid=generateSectionId();
-                        while(seenSectionIds.has(sid)) sid=generateSectionId();
-                        seenSectionIds.add(sid); x.id=sid;
-                        if(!SECTION_TYPES[x.type]) return null;
-                        if(!['full','half','quarter','threequarter'].includes(x.width)) x.width='full';
-                        return x;
-                    }).filter(Boolean) : [];
-                    l.lessonNumber=idx+1;
-                    return l;
-                });
-                const sw = Array.isArray(data?.sightWords) ? data.sightWords : [...DEFAULT_SIGHT_WORDS];
-                const safeSW = sw.filter(x=>typeof x==='string').map(x=>x.trim().slice(0,100)).filter(Boolean).slice(0,5000);
-                const cd = data?.coverData && typeof data.coverData==='object' ? data.coverData : {...DEFAULT_COVER};
-                return {lessons:safeLessons, sightWords:safeSW, coverData:{title:typeof cd.title==='string'?cd.title.slice(0,200):DEFAULT_COVER.title, subtitle:typeof cd.subtitle==='string'?cd.subtitle.slice(0,200):DEFAULT_COVER.subtitle}};
-            }
-            window.addEventListener('keydown', e=>{
-                const mod=e.ctrlKey||e.metaKey;
-                if(!mod || e.altKey) return;
-                const tag=(e.target?.tagName||'').toLowerCase();
-                if((tag==='input'||tag==='textarea'||tag==='select') && !e.shiftKey) return;
-                if(e.key.toLowerCase()==='z'){ e.preventDefault(); e.shiftKey ? redoLast() : undoLast(); }
-                else if(e.key.toLowerCase()==='y'){ e.preventDefault(); redoLast(); }
-            });
+      const pn = document.createElement('div');
+      pn.className = 'cvc-page-number';
+      pn.textContent = pageNum;
+      card.appendChild(pn);
 
-            async function loadData() {
-                let data = null;
-                try { data = await idbGet(); } catch (e) { data = null; }
-                if (!data || !data.lessons) {
-                    try {
-                        const raw = localStorage.getItem(LEGACY_STORAGE_KEY);
-                        if (raw) data = JSON.parse(raw);
-                    } catch (e) {}
-                }
-                if (data && data.lessons) {
-                    const normalized = normalizeImportedState(data);
-                    lessons = normalized.lessons;
-                    sightWords = normalized.sightWords;
-                    coverData = normalized.coverData;
-                    if (lessons.length) {
-                        let maxId = 0;
-                        lessons.forEach(l => {
-                            if (!l.id) l.id = 'l' + Date.now() + Math.random().toString(36).slice(2, 6);
-                            const num = parseInt(String(l.id).replace('l', '')) || 0;
-                            if (num > maxId) maxId = num;
-                        });
-                        nextId = maxId + 1;
-                    } else {
-                        lessons = JSON.parse(JSON.stringify(DEFAULT_LESSONS));
-                        nextId = lessons.length + 1;
-                    }
-                    renumberByOrder(lessons);
-                } else {
-                    lessons = JSON.parse(JSON.stringify(DEFAULT_LESSONS));
-                    sightWords = [...DEFAULT_SIGHT_WORDS];
-                    coverData = { ...DEFAULT_COVER };
-                    nextId = lessons.length + 1;
-                    renumberByOrder(lessons);
-                }
-            }
+      div.appendChild(card);
+      return div;
+    }
 
-            async function saveData(dataOverride) {
-                const payload = dataOverride ? cloneState(dataOverride) : currentState();
-                try { await idbSet(payload); } catch (e) {
-                    try { localStorage.setItem(LEGACY_STORAGE_KEY, JSON.stringify(payload)); }
-                    catch (fallbackErr) { throw new Error('Persistent storage unavailable'); }
-                    return;
-                }
-                try { localStorage.setItem(LEGACY_STORAGE_KEY, JSON.stringify(payload)); } catch (e) { /* IndexedDB remains authoritative */ }
-            }
+    function buildCodePage(page, pageNum) {
+      const div = document.createElement('div');
+      div.className = 'page';
+      div.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
 
-            function generateId() { return 'l' + (nextId++); }
-            function resyncNextId() {
-                let maxId = 0;
-                lessons.forEach(l => {
-                    const num = parseInt(String(l.id).replace('l', '')) || 0;
-                    if (num > maxId) maxId = num;
-                });
-                nextId = maxId + 1;
-            }
-            function renumberByOrder(arr) { arr.forEach((lesson, idx) => lesson.lessonNumber = idx + 1); }
+      const card = document.createElement('div');
+      card.className = 'card';
 
-            function renderSectionsBuilder() {
-                const container = document.getElementById('sectionsContainer');
-                if (!container) return;
-                if (!tempSections.length) {
-                    container.innerHTML = '<div style="color:#6c757d;font-size:12px;padding:8px 0;">No sections added.</div>';
-                    return;
-                }
-                let html = '';
-                tempSections.forEach((section, idx) => {
-                    const typeInfo = SECTION_TYPES[section.type];
-                    html += `<div class="section-builder-item" data-id="${section.id}">
-                        <div class="sb-header">
-                            <span class="sb-title">${typeInfo.label}</span>
-                            <select onchange="updateSectionWidth('${section.id}', this.value)">
-                                <option value="full" ${section.width === 'full' ? 'selected' : ''}>Full width</option>
-                                <option value="half" ${section.width === 'half' ? 'selected' : ''}>Half width</option>
-                                <option value="quarter" ${section.width === 'quarter' ? 'selected' : ''}>Quarter width</option>
-                                <option value="threequarter" ${section.width === 'threequarter' ? 'selected' : ''}>Three-quarter width</option>
-                            </select>
-                            <div class="sb-actions">
-                                <button class="btn btn-outline btn-xs" onclick="moveSection('${section.id}', -1)" ${idx === 0 ? 'disabled' : ''}>▲</button>
-                                <button class="btn btn-outline btn-xs" onclick="moveSection('${section.id}', 1)" ${idx === tempSections.length-1 ? 'disabled' : ''}>▼</button>
-                                <button class="btn btn-danger btn-xs" onclick="deleteSection('${section.id}')">🗑️</button>
-                            </div>
-                        </div>
-                        <div class="sb-body">
-                            ${renderSectionFields(section)}
-                        </div>
-                    </div>`;
-                });
-                container.innerHTML = html;
-            }
+      // Content area with user background — fills the card
+      const contentArea = document.createElement('div');
+      contentArea.className = 'code-content-area';
+      contentArea.style.background = page.contentBackground || '#ffffff';
 
-            function renderSectionFields(section) {
-                let html = '';
-                switch (section.type) {
-                    case 'tile':
-                        html = `
-                            <select onchange="updateSectionData('${section.id}', 'tileMode', this.value)">
-                                <option value="letter" ${section.tileMode === 'letter' ? 'selected' : ''}>Letter</option>
-                                <option value="image" ${section.tileMode === 'image' ? 'selected' : ''}>Image</option>
-                            </select>
-                            <div class="form-group">
-                                <label>Letter Tile</label>
-                                <input value="${escapeHtml(section.letterTile || '')}" onchange="updateSectionData('${section.id}', 'letterTile', this.value)">
-                            </div>
-                            <div class="form-group">
-                                <label>Font size (px)</label>
-                                <input type="number" value="${section.letterFontSize || 56}" min="24" max="96" onchange="updateSectionData('${section.id}', 'letterFontSize', this.value)">
-                            </div>
-                            <div class="form-group">
-                                <label>Caption (for image mode)</label>
-                                <input value="${escapeHtml(section.imageCaption || "TODAY'S SOUND")}" onchange="updateSectionData('${section.id}', 'imageCaption', this.value)">
-                            </div>
-                            <div class="form-group">
-                                <label>Image Path</label>
-                                <input value="${escapeHtml(section.imagePath || '')}" onchange="updateSectionData('${section.id}', 'imagePath', this.value)">
-                            </div>`;
-                        break;
-                    case 'introText':
-                    case 'instruction':
-                    case 'customText':
-                        html = `<textarea rows="3" oninput="updateSectionData('${section.id}', 'text', this.value)">${escapeHtml(section.text || '')}</textarea>`;
-                        break;
-                    case 'wordGrid':
-                        html = `
-                            <div class="form-row" style="display:flex; gap:10px;">
-                                <div class="form-group" style="flex:1;">
-                                    <label>Columns</label>
-                                    <input type="number" value="${section.columns || 4}" min="1" max="8" onchange="updateSectionData('${section.id}', 'columns', parseInt(this.value))">
-                                </div>
-                                <div class="form-group" style="flex:1;">
-                                    <label>Rows</label>
-                                    <input type="number" value="${section.rows || 3}" min="1" max="12" onchange="updateSectionData('${section.id}', 'rows', parseInt(this.value))">
-                                </div>
-                            </div>
-                            <textarea rows="3" placeholder="Comma separated words (optional)" oninput="updateSectionData('${section.id}', 'words', this.value.split(',').map(s=>s.trim()).filter(Boolean))">${(section.words || []).join(', ')}</textarea>`;
-                        break;
-                    case 'decodable':
-                        html = `
-                            <input value="${escapeHtml(section.instruction || '')}" onchange="updateSectionData('${section.id}', 'instruction', this.value)">
-                            <textarea rows="3" placeholder="Sentences, comma separated" oninput="updateSectionData('${section.id}', 'sentences', this.value.split(',').map(s=>s.trim()).filter(Boolean))">${(section.sentences || []).join(', ')}</textarea>`;
-                        break;
-                    case 'fillBlanks':
-                        html = `
-                            <input value="${escapeHtml(section.title || '')}" onchange="updateSectionData('${section.id}', 'title', this.value)">
-                            <textarea rows="3" placeholder="Items, comma separated (use _ for blank)" oninput="updateSectionData('${section.id}', 'items', this.value.split(',').map(s=>s.trim()).filter(Boolean))">${(section.items || []).join(', ')}</textarea>`;
-                        break;
-                    case 'sentenceWriting':
-                        html = `
-                            <input value="${escapeHtml(section.title || '')}" onchange="updateSectionData('${section.id}', 'title', this.value)">
-                            <input type="number" value="${section.lines || 2}" min="1" max="8" onchange="updateSectionData('${section.id}', 'lines', parseInt(this.value))">`;
-                        break;
-                    case 'writingLines':
-                        html = `<label><input type="checkbox" ${section.fillRemaining ? 'checked' : ''} onchange="updateSectionData('${section.id}', 'fillRemaining', this.checked)"> Fill remaining height</label>`;
-                        break;
-                    default:
-                        html = '';
-                }
-                return html;
-            }
+      const scopeClass = 'scope-' + String(page.id || 'preview').replace(/[^a-zA-Z0-9]/g, '');
+      contentArea.classList.add(scopeClass);
 
-            window.addSection = function(type) {
-                const newSection = createDefaultSection(type);
-                tempSections.push(newSection);
-                renderSectionsBuilder();
-                renderThumbnail();
-            };
-            window.deleteSection = function(id) {
-                tempSections = tempSections.filter(s => s.id !== id);
-                renderSectionsBuilder();
-                renderThumbnail();
-            };
-            window.moveSection = function(id, dir) {
-                const idx = tempSections.findIndex(s => s.id === id);
-                if (idx === -1) return;
-                const newIdx = idx + dir;
-                if (newIdx < 0 || newIdx >= tempSections.length) return;
-                const temp = tempSections[idx];
-                tempSections[idx] = tempSections[newIdx];
-                tempSections[newIdx] = temp;
-                renderSectionsBuilder();
-                renderThumbnail();
-            };
-            window.updateSectionWidth = function(id, width) {
-                const section = tempSections.find(s => s.id === id);
-                if (section) section.width = width;
-                renderThumbnail();
-            };
-            window.updateSectionData = function(id, field, value) {
-                const section = tempSections.find(s => s.id === id);
-                if (!section) return;
-                section[field] = value;
-                if (field === 'lines') section.lines = parseInt(value) || 2;
-                if (field === 'columns') section.columns = parseInt(value) || 4;
-                if (field === 'rows') section.rows = parseInt(value) || 3;
-                renderThumbnail();
-            };
+      // More robust CSS scoping (handles basic rules; ignores @rules that break simple split)
+      const rawCSS = sanitizeCSS(page.css || '');
+      let scopedCSS = '';
+      try {
+        // Split on } but keep simple rules intact
+        const chunks = rawCSS.split('}');
+        for (let i = 0; i < chunks.length; i++) {
+          const chunk = chunks[i].trim();
+          if (!chunk) continue;
+          const brace = chunk.indexOf('{');
+          if (brace === -1) {
+            // leftover or @rule without block — skip dangerous, keep safe at-rules lightly
+            if (chunk.startsWith('@')) scopedCSS += chunk + '}';
+            continue;
+          }
+          const selectors = chunk.slice(0, brace).trim();
+          const body = chunk.slice(brace + 1).trim();
+          if (!selectors) continue;
+          const scopedSelectors = selectors.split(',').map(s => {
+            s = s.trim();
+            if (!s) return s;
+            // Don't double-scope if already has the class
+            if (s.includes('.' + scopeClass)) return s;
+            return `.${scopeClass} ${s}`;
+          }).filter(Boolean).join(', ');
+          scopedCSS += `${scopedSelectors} { ${body} }\n`;
+        }
+      } catch (e) {
+        scopedCSS = rawCSS;
+      }
 
-            function renderThumbnail() {
-                const container = document.getElementById('thumbnailContainer');
-                if (!container) return;
+      const style = document.createElement('style');
+      style.textContent = scopedCSS;
 
-                const mainTitle = document.getElementById('fMainTitle')?.value || 'Untitled';
-                const subtitle = document.getElementById('fSubtitle')?.value || 'SHORT VOWEL';
-                const lessonNumber = parseInt(document.getElementById('fLessonNumber')?.value) || 1;
+      const inner = document.createElement('div');
+      inner.className = 'code-inner';
+      inner.innerHTML = sanitizeHTML(page.html || '');
 
-                const tempLesson = {
-                    mainTitle,
-                    subtitle,
-                    lessonNumber,
-                    sections: JSON.parse(JSON.stringify(tempSections))
-                };
+      contentArea.append(style, inner);
+      card.appendChild(contentArea);
 
-                const pageEl = buildLessonPage(tempLesson, 1);
-                pageEl.querySelector('.page-actions')?.remove();
+      const pn = document.createElement('div');
+      pn.className = 'cvc-page-number';
+      pn.textContent = pageNum;
+      card.appendChild(pn);
 
-                pageEl.style.transform = 'scale(0.3)';
-                pageEl.style.transformOrigin = 'top left';
-                pageEl.style.position = 'absolute';
-                pageEl.style.top = '0';
-                pageEl.style.left = '0';
-                pageEl.style.width = '850px';
-                pageEl.style.minWidth = '850px';
-                pageEl.style.minHeight = '1080px';
-                pageEl.style.padding = '24px 32px';
-                pageEl.style.margin = '0';
-                pageEl.style.borderRadius = '0';
-                pageEl.style.boxShadow = 'none';
-                pageEl.style.pageBreakAfter = 'auto';
+      div.appendChild(card);
+      return div;
+    }
 
-                container.innerHTML = '';
-                container.appendChild(pageEl);
-                container.style.height = '324px';
-            }
+    function buildCoverPage() {
+      const page = document.createElement('div');
+      page.className = 'page';
+      page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
+      const card = document.createElement('div');
+      card.className = 'card cover-card';
+      card.innerHTML = `
+        <div class="cover-text-block">
+          <div class="cover-line"></div>
+          <div class="cover-title">${escapeHtml(coverData.title)}</div>
+          <div class="cover-subtitle">${escapeHtml(coverData.subtitle)}</div>
+          <div class="cover-line"></div>
+        </div>`;
+      page.appendChild(card);
+      return page;
+    }
 
-            function buildLessonPage(lesson, pageNum) {
-                const page = document.createElement('div');
-                page.className = 'page';
-                page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
-                const card = document.createElement('div');
-                card.className = 'card';
+    function buildTocPage(pageNum, entries) {
+      const page = document.createElement('div');
+      page.className = 'page';
+      page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
+      const card = document.createElement('div');
+      card.className = 'toc-card';
+      card.innerHTML = `
+        <div class="toc-title">Table of Contents</div>
+        <ul class="toc-list">
+          ${entries.map(e => `
+            <li class="toc-item">
+              <span>Page ${e.order}: ${escapeHtml(e.name)}</span>
+              <span class="toc-page-num">Page ${e.firstPage}</span>
+            </li>`).join('')}
+        </ul>
+        <div class="page-number">${pageNum}</div>`;
+      page.appendChild(card);
+      return page;
+    }
 
-                card.innerHTML = `
-                    <div class="cvc-header">
-                        <div class="cvc-header-left">
-                            <h1 class="cvc-main-title">${escapeHtml(lesson.mainTitle || 'CVC WORDS')}</h1>
-                            <div class="cvc-subtitle">${escapeHtml(lesson.subtitle || 'SHORT VOWEL')}</div>
-                        </div>
-                        <div class="cvc-header-right">
-                            <span class="lesson-label">LESSON</span>
-                            <span class="lesson-num">${lesson.lessonNumber}</span>
-                        </div>
-                    </div>
-                `;
+    function buildSightWordsPage(pageNum, words) {
+      const page = document.createElement('div');
+      page.className = 'page';
+      page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
+      const card = document.createElement('div');
+      card.className = 'card sight-card';
+      card.innerHTML = `
+        <div class="title">Sight Words Practice</div>
+        <div class="section-header">
+          <div class="circle">★</div>
+          <div class="label-box">Read and say each word</div>
+        </div>`;
+      const grid = document.createElement('div');
+      grid.className = 'sight-words-grid';
+      words.forEach(w => {
+        if (!w) return;
+        const c = document.createElement('div');
+        c.className = 'sight-word-pill';
+        c.textContent = w;
+        grid.appendChild(c);
+      });
+      card.appendChild(grid);
+      const pn = document.createElement('div');
+      pn.className = 'page-number';
+      pn.style.cssText = 'position:absolute;bottom:16px;right:24px;font-weight:800;font-size:14px;';
+      pn.textContent = pageNum;
+      card.appendChild(pn);
+      page.appendChild(card);
+      return page;
+    }
 
-                const sectionsContainer = document.createElement('div');
-                sectionsContainer.className = 'lesson-sections-container';
+    // ========== EXPORT ==========
+    window.exportSinglePage = function (pageEl) {
+      const cloneEl = pageEl.cloneNode(true);
+      cloneEl.querySelector('.page-actions')?.remove();
+      // Ensure no trailing break on a single page
+      cloneEl.style.pageBreakAfter = 'auto';
+      const win = window.open('', '_blank');
+      if (!win) return showToast('Popup blocked. Allow pop-ups to export/print.', 'warning');
+      const styleEl = document.querySelector('style');
+      if (!styleEl) return showToast('Export styles unavailable.', 'error');
+      const extra = `<style>
+        html, body { margin:0; padding:0; background:#fff; }
+        .view-container .page { page-break-after: auto !important; margin: 0 auto !important; }
+        .page-actions { display: none !important; }
+      </style>`;
+      win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Export</title>${styleEl.outerHTML}${extra}</head>
+        <body style="padding:0;background:#fff;margin:0;display:flex;justify-content:center;">
+          <div class="view-container" style="overflow:visible;display:flex;flex-direction:column;align-items:center;">
+            ${cloneEl.outerHTML}
+          </div>
+        </body></html>`);
+      win.document.close();
+      const doPrint = () => { try { win.focus(); win.print(); } catch (_) {} };
+      win.onload = doPrint;
+      setTimeout(doPrint, 450);
+    };
 
-                (lesson.sections || []).forEach(section => {
-                    const sectionEl = document.createElement('div');
-                    sectionEl.className = `section-item w-${section.width}`;
-                    sectionEl.innerHTML = renderSectionContent(section);
-                    sectionsContainer.appendChild(sectionEl);
-                });
+    window.exportAllPages = function () {
+      if (!pages.length && !sightWords.length) return showToast('No pages to print.', 'warning');
+      const container = document.querySelector('.view-container');
+      if (!container) return;
+      const cloneEl = container.cloneNode(true);
+      cloneEl.querySelectorAll('.page-actions').forEach(el => el.remove());
+      // Last page must not force a break
+      const pageNodes = cloneEl.querySelectorAll('.page');
+      if (pageNodes.length) {
+        pageNodes[pageNodes.length - 1].style.pageBreakAfter = 'auto';
+      }
+      const win = window.open('', '_blank');
+      if (!win) return showToast('Popup blocked. Allow pop-ups to print.', 'warning');
+      const styleEl = document.querySelector('style');
+      if (!styleEl) return showToast('Export styles unavailable.', 'error');
+      const extra = `<style>
+        html, body { margin:0; padding:0; background:#fff; }
+        .view-container .page:last-child { page-break-after: auto !important; }
+        .page-actions { display: none !important; }
+      </style>`;
+      win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>All Pages</title>${styleEl.outerHTML}${extra}</head>
+        <body style="padding:0;background:#fff;margin:0;">
+          <div class="view-container" style="overflow:visible;display:block;">${cloneEl.innerHTML}</div>
+        </body></html>`);
+      win.document.close();
+      const doPrint = () => { try { win.focus(); win.print(); } catch (_) {} };
+      win.onload = doPrint;
+      setTimeout(doPrint, 450);
+    };
 
-                card.appendChild(sectionsContainer);
-                page.appendChild(card);
+    // ========== VIEW ==========
+    function renderAllView() {
+      const container = document.getElementById('viewContainer');
+      if (!container) return;
+      container.innerHTML = '';
+      container.appendChild(buildCoverPage());
 
-                const pn = document.createElement('div');
-                pn.className = 'cvc-page-number';
-                pn.textContent = pageNum;
-                card.appendChild(pn);
-                return page;
-            }
+      if (!pages.length && !sightWords.length) return;
 
-            function renderSectionContent(section) {
-                switch (section.type) {
-                    case 'tile': {
-                        const tileMode = section.tileMode || 'letter';
-                        if (tileMode === 'letter') {
-                            return `<div class="todays-sound-card">
-                                <div class="todays-sound-header">TODAY'S SOUND</div>
-                                <div class="todays-sound-body">
-                                    <div class="todays-sound-stars">★ ★ ★</div>
-                                    <div class="todays-sound-letter" style="font-size:${section.letterFontSize || 56}px">${escapeHtml(section.letterTile || 'Aa')}</div>
-                                </div>
-                            </div>`;
-                        } else if (tileMode === 'image') {
-                            const img = section.imagePath ? `<img class="todays-sound-img" src="${escapeHtml(section.imagePath)}" />` : `<div style="font-size:32px;opacity:0.4">🖼️</div>`;
-                            return `<div class="todays-sound-card">
-                                <div class="todays-sound-header">${escapeHtml(section.imageCaption || "TODAY'S SOUND")}</div>
-                                <div class="todays-sound-body">${img}</div>
-                            </div>`;
-                        }
-                        return '';
-                    }
-                    case 'introText':
-                        return `<div class="cvc-intro-box"><p>${formatTextWithHighlight(section.text || '')}</p></div>`;
-                    case 'instruction':
-                        return `<div class="cvc-instruction-box"><p>${escapeHtml(section.text || '')}</p></div>`;
-                    case 'customText':
-                        return `<div class="custom-text-box"><p>${formatTextWithHighlight(section.text || '')}</p></div>`;
-                    case 'wordGrid': {
-                        const columns = Math.max(1, Math.min(8, Number(section.columns) || 4));
-                        const rows = Math.max(1, Math.min(8, Number(section.rows) || 3));
-                        const words = (Array.isArray(section.words) ? section.words : []).filter(w => typeof w === 'string').slice(0, Math.min(MAX_GRID_WORDS, columns * rows));
-                        const totalCells = Math.min(MAX_GRID_WORDS, columns * rows);
-                        let cellsHtml = '';
-                        for (let i = 0; i < totalCells; i++) {
-                            const word = words[i] || '';
-                            const isLastCol = (i % columns) === columns - 1;
-                            const isLastRow = i >= totalCells - columns;
-                            let cellStyle = '';
-                            if (!isLastCol) cellStyle += 'border-right:1px solid #f0c9a8;';
-                            else cellStyle += 'border-right:none;';
-                            if (!isLastRow) cellStyle += 'border-bottom:1px solid #f0c9a8;';
-                            else cellStyle += 'border-bottom:none;';
-                            cellsHtml += `<div class="word-cell${word ? '' : ' empty'}" style="${cellStyle}">${escapeHtml(word || '')}</div>`;
-                        }
-                        return `<div class="word-grid" style="grid-template-columns:repeat(${columns},1fr);">${cellsHtml}</div>`;
-                    }
-                    case 'decodable': {
-                        const sents = (section.sentences || []).filter(Boolean);
-                        if (!sents.length) return '';
-                        const lines = sents.map((s, i) => `<div class="sentence">${i + 1}. ${escapeHtml(s)}</div>`).join('');
-                        return `<div class="act-box"><div class="act-title">${escapeHtml(section.instruction || '')}</div>${lines}</div>`;
-                    }
-                    case 'fillBlanks': {
-                        const items = (section.items || []).filter(Boolean).slice(0, MAX_FILL_ITEMS);
-                        if (!items.length) return '';
-                        const cells = items.map(item => {
-                            let html = '';
-                            for (const ch of String(item)) {
-                                if (ch === '_') html += '<span class="blank-sq"></span>';
-                                else html += `<span>${escapeHtml(ch)}</span>`;
-                            }
-                            return `<div class="fill-item">${html}</div>`;
-                        }).join('');
-                        return `<div class="act-box"><div class="act-title">${escapeHtml(section.title || '')}</div><div class="fill-grid">${cells}</div></div>`;
-                    }
-                    case 'sentenceWriting': {
-                        const n = Math.max(1, Math.min(8, section.lines || 2));
-                        let lines = '';
-                        for (let i = 0; i < n; i++) lines += `<div class="sent-line">${i + 1}.</div>`;
-                        return `<div class="act-box"><div class="act-title">${escapeHtml(section.title || '')}</div><div class="sent-lines">${lines}</div></div>`;
-                    }
-                    case 'writingLines': {
-                        const count = 3;
-                        let lines = '';
-                        for (let i = 0; i < count; i++) {
-                            lines += `<div class="writing-set"><div class="line l1"></div><div class="line l2"></div><div class="line l3"></div><div class="line l4"></div></div>`;
-                        }
-                        return `<div class="writing-lines-area">${lines}</div>`;
-                    }
-                    default:
-                        return '';
-                }
-            }
+      const swPages = Math.ceil(sightWords.length / MAX_SIGHT_WORDS_PER_PAGE) || 0;
+      const tocPages = pages.length ? Math.ceil(pages.length / MAX_TOC_PER_PAGE) : 0;
+      const lessonStart = tocPages + swPages + 2;
+      let running = lessonStart;
 
-            function buildTocPage(pageNum, entries) {
-                const page = document.createElement('div'); page.className = 'page';
-                page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
-                const card = document.createElement('div'); card.className = 'toc-card';
-                card.innerHTML = `<div class="toc-title">Table of Contents</div><ul class="toc-list">` +
-                    entries.map(e => `<li class="toc-item"><span>Lesson ${e.lessonNumber}: ${escapeHtml(e.mainTitle)}${e.sections?.[0]?.letterTile ? ' — ' + escapeHtml(e.sections[0].letterTile) : ''}</span><span class="toc-page-num">Page ${e.firstPage}</span></li>`).join('') +
-                    `</ul><div class="page-number">${pageNum}</div>`;
-                page.appendChild(card); return page;
-            }
+      const tocEntries = pages.map((p, idx) => {
+        const e = {
+          order: idx + 1,
+          name: p.name || (p.type === 'structured' ? p.mainTitle : 'Code Page'),
+          firstPage: running
+        };
+        running += 1;
+        return e;
+      });
 
-            function buildSightWordsPage(pageNum, words) {
-                const page = document.createElement('div'); page.className = 'page';
-                page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
-                const card = document.createElement('div'); card.className = 'card sight-card';
-                card.innerHTML = `<div class="title">Sight Words Practice</div><div class="section-header"><div class="circle">★</div><div class="label-box">Read and say each word</div></div>`;
-                const grid = document.createElement('div'); grid.className = 'sight-words-grid';
-                words.forEach(w => { if (!w) return; const c = document.createElement('div'); c.className = 'sight-word-pill'; c.textContent = w; grid.appendChild(c); });
-                card.appendChild(grid);
-                const pn = document.createElement('div'); pn.className = 'page-number'; pn.style.cssText = 'position:absolute;bottom:18px;right:28px;font-weight:800;font-size:15px;'; pn.textContent = pageNum;
-                card.appendChild(pn); page.appendChild(card); return page;
-            }
+      for (let p = 0; p < tocPages; p++) {
+        container.appendChild(buildTocPage(p + 1, tocEntries.slice(p * MAX_TOC_PER_PAGE, (p + 1) * MAX_TOC_PER_PAGE)));
+      }
 
-            function buildCoverPage() {
-                const page = document.createElement('div'); page.className = 'page';
-                page.innerHTML = `<div class="page-actions no-print"><button class="export-btn" onclick="exportSinglePage(this.closest('.page'))">📄 Export</button></div>`;
-                const card = document.createElement('div'); card.className = 'card cover-card';
-                card.innerHTML = `<div class="cover-text-block"><div class="cover-line"></div><div class="cover-title">${escapeHtml(coverData.title)}</div><div class="cover-subtitle">${escapeHtml(coverData.subtitle)}</div><div class="cover-line"></div></div>`;
-                page.appendChild(card); return page;
-            }
+      let pageNum = tocPages + 2;
+      for (let p = 0; p < swPages; p++) {
+        container.appendChild(buildSightWordsPage(pageNum++, sightWords.slice(p * MAX_SIGHT_WORDS_PER_PAGE, (p + 1) * MAX_SIGHT_WORDS_PER_PAGE)));
+      }
 
-            window.exportSinglePage = function(pageEl) {
-                const clone = pageEl.cloneNode(true);
-                clone.querySelector('.page-actions')?.remove();
-                const win = window.open('', '_blank');
-                if (!win) return showToast('Popup blocked. Allow pop-ups to export/print.', 'warning');
-                const styleEl = document.querySelector('style');
-                if (!styleEl) return showToast('Export styles are unavailable.', 'error');
-                const styles = styleEl.outerHTML;
-                win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Export</title>${styles}</head><body style="padding:0;background:#fff;margin:0;display:flex;justify-content:center;"><div class="view-container" style="overflow:visible;display:flex;flex-direction:column;align-items:center;">${clone.outerHTML}</div></body></html>`);
-                win.document.close(); win.focus(); setTimeout(() => win.print(), 400);
-            };
-            window.exportAllPages = function() {
-                if (!lessons.length && !sightWords.length) return showToast('No lessons or sight words.', 'warning');
-                const container = document.querySelector('.view-container').cloneNode(true);
-                container.querySelectorAll('.page-actions').forEach(el => el.remove());
-                const win = window.open('', '_blank');
-                if (!win) return showToast('Popup blocked. Allow pop-ups to export/print.', 'warning');
-                const styleEl = document.querySelector('style');
-                if (!styleEl) return showToast('Export styles are unavailable.', 'error');
-                const styles = styleEl.outerHTML;
-                win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>All Pages</title>${styles}</head><body style="padding:0;background:#fff;margin:0;"><div class="view-container" style="overflow:visible;display:block;">${container.innerHTML}</div></body></html>`);
-                win.document.close(); win.focus(); setTimeout(() => win.print(), 400);
-            };
+      pageNum = lessonStart;
+      pages.forEach(p => {
+        if (p.type === 'structured') container.appendChild(buildStructuredPage(p, pageNum));
+        else container.appendChild(buildCodePage(p, pageNum));
+        pageNum++;
+      });
+    }
 
-            function renderAllView() {
-                const container = document.getElementById('viewContainer');
-                container.innerHTML = '';
-                container.appendChild(buildCoverPage());
-                if (!lessons.length && !sightWords.length) return;
-                const swPages = Math.ceil(sightWords.length / MAX_SIGHT_WORDS_PER_PAGE) || 0;
-                const tocPages = lessons.length ? Math.ceil(lessons.length / MAX_TOC_PER_PAGE) : 0;
-                const lessonStart = tocPages + swPages + 2; // page 1 is the cover
-                let running = lessonStart;
-                const tocEntries = lessons.map(l => {
-                    const e = { lessonNumber: l.lessonNumber, mainTitle: l.mainTitle, firstPage: running };
-                    running += 1; return e;
-                });
-                for (let p = 0; p < tocPages; p++) container.appendChild(buildTocPage(p + 1, tocEntries.slice(p * MAX_TOC_PER_PAGE, (p + 1) * MAX_TOC_PER_PAGE)));
-                let pageNum = tocPages + 2; // cover occupies page 1
-                for (let p = 0; p < swPages; p++) {
-                    container.appendChild(buildSightWordsPage(pageNum++, sightWords.slice(p * MAX_SIGHT_WORDS_PER_PAGE, (p + 1) * MAX_SIGHT_WORDS_PER_PAGE)));
-                }
-                pageNum = lessonStart;
-                lessons.forEach(l => container.appendChild(buildLessonPage(l, pageNum++)));
-            }
+    // ========== EDIT FORM ==========
+    function markDirty() { formDirty = true; }
+    function clearDirty() { formDirty = false; }
 
-            function fillForm(lesson) {
-                document.getElementById('fMainTitle').value = lesson.mainTitle || '';
-                document.getElementById('fSubtitle').value = lesson.subtitle || 'SHORT VOWEL';
-                document.getElementById('fLessonNumber').value = lesson.lessonNumber || '';
-                tempSections = JSON.parse(JSON.stringify(lesson.sections || []));
-                renderSectionsBuilder();
-                renderThumbnail();
-            }
+    window.addEventListener('beforeunload', (e) => {
+      if (formDirty) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    });
 
-            function resetForm() {
-                editingId = null;
-                document.getElementById('formTitle').textContent = '➕ Add New Lesson';
-                document.getElementById('fMainTitle').value = 'SHORT VOWEL CVC WORDS';
-                document.getElementById('fSubtitle').value = 'SHORT VOWEL';
-                document.getElementById('fLessonNumber').value = lessons.length + 1;
-                tempSections = JSON.parse(JSON.stringify(DEFAULT_LESSONS[0].sections || []));
-                renderSectionsBuilder();
-                renderThumbnail();
-                document.getElementById('saveBtn').textContent = '💾 Save Lesson';
-                document.getElementById('cancelBtn').style.display = 'none';
-            }
+    document.addEventListener('input', (e) => {
+      if (e.target.closest('#editPanel')) markDirty();
+    });
 
-            window.toggleFields = function() {};
+    function renderSectionsBuilder() {
+      const container = document.getElementById('sectionsContainer');
+      if (!container) return;
+      if (!tempSections.length) {
+        container.innerHTML = '<div style="color:#6c757d;font-size:12px;padding:8px 0;">No sections added.</div>';
+        return;
+      }
+      let html = '';
+      tempSections.forEach((section, idx) => {
+        const typeInfo = SECTION_TYPES[section.type] || { label: section.type };
+        html += `
+          <div class="section-builder-item" data-id="${section.id}">
+            <div class="sb-header">
+              <span class="sb-title">${escapeHtml(typeInfo.label)}</span>
+              <select onchange="updateSectionWidth('${section.id}', this.value)">
+                <option value="full" ${section.width === 'full' ? 'selected' : ''}>Full</option>
+                <option value="half" ${section.width === 'half' ? 'selected' : ''}>Half</option>
+                <option value="quarter" ${section.width === 'quarter' ? 'selected' : ''}>Quarter</option>
+                <option value="threequarter" ${section.width === 'threequarter' ? 'selected' : ''}>3/4</option>
+              </select>
+              <div class="sb-actions">
+                <button class="btn btn-outline btn-xs" onclick="moveSection('${section.id}', -1)" ${idx === 0 ? 'disabled' : ''}>▲</button>
+                <button class="btn btn-outline btn-xs" onclick="moveSection('${section.id}', 1)" ${idx === tempSections.length - 1 ? 'disabled' : ''}>▼</button>
+                <button class="btn btn-danger btn-xs" onclick="deleteSection('${section.id}')">🗑️</button>
+              </div>
+            </div>
+            <div class="sb-body">${renderSectionFields(section)}</div>
+          </div>`;
+      });
+      container.innerHTML = html;
+    }
 
-            window.handleImageUpload = function(e) {
-                const file = e.target.files[0];
-                if (!file) return;
-                if (file.size > 2 * 1024 * 1024) return showToast('Image must be < 2MB.', 'error');
-                if (!file.type.startsWith('image/')) return showToast('Please select an image.', 'error');
-                const reader = new FileReader();
-                reader.onload = ev => {
-                    const dataUrl = ev.target.result;
-                    const target = tempSections.find(s => s.type === 'tile' && s.tileMode === 'image') || tempSections.find(s => s.type === 'tile');
-                    if (!target) return showToast('Add a Letter/Image Tile section first.', 'warning');
-                    target.tileMode='image'; target.imagePath=dataUrl;
-                    renderSectionsBuilder(); renderThumbnail();
-                    showToast('Image uploaded into the lesson preview.', 'success');
-                };
-                reader.readAsDataURL(file);
-            };
+    function renderSectionFields(section) {
+      switch (section.type) {
+        case 'tile':
+          return `
+            <select onchange="updateSectionData('${section.id}', 'tileMode', this.value)">
+              <option value="letter" ${section.tileMode === 'letter' ? 'selected' : ''}>Letter</option>
+              <option value="image" ${section.tileMode === 'image' ? 'selected' : ''}>Image</option>
+            </select>
+            <div class="form-group"><label>Letter Tile</label>
+              <input value="${escapeHtml(section.letterTile || '')}" onchange="updateSectionData('${section.id}', 'letterTile', this.value)">
+            </div>
+            <div class="form-group"><label>Font size (px)</label>
+              <input type="number" value="${section.letterFontSize || 56}" min="24" max="96"
+                onchange="updateSectionData('${section.id}', 'letterFontSize', this.value)">
+            </div>
+            <div class="form-group"><label>Caption (image mode)</label>
+              <input value="${escapeHtml(section.imageCaption || "TODAY'S SOUND")}"
+                onchange="updateSectionData('${section.id}', 'imageCaption', this.value)">
+            </div>
+            <div class="form-group"><label>Image Path / URL</label>
+              <input value="${escapeHtml(section.imagePath || '')}"
+                onchange="updateSectionData('${section.id}', 'imagePath', this.value)">
+            </div>
+            <div class="form-group"><label>Upload Image</label>
+              <input type="file" accept="image/*" onchange="handleTileImageUpload(this, '${section.id}')">
+            </div>`;
+        case 'introText':
+        case 'instruction':
+        case 'customText':
+          return `<textarea rows="3" oninput="updateSectionData('${section.id}', 'text', this.value)">${escapeHtml(section.text || '')}</textarea>`;
+        case 'wordGrid':
+          return `
+            <div style="display:flex;gap:10px;">
+              <div class="form-group" style="flex:1"><label>Columns</label>
+                <input type="number" value="${section.columns || 4}" min="1" max="8"
+                  onchange="updateSectionData('${section.id}', 'columns', parseInt(this.value,10)||4)">
+              </div>
+              <div class="form-group" style="flex:1"><label>Rows</label>
+                <input type="number" value="${section.rows || 3}" min="1" max="12"
+                  onchange="updateSectionData('${section.id}', 'rows', parseInt(this.value,10)||3)">
+              </div>
+            </div>
+            <textarea rows="3" placeholder="Comma-separated words"
+              oninput="updateSectionData('${section.id}', 'words', this.value.split(',').map(s=>s.trim()).filter(Boolean))">${(section.words || []).join(', ')}</textarea>`;
+        case 'decodable':
+          return `
+            <input value="${escapeHtml(section.instruction || '')}"
+              onchange="updateSectionData('${section.id}', 'instruction', this.value)">
+            <textarea rows="3" placeholder="Sentences, comma-separated"
+              oninput="updateSectionData('${section.id}', 'sentences', this.value.split(',').map(s=>s.trim()).filter(Boolean))">${(section.sentences || []).join(', ')}</textarea>`;
+        case 'fillBlanks':
+          return `
+            <input value="${escapeHtml(section.title || '')}"
+              onchange="updateSectionData('${section.id}', 'title', this.value)">
+            <textarea rows="3" placeholder="Items, comma-separated (use _ for blank)"
+              oninput="updateSectionData('${section.id}', 'items', this.value.split(',').map(s=>s.trim()).filter(Boolean))">${(section.items || []).join(', ')}</textarea>`;
+        case 'sentenceWriting':
+          return `
+            <input value="${escapeHtml(section.title || '')}"
+              onchange="updateSectionData('${section.id}', 'title', this.value)">
+            <input type="number" value="${section.lines || 2}" min="1" max="8"
+              onchange="updateSectionData('${section.id}', 'lines', parseInt(this.value,10)||2)">`;
+        case 'writingLines':
+          return `<label><input type="checkbox" ${section.fillRemaining ? 'checked' : ''}
+            onchange="updateSectionData('${section.id}', 'fillRemaining', this.checked)"> Fill remaining height</label>`;
+        default:
+          return '';
+      }
+    }
 
-            window.editLesson = function(id) {
-                const lesson = lessons.find(l => l.id === id);
-                if (!lesson) return showToast('Lesson not found.', 'error');
-                editingId = id;
-                document.getElementById('formTitle').textContent = '✏️ Edit Lesson';
-                fillForm(lesson);
-                document.getElementById('saveBtn').textContent = '💾 Update Lesson';
-                document.getElementById('cancelBtn').style.display = 'inline-block';
-                switchTab('edit');
-                updateHistoryUI();
-            };
-            window.cancelEdit = function() { resetForm(); switchTab('lessons'); showToast('Edit cancelled.', 'info'); };
+    window.handleTileImageUpload = function (input, sectionId) {
+      const file = input.files?.[0];
+      if (!file) return;
+      if (!file.type.startsWith('image/')) {
+        showToast('Please select an image file.', 'error');
+        return;
+      }
+      if (file.size > 2 * 1024 * 1024) {
+        showToast('Image must be under 2 MB.', 'error');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const section = tempSections.find(s => s.id === sectionId);
+        if (section) {
+          section.tileMode = 'image';
+          section.imagePath = ev.target.result;
+          renderSectionsBuilder();
+          renderThumbnail();
+          showToast('Image uploaded.', 'success');
+        }
+      };
+      reader.readAsDataURL(file);
+      input.value = '';
+    };
 
-            window.saveLesson = function() {
-                const mainTitle = document.getElementById('fMainTitle').value.trim();
-                const subtitle = document.getElementById('fSubtitle').value.trim() || 'SHORT VOWEL';
-                if (!mainTitle) return showToast('Main Title is required.', 'error');
-                const sections = JSON.parse(JSON.stringify(tempSections));
-                if (editingId) {
-                    const idx = lessons.findIndex(l => l.id === editingId);
-                    if (idx === -1) return showToast('Lesson not found.', 'error');
-                    lessons[idx] = { ...lessons[idx], mainTitle, subtitle, sections, id: editingId };
-                    lessons[idx].lessonNumber = idx + 1;
-                } else {
-                    const newLesson = { mainTitle, subtitle, sections, id: generateId() };
-                    newLesson.lessonNumber = lessons.length + 1;
-                    lessons.push(newLesson);
-                }
-                renumberByOrder(lessons);
-                persistState();
-                resetForm();
-                refreshUI();
-                switchTab('lessons');
-                showToast('Lesson saved.', 'success');
-            };
+    window.addSection = function (type) {
+      if (tempSections.length >= MAX_SECTIONS) {
+        showToast(`Maximum ${MAX_SECTIONS} sections per page.`, 'warning');
+        return;
+      }
+      tempSections.push(createDefaultSection(type));
+      renderSectionsBuilder();
+      renderThumbnail();
+      markDirty();
+    };
 
-            window.deleteLesson = function(id) {
-                const lesson = lessons.find(l => l.id === id);
-                if (!lesson) return;
-                confirmDialog(`Delete Lesson ${lesson.lessonNumber}?`, () => {
-                    lessons = lessons.filter(l => l.id !== id);
-                    if (editingId === id) resetForm();
-                    renumberByOrder(lessons);
-                    persistState();
-                    refreshUI();
-                });
-            };
-            window.duplicateLesson = function(id) {
-                const lesson = lessons.find(l => l.id === id);
-                if (!lesson) return;
-                const copy = JSON.parse(JSON.stringify(lesson));
-                delete copy.id; copy.id = generateId();
-                lessons.push(copy);
-                renumberByOrder(lessons);
-                persistState();
-                refreshUI();
-                showToast('Lesson duplicated.', 'success');
-            };
-            window.exportJSON = function() {
-                const blob = new Blob([JSON.stringify({ lessons, sightWords, coverData }, null, 2)], { type: 'application/json' });
-                const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'lessons_v12.json'; a.click();
-            };
-            window.importJSON = function(input) {
-                const file = input?.files?.[0];
-                if (!file) return;
-                const reader = new FileReader();
-                reader.onerror = () => showToast('Could not read the JSON file.', 'error');
-                reader.onload = e => {
-                    try {
-                        const data = JSON.parse(e.target.result);
-                        if (!data || typeof data !== 'object' || !Array.isArray(data.lessons)) throw new Error('Invalid structure');
-                        const normalized = normalizeImportedState(data);
-                        confirmDialog(`Replace all data with ${normalized.lessons.length} imported lesson(s)?`, async () => {
-                            const before=currentState();
-                            lessons=normalized.lessons; sightWords=normalized.sightWords; coverData=normalized.coverData;
-                            resyncNextId(); renumberByOrder(lessons);
-                            await persistState();
-                            recordHistory(before,currentState());
-                            resetForm(); refreshUI(); showToast('Data imported and validated.', 'success');
-                        });
-                    } catch (err) { console.error(err); showToast('Invalid or unsupported JSON file.', 'error'); }
-                };
-                reader.readAsText(file);
-                input.value = '';
-            };
+    window.deleteSection = function (id) {
+      tempSections = tempSections.filter(s => s.id !== id);
+      renderSectionsBuilder();
+      renderThumbnail();
+      markDirty();
+    };
 
-            window.saveSightWords = function() {
-                sightWords = document.getElementById('fSightWords').value.split(',').map(s => s.trim()).filter(Boolean);
-                persistState(); refreshUI(); showToast('Sight words saved.', 'success');
-            };
-            window.saveCover = function() {
-                coverData = {
-                    title: document.getElementById('coverTitleInput').value.trim() || DEFAULT_COVER.title,
-                    subtitle: document.getElementById('coverSubtitleInput').value.trim() || DEFAULT_COVER.subtitle
-                };
-                persistState(); renderAllView(); showToast('Cover updated.', 'success');
-            };
+    window.moveSection = function (id, dir) {
+      const idx = tempSections.findIndex(s => s.id === id);
+      if (idx < 0) return;
+      const newIdx = idx + dir;
+      if (newIdx < 0 || newIdx >= tempSections.length) return;
+      const tmp = tempSections[idx];
+      tempSections[idx] = tempSections[newIdx];
+      tempSections[newIdx] = tmp;
+      renderSectionsBuilder();
+      renderThumbnail();
+      markDirty();
+    };
 
-            function refreshUI() { renderEditList(); renderAllView(); updateCounts(); }
+    window.updateSectionWidth = function (id, width) {
+      const section = tempSections.find(s => s.id === id);
+      if (section) {
+        section.width = width;
+        renderThumbnail();
+        markDirty();
+      }
+    };
 
-            function renderEditList() {
-                const container = document.getElementById('lessonList');
-                if (!container) return;
-                const q = (window.searchQuery || '').toLowerCase();
-                const filtered = lessons.filter(l => {
-                    if (!q) return true;
-                    return String(l.lessonNumber).includes(q) || (l.mainTitle || '').toLowerCase().includes(q) ||
-                           (l.sections?.some(s => s.letterTile && s.letterTile.toLowerCase().includes(q)));
-                });
-                container.innerHTML = filtered.length ? filtered.map(l => {
-                    const tileSection = l.sections?.find(s => s.type === 'tile');
-                    const tileLabel = tileSection ? (tileSection.tileMode === 'letter' ? tileSection.letterTile : '🖼️') : '—';
-                    return `<div class="lesson-item" data-id="${l.id}">
-                        <div class="thumb">📄</div>
-                        <div class="info">
-                            <div class="title">Lesson ${l.lessonNumber} — ${escapeHtml(l.mainTitle)} · ${escapeHtml(tileLabel)}</div>
-                            <div class="sub">${l.sections?.length || 0} sections</div>
-                        </div>
-                        <div class="actions">
-                            <button class="btn btn-primary btn-xs" onclick="editLesson('${l.id}')">✏️</button>
-                            <button class="btn btn-warning btn-xs" onclick="duplicateLesson('${l.id}')">📋</button>
-                            <button class="btn btn-danger btn-xs" onclick="deleteLesson('${l.id}')">🗑️</button>
-                        </div>
-                    </div>`;
-                }).join('') : '<div style="text-align:center;padding:40px;color:#6c757d;">No lessons found.</div>';
-                document.getElementById('listCount').textContent = filtered.length + ' / ' + lessons.length;
-                const sp = document.getElementById('sightWordsPreview');
-                if (sp) sp.innerHTML = sightWords.length ? sightWords.map(w => `<span style="display:inline-block;margin:3px;padding:5px 10px;background:#E2571C;color:#fff;border-radius:8px;font-weight:600;font-size:13px;">${escapeHtml(w)}</span>`).join('') : '<span style="color:#6c757d;">No sight words yet.</span>';
-            }
+    window.updateSectionData = function (id, field, value) {
+      const section = tempSections.find(s => s.id === id);
+      if (!section) return;
+      section[field] = value;
+      if (field === 'lines' || field === 'columns' || field === 'rows' || field === 'letterFontSize') {
+        section[field] = Number(value) || section[field];
+      }
+      renderThumbnail();
+      markDirty();
+    };
 
-            function updateCounts() {
-                document.getElementById('lessonCount').textContent = lessons.length + ' lessons, ' + sightWords.length + ' sight words';
-                const tocPages = lessons.length ? Math.ceil(lessons.length / MAX_TOC_PER_PAGE) : 0;
-                const swPages = Math.ceil(sightWords.length / MAX_SIGHT_WORDS_PER_PAGE) || 0;
-                document.getElementById('viewInfo').textContent = `📄 ${lessons.length} lessons · ${1 + tocPages + swPages + lessons.length} pages`;
-            }
+    function renderThumbnail() {
+      const container = document.getElementById('thumbnailContainer');
+      if (!container) return;
 
-            window.switchTab = function(tab) {
-                document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
-                document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === tab + 'Panel'));
-                if (tab === 'edit') {
-                    renderThumbnail();
-                }
-                if (tab === 'lessons') {
-                    renderEditList();
-                }
-                if (tab === 'view') {
-                    renderAllView();
-                }
-                updateCounts();
-            };
+      const pageType = document.getElementById('pageTypeSelect')?.value || tempPageType || 'structured';
+      let pageEl;
 
-            function wrapMutator(name) {
-                const original=window[name]; if(typeof original!=='function') return;
-                window[name]=async function(...args){
-                    const before=currentState();
-                    const result=await original.apply(this,args);
-                    const after=currentState();
-                    recordHistory(before,after);
-                    return result;
-                };
-            }
-            // Wrap committed document mutations. In-progress section edits remain transactional until Save Lesson.
-            ['saveLesson','deleteLesson','duplicateLesson','saveSightWords','saveCover'].forEach(wrapMutator);
-            const originalExportJSON=window.exportJSON;
-            window.exportJSON=function(){ try{return originalExportJSON();}catch(e){showToast('Export failed.','error');} };
-            const originalRenderAllView=renderAllView;
+      try {
+        if (pageType === 'structured') {
+          const tempPage = {
+            type: 'structured',
+            mainTitle: document.getElementById('fMainTitle')?.value || 'Untitled',
+            subtitle: document.getElementById('fSubtitle')?.value || 'SHORT VOWEL',
+            sections: clone(tempSections)
+          };
+          pageEl = buildStructuredPage(tempPage, 1);
+        } else {
+          const tempPage = {
+            type: 'code',
+            id: 'preview',
+            html: document.getElementById('codeHTML')?.value || '',
+            css: document.getElementById('codeCSS')?.value || '',
+            contentBackground: document.getElementById('codeBg')?.value || '#ffffff'
+          };
+          pageEl = buildCodePage(tempPage, 1);
+        }
+      } catch (err) {
+        console.error('Thumbnail build error:', err);
+        container.innerHTML = '<div style="padding:20px;color:#dc3545;font-size:13px;">Preview error</div>';
+        return;
+      }
 
-                        
-(function(){
-const KEY='phonics_html_css_pages_v1', W=850, H=1080;
-let st={pages:[],current:0}, timer;
-const id=()=>`p_${Date.now().toString(36)}_${Math.random().toString(36).slice(2,7)}`;
-const num=(v,d)=>Number.isFinite(Number(v))?Number(v):d;
-function fresh(){return {id:id(),width:W,height:H,border:'1px solid #000',background:'#fff',html:'<div class="content"><h1>Your Page</h1><p>Write HTML and CSS directly here.</p></div>',css:'.content{padding:48px;font-family:Arial,sans-serif}h1{margin:0 0 18px}p{font-size:18px}'}}
-function load(){try{let x=JSON.parse(localStorage.getItem(KEY)||'null');if(x&&Array.isArray(x.pages)&&x.pages.length){st.pages=x.pages.map(p=>({...fresh(),...p,id:p.id||id(),width:Math.min(5000,Math.max(100,num(p.width,W))),height:Math.min(5000,Math.max(100,num(p.height,H))),html:String(p.html||''),css:String(p.css||'')}));st.current=Math.min(Math.max(0,num(x.current,0)),st.pages.length-1);return}}catch(e){}st.pages=[fresh()];st.current=0}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){if(typeof showToast==='function')showToast('HTML/CSS pages could not be saved locally.','error')}}
-function page(){return st.pages[st.current]}
-function parts(p){let css=[p.css||''],html=String(p.html||'');html=html.replace(/<style\b[^>]*>([\s\S]*?)<\/style>/gi,(_,x)=>(css.push(x),''));return {html,css:css.join('\n')}}
-function cleanHTML(x){let d=new DOMParser().parseFromString(String(x||''),'text/html');d.querySelectorAll('script,iframe,object,embed,link,meta,base,form').forEach(n=>n.remove());d.querySelectorAll('*').forEach(n=>[...n.attributes].forEach(a=>{if(/^on/i.test(a.name)||a.name==='srcdoc')n.removeAttribute(a.name)}));d.querySelectorAll('[href],[src]').forEach(n=>['href','src'].forEach(k=>{let v=n.getAttribute(k)||'';if(/^\s*(javascript:|vbscript:|data:text\/html)/i.test(v))n.removeAttribute(k)}));return d.body.innerHTML}
-function cleanCSS(x){return String(x||'').replace(/@import\s+[^;]+;?/gi,'').replace(/expression\s*\([^)]*\)/gi,'').replace(/url\s*\(\s*['"]?\s*javascript:[^)]*\)/gi,'')}
-function render(){
-let p=page();if(!p)return;
-let list=document.getElementById('codePageList');if(list)list.innerHTML=st.pages.map((x,i)=>`<button class="page-chip ${i===st.current?'active':''}" onclick="codeSelectPage(${i})">Page ${i+1}</button>`).join('');
-let w=document.getElementById('codePageW'),h=document.getElementById('codePageH'),b=document.getElementById('codePageBorder'),bg=document.getElementById('codePageBg'),ed=document.getElementById('codeEditor');
-if(w)w.value=p.width;if(h)h.value=p.height;if(b)b.value=p.border||'';if(bg)bg.value=p.background||'#fff';if(ed)ed.value=p.html+(p.css?'\n<style>\n'+p.css+'\n</style>':'');
-let host=document.getElementById('codePreviewHost');if(!host)return;host.innerHTML='';
-let wrap=document.createElement('div');wrap.className='code-page-wrap';let box=document.createElement('div');box.className='code-page';box.style.width=p.width+'px';box.style.height=p.height+'px';box.style.border=p.border||'0';box.style.background=p.background||'#fff';
-let style=document.createElement('style');style.textContent=cleanCSS(parts(p).css);let content=document.createElement('div');content.innerHTML=cleanHTML(parts(p).html);box.append(style,content);wrap.appendChild(box);host.appendChild(wrap);
-let max=Math.max(280,(host.parentElement?.clientWidth||900)-36),scale=Math.min(1,max/p.width);wrap.style.width=p.width*scale+'px';wrap.style.height=p.height*scale+'px';box.style.transform=`scale(${scale})`;box.style.transformOrigin='top left';
-let meta=document.getElementById('codePageMeta');if(meta)meta.textContent=`Page ${st.current+1} of ${st.pages.length} · ${p.width} × ${p.height}px`;
-}
-window.codeSelectPage=i=>{if(i<0||i>=st.pages.length)return;st.current=i;save();render()};
-window.codeNewPage=()=>{st.pages.push(fresh());st.current=st.pages.length-1;save();render()};
-window.codeDuplicatePage=()=>{let p=page();if(!p)return;let q=JSON.parse(JSON.stringify(p));q.id=id();st.pages.splice(st.current+1,0,q);st.current++;save();render()};
-window.codeDeletePage=()=>{if(st.pages.length===1)return showToast('Keep at least one page.','warning');st.pages.splice(st.current,1);st.current=Math.min(st.current,st.pages.length-1);save();render()};
-window.codePrintCurrent=()=>printPages([page()],'Page');
-window.codePrintAll=()=>printPages(st.pages,'Pages');
-function printPages(ps,title){
-let root=document.getElementById('codePrintRoot');root.innerHTML='';
-ps.forEach(p=>{let q=document.createElement('div');q.className='code-print-page';q.style.width=p.width+'px';q.style.height=p.height+'px';q.style.border=p.border||'0';q.style.background=p.background||'#fff';let st=document.createElement('style');st.textContent=cleanCSS(parts(p).css);let c=document.createElement('div');c.innerHTML=cleanHTML(parts(p).html);q.append(st,c);root.appendChild(q)});
-document.body.classList.add('code-print-mode');let done=()=>{document.body.classList.remove('code-print-mode');root.innerHTML='';window.removeEventListener('afterprint',done)};window.addEventListener('afterprint',done);requestAnimationFrame(()=>requestAnimationFrame(()=>window.print()))
-}
-function input(){
-let p=page(),v=document.getElementById('codeEditor')?.value||'',m=v.match(/<style\b[^>]*>([\s\S]*?)<\/style>/i);if(m){p.html=v.replace(m[0],'').trim();p.css=m[1]}else p.html=v;save();clearTimeout(timer);timer=setTimeout(render,70)
-}
-window.codeUpdatePage=(k,v)=>{let p=page();if(k==='width')p.width=Math.min(5000,Math.max(100,num(v,W)));if(k==='height')p.height=Math.min(5000,Math.max(100,num(v,H)));if(k==='border')p.border=String(v||'');if(k==='background')p.background=String(v||'#fff');save();render()};
-document.addEventListener('input',e=>{if(e.target.id==='codeEditor')input()});
-document.addEventListener('change',e=>{if(e.target.id==='codePageW')codeUpdatePage('width',e.target.value);if(e.target.id==='codePageH')codeUpdatePage('height',e.target.value);if(e.target.id==='codePageBorder')codeUpdatePage('border',e.target.value);if(e.target.id==='codePageBg')codeUpdatePage('background',e.target.value)});
-let oldSwitch=window.switchTab;window.switchTab=function(tab){if(typeof oldSwitch==='function')oldSwitch(tab);if(tab==='code')render()};
-load();
-})();
+      pageEl.querySelector('.page-actions')?.remove();
+      // Apply thumbnail transform styles
+      Object.assign(pageEl.style, {
+        transform: 'scale(0.4)',
+        transformOrigin: 'top left',
+        position: 'absolute',
+        top: '0',
+        left: '0',
+        width: PAGE_W + 'px',
+        minWidth: PAGE_W + 'px',
+        minHeight: PAGE_H + 'px',
+        height: PAGE_H + 'px',
+        maxHeight: PAGE_H + 'px',
+        padding: '16px 22px',
+        margin: '0',
+        borderRadius: '0',
+        boxShadow: 'none',
+        pageBreakAfter: 'auto',
+        overflow: 'hidden'
+      });
 
-            async function initApp() {
-                await loadData();
-                undoStack=[]; redoStack=[];
-                document.getElementById('app').innerHTML = `
-                    <div class="app-header"><h1>📚 Phonics Lesson Publisher v12 — Hardened</h1><span class="badge" id="lessonCount">0</span></div>
-                    <div class="tabs">
-                        <button class="tab-btn active" data-tab="edit" onclick="switchTab('edit')">✏️ Edit</button>
-                        <button class="btn btn-outline" id="undoBtn" onclick="undoLast()" title="Undo">↶ Undo</button>
-                        <button class="btn btn-outline" id="redoBtn" onclick="redoLast()" title="Redo">↷ Redo</button><span class="history-status" id="historyStatus">No undo · No redo</span>
-                        <button class="tab-btn" data-tab="lessons" onclick="switchTab('lessons')">📖 Lessons</button><button class="tab-btn" data-tab="code" onclick="switchTab('code')">💻 HTML / CSS</button>
-                        <button class="tab-btn" data-tab="view" onclick="switchTab('view')">👁️ View</button>
-                    </div>
-                    <div class="tab-panel active" id="editPanel">
-                        <div class="form-section">
-                            <h2 id="formTitle">➕ Add New Lesson</h2>
-                            <div class="form-group"><label>Main Title</label><input id="fMainTitle" value="SHORT VOWEL CVC WORDS" oninput="renderThumbnail()"></div>
-                            <div class="form-group"><label>Subtitle</label><input id="fSubtitle" value="SHORT VOWEL" oninput="renderThumbnail()"></div>
-                            <div class="form-group"><label>Lesson Number (auto)</label><input id="fLessonNumber" readonly style="background:#f0f0f0;"></div>
+      // Clear and append (forces fresh DOM + styles)
+      container.innerHTML = '';
+      container.appendChild(pageEl);
 
-                            <div class="thumbnail-wrapper">
-                                <div class="thumb-label">📄 Live Page Preview</div>
-                                <div class="thumbnail-container" id="thumbnailContainer"></div>
-                            </div>
+      // Force a reflow so scoped <style> tags inside code pages apply immediately
+      void container.offsetHeight;
+    }
 
-                            <div class="section-card">
-                                <h4>Page Sections</h4>
-                                <p style="font-size:12px;color:#6c757d;margin-bottom:8px;">Add sections and choose their width.</p>
-                                <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;">
-                                    ${Object.keys(SECTION_TYPES).map(type => `<button class="btn btn-outline btn-sm" onclick="addSection('${type}')">+ ${SECTION_TYPES[type].label}</button>`).join('')}
-                                </div>
-                                <div id="sectionsContainer"></div>
-                            </div>
+    // Expose for inline oninput / onchange handlers in the form HTML
+    window.renderThumbnail = renderThumbnail;
 
-                            <div class="form-actions">
-                                <button class="btn btn-primary" id="saveBtn" onclick="saveLesson()">💾 Save Lesson</button>
-                                <button class="btn btn-outline" id="cancelBtn" onclick="cancelEdit()" style="display:none">Cancel</button>
-                            </div>
-                        </div>
-                    </div>
-                    
-<div class="tab-panel" id="codePanel">
-<style>
-#codePanel .code-studio{display:grid;grid-template-columns:minmax(320px,430px) minmax(500px,1fr);gap:18px}
-#codePanel .code-pane{background:#fff;border:1px solid #dee2e6;border-radius:12px;overflow:hidden}
-#codePanel .code-pane h3{margin:0;padding:12px 14px;border-bottom:1px solid #e9ecef;font-size:15px}
-#codePanel .code-controls{display:flex;flex-wrap:wrap;gap:7px;padding:10px 14px;border-bottom:1px solid #e9ecef}
-#codePanel .code-controls input{padding:7px 9px;border:1px solid #ced4da;border-radius:7px;width:95px}
-#codePanel textarea{display:block;width:100%;min-height:600px;box-sizing:border-box;border:0;outline:0;resize:vertical;padding:14px;background:#17191c;color:#f1f3f5;font:13px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace;tab-size:2}
-#codePanel .preview-shell{padding:18px;background:#e9ecef;overflow:auto;min-height:640px}
-#codePanel .code-page-wrap{margin:0 auto;position:relative}
-#codePanel .code-page{position:relative;overflow:hidden;background:#fff;box-sizing:border-box}
-#codePanel .page-meta{font-size:12px;color:#6c757d;padding:8px 14px}
-#codePanel .page-list{display:flex;gap:6px;flex-wrap:wrap;padding:10px 14px;border-bottom:1px solid #e9ecef}
-#codePanel .page-chip{border:1px solid #ced4da;background:#fff;border-radius:7px;padding:6px 9px;cursor:pointer}
-#codePanel .page-chip.active{background:#1a1a2e;color:#fff}
-#codePanel .print-note{padding:10px 14px;font-size:12px;color:#6c757d;border-top:1px solid #e9ecef}
-@media(max-width:1000px){#codePanel .code-studio{grid-template-columns:1fr}}
-@media print{
- body.code-print-mode{padding:0!important;background:#fff!important}
- body.code-print-mode>*{display:none!important}
- body.code-print-mode #codePrintRoot{display:block!important}
- #codePrintRoot .code-print-page{break-after:page;page-break-after:always;break-inside:avoid;page-break-inside:avoid;position:relative;overflow:hidden;background:#fff;box-sizing:border-box}
- #codePrintRoot .code-print-page:last-child{break-after:auto;page-break-after:auto}
-}
-</style>
-<div class="form-section">
-<h2>💻 HTML / CSS Page Studio</h2>
-<p style="color:#6c757d;font-size:13px;margin-bottom:12px">Write the page directly as HTML and CSS. The preview is the same markup sent to the browser's native print engine.</p>
-<div class="code-studio">
-<div class="code-pane">
-<h3>Pages &amp; Code</h3>
-<div class="page-list" id="codePageList"></div>
-<div class="code-controls">
-<button class="btn btn-primary btn-sm" onclick="codeNewPage()">＋ Page</button>
-<button class="btn btn-outline btn-sm" onclick="codeDuplicatePage()">Duplicate</button>
-<button class="btn btn-danger btn-sm" onclick="codeDeletePage()">Delete</button>
-<button class="btn btn-success btn-sm" onclick="codePrintAll()">🖨️ Print All</button>
-<button class="btn btn-warning btn-sm" onclick="codePrintCurrent()">🖨️ Print Page</button>
-</div>
-<div class="code-controls">
-<label>W <input id="codePageW" type="number" min="100" max="5000" step="1"></label>
-<label>H <input id="codePageH" type="number" min="100" max="5000" step="1"></label>
-<label>Border <input id="codePageBorder" type="text"></label>
-<label>BG <input id="codePageBg" type="text"></label>
-</div>
-<textarea id="codeEditor" spellcheck="false" aria-label="HTML and CSS page code"></textarea>
-<div class="print-note">Page size is enforced in the preview and print page box. Use px, mm, cm, etc. inside your own CSS for internal layout.</div>
-</div>
-<div class="code-pane">
-<h3>Live Preview</h3>
-<div class="page-meta" id="codePageMeta"></div>
-<div class="preview-shell"><div id="codePreviewHost"></div></div>
-</div>
-</div>
-</div>
-<div id="codePrintRoot" style="display:none"></div>
-</div>
-<div class="tab-panel" id="lessonsPanel">
-                        <div class="list-section">
-                            <div style="margin-bottom:20px;border-bottom:2px solid #e9ecef;padding-bottom:20px;">
-                                <h3>📘 Cover Page</h3>
-                                <div class="form-group"><label>Cover Title</label><input id="coverTitleInput" value="${escapeHtml(coverData.title)}"></div>
-                                <div class="form-group"><label>Cover Subtitle</label><input id="coverSubtitleInput" value="${escapeHtml(coverData.subtitle)}"></div>
-                                <button class="btn btn-success btn-sm" onclick="saveCover()">💾 Save Cover</button>
-                            </div>
-                            <h2>📖 All Lessons</h2>
-                            <div class="list-toolbar">
-                                <input class="search-box" placeholder="🔍 Search..." oninput="window.searchQuery=this.value;window.renderEditList()">
-                                <span class="count" id="listCount">0/0</span>
-                                <button class="btn btn-success btn-sm" onclick="exportJSON()">📤 Export</button>
-                                <button class="btn btn-outline btn-sm" onclick="document.getElementById('importFile').click()">📥 Import</button>
-                                <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(this)">
-                            </div>
-                            <div class="lesson-list" id="lessonList"></div>
-                            <div style="margin-top:28px;border-top:2px solid #e9ecef;padding-top:20px;">
-                                <h3>📝 Sight Words</h3>
-                                <div class="form-group"><textarea id="fSightWords" rows="3"></textarea></div>
-                                <button class="btn btn-success btn-sm" onclick="saveSightWords()">💾 Save Sight Words</button>
-                                <div style="margin-top:10px;"><strong>Preview:</strong><div id="sightWordsPreview" style="margin-top:6px;"></div></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="tab-panel" id="viewPanel">
-                        <div class="view-toolbar">
-                            <span class="info" id="viewInfo">0 lessons · 0 pages</span>
-                            <button class="btn btn-success" onclick="exportAllPages()">⬇ Export All</button>
-                        </div>
-                        <div class="view-container" id="viewContainer"></div>
-                    </div>`;
+    function fillForm(page) {
+      document.getElementById('pageTypeSelect').value = page.type;
+      tempPageType = page.type;
+      toggleEditorFields();
+      document.getElementById('fPageName').value = page.name || '';
 
-                document.getElementById('fSightWords').value = sightWords.join(', ');
-                resetForm();
-                renderEditList();
-                renderAllView();
-                updateCounts();
-                window.renderEditList = renderEditList;
-                switchTab('edit');
-            }
+      if (page.type === 'structured') {
+        document.getElementById('fMainTitle').value = page.mainTitle || '';
+        document.getElementById('fSubtitle').value = page.subtitle || 'SHORT VOWEL';
+        tempSections = clone(page.sections || []);
+        renderSectionsBuilder();
+      } else {
+        document.getElementById('codeHTML').value = page.html || '';
+        document.getElementById('codeCSS').value = page.css || '';
+        document.getElementById('codeBg').value = page.contentBackground || '#ffffff';
+      }
+      renderThumbnail();
+    }
 
-            initApp();
-        })();
-    </script>
+    function resetForm() {
+      editingPageId = null;
+      document.getElementById('formTitle').textContent = '➕ Add New Page';
+      document.getElementById('pageTypeSelect').value = 'structured';
+      tempPageType = 'structured';
+      toggleEditorFields();
+      document.getElementById('fPageName').value = '';
+      document.getElementById('fMainTitle').value = 'SHORT VOWEL CVC WORDS';
+      document.getElementById('fSubtitle').value = 'SHORT VOWEL';
+      tempSections = clone(createDefaultStructuredPage().sections);
+      const defCode = createDefaultCodePage();
+      document.getElementById('codeHTML').value = defCode.html;
+      document.getElementById('codeCSS').value = defCode.css;
+      document.getElementById('codeBg').value = defCode.contentBackground;
+      renderSectionsBuilder();
+      renderThumbnail();
+      document.getElementById('saveBtn').textContent = '💾 Save Page';
+      document.getElementById('cancelBtn').style.display = 'none';
+      clearDirty();
+    }
+
+    function toggleEditorFields() {
+      const structured = document.getElementById('structuredFields');
+      const code = document.getElementById('codeFields');
+      if (tempPageType === 'structured') {
+        structured.style.display = 'block';
+        code.style.display = 'none';
+      } else {
+        structured.style.display = 'none';
+        code.style.display = 'block';
+      }
+    }
+
+    window.setPageType = function (val) {
+      tempPageType = val;
+      toggleEditorFields();
+      renderThumbnail();
+      markDirty();
+    };
+
+    window.editPage = function (id) {
+      if (formDirty && !confirm('You have unsaved changes. Discard them?')) return;
+      const page = pages.find(p => p.id === id);
+      if (!page) return showToast('Page not found.', 'error');
+      editingPageId = id;
+      document.getElementById('formTitle').textContent = '✏️ Edit Page';
+      fillForm(page);
+      document.getElementById('saveBtn').textContent = '💾 Update Page';
+      document.getElementById('cancelBtn').style.display = 'inline-block';
+      clearDirty();
+      switchTab('edit');
+      updateHistoryUI();
+    };
+
+    window.cancelEdit = function () {
+      if (formDirty && !confirm('Discard unsaved changes?')) return;
+      resetForm();
+      switchTab('view');
+      showToast('Edit cancelled.', 'info');
+    };
+
+    window.savePage = function () {
+      if (pages.length >= MAX_PAGES && !editingPageId) {
+        showToast(`Maximum ${MAX_PAGES} pages reached.`, 'error');
+        return;
+      }
+      const pageType = document.getElementById('pageTypeSelect').value;
+      const name = (document.getElementById('fPageName')?.value || '').trim() || 'Page';
+      let newPage;
+
+      if (pageType === 'structured') {
+        newPage = {
+          id: editingPageId || generateId('p'),
+          type: 'structured',
+          name,
+          mainTitle: (document.getElementById('fMainTitle').value || '').trim() || 'Untitled',
+          subtitle: (document.getElementById('fSubtitle').value || '').trim() || 'SHORT VOWEL',
+          sections: clone(tempSections)
+        };
+      } else {
+        newPage = {
+          id: editingPageId || generateId('p'),
+          type: 'code',
+          name,
+          html: document.getElementById('codeHTML').value || '',
+          css: document.getElementById('codeCSS').value || '',
+          contentBackground: document.getElementById('codeBg').value || '#ffffff'
+        };
+      }
+
+      const before = currentState();
+      if (editingPageId) {
+        const idx = pages.findIndex(p => p.id === editingPageId);
+        if (idx !== -1) pages[idx] = newPage;
+      } else {
+        pages.push(newPage);
+      }
+      recordHistory(before, currentState());
+      persistState();
+      clearDirty();
+      resetForm();
+      refreshUI();
+      switchTab('view');
+      showToast('Page saved.', 'success');
+    };
+
+    // ========== PAGES LIST ==========
+    window.deletePage = function (id) {
+      const page = pages.find(p => p.id === id);
+      if (!page) return;
+      confirmDialog(`Delete page "${page.name}"?`, () => {
+        const before = currentState();
+        pages = pages.filter(p => p.id !== id);
+        if (editingPageId === id) resetForm();
+        recordHistory(before, currentState());
+        persistState();
+        refreshUI();
+        showToast('Page deleted.', 'success');
+      });
+    };
+
+    window.duplicatePage = function (id) {
+      if (pages.length >= MAX_PAGES) {
+        showToast(`Maximum ${MAX_PAGES} pages reached.`, 'error');
+        return;
+      }
+      const page = pages.find(p => p.id === id);
+      if (!page) return;
+      const before = currentState();
+      const copy = clone(page);
+      copy.id = generateId('p');
+      copy.name = (copy.name || 'Page') + ' (copy)';
+      if (copy.type === 'structured') {
+        copy.sections = (copy.sections || []).map(s => ({ ...s, id: generateId('sec') }));
+      }
+      pages.push(copy);
+      recordHistory(before, currentState());
+      persistState();
+      refreshUI();
+      showToast('Page duplicated.', 'success');
+    };
+
+    window.movePage = function (id, dir) {
+      const idx = pages.findIndex(p => p.id === id);
+      if (idx < 0) return;
+      const newIdx = idx + dir;
+      if (newIdx < 0 || newIdx >= pages.length) return;
+      const before = currentState();
+      const tmp = pages[idx];
+      pages[idx] = pages[newIdx];
+      pages[newIdx] = tmp;
+      recordHistory(before, currentState());
+      persistState();
+      refreshUI();
+    };
+
+    window.exportJSON = function () {
+      const payload = { version: 3, pages, sightWords, coverData };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'phonics_pages_v14.json';
+      a.click();
+      URL.revokeObjectURL(a.href);
+      showToast('JSON exported.', 'success');
+    };
+
+    window.importJSON = function (input) {
+      const file = input?.files?.[0];
+      if (!file) return;
+      if (file.size > MAX_FILE_SIZE) {
+        showToast('File too large (max 10 MB).', 'error');
+        input.value = '';
+        return;
+      }
+      const reader = new FileReader();
+      reader.onerror = () => showToast('Could not read the file.', 'error');
+      reader.onload = (e) => {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (!data || typeof data !== 'object' || !Array.isArray(data.pages)) {
+            throw new Error('Invalid structure');
+          }
+          const normalized = normalizeImportedState(data);
+          confirmDialog(`Replace all data with ${normalized.pages.length} page(s)?`, async () => {
+            const before = currentState();
+            pages = normalized.pages;
+            sightWords = normalized.sightWords;
+            coverData = normalized.coverData;
+            await persistState();
+            recordHistory(before, currentState());
+            resetForm();
+            refreshUI();
+            showToast('Data imported successfully.', 'success');
+          });
+        } catch (err) {
+          console.error(err);
+          showToast('Invalid or unsupported JSON file.', 'error');
+        }
+      };
+      reader.readAsText(file);
+      input.value = '';
+    };
+
+    window.saveSightWords = function () {
+      const before = currentState();
+      sightWords = (document.getElementById('fSightWords').value || '')
+        .split(',')
+        .map(s => s.trim())
+        .filter(Boolean);
+      recordHistory(before, currentState());
+      persistState();
+      refreshUI();
+      showToast('Sight words saved.', 'success');
+    };
+
+    window.saveCover = function () {
+      const before = currentState();
+      coverData = {
+        title: (document.getElementById('coverTitleInput').value || '').trim() || 'Crystal Phonics',
+        subtitle: (document.getElementById('coverSubtitleInput').value || '').trim() || 'Grade 1'
+      };
+      recordHistory(before, currentState());
+      persistState();
+      renderAllView();
+      showToast('Cover updated.', 'success');
+    };
+
+    function refreshUI() {
+      renderPageList();
+      renderAllView();
+      updateCounts();
+    }
+
+    function renderPageList() {
+      const container = document.getElementById('pageList');
+      if (!container) return;
+      const q = (window.searchQuery || '').toLowerCase();
+      const filtered = pages.filter(p => {
+        if (!q) return true;
+        return (p.name || '').toLowerCase().includes(q) ||
+          (p.type === 'structured' && (p.mainTitle || '').toLowerCase().includes(q));
+      });
+
+      container.innerHTML = filtered.length
+        ? filtered.map(p => {
+            const label = p.type === 'structured' ? p.mainTitle : 'Code Page';
+            const icon = p.type === 'structured' ? '📄' : '💻';
+            return `
+              <div class="lesson-item" data-id="${p.id}">
+                <div class="thumb">${icon}</div>
+                <div class="info">
+                  <div class="title">${escapeHtml(p.name || label)}</div>
+                  <div class="sub">${p.type === 'structured' ? (p.sections?.length || 0) + ' sections' : 'HTML/CSS page'}</div>
+                </div>
+                <div class="actions">
+                  <button class="btn btn-outline btn-xs" onclick="movePage('${p.id}', -1)">▲</button>
+                  <button class="btn btn-outline btn-xs" onclick="movePage('${p.id}', 1)">▼</button>
+                  <button class="btn btn-primary btn-xs" onclick="editPage('${p.id}')">✏️</button>
+                  <button class="btn btn-warning btn-xs" onclick="duplicatePage('${p.id}')">📋</button>
+                  <button class="btn btn-danger btn-xs" onclick="deletePage('${p.id}')">🗑️</button>
+                </div>
+              </div>`;
+          }).join('')
+        : '<div style="text-align:center;padding:36px;color:#6c757d;">No pages found.</div>';
+
+      const listCount = document.getElementById('listCount');
+      if (listCount) listCount.textContent = filtered.length + ' / ' + pages.length;
+
+      const sp = document.getElementById('sightWordsPreview');
+      if (sp) {
+        sp.innerHTML = sightWords.length
+          ? sightWords.map(w => `<span style="display:inline-block;margin:3px;padding:4px 9px;background:#E2571C;color:#fff;border-radius:7px;font-weight:600;font-size:12px;">${escapeHtml(w)}</span>`).join('')
+          : '<span style="color:#6c757d;">No sight words yet.</span>';
+      }
+    }
+
+    function updateCounts() {
+      const badge = document.getElementById('pageCount');
+      if (badge) badge.textContent = pages.length + ' pages · ' + sightWords.length + ' sight words';
+
+      const tocPages = pages.length ? Math.ceil(pages.length / MAX_TOC_PER_PAGE) : 0;
+      const swPages = Math.ceil(sightWords.length / MAX_SIGHT_WORDS_PER_PAGE) || 0;
+      const viewInfo = document.getElementById('viewInfo');
+      if (viewInfo) {
+        viewInfo.textContent = `📄 ${pages.length} lesson pages · ${1 + tocPages + swPages + pages.length} total pages`;
+      }
+    }
+
+    window.switchTab = function (tab) {
+      if (formDirty && tab !== 'edit') {
+        if (!confirm('You have unsaved changes. Discard them?')) return;
+        clearDirty();
+        resetForm();
+      }
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === tab + 'Panel'));
+      if (tab === 'edit') {
+        toggleEditorFields();
+        renderThumbnail();
+      }
+      if (tab === 'pages') renderPageList();
+      if (tab === 'view') renderAllView();
+      updateCounts();
+    };
+
+    window.renderPageList = renderPageList;
+
+    // ========== INIT ==========
+    async function initApp() {
+      await loadData();
+      undoStack = [];
+      redoStack = [];
+
+      document.getElementById('app').innerHTML = `
+        <div class="app-header">
+          <h1>📚 Phonics Lesson Publisher v14 — Robust Unified Pages</h1>
+          <span class="badge" id="pageCount">0</span>
+        </div>
+        <div class="tabs">
+          <button class="tab-btn active" data-tab="edit" onclick="switchTab('edit')">✏️ Edit</button>
+          <button class="btn btn-outline btn-sm" id="undoBtn" onclick="undoLast()" title="Undo (Ctrl+Z)">↶ Undo</button>
+          <button class="btn btn-outline btn-sm" id="redoBtn" onclick="redoLast()" title="Redo (Ctrl+Y)">↷ Redo</button>
+          <span class="history-status" id="historyStatus">No undo · No redo</span>
+          <button class="tab-btn" data-tab="pages" onclick="switchTab('pages')">📖 Pages</button>
+          <button class="tab-btn" data-tab="view" onclick="switchTab('view')">👁️ View</button>
+        </div>
+
+        <div class="tab-panel active" id="editPanel">
+          <div class="form-section">
+            <!-- THUMBNAIL AT THE TOP -->
+            <div class="thumbnail-wrapper">
+              <div class="thumb-label">📄 Live Page Preview</div>
+              <div class="thumbnail-container" id="thumbnailContainer"></div>
+            </div>
+
+            <h2 id="formTitle">➕ Add New Page</h2>
+
+            <div class="form-group">
+              <label>Page Type</label>
+              <select id="pageTypeSelect" onchange="setPageType(this.value)">
+                <option value="structured">Structured (Sections)</option>
+                <option value="code">HTML / CSS Code</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Page Name</label>
+              <input id="fPageName" value="">
+            </div>
+
+            <div id="structuredFields">
+              <div class="form-group">
+                <label>Main Title</label>
+                <input id="fMainTitle" value="SHORT VOWEL CVC WORDS" oninput="renderThumbnail()">
+              </div>
+              <div class="form-group">
+                <label>Subtitle</label>
+                <input id="fSubtitle" value="SHORT VOWEL" oninput="renderThumbnail()">
+              </div>
+              <div class="section-card">
+                <h4>Page Sections</h4>
+                <p style="font-size:12px;color:#6c757d;margin-bottom:8px;">Add sections and choose their width.</p>
+                <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">
+                  ${Object.keys(SECTION_TYPES).map(type =>
+                    `<button class="btn btn-outline btn-sm" onclick="addSection('${type}')">+ ${SECTION_TYPES[type].label}</button>`
+                  ).join('')}
+                </div>
+                <div id="sectionsContainer"></div>
+              </div>
+            </div>
+
+            <div id="codeFields" style="display:none;">
+              <div class="form-group">
+                <label>HTML</label>
+                <textarea id="codeHTML" rows="9" oninput="renderThumbnail()"></textarea>
+              </div>
+              <div class="form-group">
+                <label>CSS</label>
+                <textarea id="codeCSS" rows="5" oninput="renderThumbnail()"></textarea>
+              </div>
+              <div class="form-group">
+                <label>Content Background Color</label>
+                <input id="codeBg" type="color" value="#ffffff" oninput="renderThumbnail()" style="width:80px;height:36px;padding:2px;">
+              </div>
+              <p style="font-size:12px;color:#6c757d;margin-top:4px;">
+                Page size and outer orange border are locked to match Structured pages. Only the inner content background is editable.
+              </p>
+            </div>
+
+            <div class="form-actions">
+              <button class="btn btn-primary" id="saveBtn" onclick="savePage()">💾 Save Page</button>
+              <button class="btn btn-outline" id="cancelBtn" onclick="cancelEdit()" style="display:none">Cancel</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-panel" id="pagesPanel">
+          <div class="list-section">
+            <div style="margin-bottom:18px;border-bottom:2px solid #e9ecef;padding-bottom:18px;">
+              <h3>📘 Cover Page</h3>
+              <div class="form-group"><label>Cover Title</label>
+                <input id="coverTitleInput" value="${escapeHtml(coverData.title)}">
+              </div>
+              <div class="form-group"><label>Cover Subtitle</label>
+                <input id="coverSubtitleInput" value="${escapeHtml(coverData.subtitle)}">
+              </div>
+              <button class="btn btn-success btn-sm" onclick="saveCover()">💾 Save Cover</button>
+            </div>
+
+            <h2>📖 All Pages</h2>
+            <div class="list-toolbar">
+              <input class="search-box" placeholder="🔍 Search..." oninput="window.searchQuery=this.value;window.renderPageList()">
+              <span class="count" id="listCount">0/0</span>
+              <button class="btn btn-success btn-sm" onclick="exportJSON()">📤 Export</button>
+              <button class="btn btn-outline btn-sm" onclick="document.getElementById('importFile').click()">📥 Import</button>
+              <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(this)">
+            </div>
+            <div class="lesson-list" id="pageList"></div>
+
+            <div style="margin-top:24px;border-top:2px solid #e9ecef;padding-top:18px;">
+              <h3>📝 Sight Words</h3>
+              <div class="form-group">
+                <textarea id="fSightWords" rows="3" placeholder="the, of, and, a, to, ..."></textarea>
+              </div>
+              <button class="btn btn-success btn-sm" onclick="saveSightWords()">💾 Save Sight Words</button>
+              <div style="margin-top:10px;"><strong>Preview:</strong>
+                <div id="sightWordsPreview" style="margin-top:6px;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-panel" id="viewPanel">
+          <div class="view-toolbar">
+            <span class="info" id="viewInfo">0 pages · 0 total pages</span>
+            <button class="btn btn-success" onclick="exportAllPages()">⬇ Export All</button>
+          </div>
+          <div class="view-container" id="viewContainer"></div>
+        </div>
+      `;
+
+      document.getElementById('fSightWords').value = sightWords.join(', ');
+      resetForm();
+      renderPageList();
+      renderAllView();
+      updateCounts();
+      updateHistoryUI();
+      switchTab('edit');
+    }
+
+    initApp().catch(err => {
+      console.error(err);
+      showToast('Failed to initialize app.', 'error');
+    });
+  })();
+  </script>
 </body>
 </html>
