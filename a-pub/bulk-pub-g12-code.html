@@ -1133,6 +1133,8 @@
         id: generateId('p'),
         type: 'code',
         name: 'Code Page',
+        mainTitle: 'SHORT VOWEL CVC WORDS',
+        subtitle: 'SHORT VOWEL',
         html: '<div class="content"><h1>Your Page</h1><p>Write HTML and CSS directly here.</p></div>',
         css: '.content{padding:24px;font-family:Arial,sans-serif}h1{margin:0 0 12px;color:#E2571C}p{font-size:16px}',
         contentBackground: '#ffffff'
@@ -1278,6 +1280,8 @@
             ...p,
             id: newId,
             type: 'code',
+            mainTitle: String(p.mainTitle || 'SHORT VOWEL CVC WORDS'),
+            subtitle: String(p.subtitle || 'SHORT VOWEL'),
             html: String(p.html || ''),
             css: String(p.css || ''),
             contentBackground: String(p.contentBackground || p.background || '#ffffff')
@@ -1564,7 +1568,20 @@
       const card = document.createElement('div');
       card.className = 'card';
 
-      // Content area with user background — fills the card
+      // Same header as structured pages
+      card.innerHTML = `
+        <div class="cvc-header">
+          <div class="cvc-header-left">
+            <h1 class="cvc-main-title">${escapeHtml(page.mainTitle || 'CVC WORDS')}</h1>
+            <div class="cvc-subtitle">${escapeHtml(page.subtitle || 'SHORT VOWEL')}</div>
+          </div>
+          <div class="cvc-header-right">
+            <span class="lesson-label">LESSON</span>
+            <span class="lesson-num">${pageNum}</span>
+          </div>
+        </div>`;
+
+      // Content area with user background — fills remaining card below header
       const contentArea = document.createElement('div');
       contentArea.className = 'code-content-area';
       contentArea.style.background = page.contentBackground || '#ffffff';
@@ -1764,7 +1781,7 @@
       const tocEntries = pages.map((p, idx) => {
         const e = {
           order: idx + 1,
-          name: p.name || (p.type === 'structured' ? p.mainTitle : 'Code Page'),
+          name: p.name || p.mainTitle || (p.type === 'structured' ? 'Untitled' : 'Code Page'),
           firstPage: running
         };
         running += 1;
@@ -2002,6 +2019,8 @@
           const tempPage = {
             type: 'code',
             id: 'preview',
+            mainTitle: document.getElementById('fMainTitle')?.value || 'Untitled',
+            subtitle: document.getElementById('fSubtitle')?.value || 'SHORT VOWEL',
             html: document.getElementById('codeHTML')?.value || '',
             css: document.getElementById('codeCSS')?.value || '',
             contentBackground: document.getElementById('codeBg')?.value || '#ffffff'
@@ -2051,10 +2070,10 @@
       tempPageType = page.type;
       toggleEditorFields();
       document.getElementById('fPageName').value = page.name || '';
+      document.getElementById('fMainTitle').value = page.mainTitle || 'SHORT VOWEL CVC WORDS';
+      document.getElementById('fSubtitle').value = page.subtitle || 'SHORT VOWEL';
 
       if (page.type === 'structured') {
-        document.getElementById('fMainTitle').value = page.mainTitle || '';
-        document.getElementById('fSubtitle').value = page.subtitle || 'SHORT VOWEL';
         tempSections = clone(page.sections || []);
         renderSectionsBuilder();
       } else {
@@ -2149,6 +2168,8 @@
           id: editingPageId || generateId('p'),
           type: 'code',
           name,
+          mainTitle: (document.getElementById('fMainTitle').value || '').trim() || 'Untitled',
+          subtitle: (document.getElementById('fSubtitle').value || '').trim() || 'SHORT VOWEL',
           html: document.getElementById('codeHTML').value || '',
           css: document.getElementById('codeCSS').value || '',
           contentBackground: document.getElementById('codeBg').value || '#ffffff'
@@ -2306,19 +2327,19 @@
       const filtered = pages.filter(p => {
         if (!q) return true;
         return (p.name || '').toLowerCase().includes(q) ||
-          (p.type === 'structured' && (p.mainTitle || '').toLowerCase().includes(q));
+          (p.mainTitle || '').toLowerCase().includes(q);
       });
 
       container.innerHTML = filtered.length
         ? filtered.map(p => {
-            const label = p.type === 'structured' ? p.mainTitle : 'Code Page';
+            const label = p.mainTitle || (p.type === 'structured' ? 'Untitled' : 'Code Page');
             const icon = p.type === 'structured' ? '📄' : '💻';
             return `
               <div class="lesson-item" data-id="${p.id}">
                 <div class="thumb">${icon}</div>
                 <div class="info">
                   <div class="title">${escapeHtml(p.name || label)}</div>
-                  <div class="sub">${p.type === 'structured' ? (p.sections?.length || 0) + ' sections' : 'HTML/CSS page'}</div>
+                  <div class="sub">${p.type === 'structured' ? (p.sections?.length || 0) + ' sections' : 'HTML/CSS page · ' + escapeHtml(p.mainTitle || '')}</div>
                 </div>
                 <div class="actions">
                   <button class="btn btn-outline btn-xs" onclick="movePage('${p.id}', -1)">▲</button>
@@ -2416,15 +2437,16 @@
               <input id="fPageName" value="">
             </div>
 
+            <div class="form-group">
+              <label>Main Title (shared header)</label>
+              <input id="fMainTitle" value="SHORT VOWEL CVC WORDS" oninput="renderThumbnail()">
+            </div>
+            <div class="form-group">
+              <label>Subtitle (shared header)</label>
+              <input id="fSubtitle" value="SHORT VOWEL" oninput="renderThumbnail()">
+            </div>
+
             <div id="structuredFields">
-              <div class="form-group">
-                <label>Main Title</label>
-                <input id="fMainTitle" value="SHORT VOWEL CVC WORDS" oninput="renderThumbnail()">
-              </div>
-              <div class="form-group">
-                <label>Subtitle</label>
-                <input id="fSubtitle" value="SHORT VOWEL" oninput="renderThumbnail()">
-              </div>
               <div class="section-card">
                 <h4>Page Sections</h4>
                 <p style="font-size:12px;color:#6c757d;margin-bottom:8px;">Add sections and choose their width.</p>
@@ -2439,11 +2461,11 @@
 
             <div id="codeFields" style="display:none;">
               <div class="form-group">
-                <label>HTML</label>
+                <label>HTML (page body only)</label>
                 <textarea id="codeHTML" rows="9" oninput="renderThumbnail()"></textarea>
               </div>
               <div class="form-group">
-                <label>CSS</label>
+                <label>CSS (scoped to body content)</label>
                 <textarea id="codeCSS" rows="5" oninput="renderThumbnail()"></textarea>
               </div>
               <div class="form-group">
@@ -2451,7 +2473,7 @@
                 <input id="codeBg" type="color" value="#ffffff" oninput="renderThumbnail()" style="width:80px;height:36px;padding:2px;">
               </div>
               <p style="font-size:12px;color:#6c757d;margin-top:4px;">
-                Page size and outer orange border are locked to match Structured pages. Only the inner content background is editable.
+                Header (title + subtitle + lesson number) matches Structured pages. Only the body content below the header is produced by your HTML/CSS.
               </p>
             </div>
 
