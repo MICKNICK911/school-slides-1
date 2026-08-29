@@ -527,7 +527,7 @@
                     sightWords = normalized.sightWords;
                     coverData = normalized.coverData;
                     if (loadedFromLegacy || !data.version) {
-                        await persistState(); // Save migrated/legacy data to new storage
+                        await persistState();
                     }
                 } else {
                     pages = [createDefaultStructuredPage()];
@@ -1043,6 +1043,15 @@
                 }
             }
 
+            // Expose for inline handlers
+            window.toggleEditorFields = toggleEditorFields;
+            window.renderThumbnail = renderThumbnail;
+            window.setPageType = function(val) {
+                tempPageType = val;
+                toggleEditorFields();
+                renderThumbnail();
+            };
+
             // Unsaved changes warning
             let formDirty = false;
             function markDirty() { formDirty = true; }
@@ -1323,7 +1332,7 @@
                             <h2 id="formTitle">➕ Add New Page</h2>
                             <div class="form-group">
                                 <label>Page Type</label>
-                                <select id="pageTypeSelect" onchange="tempPageType=this.value; toggleEditorFields(); renderThumbnail();">
+                                <select id="pageTypeSelect" onchange="setPageType(this.value)">
                                     <option value="structured">Structured (Sections)</option>
                                     <option value="code">HTML / CSS Code</option>
                                 </select>
