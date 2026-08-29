@@ -1150,7 +1150,52 @@
             window.exportJSON=function(){ try{return originalExportJSON();}catch(e){showToast('Export failed.','error');} };
             const originalRenderAllView=renderAllView;
 
-                        async function initApp() {
+                        
+(function(){
+const KEY='phonics_html_css_pages_v1', W=850, H=1080;
+let st={pages:[],current:0}, timer;
+const id=()=>`p_${Date.now().toString(36)}_${Math.random().toString(36).slice(2,7)}`;
+const num=(v,d)=>Number.isFinite(Number(v))?Number(v):d;
+function fresh(){return {id:id(),width:W,height:H,border:'1px solid #000',background:'#fff',html:'<div class="content"><h1>Your Page</h1><p>Write HTML and CSS directly here.</p></div>',css:'.content{padding:48px;font-family:Arial,sans-serif}h1{margin:0 0 18px}p{font-size:18px}'}}
+function load(){try{let x=JSON.parse(localStorage.getItem(KEY)||'null');if(x&&Array.isArray(x.pages)&&x.pages.length){st.pages=x.pages.map(p=>({...fresh(),...p,id:p.id||id(),width:Math.min(5000,Math.max(100,num(p.width,W))),height:Math.min(5000,Math.max(100,num(p.height,H))),html:String(p.html||''),css:String(p.css||'')}));st.current=Math.min(Math.max(0,num(x.current,0)),st.pages.length-1);return}}catch(e){}st.pages=[fresh()];st.current=0}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){if(typeof showToast==='function')showToast('HTML/CSS pages could not be saved locally.','error')}}
+function page(){return st.pages[st.current]}
+function parts(p){let css=[p.css||''],html=String(p.html||'');html=html.replace(/<style\b[^>]*>([\s\S]*?)<\/style>/gi,(_,x)=>(css.push(x),''));return {html,css:css.join('\n')}}
+function cleanHTML(x){let d=new DOMParser().parseFromString(String(x||''),'text/html');d.querySelectorAll('script,iframe,object,embed,link,meta,base,form').forEach(n=>n.remove());d.querySelectorAll('*').forEach(n=>[...n.attributes].forEach(a=>{if(/^on/i.test(a.name)||a.name==='srcdoc')n.removeAttribute(a.name)}));d.querySelectorAll('[href],[src]').forEach(n=>['href','src'].forEach(k=>{let v=n.getAttribute(k)||'';if(/^\s*(javascript:|vbscript:|data:text\/html)/i.test(v))n.removeAttribute(k)}));return d.body.innerHTML}
+function cleanCSS(x){return String(x||'').replace(/@import\s+[^;]+;?/gi,'').replace(/expression\s*\([^)]*\)/gi,'').replace(/url\s*\(\s*['"]?\s*javascript:[^)]*\)/gi,'')}
+function render(){
+let p=page();if(!p)return;
+let list=document.getElementById('codePageList');if(list)list.innerHTML=st.pages.map((x,i)=>`<button class="page-chip ${i===st.current?'active':''}" onclick="codeSelectPage(${i})">Page ${i+1}</button>`).join('');
+let w=document.getElementById('codePageW'),h=document.getElementById('codePageH'),b=document.getElementById('codePageBorder'),bg=document.getElementById('codePageBg'),ed=document.getElementById('codeEditor');
+if(w)w.value=p.width;if(h)h.value=p.height;if(b)b.value=p.border||'';if(bg)bg.value=p.background||'#fff';if(ed)ed.value=p.html+(p.css?'\n<style>\n'+p.css+'\n</style>':'');
+let host=document.getElementById('codePreviewHost');if(!host)return;host.innerHTML='';
+let wrap=document.createElement('div');wrap.className='code-page-wrap';let box=document.createElement('div');box.className='code-page';box.style.width=p.width+'px';box.style.height=p.height+'px';box.style.border=p.border||'0';box.style.background=p.background||'#fff';
+let style=document.createElement('style');style.textContent=cleanCSS(parts(p).css);let content=document.createElement('div');content.innerHTML=cleanHTML(parts(p).html);box.append(style,content);wrap.appendChild(box);host.appendChild(wrap);
+let max=Math.max(280,(host.parentElement?.clientWidth||900)-36),scale=Math.min(1,max/p.width);wrap.style.width=p.width*scale+'px';wrap.style.height=p.height*scale+'px';box.style.transform=`scale(${scale})`;box.style.transformOrigin='top left';
+let meta=document.getElementById('codePageMeta');if(meta)meta.textContent=`Page ${st.current+1} of ${st.pages.length} · ${p.width} × ${p.height}px`;
+}
+window.codeSelectPage=i=>{if(i<0||i>=st.pages.length)return;st.current=i;save();render()};
+window.codeNewPage=()=>{st.pages.push(fresh());st.current=st.pages.length-1;save();render()};
+window.codeDuplicatePage=()=>{let p=page();if(!p)return;let q=JSON.parse(JSON.stringify(p));q.id=id();st.pages.splice(st.current+1,0,q);st.current++;save();render()};
+window.codeDeletePage=()=>{if(st.pages.length===1)return showToast('Keep at least one page.','warning');st.pages.splice(st.current,1);st.current=Math.min(st.current,st.pages.length-1);save();render()};
+window.codePrintCurrent=()=>printPages([page()],'Page');
+window.codePrintAll=()=>printPages(st.pages,'Pages');
+function printPages(ps,title){
+let root=document.getElementById('codePrintRoot');root.innerHTML='';
+ps.forEach(p=>{let q=document.createElement('div');q.className='code-print-page';q.style.width=p.width+'px';q.style.height=p.height+'px';q.style.border=p.border||'0';q.style.background=p.background||'#fff';let st=document.createElement('style');st.textContent=cleanCSS(parts(p).css);let c=document.createElement('div');c.innerHTML=cleanHTML(parts(p).html);q.append(st,c);root.appendChild(q)});
+document.body.classList.add('code-print-mode');let done=()=>{document.body.classList.remove('code-print-mode');root.innerHTML='';window.removeEventListener('afterprint',done)};window.addEventListener('afterprint',done);requestAnimationFrame(()=>requestAnimationFrame(()=>window.print()))
+}
+function input(){
+let p=page(),v=document.getElementById('codeEditor')?.value||'',m=v.match(/<style\b[^>]*>([\s\S]*?)<\/style>/i);if(m){p.html=v.replace(m[0],'').trim();p.css=m[1]}else p.html=v;save();clearTimeout(timer);timer=setTimeout(render,70)
+}
+window.codeUpdatePage=(k,v)=>{let p=page();if(k==='width')p.width=Math.min(5000,Math.max(100,num(v,W)));if(k==='height')p.height=Math.min(5000,Math.max(100,num(v,H)));if(k==='border')p.border=String(v||'');if(k==='background')p.background=String(v||'#fff');save();render()};
+document.addEventListener('input',e=>{if(e.target.id==='codeEditor')input()});
+document.addEventListener('change',e=>{if(e.target.id==='codePageW')codeUpdatePage('width',e.target.value);if(e.target.id==='codePageH')codeUpdatePage('height',e.target.value);if(e.target.id==='codePageBorder')codeUpdatePage('border',e.target.value);if(e.target.id==='codePageBg')codeUpdatePage('background',e.target.value)});
+let oldSwitch=window.switchTab;window.switchTab=function(tab){if(typeof oldSwitch==='function')oldSwitch(tab);if(tab==='code')render()};
+load();
+})();
+
+            async function initApp() {
                 await loadData();
                 undoStack=[]; redoStack=[];
                 document.getElementById('app').innerHTML = `
@@ -1159,7 +1204,7 @@
                         <button class="tab-btn active" data-tab="edit" onclick="switchTab('edit')">✏️ Edit</button>
                         <button class="btn btn-outline" id="undoBtn" onclick="undoLast()" title="Undo">↶ Undo</button>
                         <button class="btn btn-outline" id="redoBtn" onclick="redoLast()" title="Redo">↷ Redo</button><span class="history-status" id="historyStatus">No undo · No redo</span>
-                        <button class="tab-btn" data-tab="lessons" onclick="switchTab('lessons')">📖 Lessons</button>
+                        <button class="tab-btn" data-tab="lessons" onclick="switchTab('lessons')">📖 Lessons</button><button class="tab-btn" data-tab="code" onclick="switchTab('code')">💻 HTML / CSS</button>
                         <button class="tab-btn" data-tab="view" onclick="switchTab('view')">👁️ View</button>
                     </div>
                     <div class="tab-panel active" id="editPanel">
@@ -1189,7 +1234,65 @@
                             </div>
                         </div>
                     </div>
-                    <div class="tab-panel" id="lessonsPanel">
+                    
+<div class="tab-panel" id="codePanel">
+<style>
+#codePanel .code-studio{display:grid;grid-template-columns:minmax(320px,430px) minmax(500px,1fr);gap:18px}
+#codePanel .code-pane{background:#fff;border:1px solid #dee2e6;border-radius:12px;overflow:hidden}
+#codePanel .code-pane h3{margin:0;padding:12px 14px;border-bottom:1px solid #e9ecef;font-size:15px}
+#codePanel .code-controls{display:flex;flex-wrap:wrap;gap:7px;padding:10px 14px;border-bottom:1px solid #e9ecef}
+#codePanel .code-controls input{padding:7px 9px;border:1px solid #ced4da;border-radius:7px;width:95px}
+#codePanel textarea{display:block;width:100%;min-height:600px;box-sizing:border-box;border:0;outline:0;resize:vertical;padding:14px;background:#17191c;color:#f1f3f5;font:13px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace;tab-size:2}
+#codePanel .preview-shell{padding:18px;background:#e9ecef;overflow:auto;min-height:640px}
+#codePanel .code-page-wrap{margin:0 auto;position:relative}
+#codePanel .code-page{position:relative;overflow:hidden;background:#fff;box-sizing:border-box}
+#codePanel .page-meta{font-size:12px;color:#6c757d;padding:8px 14px}
+#codePanel .page-list{display:flex;gap:6px;flex-wrap:wrap;padding:10px 14px;border-bottom:1px solid #e9ecef}
+#codePanel .page-chip{border:1px solid #ced4da;background:#fff;border-radius:7px;padding:6px 9px;cursor:pointer}
+#codePanel .page-chip.active{background:#1a1a2e;color:#fff}
+#codePanel .print-note{padding:10px 14px;font-size:12px;color:#6c757d;border-top:1px solid #e9ecef}
+@media(max-width:1000px){#codePanel .code-studio{grid-template-columns:1fr}}
+@media print{
+ body.code-print-mode{padding:0!important;background:#fff!important}
+ body.code-print-mode>*{display:none!important}
+ body.code-print-mode #codePrintRoot{display:block!important}
+ #codePrintRoot .code-print-page{break-after:page;page-break-after:always;break-inside:avoid;page-break-inside:avoid;position:relative;overflow:hidden;background:#fff;box-sizing:border-box}
+ #codePrintRoot .code-print-page:last-child{break-after:auto;page-break-after:auto}
+}
+</style>
+<div class="form-section">
+<h2>💻 HTML / CSS Page Studio</h2>
+<p style="color:#6c757d;font-size:13px;margin-bottom:12px">Write the page directly as HTML and CSS. The preview is the same markup sent to the browser's native print engine.</p>
+<div class="code-studio">
+<div class="code-pane">
+<h3>Pages &amp; Code</h3>
+<div class="page-list" id="codePageList"></div>
+<div class="code-controls">
+<button class="btn btn-primary btn-sm" onclick="codeNewPage()">＋ Page</button>
+<button class="btn btn-outline btn-sm" onclick="codeDuplicatePage()">Duplicate</button>
+<button class="btn btn-danger btn-sm" onclick="codeDeletePage()">Delete</button>
+<button class="btn btn-success btn-sm" onclick="codePrintAll()">🖨️ Print All</button>
+<button class="btn btn-warning btn-sm" onclick="codePrintCurrent()">🖨️ Print Page</button>
+</div>
+<div class="code-controls">
+<label>W <input id="codePageW" type="number" min="100" max="5000" step="1"></label>
+<label>H <input id="codePageH" type="number" min="100" max="5000" step="1"></label>
+<label>Border <input id="codePageBorder" type="text"></label>
+<label>BG <input id="codePageBg" type="text"></label>
+</div>
+<textarea id="codeEditor" spellcheck="false" aria-label="HTML and CSS page code"></textarea>
+<div class="print-note">Page size is enforced in the preview and print page box. Use px, mm, cm, etc. inside your own CSS for internal layout.</div>
+</div>
+<div class="code-pane">
+<h3>Live Preview</h3>
+<div class="page-meta" id="codePageMeta"></div>
+<div class="preview-shell"><div id="codePreviewHost"></div></div>
+</div>
+</div>
+</div>
+<div id="codePrintRoot" style="display:none"></div>
+</div>
+<div class="tab-panel" id="lessonsPanel">
                         <div class="list-section">
                             <div style="margin-bottom:20px;border-bottom:2px solid #e9ecef;padding-bottom:20px;">
                                 <h3>📘 Cover Page</h3>
