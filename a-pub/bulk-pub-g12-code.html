@@ -1145,6 +1145,7 @@
     let pages = [];
     let sightWords = [];
     let coverData = { title: 'Crystal Phonics', subtitle: 'Grade 1' };
+    let includeToc = true; // auto-generate Table of Contents pages (togglable)
     let editingPageId = null;
     let tempSections = [];
     let tempPageType = 'structured';
@@ -1159,7 +1160,7 @@
 
     const clone = (obj) => JSON.parse(JSON.stringify(obj));
     function currentState() {
-      return { pages: clone(pages), sightWords: clone(sightWords), coverData: clone(coverData) };
+      return { pages: clone(pages), sightWords: clone(sightWords), coverData: clone(coverData), includeToc: !!includeToc };
     }
     function stateKey(s) {
       try { return JSON.stringify(s); } catch (e) { return ''; }
@@ -1209,6 +1210,7 @@
       pages = normalized.pages;
       sightWords = normalized.sightWords;
       coverData = normalized.coverData;
+      includeToc = normalized.includeToc !== false;
       resetForm();
       refreshUI();
       await persistState();
@@ -1311,13 +1313,16 @@
 
       const sw = Array.isArray(data?.sightWords) ? data.sightWords.map(String).filter(Boolean) : [];
       const cd = data?.coverData || {};
+      // Default true for backward compatibility when key is missing
+      const tocFlag = data?.includeToc;
       return {
         pages: safePages,
         sightWords: sw,
         coverData: {
           title: String(cd.title || 'Crystal Phonics'),
           subtitle: String(cd.subtitle || 'Grade 1')
-        }
+        },
+        includeToc: tocFlag === undefined || tocFlag === null ? true : !!tocFlag
       };
     }
 
@@ -1388,6 +1393,7 @@
         pages = normalized.pages;
         sightWords = normalized.sightWords;
         coverData = normalized.coverData;
+        includeToc = normalized.includeToc !== false;
         if (fromLegacy || !data.version) await persistState();
       } else {
         pages = [createDefaultStructuredPage()];
@@ -1774,7 +1780,7 @@
       if (!pages.length && !sightWords.length) return;
 
       const swPages = Math.ceil(sightWords.length / MAX_SIGHT_WORDS_PER_PAGE) || 0;
-      const tocPages = pages.length ? Math.ceil(pages.length / MAX_TOC_PER_PAGE) : 0;
+      const tocPages = (includeToc && pages.length) ? Math.ceil(pages.length / MAX_TOC_PER_PAGE) : 0;
       const lessonStart = tocPages + swPages + 2;
       let running = lessonStart;
 
@@ -1788,8 +1794,10 @@
         return e;
       });
 
-      for (let p = 0; p < tocPages; p++) {
-        container.appendChild(buildTocPage(p + 1, tocEntries.slice(p * MAX_TOC_PER_PAGE, (p + 1) * MAX_TOC_PER_PAGE)));
+      if (includeToc) {
+        for (let p = 0; p < tocPages; p++) {
+          container.appendChild(buildTocPage(p + 1, tocEntries.slice(p * MAX_TOC_PER_PAGE, (p + 1) * MAX_TOC_PER_PAGE)));
+        }
       }
 
       let pageNum = tocPages + 2;
@@ -2243,7 +2251,7 @@
     };
 
     window.exportJSON = function () {
-      const payload = { version: 3, pages, sightWords, coverData };
+      const payload = { version: 3, pages, sightWords, coverData, includeToc: !!includeToc };
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
@@ -2275,10 +2283,13 @@
             pages = normalized.pages;
             sightWords = normalized.sightWords;
             coverData = normalized.coverData;
+            includeToc = normalized.includeToc !== false;
             await persistState();
             recordHistory(before, currentState());
             resetForm();
             refreshUI();
+            const tocToggle = document.getElementById('includeTocToggle');
+            if (tocToggle) tocToggle.checked = includeToc;
             showToast('Data imported successfully.', 'success');
           });
         } catch (err) {
@@ -2312,6 +2323,16 @@
       persistState();
       renderAllView();
       showToast('Cover updated.', 'success');
+    };
+
+    window.setIncludeToc = function (on) {
+      const before = currentState();
+      includeToc = !!on;
+      recordHistory(before, currentState());
+      persistState();
+      renderAllView();
+      updateCounts();
+      showToast(includeToc ? 'TOC pages enabled.' : 'TOC pages disabled.', 'success');
     };
 
     function refreshUI() {
@@ -2367,7 +2388,7 @@
       const badge = document.getElementById('pageCount');
       if (badge) badge.textContent = pages.length + ' pages · ' + sightWords.length + ' sight words';
 
-      const tocPages = pages.length ? Math.ceil(pages.length / MAX_TOC_PER_PAGE) : 0;
+      const tocPages = (includeToc && pages.length) ? Math.ceil(pages.length / MAX_TOC_PER_PAGE) : 0;
       const swPages = Math.ceil(sightWords.length / MAX_SIGHT_WORDS_PER_PAGE) || 0;
       const viewInfo = document.getElementById('viewInfo');
       if (viewInfo) {
@@ -2495,6 +2516,13 @@
                 <input id="coverSubtitleInput" value="${escapeHtml(coverData.subtitle)}">
               </div>
               <button class="btn btn-success btn-sm" onclick="saveCover()">💾 Save Cover</button>
+              <div class="form-group" style="margin-top:14px;margin-bottom:0;">
+                <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-weight:700;">
+                  <input type="checkbox" id="includeTocToggle" ${includeToc ? 'checked' : ''} onchange="setIncludeToc(this.checked)" style="width:18px;height:18px;accent-color:#F5A623;">
+                  Auto-generate Table of Contents pages
+                </label>
+                <p style="font-size:12px;color:#6c757d;margin-top:4px;margin-bottom:0;">When off, View/Export skips TOC pages. Cover, sight words, and lesson pages are unchanged.</p>
+              </div>
             </div>
 
             <h2>📖 All Pages</h2>
