@@ -896,10 +896,9 @@
       frame.appendChild(card);
 
       // Optional scoped JS (not in thumbnail to avoid side effects)
-      if (!isThumb && page.js && String(page.js).trim()) {
+      if (!isThumb && typeof page.js === 'string' && page.js.trim()) {
         try {
           const fn = new Function('root', page.js);
-          // Run after element is in DOM ideally; caller can also trigger
           setTimeout(() => {
             try { fn(inner); } catch (e) { console.warn('Page JS error:', e); }
           }, 0);
@@ -1022,7 +1021,6 @@
 
     // ========== NORMALIZE IMPORT ==========
     function normalizeImported(raw) {
-      // Accept Publisher-style or our format
       let pages = [];
       let deckName = 'Imported Deck';
       let cover = { title: 'Crystal Phonics', subtitle: 'Grade 1' };
@@ -1036,7 +1034,6 @@
         else if (raw.coverData) cover = { title: String(raw.coverData.title || cover.title), subtitle: String(raw.coverData.subtitle || '') };
         if (raw.includeToc !== undefined) includeToc = !!raw.includeToc;
       } else if (Array.isArray(raw)) {
-        // bare array of pages
         pages = raw;
       } else {
         throw new Error('Unrecognized JSON structure');
@@ -1336,8 +1333,7 @@
       if (!pages.length) {
         list.innerHTML = `<div class="empty-state"><p>No pages match.</p></div>`;
       } else {
-        pages.forEach((p, idx) => {
-          const globalIdx = deck.pages.findIndex(x => x.id === p.id);
+        pages.forEach((p) => {
           const item = document.createElement('div');
           item.className = 'page-item' + (p.id === state.currentPageId ? ' active' : '');
           item.innerHTML = `
@@ -1743,67 +1739,94 @@
       pages.forEach((p, i) => {
         root.appendChild(renderPageElement(p, { pageNum: startNum + i }));
       });
-      // Open print dialog via clone window for cleaner result
+
+      // Get the HTML string before clearing
+      const htmlContent = root.innerHTML;
+      root.classList.add('hidden');
+      root.innerHTML = '';
+
       const win = window.open('', '_blank');
       if (!win) {
         showToast('Popup blocked — allow popups to print', 'warning');
-        root.classList.add('hidden');
         return;
       }
+
       const styles = document.querySelector('style')?.outerHTML || '';
+      const rootInlineStyle = document.documentElement.getAttribute('style') || '';
+
       win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Print</title>${styles}
         <style>
+          @page { size: ${PAGE_W}px ${PAGE_H}px; margin: 0; }
           body { margin:0; padding:0; background:#fff; }
-          .page-frame { box-shadow:none !important; margin:0 auto 0 !important; page-break-after:always; }
+          .page-frame { box-shadow:none !important; margin:0 auto !important; page-break-after:always; }
           .page-frame:last-child { page-break-after:auto; }
-        </style></head><body>${root.innerHTML}</body></html>`);
+        </style></head><body style="${rootInlineStyle}">${htmlContent}</body></html>`);
       win.document.close();
-      setTimeout(() => { try { win.focus(); win.print(); } catch (_) {} }, 400);
-      root.classList.add('hidden');
-      root.innerHTML = '';
+
+      // Wait for the window to fully load before printing
+      win.onload = () => {
+        setTimeout(() => {
+          try {
+            win.focus();
+            win.print();
+          } catch (_) {
+            showToast('Print failed', 'error');
+          }
+        }, 200);
+      };
     }
 
     function printAll(deck) {
-      const pages = [];
-      // Cover
-      pages.push({ __cover: true, cover: deck.cover });
-      // Simple TOC as one page if enabled
-      if (deck.includeToc && deck.pages.length) {
-        pages.push({ __toc: true, entries: deck.pages.map((p, i) => ({ name: p.name, num: i + 2 + (deck.includeToc ? 1 : 0) })) });
-      }
-      const start = 1 + 1 + (deck.includeToc ? 1 : 0); // cover + optional toc
       const win = window.open('', '_blank');
       if (!win) {
         showToast('Popup blocked — allow popups to print', 'warning');
         return;
       }
+
       const styles = document.querySelector('style')?.outerHTML || '';
+      const rootInlineStyle = document.documentElement.getAttribute('style') || '';
+
       let html = '';
       // Cover
       const coverEl = renderCoverElement(deck.cover);
       html += coverEl.outerHTML;
-      // TOC
+
+      // TOC (if enabled)
       if (deck.includeToc && deck.pages.length) {
         const tocFrame = document.createElement('div');
         tocFrame.className = 'page-frame';
         const entries = deck.pages.map((p, i) =>
-          `<li class="toc-item"><span>${escapeHtml(p.name)}</span><span class="toc-page-num">Page ${i + 3}</span></li>`
+          `<li class="toc-item"><span>${escapeHtml(p.name)}</span><span class="toc-page-num">Page ${i + 1}</span></li>`
         ).join('');
         tocFrame.innerHTML = `<div class="toc-card"><div class="toc-title">Table of Contents</div><ul class="toc-list">${entries}</ul></div>`;
         html += tocFrame.outerHTML;
       }
+
+      // Content pages
       deck.pages.forEach((p, i) => {
         const el = renderPageElement(p, { pageNum: i + 1 });
         html += el.outerHTML;
       });
+
       win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${escapeHtml(deck.deckName)} — Print</title>${styles}
         <style>
+          @page { size: ${PAGE_W}px ${PAGE_H}px; margin: 0; }
           body { margin:0; padding:0; background:#fff; }
           .page-frame { box-shadow:none !important; margin:0 auto !important; page-break-after:always; }
           .page-frame:last-child { page-break-after:auto; }
-        </style></head><body>${html}</body></html>`);
+        </style></head><body style="${rootInlineStyle}">${html}</body></html>`);
       win.document.close();
-      setTimeout(() => { try { win.focus(); win.print(); } catch (_) {} }, 500);
+
+      win.onload = () => {
+        setTimeout(() => {
+          try {
+            win.focus();
+            win.print();
+          } catch (_) {
+            showToast('Print failed', 'error');
+          }
+        }, 200);
+      };
     }
 
     // ---------- File import ----------
