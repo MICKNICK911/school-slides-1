@@ -1,198 +1,119 @@
-#!/usr/bin/env python3
-"""
-Update deck: White modal, word-by-word color cycling (robust), close button top-left.
-"""
-
 import json
+import re
 from pathlib import Path
 
-# ============== NEW CSS ==============
-NEW_CSS = r"""
-.content-root{width:100%;height:100%;padding:18px 20px;overflow:hidden;font-family:'Segoe UI',system-ui,sans-serif}
-.lesson-split{display:grid;grid-template-columns:48% 52%;height:100%;gap:18px}
-.lesson-column{min-width:0;display:flex;flex-direction:column}
-.column-heading{font-size:16px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:#E2571C;margin:0 0 10px;padding-bottom:8px;border-bottom:2px solid #F5A623}
-.words-grid{flex:1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-content:center;gap:10px;padding:8px}
-.word-cell{min-height:62px;border:2px solid #dee2e6;border-radius:10px;background:#fff;font-size:22px;font-weight:800;color:#1a1a1a;cursor:pointer;transition:.12s;box-shadow:0 2px 5px rgba(0,0,0,.05)}
-.word-cell:hover{border-color:#F5A623}
-.word-cell.selected{background:#dc3545;border-color:#dc3545;color:#fff}
-.sentences-list{display:flex;flex-direction:column;gap:8px;justify-content:center;flex:1}
-.sentence-row{width:100%;text-align:left;padding:14px 16px;border:2px solid #dee2e6;border-radius:10px;background:#fff;color:#1a1a1a;font-family:Georgia,'Times New Roman',serif;font-size:22px;line-height:1.3;cursor:pointer;box-shadow:0 2px 5px rgba(0,0,0,.05)}
-.sentence-row:hover{border-color:#F5A623;background:#fffaf1}
-"""
-
-# ============== NEW JS (robust color cycling) ==============
-NEW_JS = r"""
-const cells = root.querySelectorAll('.word-cell');
-cells.forEach(cell => {
-  cell.addEventListener('click', () => cell.classList.toggle('selected'));
-});
-
-// ---- Create overlay with inline styles ----
-const overlay = document.createElement('div');
-overlay.className = 'sentence-fullscreen';
-overlay.style.cssText = `
-  position: absolute !important;
-  top: 0 !important;
-  left: 0 !important;
-  width: 100% !important;
-  height: 100% !important;
-  background: #ffffff !important;
-  display: none !important;
-  align-items: center !important;
-  justify-content: center !important;
-  z-index: 10 !important;
-  padding: 60px !important;
-  box-sizing: border-box !important;
-  pointer-events: auto !important;
-`;
-
-// Close button
-const closeBtn = document.createElement('button');
-closeBtn.type = 'button';
-closeBtn.setAttribute('aria-label', 'Close');
-closeBtn.textContent = '×';
-closeBtn.style.cssText = `
-  position: absolute;
-  left: 20px;
-  top: 20px;
-  width: 48px;
-  height: 48px;
-  border: 2px solid #333;
-  border-radius: 50%;
-  background: #fff;
-  color: #333;
-  font-size: 28px;
-  font-weight: 800;
-  line-height: 1;
-  cursor: pointer;
-  z-index: 20;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-`;
-
-// Sentence text container
-const textEl = document.createElement('div');
-textEl.style.cssText = `
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: clamp(36px, 6vw, 80px);
-  font-weight: 700;
-  line-height: 1.4;
-  text-align: center;
-  color: #1a1a1a;
-  max-width: 95%;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0 12px;
-  pointer-events: auto;
-`;
-
-overlay.appendChild(closeBtn);
-overlay.appendChild(textEl);
-
-// Attach to page frame (or fallback to root)
-const pageFrame = root.closest('.page-frame');
-if (pageFrame) {
-  pageFrame.appendChild(overlay);
-} else {
-  root.appendChild(overlay);
-}
-
-const close = () => {
-  overlay.classList.remove('open');
-  overlay.style.display = 'none';
-  textEl.innerHTML = '';
-};
-closeBtn.addEventListener('click', close);
-overlay.addEventListener('click', e => {
-  if (e.target === overlay) close();
-});
-
-// ---- Robust color cycling: data-state tracks black->red->blue->black ----
-const COLOR_STATES = ['black', 'red', 'blue'];
-const COLOR_HEX = {
-  black: '#1a1a1a',
-  red: '#e63946',
-  blue: '#1d6fd6'
-};
-function cycleColor(span) {
-  let state = span.dataset.colorState || 'black';
-  const idx = COLOR_STATES.indexOf(state);
-  const next = COLOR_STATES[(idx + 1) % COLOR_STATES.length];
-  span.dataset.colorState = next;
-  span.style.color = COLOR_HEX[next];
-}
-
-root.querySelectorAll('.sentence-row').forEach(row => {
-  row.addEventListener('click', () => {
-    const words = row.textContent.trim().split(/\s+/).filter(Boolean);
-    textEl.innerHTML = '';
-    words.forEach(word => {
-      const span = document.createElement('span');
-      span.textContent = word;
-      span.dataset.colorState = 'black';
-      span.style.color = COLOR_HEX.black;
-      span.style.cursor = 'pointer';
-      span.style.padding = '4px 6px';
-      span.style.borderRadius = '6px';
-      span.style.transition = 'color 0.1s';
-      span.style.userSelect = 'none';
-      span.addEventListener('click', () => cycleColor(span));
-      textEl.appendChild(span);
-    });
-    overlay.classList.add('open');
-    overlay.style.display = 'flex';
-  });
-});
-
-if (!window.__phonicsSentenceEscapeInstalled) {
-  window.__phonicsSentenceEscapeInstalled = true;
-  window.addEventListener('keydown', e => {
-    if (e.key === 'Escape') {
-      document.querySelectorAll('.sentence-fullscreen.open').forEach(o => {
-        o.classList.remove('open');
-        o.style.display = 'none';
-        const t = o.querySelector('.sentence-modal-text');
-        if (t) t.innerHTML = '';
-      });
-    }
-  });
-}
-"""
-
-def convert(input_path: str, output_path: str = None):
-    input_path = Path(input_path)
-    if output_path is None:
-        output_path = input_path.with_name(input_path.stem + "_wordcolors_robust.json")
-    else:
-        output_path = Path(output_path)
-
-    print(f"Loading: {input_path}")
-    with open(input_path, "r", encoding="utf-8") as f:
+# ---------- Step 1: Load source of truth (grade1.json & grade2.json) ----------
+def load_lesson_word_lists(grade_file):
+    with open(grade_file, 'r', encoding='utf-8') as f:
         data = json.load(f)
+    lesson_words = {}
+    for lesson in data['lessons']:
+        lesson_id = lesson['id']
+        words = set()
+        for section in lesson['sections']:
+            if section.get('type') == 'wordGrid' and 'words' in section:
+                words.update(section['words'])
+        lesson_words[lesson_id] = words
+    return lesson_words
 
-    pages = data.get("pages", [])
-    print(f"Found {len(pages)} pages")
+grade1_words = load_lesson_word_lists('grade1.json')
+grade2_words = load_lesson_word_lists('grade2.json')
 
-    for i, page in enumerate(pages, 1):
-        page["css"] = NEW_CSS.strip()
-        page["js"]  = NEW_JS.strip()
-        print(f"  Updated page {i}: {page.get('name', page.get('id', '?'))}")
+# ---------- Step 2: Helper to extract current words from a grid ----------
+def extract_words_from_grid(html):
+    grid_pattern = re.compile(r'<div class="words-grid">(.*?)</div>', re.DOTALL)
+    match = grid_pattern.search(html)
+    if not match:
+        return [], match
+    inner = match.group(1)
+    button_pattern = re.compile(r'<button class="word-cell"[^>]*>([^<]+)</button>')
+    words = button_pattern.findall(inner)
+    return words, match
 
-    print(f"\nSaving to: {output_path}")
-    with open(output_path, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
+# ---------- Step 3: Process the target JSON ----------
+target_file = 'phonics_wordcolors_robust.json'
+with open(target_file, 'r', encoding='utf-8') as f:
+    target_data = json.load(f)
 
-    print("Done!")
-    print("Color cycling now works: black → red → blue → black")
+updated_pages = []
 
-if __name__ == "__main__":
-    # ---------- EDIT THESE TWO LINES ----------
-    INPUT_FILE  = "Crystal12.json"               # your original file
-    OUTPUT_FILE = "phonics_wordcolors_robust.json" # output file
-    # ------------------------------------------
+for page in target_data['pages']:
+    page_id = page['id']
+    html = page['html']
 
-    convert(INPUT_FILE, OUTPUT_FILE)
+    # Extract current grid words
+    current_words, grid_match = extract_words_from_grid(html)
+    if not current_words or not grid_match:
+        # No grid found; leave unchanged
+        updated_pages.append(page)
+        continue
+
+    current_set = set(current_words)
+
+    # Determine which grade this page belongs to
+    if page_id.startswith('grade_1_'):
+        source_dict = grade1_words
+    elif page_id.startswith('grade_2_'):
+        source_dict = grade2_words
+    else:
+        updated_pages.append(page)
+        continue
+
+    # Find the lesson whose word set has the largest overlap with current_set
+    best_lesson = None
+    best_score = -1
+    for lesson_id, word_set in source_dict.items():
+        # Number of words from this page that appear in this lesson's official list
+        score = len(current_set & word_set)
+        # We want a perfect match (all current words are valid)
+        # If multiple lessons contain all words, pick the one with the smallest size
+        if score > best_score and score == len(current_set):
+            best_score = score
+            best_lesson = lesson_id
+            # Break if we found a perfect match with the exact same size
+            if score == len(current_set) and score == len(word_set):
+                break
+
+    if best_lesson is None:
+        print(f"Warning: No matching lesson found for page {page_id}. Keeping original.")
+        updated_pages.append(page)
+        continue
+
+    valid_words = source_dict[best_lesson]
+    # Filter buttons
+    prefix, inner, suffix = grid_match.group(0), grid_match.group(1), ''
+    # Actually, let's rebuild the grid properly
+    grid_full = grid_match.group(0)
+    grid_open = '<div class="words-grid">'
+    grid_close = '</div>'
+    # Extract all buttons and keep only valid ones
+    button_pattern = re.compile(r'<button class="word-cell"[^>]*>([^<]+)</button>')
+    all_buttons = button_pattern.findall(inner)
+    kept_words = [w for w in all_buttons if w in valid_words]
+
+    # Rebuild the inner HTML of the grid
+    new_buttons = []
+    for word in kept_words:
+        new_buttons.append(f'<button class="word-cell" type="button" data-word="{word}">{word}</button>')
+    new_inner = ''.join(new_buttons)
+    new_grid = grid_open + new_inner + grid_close
+
+    # Replace in the full HTML
+    new_html = html.replace(grid_full, new_grid)
+
+    # Update page
+    page['html'] = new_html
+    updated_pages.append(page)
+
+    print(f"Page {page_id} matched to lesson {best_lesson} – kept {len(kept_words)} of {len(current_words)} words")
+
+# Update the pages list
+target_data['pages'] = updated_pages
+
+# ---------- Step 4: Save the cleaned JSON ----------
+output_file = 'phonics_wordcolors_robust_cleaned.json'
+with open(output_file, 'w', encoding='utf-8') as f:
+    json.dump(target_data, f, indent=2, ensure_ascii=False)
+
+print(f"\nCleaned JSON saved to {output_file}")
+print("All done!")
