@@ -526,14 +526,37 @@
     .present-nav {
       position: absolute;
       inset: 0;
-      display: flex;
       pointer-events: none;
+      z-index: 4;
     }
-    .present-nav .zone {
-      flex: 1;
+    .nav-cluster {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
       pointer-events: auto;
-      cursor: pointer;
+      z-index: 6;
     }
+    .nav-cluster.left { left: 14px; }
+    .nav-cluster.right { right: 14px; }
+    .present-nav-btn {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(255,255,255,0.15);
+      color: #fff;
+      font-size: 20px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s;
+    }
+    .present-nav-btn:hover { background: rgba(255,255,255,0.3); }
     .present-topbar {
       position: absolute;
       top: 0; left: 0; right: 0;
@@ -678,6 +701,198 @@
     .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
     .hidden { display: none !important; }
 
+    /* ========== FLASH MODE (manager) ========== */
+    .flash-view { display: flex; width: 100%; height: 100%; overflow: hidden; }
+    .flash-deck-list-panel {
+      width: 300px;
+      min-width: 240px;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .flash-deck-list { flex: 1; overflow-y: auto; padding: 8px; }
+    .flash-deck-item {
+      padding: 10px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      margin-bottom: 4px;
+    }
+    .flash-deck-item:hover { background: var(--bg); }
+    .flash-deck-item.active { border-color: var(--accent); background: rgba(245,166,35,0.08); }
+    .flash-deck-item .name { font-weight: 700; font-size: 14px; }
+    .flash-deck-item .meta { font-size: 12px; color: var(--muted); }
+    .flash-type-badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 2px 6px;
+      border-radius: 6px;
+      background: var(--accent);
+      color: #1a1a1a;
+      margin-right: 6px;
+    }
+    .flash-editor-panel { flex: 1; overflow-y: auto; padding: 18px; background: var(--bg); }
+    .flash-items-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+    .flash-item-chip {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: grab;
+    }
+    .flash-item-chip .del {
+      border: none;
+      background: none;
+      cursor: pointer;
+      color: var(--danger);
+      font-weight: 800;
+      font-size: 14px;
+      line-height: 1;
+    }
+    .flash-item-chip.drag-over { border-color: var(--accent); }
+
+    /* ========== FLASH PRESENTATION ========== */
+    .flash-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9200;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    .flash-overlay.active { display: flex; }
+    .flash-overlay.theme-words { background: #fdf3e7; }
+    .flash-overlay.theme-sentences { background: #eef6ee; }
+    .flash-card-stage {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+      box-sizing: border-box;
+    }
+    .flash-word-display {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 92%;
+    }
+    .flash-letter {
+      font-size: min(20vw, 220px);
+      font-weight: 800;
+      font-family: var(--font);
+      color: #1a1a1a;
+      cursor: pointer;
+      user-select: none;
+      line-height: 1;
+      padding: 4px 6px;
+      border-radius: 14px;
+      transition: color 0.1s;
+      text-shadow: 0 0 1px rgba(0,0,0,0.15);
+    }
+    .flash-sentence-display {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 90%;
+    }
+    .flash-word-token {
+      font-size: min(9vw, 88px);
+      font-weight: 700;
+      font-family: 'Georgia', 'Times New Roman', serif;
+      color: #1a1a1a;
+      cursor: pointer;
+      user-select: none;
+      line-height: 1.3;
+      padding: 4px 10px;
+      border-radius: 10px;
+      transition: color 0.1s;
+      text-shadow: 0 0 1px rgba(0,0,0,0.12);
+    }
+    .flash-topbar {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      padding: 12px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: linear-gradient(to bottom, rgba(255,255,255,0.75), transparent);
+      z-index: 5;
+    }
+    .flash-topbar .label { color: #1a1a1a; font-weight: 700; font-size: 14px; }
+    .flash-topbar .controls { display: flex; gap: 8px; }
+    .flash-indicator {
+      position: absolute;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(26,26,26,0.75);
+      color: #fff;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 700;
+      z-index: 5;
+    }
+    .flash-nav {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 100;
+    }
+    .flash-nav-btn {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(26,26,26,0.12);
+      color: #1a1a1a;
+      font-size: 22px;
+      font-weight: 800;
+      cursor: pointer;
+      pointer-events: auto;
+    }
+    .flash-nav-btn:hover { background: rgba(26,26,26,0.22); }
+    .flash-card-stage { position: relative; z-index: 2; }
+    .flash-close {
+      background: rgba(26,26,26,0.1);
+      border: none;
+      color: #1a1a1a;
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      font-size: 18px;
+      cursor: pointer;
+    }
+    .flash-close:hover { background: rgba(26,26,26,0.2); }
+    .flash-reset-btn {
+      background: rgba(26,26,26,0.1);
+      border: none;
+      color: #1a1a1a;
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .flash-reset-btn:hover { background: rgba(26,26,26,0.2); }
+
     /* ========== PRINT ========== */
     @media print {
       body * { visibility: hidden; }
@@ -724,6 +939,7 @@
   <div class="toast-container" id="toastContainer"></div>
   <div class="overlay-dim" id="overlayDim"></div>
   <div class="present-overlay" id="presentOverlay"></div>
+  <div class="flash-overlay" id="flashOverlay"></div>
   <div id="printRoot" class="hidden"></div>
   <input type="file" id="fileInput" accept=".json,application/json" class="hidden" />
 
@@ -737,6 +953,7 @@
     const MAX_HISTORY = 40;
     const PAGE_W = 850;
     const PAGE_H = 1100;
+    const FLASH_COLORS = ['#1a1a1a', '#e63946', '#1d6fd6', '#2d9d4f', '#f0b800', '#ffffff'];
 
     // ========== STATE ==========
     let state = {
@@ -748,11 +965,12 @@
       searchQuery: '',
       history: [],
       ui: {
-        mode: 'library',         // library | deck | edit | present
+        mode: 'library',         // library | deck | edit | present | flashManager
         topicsOpen: false,
         historyOpen: false,
         editingPageId: null,     // null = new page
-        dirty: false
+        dirty: false,
+        currentFlashDeckId: null
       }
     };
 
@@ -946,8 +1164,27 @@
         cover: { title: 'Crystal Phonics', subtitle: 'Grade 1' },
         includeToc: true,
         pages: [createEmptyPage()],
+        flashDecks: [],
         updatedAt: Date.now()
       };
+    }
+
+    function createEmptyFlashDeck(name, type) {
+      return {
+        id: uid('flash'),
+        name: name || (type === 'sentences' ? 'New Sentence Deck' : 'New Word Deck'),
+        type: type === 'sentences' ? 'sentences' : 'words',
+        items: []
+      };
+    }
+
+    function parseFlashInput(text) {
+      // Accept commas or newlines as separators; trim, dedupe empties.
+      return String(text || '')
+        .split(/[\n,]+/)
+        .map(s => s.trim())
+        .filter(Boolean)
+        .map(text => ({ id: uid('item'), text }));
     }
 
     // ========== PERSISTENCE ==========
@@ -1066,12 +1303,26 @@
         };
       });
 
+      const safeFlashDecks = Array.isArray(raw.flashDecks) ? raw.flashDecks.slice(0, 100).map(fd => {
+        const items = Array.isArray(fd.items) ? fd.items.slice(0, 500).map(it => ({
+          id: it.id && typeof it.id === 'string' ? it.id : uid('item'),
+          text: String(it.text || '').trim()
+        })).filter(it => it.text) : [];
+        return {
+          id: fd.id && typeof fd.id === 'string' ? fd.id : uid('flash'),
+          name: String(fd.name || 'Flash Deck'),
+          type: fd.type === 'sentences' ? 'sentences' : 'words',
+          items
+        };
+      }) : [];
+
       return {
         id: uid('deck'),
         deckName,
         cover,
         includeToc,
         pages: safePages.length ? safePages : [createEmptyPage()],
+        flashDecks: safeFlashDecks,
         updatedAt: Date.now()
       };
     }
@@ -1092,6 +1343,16 @@
       const d = currentDeck();
       if (!d || !state.currentPageId) return null;
       return d.pages.find(p => p.id === state.currentPageId) || null;
+    }
+    function deckFlashDecks(deck) {
+      if (!deck) return [];
+      if (!Array.isArray(deck.flashDecks)) deck.flashDecks = [];
+      return deck.flashDecks;
+    }
+    function currentFlashDeck() {
+      const d = currentDeck();
+      if (!d || !state.ui.currentFlashDeckId) return null;
+      return deckFlashDecks(d).find(f => f.id === state.ui.currentFlashDeckId) || null;
     }
     function filteredPages() {
       const d = currentDeck();
@@ -1139,7 +1400,8 @@
           <button class="icon-btn ${state.ui.historyOpen ? 'active' : ''}" id="btnHistory" title="History">🕒</button>
           <button class="icon-btn" id="btnTheme" title="Theme">${state.theme === 'dark' ? '☀️' : '🌙'}</button>
           <button class="icon-btn" id="btnFont" title="Font size">🔤</button>
-          ${deck && state.ui.mode !== 'edit' ? '<button class="icon-btn" id="btnAddPage" title="Add page">➕</button>' : ''}
+          ${deck && state.ui.mode !== 'edit' ? `<button class="icon-btn ${state.ui.mode === 'flashManager' ? 'active' : ''}" id="btnFlash" title="Flash cards">🎬</button>` : ''}
+          ${deck && state.ui.mode !== 'edit' && state.ui.mode !== 'flashManager' ? '<button class="icon-btn" id="btnAddPage" title="Add page">➕</button>' : ''}
         </div>`;
       app.appendChild(header);
 
@@ -1150,6 +1412,7 @@
 
       if (state.ui.mode === 'library') renderLibrary(main);
       else if (state.ui.mode === 'edit') renderEditor(main);
+      else if (state.ui.mode === 'flashManager') renderFlashManager(main);
       else renderDeckView(main);
 
       // Side panels
@@ -1210,6 +1473,11 @@
       };
       const addBtn = $('#btnAddPage');
       if (addBtn) addBtn.onclick = () => startNewPage();
+      const flashBtn = $('#btnFlash');
+      if (flashBtn) flashBtn.onclick = () => {
+        state.ui.mode = state.ui.mode === 'flashManager' ? 'deck' : 'flashManager';
+        render();
+      };
 
       $('#overlayDim').classList.toggle('active', state.ui.topicsOpen || state.ui.historyOpen);
       $('#overlayDim').onclick = () => {
@@ -1551,6 +1819,327 @@
       };
     }
 
+    // ---------- Flash Manager ----------
+    function renderFlashManager(main) {
+      const deck = currentDeck();
+      if (!deck) {
+        state.ui.mode = 'library';
+        render();
+        return;
+      }
+      const flashDecks = deckFlashDecks(deck);
+      if (state.ui.currentFlashDeckId && !flashDecks.find(f => f.id === state.ui.currentFlashDeckId)) {
+        state.ui.currentFlashDeckId = null;
+      }
+      if (!state.ui.currentFlashDeckId && flashDecks.length) {
+        state.ui.currentFlashDeckId = flashDecks[0].id;
+      }
+
+      const view = document.createElement('div');
+      view.className = 'flash-view';
+
+      // List panel
+      const listPanel = document.createElement('div');
+      listPanel.className = 'flash-deck-list-panel';
+      listPanel.innerHTML = `
+        <div class="page-list-header">
+          <span>Flash Decks (${flashDecks.length})</span>
+        </div>
+        <div style="padding:10px;display:flex;gap:6px;border-bottom:1px solid var(--border);">
+          <button class="btn btn-primary btn-sm" id="btnNewWordDeck" style="flex:1;">➕ Words</button>
+          <button class="btn btn-success btn-sm" id="btnNewSentenceDeck" style="flex:1;">➕ Sentences</button>
+        </div>
+        <div class="flash-deck-list" id="flashDeckList"></div>`;
+      view.appendChild(listPanel);
+
+      const listEl = listPanel.querySelector('#flashDeckList');
+      if (!flashDecks.length) {
+        listEl.innerHTML = `<div class="empty-state"><div class="icon">🎬</div><p>No flash decks yet.<br>Create a Words or Sentences deck to get started.</p></div>`;
+      } else {
+        flashDecks.forEach(fd => {
+          const item = document.createElement('div');
+          item.className = 'flash-deck-item' + (fd.id === state.ui.currentFlashDeckId ? ' active' : '');
+          item.innerHTML = `
+            <div class="name"><span class="flash-type-badge">${fd.type === 'sentences' ? 'Sentences' : 'Words'}</span>${escapeHtml(fd.name)}</div>
+            <div class="meta">${fd.items.length} item(s)</div>`;
+          item.onclick = () => {
+            state.ui.currentFlashDeckId = fd.id;
+            render();
+          };
+          listEl.appendChild(item);
+        });
+      }
+
+      $('#btnNewWordDeck', listPanel).onclick = () => {
+        const fd = createEmptyFlashDeck(null, 'words');
+        flashDecks.push(fd);
+        deck.updatedAt = Date.now();
+        state.ui.currentFlashDeckId = fd.id;
+        persist();
+        render();
+      };
+      $('#btnNewSentenceDeck', listPanel).onclick = () => {
+        const fd = createEmptyFlashDeck(null, 'sentences');
+        flashDecks.push(fd);
+        deck.updatedAt = Date.now();
+        state.ui.currentFlashDeckId = fd.id;
+        persist();
+        render();
+      };
+
+      // Editor panel
+      const editorPanel = document.createElement('div');
+      editorPanel.className = 'flash-editor-panel';
+      const fd = currentFlashDeck();
+
+      if (!fd) {
+        editorPanel.innerHTML = `<div class="empty-state"><div class="icon">👈</div><p>Select or create a flash deck.</p></div>`;
+      } else {
+        editorPanel.innerHTML = `
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px;">
+            <input id="flashName" value="${escapeHtml(fd.name)}" style="flex:1;min-width:200px;padding:8px 10px;border:2px solid var(--border);border-radius:8px;font-size:15px;font-weight:700;background:var(--surface);color:var(--text);" />
+            <span class="flash-type-badge">${fd.type === 'sentences' ? 'Sentences' : 'Words'}</span>
+            <button class="btn btn-primary btn-sm" id="btnPresentFlash" ${!fd.items.length ? 'disabled' : ''}>▶️ Present</button>
+            <button class="btn btn-outline btn-sm" id="btnDupFlash">📋 Duplicate</button>
+            <button class="btn btn-danger btn-sm" id="btnDelFlash">🗑️ Delete</button>
+          </div>
+          <div class="form-group">
+            <label>Add ${fd.type === 'sentences' ? 'sentences' : 'words'} — separate with commas or new lines</label>
+            <textarea id="flashBulkInput" class="code" rows="4" placeholder="${fd.type === 'sentences' ? 'The cat sat.\nWe like to run.' : 'cat, hat, mat, sat'}"></textarea>
+            <div style="margin-top:8px;">
+              <button class="btn btn-success btn-sm" id="btnParseAdd">Parse &amp; Add</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Sequence (${fd.items.length}) — this is the presentation order</label>
+            <div class="flash-items-wrap" id="flashItemsWrap"></div>
+          </div>`;
+      }
+      view.appendChild(editorPanel);
+      main.appendChild(view);
+
+      if (fd) {
+        $('#flashName').onchange = (e) => {
+          fd.name = (e.target.value || '').trim() || fd.name;
+          deck.updatedAt = Date.now();
+          persist();
+          render();
+        };
+        $('#btnPresentFlash').onclick = () => enterFlashPresent(fd);
+        $('#btnDupFlash').onclick = () => {
+          const copy = clone(fd);
+          copy.id = uid('flash');
+          copy.name = fd.name + ' (copy)';
+          flashDecks.push(copy);
+          deck.updatedAt = Date.now();
+          state.ui.currentFlashDeckId = copy.id;
+          persist();
+          render();
+          showToast('Flash deck duplicated', 'success');
+        };
+        $('#btnDelFlash').onclick = () => {
+          confirmDialog(`Delete flash deck "${fd.name}"?`, () => {
+            deck.flashDecks = flashDecks.filter(x => x.id !== fd.id);
+            state.ui.currentFlashDeckId = deck.flashDecks[0]?.id || null;
+            deck.updatedAt = Date.now();
+            persist();
+            render();
+            showToast('Flash deck deleted', 'success');
+          });
+        };
+        $('#btnParseAdd').onclick = () => {
+          const raw = $('#flashBulkInput').value;
+          const newItems = parseFlashInput(raw);
+          if (!newItems.length) {
+            showToast('Nothing to add', 'warning');
+            return;
+          }
+          fd.items.push(...newItems);
+          deck.updatedAt = Date.now();
+          persist();
+          render();
+          showToast(`Added ${newItems.length} item(s)`, 'success');
+        };
+
+        const itemsWrap = $('#flashItemsWrap');
+        if (!fd.items.length) {
+          itemsWrap.innerHTML = `<div class="empty-state" style="padding:24px;"><p>No items yet. Add some above.</p></div>`;
+        } else {
+          fd.items.forEach((it, i) => {
+            const chip = document.createElement('div');
+            chip.className = 'flash-item-chip';
+            chip.innerHTML = `
+              <button class="btn btn-outline btn-xs up" title="Move earlier" ${i === 0 ? 'disabled' : ''}>↑</button>
+              <button class="btn btn-outline btn-xs down" title="Move later" ${i === fd.items.length - 1 ? 'disabled' : ''}>↓</button>
+              <span class="txt">${escapeHtml(it.text)}</span>
+              <button class="del" title="Remove">✕</button>`;
+            chip.querySelector('.up').onclick = () => {
+              if (i === 0) return;
+              [fd.items[i - 1], fd.items[i]] = [fd.items[i], fd.items[i - 1]];
+              deck.updatedAt = Date.now();
+              persist();
+              render();
+            };
+            chip.querySelector('.down').onclick = () => {
+              if (i === fd.items.length - 1) return;
+              [fd.items[i + 1], fd.items[i]] = [fd.items[i], fd.items[i + 1]];
+              deck.updatedAt = Date.now();
+              persist();
+              render();
+            };
+            chip.querySelector('.del').onclick = () => {
+              fd.items.splice(i, 1);
+              deck.updatedAt = Date.now();
+              persist();
+              render();
+            };
+            chip.querySelector('.txt').onclick = () => {
+              const val = prompt('Edit text:', it.text);
+              if (val !== null && val.trim()) {
+                it.text = val.trim();
+                deck.updatedAt = Date.now();
+                persist();
+                render();
+              }
+            };
+            itemsWrap.appendChild(chip);
+          });
+        }
+      }
+    }
+
+    // ---------- Flash Presentation ----------
+    function enterFlashPresent(flashDeck) {
+      if (!flashDeck || !flashDeck.items.length) return;
+      showFlashPresentUI(flashDeck);
+    }
+
+    function showFlashPresentUI(flashDeck) {
+      const overlay = $('#flashOverlay');
+      let idx = 0;
+      // colorMap: itemId -> { tokenIndex -> colorIndex } (session-only)
+      const colorMap = {};
+
+      function getColorIdx(itemId, tokenIdx) {
+        return colorMap[itemId]?.[tokenIdx] ?? 0;
+      }
+      function cycleColor(itemId, tokenIdx) {
+        if (!colorMap[itemId]) colorMap[itemId] = {};
+        const cur = colorMap[itemId][tokenIdx] ?? 0;
+        colorMap[itemId][tokenIdx] = (cur + 1) % FLASH_COLORS.length;
+        paint();
+      }
+      function resetColors() {
+        Object.keys(colorMap).forEach(k => delete colorMap[k]);
+        paint();
+      }
+
+      function paint() {
+        const item = flashDeck.items[idx];
+        if (!item) return;
+        overlay.innerHTML = '';
+        overlay.className = 'flash-overlay active theme-' + flashDeck.type;
+
+        const stage = document.createElement('div');
+        stage.className = 'flash-card-stage';
+
+        if (flashDeck.type === 'sentences') {
+          const wrap = document.createElement('div');
+          wrap.className = 'flash-sentence-display';
+          const words = item.text.split(/\s+/).filter(Boolean);
+          words.forEach((w, ti) => {
+            const span = document.createElement('span');
+            span.className = 'flash-word-token';
+            span.textContent = w;
+            span.style.color = FLASH_COLORS[getColorIdx(item.id, ti)];
+            span.onclick = () => cycleColor(item.id, ti);
+            wrap.appendChild(span);
+          });
+          stage.appendChild(wrap);
+        } else {
+          const wrap = document.createElement('div');
+          wrap.className = 'flash-word-display';
+          const letters = [...item.text];
+          letters.forEach((ch, ti) => {
+            const span = document.createElement('span');
+            span.className = 'flash-letter';
+            span.textContent = ch === ' ' ? '\u00A0' : ch;
+            span.style.color = FLASH_COLORS[getColorIdx(item.id, ti)];
+            span.onclick = () => { if (ch.trim()) cycleColor(item.id, ti); };
+            wrap.appendChild(span);
+          });
+          stage.appendChild(wrap);
+        }
+        overlay.appendChild(stage);
+
+        const nav = document.createElement('div');
+        nav.className = 'flash-nav';
+        const navDisabled = flashDeck.items.length < 2;
+        nav.innerHTML = `
+          <div class="nav-cluster left" ${navDisabled ? 'style="display:none;"' : ''}>
+            <button class="flash-nav-btn" id="flashPrevL" title="Previous">‹</button>
+            <button class="flash-nav-btn" id="flashNextL" title="Next">›</button>
+          </div>
+          <div class="nav-cluster right" ${navDisabled ? 'style="display:none;"' : ''}>
+            <button class="flash-nav-btn" id="flashPrevR" title="Previous">‹</button>
+            <button class="flash-nav-btn" id="flashNextR" title="Next">›</button>
+          </div>`;
+        overlay.appendChild(nav);
+        const flashGoNext = () => { idx = (idx + 1) % flashDeck.items.length; paint(); };
+        const flashGoPrev = () => { idx = (idx - 1 + flashDeck.items.length) % flashDeck.items.length; paint(); };
+        $('#flashNextL').onclick = flashGoNext;
+        $('#flashNextR').onclick = flashGoNext;
+        $('#flashPrevL').onclick = flashGoPrev;
+        $('#flashPrevR').onclick = flashGoPrev;
+
+        const top = document.createElement('div');
+        top.className = 'flash-topbar';
+        top.innerHTML = `
+          <span class="label">${escapeHtml(flashDeck.name)}</span>
+          <div class="controls">
+            <button class="flash-reset-btn" id="flashReset">↺ Reset all colors</button>
+            <button class="flash-close" id="flashClose">✕</button>
+          </div>`;
+        overlay.appendChild(top);
+        $('#flashReset').onclick = resetColors;
+        $('#flashClose').onclick = exitFlashPresent;
+
+        const ind = document.createElement('div');
+        ind.className = 'flash-indicator';
+        ind.textContent = `${idx + 1} / ${flashDeck.items.length}`;
+        overlay.appendChild(ind);
+      }
+
+      paint();
+
+      function onKey(e) {
+        if (e.key === 'Escape') { exitFlashPresent(); return; }
+        if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+          e.preventDefault();
+          idx = (idx + 1) % flashDeck.items.length;
+          paint();
+        } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+          e.preventDefault();
+          idx = (idx - 1 + flashDeck.items.length) % flashDeck.items.length;
+          paint();
+        } else if (e.key === 'r' || e.key === 'R') {
+          resetColors();
+        }
+      }
+      window.__flashPresentKeyHandler = onKey;
+      window.addEventListener('keydown', onKey);
+    }
+
+    function exitFlashPresent() {
+      const overlay = $('#flashOverlay');
+      overlay.classList.remove('active');
+      overlay.innerHTML = '';
+      if (window.__flashPresentKeyHandler) {
+        window.removeEventListener('keydown', window.__flashPresentKeyHandler);
+        window.__flashPresentKeyHandler = null;
+      }
+    }
+
     // ---------- Side panels ----------
     function renderSidePanels() {
       // Remove old
@@ -1665,10 +2254,23 @@
 
         const nav = document.createElement('div');
         nav.className = 'present-nav';
-        nav.innerHTML = `<div class="zone" id="zonePrev"></div><div class="zone" id="zoneNext"></div>`;
+        const navDisabled = deck.pages.length < 2;
+        nav.innerHTML = `
+          <div class="nav-cluster left" ${navDisabled ? 'style="display:none;"' : ''}>
+            <button class="present-nav-btn" id="navPrevL" title="Previous">‹</button>
+            <button class="present-nav-btn" id="navNextL" title="Next">›</button>
+          </div>
+          <div class="nav-cluster right" ${navDisabled ? 'style="display:none;"' : ''}>
+            <button class="present-nav-btn" id="navPrevR" title="Previous">‹</button>
+            <button class="present-nav-btn" id="navNextR" title="Next">›</button>
+          </div>`;
         overlay.appendChild(nav);
-        $('#zonePrev').onclick = () => { idx = (idx - 1 + deck.pages.length) % deck.pages.length; paint(); };
-        $('#zoneNext').onclick = () => { idx = (idx + 1) % deck.pages.length; paint(); };
+        const goNext = () => { idx = (idx + 1) % deck.pages.length; paint(); };
+        const goPrev = () => { idx = (idx - 1 + deck.pages.length) % deck.pages.length; paint(); };
+        $('#navNextL').onclick = goNext;
+        $('#navNextR').onclick = goNext;
+        $('#navPrevL').onclick = goPrev;
+        $('#navPrevR').onclick = goPrev;
 
         const top = document.createElement('div');
         top.className = 'present-topbar';
@@ -1721,7 +2323,8 @@
         deckName: deck.deckName,
         cover: deck.cover,
         includeToc: deck.includeToc,
-        pages: deck.pages
+        pages: deck.pages,
+        flashDecks: deck.flashDecks || []
       };
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
       const a = document.createElement('a');
@@ -1732,6 +2335,90 @@
       showToast('JSON exported', 'success');
     }
 
+    function getPrintStyles() {
+      // Capture the main app stylesheet (contains all page/card/cover/TOC rules + CSS variables)
+      const styles = document.querySelector('style')?.outerHTML || '';
+      return `${styles}
+        <style>
+          /* Force reliable print layout – override app chrome styles that cause blank pages */
+          html, body {
+            height: auto !important;
+            min-height: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow: visible !important;
+            background: #ffffff !important;
+            color: #1a1a1a !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          body * {
+            visibility: visible !important;
+          }
+          .page-frame {
+            box-shadow: none !important;
+            border-radius: 0 !important;
+            margin: 0 auto !important;
+            page-break-after: always;
+            page-break-inside: avoid;
+            break-after: page;
+            break-inside: avoid;
+            width: ${PAGE_W}px !important;
+            min-width: ${PAGE_W}px !important;
+            height: ${PAGE_H}px !important;
+            min-height: ${PAGE_H}px !important;
+            max-height: ${PAGE_H}px !important;
+            overflow: hidden !important;
+            background: #fff !important;
+          }
+          .page-frame:last-child {
+            page-break-after: auto;
+            break-after: auto;
+          }
+          .card, .cover-card, .toc-card {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          @page {
+            size: ${PAGE_W}px ${PAGE_H}px;
+            margin: 0;
+          }
+        </style>`;
+    }
+
+    function openPrintWindow(title, htmlContent) {
+      const win = window.open('', '_blank');
+      if (!win) {
+        showToast('Popup blocked — allow popups to print', 'warning');
+        return;
+      }
+
+      win.document.write(`<!DOCTYPE html><html><head>
+        <meta charset="UTF-8">
+        <title>${escapeHtml(title)}</title>
+        ${getPrintStyles()}
+      </head><body>${htmlContent}</body></html>`);
+      win.document.close();
+
+      // Give the browser time to parse styles and layout before opening the print dialog
+      const tryPrint = () => {
+        try {
+          win.focus();
+          win.print();
+        } catch (_) {
+          showToast('Print failed', 'error');
+        }
+      };
+
+      if (win.document.readyState === 'complete') {
+        setTimeout(tryPrint, 300);
+      } else {
+        win.onload = () => setTimeout(tryPrint, 300);
+      }
+      // Fallback in case onload never fires (some browsers with document.write)
+      setTimeout(tryPrint, 800);
+    }
+
     function printPages(pages, deck, startNum = 1) {
       const root = $('#printRoot');
       root.innerHTML = '';
@@ -1740,52 +2427,14 @@
         root.appendChild(renderPageElement(p, { pageNum: startNum + i }));
       });
 
-      // Get the HTML string before clearing
       const htmlContent = root.innerHTML;
       root.classList.add('hidden');
       root.innerHTML = '';
 
-      const win = window.open('', '_blank');
-      if (!win) {
-        showToast('Popup blocked — allow popups to print', 'warning');
-        return;
-      }
-
-      const styles = document.querySelector('style')?.outerHTML || '';
-      const rootInlineStyle = document.documentElement.getAttribute('style') || '';
-
-      win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Print</title>${styles}
-        <style>
-          @page { size: ${PAGE_W}px ${PAGE_H}px; margin: 0; }
-          body { margin:0; padding:0; background:#fff; }
-          .page-frame { box-shadow:none !important; margin:0 auto !important; page-break-after:always; }
-          .page-frame:last-child { page-break-after:auto; }
-        </style></head><body style="${rootInlineStyle}">${htmlContent}</body></html>`);
-      win.document.close();
-
-      // Wait for the window to fully load before printing
-      win.onload = () => {
-        setTimeout(() => {
-          try {
-            win.focus();
-            win.print();
-          } catch (_) {
-            showToast('Print failed', 'error');
-          }
-        }, 200);
-      };
+      openPrintWindow('Print Page', htmlContent);
     }
 
     function printAll(deck) {
-      const win = window.open('', '_blank');
-      if (!win) {
-        showToast('Popup blocked — allow popups to print', 'warning');
-        return;
-      }
-
-      const styles = document.querySelector('style')?.outerHTML || '';
-      const rootInlineStyle = document.documentElement.getAttribute('style') || '';
-
       let html = '';
       // Cover
       const coverEl = renderCoverElement(deck.cover);
@@ -1808,25 +2457,7 @@
         html += el.outerHTML;
       });
 
-      win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${escapeHtml(deck.deckName)} — Print</title>${styles}
-        <style>
-          @page { size: ${PAGE_W}px ${PAGE_H}px; margin: 0; }
-          body { margin:0; padding:0; background:#fff; }
-          .page-frame { box-shadow:none !important; margin:0 auto !important; page-break-after:always; }
-          .page-frame:last-child { page-break-after:auto; }
-        </style></head><body style="${rootInlineStyle}">${html}</body></html>`);
-      win.document.close();
-
-      win.onload = () => {
-        setTimeout(() => {
-          try {
-            win.focus();
-            win.print();
-          } catch (_) {
-            showToast('Print failed', 'error');
-          }
-        }, 200);
-      };
+      openPrintWindow((deck.deckName || 'Deck') + ' — Print', html);
     }
 
     // ---------- File import ----------
