@@ -1051,7 +1051,7 @@
     const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
     const uid = (p = 'id') => p + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
     const clone = (o) => JSON.parse(JSON.stringify(o));
-    const escapeHtml = (s) => String(s ?? '').replace(/[&<>"']/g, m =>
+    const escapeHtml = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, m =>
       ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
 
     function showToast(msg, type = 'info') {
@@ -1137,7 +1137,7 @@
 
     // ========== PAGE RENDERER ==========
     function renderPageElement(page, opts = {}) {
-      const pageNum = opts.pageNum ?? 1;
+      const pageNum = (opts.pageNum == null ? 1 : opts.pageNum);
       const isThumb = !!opts.isThumbnail;
 
       const frame = document.createElement('div');
@@ -1203,12 +1203,72 @@
         <div class="card cover-card">
           <div class="cover-text-block" style="text-align:center;padding:0 36px;">
             <div class="cover-line"></div>
-            <div class="cover-title">${escapeHtml(cover?.title || 'Phonics')}</div>
-            <div class="cover-subtitle">${escapeHtml(cover?.subtitle || '')}</div>
+            <div class="cover-title">${escapeHtml(cover && cover.title || 'Phonics')}</div>
+            <div class="cover-subtitle">${escapeHtml(cover && cover.subtitle || '')}</div>
             <div class="cover-line"></div>
           </div>
         </div>`;
       return frame;
+    }
+
+    // ========== DEFAULT STARTER DECKS ==========
+    function makeDefaultDecks() {
+      return [
+        {
+          id: 'starter_phonics',
+          deckName: 'Phonics Basics',
+          cover: { title: 'Crystal Phonics', subtitle: 'Phonics Basics' },
+          includeToc: true,
+          pages: [{
+            id: 'starter_phonics_p1',
+            name: 'Short Vowels',
+            mainTitle: 'SHORT VOWELS',
+            subtitle: 'a • e • i • o • u',
+            html: '<div class="content-root"><h2>Short Vowel Practice</h2><div class="vowel-row"><span>a</span><span>e</span><span>i</span><span>o</span><span>u</span></div><p>Use the editor to replace this starter content.</p></div>',
+            css: '.content-root{font-family:Segoe UI,Arial,sans-serif;padding:20px}.content-root h2{font-size:34px;margin-bottom:24px}.vowel-row{display:flex;gap:18px;flex-wrap:wrap}.vowel-row span{font-size:48px;font-weight:800;padding:18px 28px;border:2px solid #F5A623;border-radius:14px;background:#fff8ed}.content-root p{margin-top:24px;font-size:18px;color:#666}',
+            contentBackground: '#ffffff',
+            js: ''
+          }],
+          flashDecks: [],
+          updatedAt: Date.now()
+        },
+        {
+          id: 'starter_blends',
+          deckName: 'Blends & Digraphs',
+          cover: { title: 'Crystal Phonics', subtitle: 'Blends & Digraphs' },
+          includeToc: true,
+          pages: [{
+            id: 'starter_blends_p1',
+            name: 'Beginning Blends',
+            mainTitle: 'BEGINNING BLENDS',
+            subtitle: 'bl • cl • fl • gl • pl • sl',
+            html: '<div class="content-root"><h2>Two-Letter Blends</h2><div class="blend-grid"><span>bl</span><span>cl</span><span>fl</span><span>gl</span><span>pl</span><span>sl</span></div></div>',
+            css: '.content-root{font-family:Segoe UI,Arial,sans-serif;padding:20px}.content-root h2{font-size:34px;margin-bottom:24px}.blend-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}.blend-grid span{font-size:38px;font-weight:800;text-align:center;padding:22px;border:3px solid #F5A623;border-radius:16px;background:#fffaf1}',
+            contentBackground: '#ffffff',
+            js: ''
+          }],
+          flashDecks: [],
+          updatedAt: Date.now()
+        },
+        {
+          id: 'starter_blank',
+          deckName: 'Blank Authoring',
+          cover: { title: 'Crystal Phonics', subtitle: 'Blank Authoring' },
+          includeToc: false,
+          pages: [{
+            id: 'starter_blank_p1',
+            name: 'New Page',
+            mainTitle: 'YOUR TITLE',
+            subtitle: 'EDIT THIS PAGE',
+            html: '<div class="content"><h1>Your content here</h1><p>Write HTML and CSS in the editor.</p></div>',
+            css: '.content{padding:24px}.content h1{font-size:34px;color:#E2571C;margin-bottom:14px}.content p{font-size:20px;line-height:1.5}',
+            contentBackground: '#ffffff',
+            js: ''
+          }],
+          flashDecks: [],
+          updatedAt: Date.now()
+        }
+      ];
     }
 
     // ========== DEFAULTS ==========
@@ -1258,14 +1318,23 @@
     let dbPromise = null;
     function getDB() {
       if (!dbPromise) {
-        dbPromise = new Promise((resolve, reject) => {
-          const req = indexedDB.open(DB_NAME, 1);
-          req.onupgradeneeded = (e) => {
-            const db = e.target.result;
-            if (!db.objectStoreNames.contains(DB_STORE)) db.createObjectStore(DB_STORE);
-          };
-          req.onsuccess = () => resolve(req.result);
-          req.onerror = () => reject(req.error);
+        dbPromise = new Promise(function (resolve, reject) {
+          try {
+            if (!window.indexedDB) {
+              reject(new Error('IndexedDB unavailable'));
+              return;
+            }
+            var req = window.indexedDB.open(DB_NAME, 1);
+            req.onupgradeneeded = function (e) {
+              var db = e.target.result;
+              if (!db.objectStoreNames.contains(DB_STORE)) db.createObjectStore(DB_STORE);
+            };
+            req.onsuccess = function () { resolve(req.result); };
+            req.onerror = function () { reject(req.error || new Error('IndexedDB open failed')); };
+            req.onblocked = function () { reject(new Error('IndexedDB blocked')); };
+          } catch (err) {
+            reject(err);
+          }
         });
       }
       return dbPromise;
@@ -1333,7 +1402,7 @@
       if (Array.isArray(raw.pages)) {
         pages = raw.pages;
         if (raw.deckName) deckName = String(raw.deckName);
-        else if (raw.coverData?.title) deckName = String(raw.coverData.title);
+        else if (raw.coverData && raw.coverData.title) deckName = String(raw.coverData.title);
         if (raw.cover) cover = { title: String(raw.cover.title || cover.title), subtitle: String(raw.cover.subtitle || '') };
         else if (raw.coverData) cover = { title: String(raw.coverData.title || cover.title), subtitle: String(raw.coverData.subtitle || '') };
         if (raw.includeToc !== undefined) includeToc = !!raw.includeToc;
@@ -1351,7 +1420,7 @@
             name: String(p.name || p.mainTitle || 'Structured Page'),
             mainTitle: String(p.mainTitle || 'Untitled'),
             subtitle: String(p.subtitle || ''),
-            html: `<div class="content"><p><em>Imported structured page — re-create in editor or export as code page from Publisher.</em></p><pre style="font-size:12px;white-space:pre-wrap;">${escapeHtml(JSON.stringify(p.sections?.map(s => s.type), null, 0))}</pre></div>`,
+            html: `<div class="content"><p><em>Imported structured page — re-create in editor or export as code page from Publisher.</em></p><pre style="font-size:12px;white-space:pre-wrap;">${escapeHtml(JSON.stringify((p.sections ? p.sections.map(s => s.type) : []), null, 0))}</pre></div>`,
             css: '.content{padding:8px}em{color:#666}',
             contentBackground: '#ffffff',
             js: ''
@@ -1499,7 +1568,7 @@
         state.ui.dirty = false;
         state.currentDeckId = id;
         const d = state.decks[id];
-        state.currentPageId = d?.pages[0]?.id || null;
+        state.currentPageId = (d && d.pages && d.pages[0] ? d.pages[0].id : null) || null;
         state.ui.mode = 'deck';
         state.searchQuery = '';
         persist();
@@ -1553,7 +1622,7 @@
     function renderLibrary(main) {
       const view = document.createElement('div');
       view.className = 'library-view';
-      const decks = Object.values(state.decks).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+      const decks = Object.keys(state.decks).map(function(k){ return state.decks[k]; }).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
 
       view.innerHTML = `
         <div class="library-hero">
@@ -1599,7 +1668,7 @@
         card.querySelector('.open').onclick = (e) => {
           e.stopPropagation();
           state.currentDeckId = d.id;
-          state.currentPageId = d.pages[0]?.id || null;
+          state.currentPageId = (d.pages && d.pages[0] ? d.pages[0].id : null) || null;
           state.ui.mode = 'deck';
           persist();
           render();
@@ -1700,7 +1769,7 @@
             confirmDialog(`Delete "${p.name}"?`, () => {
               deck.pages = deck.pages.filter(x => x.id !== p.id);
               if (state.currentPageId === p.id) {
-                state.currentPageId = deck.pages[0]?.id || null;
+                state.currentPageId = (deck.pages && deck.pages[0] ? deck.pages[0].id : null);
               }
               deck.updatedAt = Date.now();
               persist();
@@ -1891,7 +1960,7 @@
         slots.querySelectorAll('input[type="file"]').forEach(input => {
           const idx = parseInt(input.dataset.index, 10);
           input.addEventListener('change', function(e) {
-            const file = this.files?.[0];
+            const file = (this.files && this.files[0]);
             if (!file) return;
             if (file.size > 3 * 1024 * 1024) {
               showToast('Image too large (max 3 MB)', 'error');
@@ -2118,7 +2187,7 @@
         $('#btnDelFlash').onclick = () => {
           confirmDialog(`Delete flash deck "${fd.name}"?`, () => {
             deck.flashDecks = flashDecks.filter(x => x.id !== fd.id);
-            state.ui.currentFlashDeckId = deck.flashDecks[0]?.id || null;
+            state.ui.currentFlashDeckId = (deck.flashDecks && deck.flashDecks[0] ? deck.flashDecks[0].id : null) || null;
             deck.updatedAt = Date.now();
             persist();
             render();
@@ -2198,11 +2267,11 @@
       const colorMap = {};
 
       function getColorIdx(itemId, tokenIdx) {
-        return colorMap[itemId]?.[tokenIdx] ?? 0;
+        return (colorMap[itemId] && colorMap[itemId][tokenIdx] ? colorMap[itemId][tokenIdx] : 0);
       }
       function cycleColor(itemId, tokenIdx) {
         if (!colorMap[itemId]) colorMap[itemId] = {};
-        const cur = colorMap[itemId][tokenIdx] ?? 0;
+        const cur = colorMap[itemId][tokenIdx] || 0;
         colorMap[itemId][tokenIdx] = (cur + 1) % FLASH_COLORS.length;
         paint();
       }
@@ -2372,7 +2441,7 @@
           const item = document.createElement('div');
           item.className = 'side-item';
           const d = state.decks[h.deckId];
-          item.innerHTML = `<strong>${escapeHtml(h.name)}</strong><div style="font-size:12px;color:var(--muted)">${escapeHtml(d?.deckName || 'Deck')} · ${new Date(h.ts).toLocaleString()}</div>`;
+          item.innerHTML = `<strong>${escapeHtml(h.name)}</strong><div style="font-size:12px;color:var(--muted)">${escapeHtml((d && d.deckName) || 'Deck')} · ${new Date(h.ts).toLocaleString()}</div>`;
           item.onclick = () => {
             if (!state.decks[h.deckId]) {
               showToast('Deck no longer available', 'warning');
@@ -2509,7 +2578,7 @@
     }
 
     function getPrintStyles() {
-      const styles = document.querySelector('style')?.outerHTML || '';
+      const styles = (document.querySelector('style') && document.querySelector('style').outerHTML) || '';
       return `${styles}
         <style>
           html, body {
@@ -2558,34 +2627,42 @@
     }
 
     function openPrintWindow(title, htmlContent) {
-      const win = window.open('', '_blank');
+      // Prefer native printing from the current document so popup blockers
+      // cannot prevent printing.
+      var root = $('#printRoot');
+      if (root) {
+        try {
+          root.innerHTML = htmlContent;
+          root.classList.remove('hidden');
+          setTimeout(function () {
+            try { window.print(); } catch (_) {}
+          }, 60);
+          setTimeout(function () {
+            root.classList.add('hidden');
+            root.innerHTML = '';
+          }, 1500);
+          return;
+        } catch (_) {}
+      }
+
+      // Fallback for browsers that need a separate print document.
+      var win = window.open('', '_blank');
       if (!win) {
-        showToast('Popup blocked — allow popups to print', 'warning');
+        showToast('Printing is unavailable because the browser blocked the print window.', 'warning');
         return;
       }
-
-      win.document.write(`<!DOCTYPE html><html><head>
-        <meta charset="UTF-8">
-        <title>${escapeHtml(title)}</title>
-        ${getPrintStyles()}
-      </head><body>${htmlContent}</body></html>`);
-      win.document.close();
-
-      const tryPrint = () => {
-        try {
-          win.focus();
-          win.print();
-        } catch (_) {
-          showToast('Print failed', 'error');
-        }
-      };
-
-      if (win.document.readyState === 'complete') {
-        setTimeout(tryPrint, 300);
-      } else {
-        win.onload = () => setTimeout(tryPrint, 300);
+      try {
+        win.document.open();
+        win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>' +
+          escapeHtml(title || 'Print') + '</title>' + getPrintStyles() +
+          '</head><body>' + htmlContent + '</body></html>');
+        win.document.close();
+        setTimeout(function () {
+          try { win.focus(); win.print(); } catch (_) {}
+        }, 350);
+      } catch (_) {
+        showToast('Print failed', 'error');
       }
-      setTimeout(tryPrint, 800);
     }
 
     function printPages(pages, deck, startNum = 1) {
@@ -2628,7 +2705,7 @@
 
     // ---------- File import ----------
     $('#fileInput').addEventListener('change', (e) => {
-      const file = e.target.files?.[0];
+      const file = (e.target.files && e.target.files[0]);
       e.target.value = '';
       if (!file) return;
       if (file.size > 25 * 1024 * 1024) {
@@ -2642,7 +2719,7 @@
           const deck = normalizeImported(raw);
           state.decks[deck.id] = deck;
           state.currentDeckId = deck.id;
-          state.currentPageId = deck.pages[0]?.id || null;
+          state.currentPageId = (deck.pages && deck.pages[0] ? deck.pages[0].id : null);
           state.ui.mode = 'deck';
           state.searchQuery = '';
           persist();
@@ -2659,17 +2736,40 @@
 
     // ========== INIT ==========
     async function init() {
-      await loadPersisted();
-      if (state.currentDeckId && state.decks[state.currentDeckId]) {
+      // Paint the shell first. Storage problems must never leave a blank app.
+      render();
+
+      try {
+        await loadPersisted();
+      } catch (_) {}
+
+      if (!state.decks || Object.keys(state.decks).length === 0) {
+        var starters = makeDefaultDecks();
+        starters.forEach(function (deck) {
+          state.decks[deck.id] = deck;
+        });
+        state.currentDeckId = starters[0].id;
+        state.currentPageId = starters[0].pages[0].id;
         state.ui.mode = 'deck';
-        if (!state.currentPageId) {
-          state.currentPageId = state.decks[state.currentDeckId].pages[0]?.id || null;
+        persist();
+      } else if (state.currentDeckId && state.decks[state.currentDeckId]) {
+        state.ui.mode = 'deck';
+        if (!state.currentPageId && state.decks[state.currentDeckId].pages.length) {
+          state.currentPageId = state.decks[state.currentDeckId].pages[0].id;
         }
       } else {
         state.ui.mode = 'library';
       }
+
       render();
     }
+
+    window.addEventListener('error', function (e) {
+      try { console.error(e.error || e.message); } catch (_) {}
+    });
+    window.addEventListener('unhandledrejection', function (e) {
+      try { console.error(e.reason || e); } catch (_) {}
+    });
 
     init().catch(err => {
       console.error(err);
