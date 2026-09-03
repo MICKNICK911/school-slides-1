@@ -1046,6 +1046,8 @@
       }
     };
 
+    let deckScrollMap = {};       // deckId -> { scroll, search }
+    let lastRenderedDeckId = null; // tracks which deck was last rendered
     // ========== UTIL ==========
     const $ = (sel, root = document) => root.querySelector(sel);
     const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -3118,117 +3120,164 @@
       document.documentElement.style.setProperty('--font-scale', state.fontScale);
     }
 
-    function render() {
-      applyTheme();
-      const app = $('#app');
-      app.innerHTML = '';
+   function render() {
+  applyTheme();
 
-      const header = document.createElement('header');
-      header.className = 'app-header';
-      const deck = currentDeck();
-      const deckOptions = Object.values(state.decks)
-        .map(d => `<option value="${d.id}" ${d.id === state.currentDeckId ? 'selected' : ''}>${escapeHtml(d.deckName)}</option>`)
-        .join('');
-
-      header.innerHTML = `
-        <div class="logo" id="logoBtn"><span>📚</span> Slide Studio</div>
-        <select class="deck-switcher" id="deckSwitcher" title="Switch deck">
-          <option value="">— Decks —</option>
-          ${deckOptions}
-        </select>
-        <div class="search-wrap">
-          <input type="search" id="searchInput" placeholder="Search pages..." value="${escapeHtml(state.searchQuery)}" ${state.ui.mode === 'library' ? 'disabled' : ''} />
-        </div>
-        <div class="header-actions">
-          <button class="icon-btn" id="btnLoad" title="Load JSON">📂</button>
-          <button class="icon-btn ${state.ui.topicsOpen ? 'active' : ''}" id="btnTopics" title="Topics">📚</button>
-          <button class="icon-btn ${state.ui.historyOpen ? 'active' : ''}" id="btnHistory" title="History">🕒</button>
-          <button class="icon-btn" id="btnTheme" title="Theme">${state.theme === 'dark' ? '☀️' : '🌙'}</button>
-          <button class="icon-btn" id="btnFont" title="Font size">🔤</button>
-          ${deck && state.ui.mode !== 'edit' ? `<button class="icon-btn ${state.ui.mode === 'flashManager' ? 'active' : ''}" id="btnFlash" title="Flash cards">🎬</button>` : ''}
-          ${deck && state.ui.mode !== 'edit' && state.ui.mode !== 'flashManager' ? '<button class="icon-btn" id="btnAddPage" title="Add page">➕</button>' : ''}
-        </div>`;
-      app.appendChild(header);
-
-      const main = document.createElement('div');
-      main.className = 'main';
-      app.appendChild(main);
-
-      if (state.ui.mode === 'library') renderLibrary(main);
-      else if (state.ui.mode === 'edit') renderEditor(main);
-      else if (state.ui.mode === 'flashManager') renderFlashManager(main);
-      else renderDeckView(main);
-
-      renderSidePanels();
-
-      $('#logoBtn').onclick = () => {
-        if (state.ui.dirty && !confirm('Discard unsaved changes?')) return;
-        state.ui.dirty = false;
-        state.ui.mode = 'library';
-        state.ui.topicsOpen = false;
-        state.ui.historyOpen = false;
-        render();
-      };
-      $('#deckSwitcher').onchange = (e) => {
-        const id = e.target.value;
-        if (!id) return;
-        if (state.ui.dirty && !confirm('Discard unsaved changes?')) {
-          e.target.value = state.currentDeckId || '';
-          return;
-        }
-        state.ui.dirty = false;
-        state.currentDeckId = id;
-        const d = state.decks[id];
-        state.currentPageId = (d && d.pages && d.pages[0] ? d.pages[0].id : null) || null;
-        state.ui.mode = 'deck';
-        state.searchQuery = '';
-        persist();
-        render();
-      };
-      $('#searchInput').oninput = (e) => {
-        state.searchQuery = e.target.value;
-        if (state.ui.mode === 'deck') render();
-      };
-      $('#btnLoad').onclick = () => $('#fileInput').click();
-      $('#btnTopics').onclick = () => {
-        state.ui.topicsOpen = !state.ui.topicsOpen;
-        state.ui.historyOpen = false;
-        render();
-      };
-      $('#btnHistory').onclick = () => {
-        state.ui.historyOpen = !state.ui.historyOpen;
-        state.ui.topicsOpen = false;
-        render();
-      };
-      $('#btnTheme').onclick = () => {
-        state.theme = state.theme === 'dark' ? 'light' : 'dark';
-        persist();
-        render();
-      };
-      $('#btnFont').onclick = () => {
-        const scales = [0.9, 1, 1.1, 1.2];
-        const i = scales.indexOf(state.fontScale);
-        state.fontScale = scales[(i + 1) % scales.length];
-        persist();
-        render();
-        showToast(`Font scale: ${state.fontScale}`, 'info');
-      };
-      const addBtn = $('#btnAddPage');
-      if (addBtn) addBtn.onclick = () => startNewPage();
-      const flashBtn = $('#btnFlash');
-      if (flashBtn) flashBtn.onclick = () => {
-        state.ui.mode = state.ui.mode === 'flashManager' ? 'deck' : 'flashManager';
-        render();
-      };
-
-      $('#overlayDim').classList.toggle('active', state.ui.topicsOpen || state.ui.historyOpen);
-      $('#overlayDim').onclick = () => {
-        state.ui.topicsOpen = false;
-        state.ui.historyOpen = false;
-        render();
+  // Capture scroll only if we are still showing the same deck (not switching decks)
+  if (state.ui.mode === 'deck' && state.currentDeckId === lastRenderedDeckId) {
+    const listEl = document.querySelector('.page-list');
+    if (listEl) {
+      deckScrollMap[state.currentDeckId] = {
+        scroll: listEl.scrollTop,
+        search: state.searchQuery || ''
       };
     }
+  }
 
+  const app = $('#app');
+  app.innerHTML = '';
+
+  const header = document.createElement('header');
+  header.className = 'app-header';
+  const deck = currentDeck();
+  const deckOptions = Object.values(state.decks)
+    .map(d => `<option value="${d.id}" ${d.id === state.currentDeckId ? 'selected' : ''}>${escapeHtml(d.deckName)}</option>`)
+    .join('');
+
+  header.innerHTML = `
+    <div class="logo" id="logoBtn"><span>📚</span> Slide Studio</div>
+    <select class="deck-switcher" id="deckSwitcher" title="Switch deck">
+      <option value="">— Decks —</option>
+      ${deckOptions}
+    </select>
+    <div class="search-wrap">
+      <input type="search" id="searchInput" placeholder="Search pages..." value="${escapeHtml(state.searchQuery)}" ${state.ui.mode === 'library' ? 'disabled' : ''} />
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn" id="btnLoad" title="Load JSON">📂</button>
+      <button class="icon-btn ${state.ui.topicsOpen ? 'active' : ''}" id="btnTopics" title="Topics">📚</button>
+      <button class="icon-btn ${state.ui.historyOpen ? 'active' : ''}" id="btnHistory" title="History">🕒</button>
+      <button class="icon-btn" id="btnTheme" title="Theme">${state.theme === 'dark' ? '☀️' : '🌙'}</button>
+      <button class="icon-btn" id="btnFont" title="Font size">🔤</button>
+      ${deck && state.ui.mode !== 'edit' ? `<button class="icon-btn ${state.ui.mode === 'flashManager' ? 'active' : ''}" id="btnFlash" title="Flash cards">🎬</button>` : ''}
+      ${deck && state.ui.mode !== 'edit' && state.ui.mode !== 'flashManager' ? '<button class="icon-btn" id="btnAddPage" title="Add page">➕</button>' : ''}
+    </div>`;
+  app.appendChild(header);
+
+  const main = document.createElement('div');
+  main.className = 'main';
+  app.appendChild(main);
+
+  if (state.ui.mode === 'library') renderLibrary(main);
+  else if (state.ui.mode === 'edit') renderEditor(main);
+  else if (state.ui.mode === 'flashManager') renderFlashManager(main);
+  else renderDeckView(main);
+
+  renderSidePanels();
+
+  // Wire up header actions
+  $('#logoBtn').onclick = () => {
+    if (state.ui.dirty && !confirm('Discard unsaved changes?')) return;
+    captureDeckScroll();  // save current deck scroll before leaving
+    state.ui.dirty = false;
+    state.ui.mode = 'library';
+    state.ui.topicsOpen = false;
+    state.ui.historyOpen = false;
+    lastRenderedDeckId = null;
+    render();
+  };
+
+  $('#deckSwitcher').onchange = (e) => {
+    const id = e.target.value;
+    if (!id) return;
+    if (state.ui.dirty && !confirm('Discard unsaved changes?')) {
+      e.target.value = state.currentDeckId || '';
+      return;
+    }
+
+    // Capture the current deck's scroll BEFORE switching
+    if (state.ui.mode === 'deck' && state.currentDeckId) {
+      const listEl = document.querySelector('.page-list');
+      if (listEl) {
+        deckScrollMap[state.currentDeckId] = {
+          scroll: listEl.scrollTop,
+          search: state.searchQuery || ''
+        };
+      }
+    }
+
+    state.ui.dirty = false;
+    state.currentDeckId = id;
+    const d = state.decks[id];
+    state.currentPageId = (d && d.pages && d.pages[0] ? d.pages[0].id : null) || null;
+    state.ui.mode = 'deck';
+    state.searchQuery = '';
+    lastRenderedDeckId = null;
+    persist();
+    render();
+  };
+
+  $('#searchInput').oninput = (e) => {
+    state.searchQuery = e.target.value;
+    if (state.ui.mode === 'deck') render();
+  };
+
+  $('#btnLoad').onclick = () => $('#fileInput').click();
+  $('#btnTopics').onclick = () => {
+    state.ui.topicsOpen = !state.ui.topicsOpen;
+    state.ui.historyOpen = false;
+    render();
+  };
+  $('#btnHistory').onclick = () => {
+    state.ui.historyOpen = !state.ui.historyOpen;
+    state.ui.topicsOpen = false;
+    render();
+  };
+  $('#btnTheme').onclick = () => {
+    state.theme = state.theme === 'dark' ? 'light' : 'dark';
+    persist();
+    render();
+  };
+  $('#btnFont').onclick = () => {
+    const scales = [0.9, 1, 1.1, 1.2];
+    const i = scales.indexOf(state.fontScale);
+    state.fontScale = scales[(i + 1) % scales.length];
+    persist();
+    render();
+    showToast(`Font scale: ${state.fontScale}`, 'info');
+  };
+  const addBtn = $('#btnAddPage');
+  if (addBtn) addBtn.onclick = () => startNewPage();
+  const flashBtn = $('#btnFlash');
+  if (flashBtn) flashBtn.onclick = () => {
+    captureDeckScroll();  // save scroll before switching to flash manager
+    state.ui.mode = state.ui.mode === 'flashManager' ? 'deck' : 'flashManager';
+    render();
+  };
+
+  $('#overlayDim').classList.toggle('active', state.ui.topicsOpen || state.ui.historyOpen);
+  $('#overlayDim').onclick = () => {
+    state.ui.topicsOpen = false;
+    state.ui.historyOpen = false;
+    render();
+  };
+
+  // After rendering, remember which deck is displayed
+  lastRenderedDeckId = state.ui.mode === 'deck' ? state.currentDeckId : null;
+}
+
+// Helper to capture the currently displayed deck's scroll (used when leaving deck view)
+function captureDeckScroll() {
+  if (state.ui.mode === 'deck' && state.currentDeckId) {
+    const listEl = document.querySelector('.page-list');
+    if (listEl) {
+      deckScrollMap[state.currentDeckId] = {
+        scroll: listEl.scrollTop,
+        search: state.searchQuery || ''
+      };
+    }
+  }
+}
     // ---------- Library ----------
     function renderLibrary(main) {
       const view = document.createElement('div');
@@ -3318,113 +3367,129 @@
 
     // ---------- Deck View ----------
     function renderDeckView(main) {
-      const deck = currentDeck();
-      if (!deck) {
-        state.ui.mode = 'library';
+  const deck = currentDeck();
+  if (!deck) {
+    state.ui.mode = 'library';
+    render();
+    return;
+  }
+
+  const view = document.createElement('div');
+  view.className = 'deck-view';
+
+  const listPanel = document.createElement('div');
+  listPanel.className = 'page-list-panel';
+  const pages = filteredPages();
+  listPanel.innerHTML = `
+    <div class="page-list-header">
+      <span>Pages (${pages.length}/${deck.pages.length})</span>
+    </div>
+    <div class="page-list" id="pageList"></div>`;
+  view.appendChild(listPanel);
+
+  const list = listPanel.querySelector('#pageList');
+  if (!pages.length) {
+    list.innerHTML = `<div class="empty-state"><p>No pages match.</p></div>`;
+  } else {
+    pages.forEach((p) => {
+      const item = document.createElement('div');
+      item.className = 'page-item' + (p.id === state.currentPageId ? ' active' : '');
+      item.innerHTML = `
+        <div class="name">${escapeHtml(p.name)}</div>
+        <div class="title">${escapeHtml(p.mainTitle)}</div>
+        <div class="item-actions">
+          <button class="btn btn-outline btn-xs edit">✏️</button>
+          <button class="btn btn-outline btn-xs dup">📋</button>
+          <button class="btn btn-danger btn-xs del">🗑️</button>
+        </div>`;
+      item.onclick = (e) => {
+        if (e.target.closest('.item-actions')) return;
+        state.currentPageId = p.id;
+        pushHistory(deck.id, p.id, p.name);
         render();
-        return;
-      }
-
-      const view = document.createElement('div');
-      view.className = 'deck-view';
-
-      const listPanel = document.createElement('div');
-      listPanel.className = 'page-list-panel';
-      const pages = filteredPages();
-      listPanel.innerHTML = `
-        <div class="page-list-header">
-          <span>Pages (${pages.length}/${deck.pages.length})</span>
-        </div>
-        <div class="page-list" id="pageList"></div>`;
-      view.appendChild(listPanel);
-
-      const list = listPanel.querySelector('#pageList');
-      if (!pages.length) {
-        list.innerHTML = `<div class="empty-state"><p>No pages match.</p></div>`;
-      } else {
-        pages.forEach((p) => {
-          const item = document.createElement('div');
-          item.className = 'page-item' + (p.id === state.currentPageId ? ' active' : '');
-          item.innerHTML = `
-            <div class="name">${escapeHtml(p.name)}</div>
-            <div class="title">${escapeHtml(p.mainTitle)}</div>
-            <div class="item-actions">
-              <button class="btn btn-outline btn-xs edit">✏️</button>
-              <button class="btn btn-outline btn-xs dup">📋</button>
-              <button class="btn btn-danger btn-xs del">🗑️</button>
-            </div>`;
-          item.onclick = (e) => {
-            if (e.target.closest('.item-actions')) return;
-            state.currentPageId = p.id;
-            pushHistory(deck.id, p.id, p.name);
-            render();
-          };
-          item.querySelector('.edit').onclick = (e) => {
-            e.stopPropagation();
-            startEditPage(p.id);
-          };
-          item.querySelector('.dup').onclick = (e) => {
-            e.stopPropagation();
-            const copy = clone(p);
-            copy.id = uid('p');
-            copy.name = (copy.name || 'Page') + ' (copy)';
-            deck.pages.push(copy);
-            deck.updatedAt = Date.now();
-            state.currentPageId = copy.id;
-            persist();
-            render();
-            showToast('Page duplicated', 'success');
-          };
-          item.querySelector('.del').onclick = (e) => {
-            e.stopPropagation();
-            confirmDialog(`Delete "${p.name}"?`, () => {
-              deck.pages = deck.pages.filter(x => x.id !== p.id);
-              if (state.currentPageId === p.id) {
-                state.currentPageId = (deck.pages && deck.pages[0] ? deck.pages[0].id : null);
-              }
-              deck.updatedAt = Date.now();
-              persist();
-              render();
-              showToast('Page deleted', 'success');
-            });
-          };
-          list.appendChild(item);
+      };
+      item.querySelector('.edit').onclick = (e) => {
+        e.stopPropagation();
+        startEditPage(p.id);
+      };
+      item.querySelector('.dup').onclick = (e) => {
+        e.stopPropagation();
+        const copy = clone(p);
+        copy.id = uid('p');
+        copy.name = (copy.name || 'Page') + ' (copy)';
+        deck.pages.push(copy);
+        deck.updatedAt = Date.now();
+        state.currentPageId = copy.id;
+        persist();
+        render();
+        showToast('Page duplicated', 'success');
+      };
+      item.querySelector('.del').onclick = (e) => {
+        e.stopPropagation();
+        confirmDialog(`Delete "${p.name}"?`, () => {
+          deck.pages = deck.pages.filter(x => x.id !== p.id);
+          if (state.currentPageId === p.id) {
+            state.currentPageId = (deck.pages && deck.pages[0] ? deck.pages[0].id : null);
+          }
+          deck.updatedAt = Date.now();
+          persist();
+          render();
+          showToast('Page deleted', 'success');
         });
-      }
+      };
+      list.appendChild(item);
+    });
+  }
 
-      const preview = document.createElement('div');
-      preview.className = 'preview-panel';
-      const page = currentPage();
-      const pageNum = page ? deck.pages.findIndex(x => x.id === page.id) + 1 : 0;
-
-      preview.innerHTML = `
-        <div class="preview-toolbar">
-          <span class="info">${page ? escapeHtml(page.name) + ' · ' + pageNum + ' / ' + deck.pages.length : 'No page selected'}</span>
-          <button class="btn btn-primary btn-sm" id="btnPresent" ${!page ? 'disabled' : ''}>▶️ Present</button>
-          <button class="btn btn-outline btn-sm" id="btnEdit" ${!page ? 'disabled' : ''}>✏️ Edit</button>
-          <button class="btn btn-outline btn-sm" id="btnPrintOne" ${!page ? 'disabled' : ''}>🖨️ Page</button>
-          <button class="btn btn-success btn-sm" id="btnPrintAll">🖨️ All</button>
-          <button class="btn btn-outline btn-sm" id="btnExportDeck">📤 JSON</button>
-        </div>
-        <div class="preview-scroll" id="previewScroll"></div>`;
-      view.appendChild(preview);
-      main.appendChild(view);
-
-      const scroll = $('#previewScroll');
-      if (page) {
-        const el = renderPageElement(page, { pageNum });
-        scroll.appendChild(el);
-      } else {
-        scroll.innerHTML = `<div class="empty-state"><div class="icon">📄</div><p>Select a page or add one.</p></div>`;
-      }
-
-      $('#btnPresent').onclick = () => enterPresent();
-      $('#btnEdit').onclick = () => page && startEditPage(page.id);
-      $('#btnPrintOne').onclick = () => page && printPages([page], deck, pageNum);
-      $('#btnPrintAll').onclick = () => printAll(deck);
-      $('#btnExportDeck').onclick = () => exportDeck(deck);
+  // >>> Restore scroll using requestAnimationFrame <<<
+  const deckId = state.currentDeckId;
+  const saved = deckScrollMap[deckId];
+  const listScrollEl = view.querySelector('.page-list');
+  if (listScrollEl && saved) {
+    if (saved.search === state.searchQuery) {
+      // Apply after the browser has laid out the new items
+      requestAnimationFrame(() => {
+        listScrollEl.scrollTop = saved.scroll;
+      });
+    } else {
+      deckScrollMap[deckId] = { scroll: 0, search: state.searchQuery };
+      listScrollEl.scrollTop = 0;
     }
+  }
+  // >>> End restore <<<
 
+  const preview = document.createElement('div');
+  preview.className = 'preview-panel';
+  const page = currentPage();
+  const pageNum = page ? deck.pages.findIndex(x => x.id === page.id) + 1 : 0;
+
+  preview.innerHTML = `
+    <div class="preview-toolbar">
+      <span class="info">${page ? escapeHtml(page.name) + ' · ' + pageNum + ' / ' + deck.pages.length : 'No page selected'}</span>
+      <button class="btn btn-primary btn-sm" id="btnPresent" ${!page ? 'disabled' : ''}>▶️ Present</button>
+      <button class="btn btn-outline btn-sm" id="btnEdit" ${!page ? 'disabled' : ''}>✏️ Edit</button>
+      <button class="btn btn-outline btn-sm" id="btnPrintOne" ${!page ? 'disabled' : ''}>🖨️ Page</button>
+      <button class="btn btn-success btn-sm" id="btnPrintAll">🖨️ All</button>
+      <button class="btn btn-outline btn-sm" id="btnExportDeck">📤 JSON</button>
+    </div>
+    <div class="preview-scroll" id="previewScroll"></div>`;
+  view.appendChild(preview);
+  main.appendChild(view);
+
+  const scroll = $('#previewScroll');
+  if (page) {
+    const el = renderPageElement(page, { pageNum });
+    scroll.appendChild(el);
+  } else {
+    scroll.innerHTML = `<div class="empty-state"><div class="icon">📄</div><p>Select a page or add one.</p></div>`;
+  }
+
+  $('#btnPresent').onclick = () => enterPresent();
+  $('#btnEdit').onclick = () => page && startEditPage(page.id);
+  $('#btnPrintOne').onclick = () => page && printPages([page], deck, pageNum);
+  $('#btnPrintAll').onclick = () => printAll(deck);
+  $('#btnExportDeck').onclick = () => exportDeck(deck);
+}
     // ---------- Editor with Image Manager ----------
     function startNewPage() {
       state.ui.editingPageId = null;
