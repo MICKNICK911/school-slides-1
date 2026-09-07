@@ -1586,15 +1586,21 @@
 
     function richTextToStored(html) {
       const d = new DOMParser().parseFromString(String(html || ''), 'text/html');
-      d.querySelectorAll('script,iframe,object,embed,link,meta,base,form').forEach(n => n.remove());
-      d.querySelectorAll('span.highlight').forEach(n => {
+      const root = d.body || d;
+      root.querySelectorAll('script,iframe,object,embed,link,meta,base,form').forEach(n => n.remove());
+      // Only walk body descendants — never unwrap html/head/body (causes HierarchyRequestError)
+      root.querySelectorAll('span.highlight').forEach(n => {
         const parent = n.parentNode;
-        if (!parent) return;
+        if (!parent || parent === d) return;
         while (n.firstChild) parent.insertBefore(n.firstChild, n);
         parent.removeChild(n);
       });
-      d.querySelectorAll('*').forEach(n => {
+      // Snapshot list first; unwrap non-allowed tags inside body only
+      const nodes = Array.from(root.querySelectorAll('*'));
+      nodes.forEach(n => {
+        if (!root.contains(n)) return;
         const tag = n.tagName.toLowerCase();
+        if (tag === 'html' || tag === 'head' || tag === 'body') return;
         const keep = ['b','i','u','strong','em','br','span'];
         [...n.attributes].forEach(a => {
           if (tag === 'span' && a.name === 'style') return;
@@ -1602,12 +1608,12 @@
         });
         if (!keep.includes(tag)) {
           const parent = n.parentNode;
-          if (!parent) return;
+          if (!parent || parent === d) return;
           while (n.firstChild) parent.insertBefore(n.firstChild, n);
           parent.removeChild(n);
         }
       });
-      return d.body.innerHTML
+      return root.innerHTML
         .replace(/<div>/gi, '')
         .replace(/<\/div>/gi, '')
         .replace(/<p>/gi, '')
@@ -2749,171 +2755,169 @@
 
     // ========== INIT ==========
     async function initApp() {
-      try {
-        await loadData();
-        undoStack = [];
-        redoStack = [];
+      await loadData();
+      undoStack = [];
+      redoStack = [];
 
-        document.getElementById('app').innerHTML = `
-          <div class="app-header">
-            <h1>📚 Phonics Lesson Publisher v14 — Robust Unified Pages</h1>
-            <span class="badge" id="pageCount">0</span>
+      document.getElementById('app').innerHTML = `
+        <div class="app-header">
+          <h1>📚 Phonics Lesson Publisher v14 — Robust Unified Pages</h1>
+          <span class="badge" id="pageCount">0</span>
+        </div>
+        <div class="tabs">
+          <button class="tab-btn active" data-tab="edit" onclick="switchTab('edit')">✏️ Edit</button>
+          <button class="btn btn-outline btn-sm" id="undoBtn" onclick="undoLast()" title="Undo (Ctrl+Z)">↶ Undo</button>
+          <button class="btn btn-outline btn-sm" id="redoBtn" onclick="redoLast()" title="Redo (Ctrl+Y)">↷ Redo</button>
+          <span class="history-status" id="historyStatus">No undo · No redo</span>
+          <button class="tab-btn" data-tab="pages" onclick="switchTab('pages')">📖 Pages</button>
+          <button class="tab-btn" data-tab="view" onclick="switchTab('view')">👁️ View</button>
+        </div>
+
+        <div class="tab-panel active" id="editPanel">
+          <div class="form-section">
+            <!-- THUMBNAIL AT THE TOP -->
+            <div class="thumbnail-wrapper">
+              <div class="thumb-label">📄 Live Page Preview</div>
+              <div class="thumbnail-container" id="thumbnailContainer"></div>
+            </div>
+
+            <h2 id="formTitle">➕ Add New Page</h2>
+
+            <div class="form-group">
+              <label>Page Type</label>
+              <select id="pageTypeSelect" onchange="setPageType(this.value)">
+                <option value="structured">Structured (Sections)</option>
+                <option value="code">HTML / CSS Code</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Page Name</label>
+              <input id="fPageName" value="">
+            </div>
+
+            <div class="form-group">
+              <label>Main Title (shared header)</label>
+              <input id="fMainTitle" value="SHORT VOWEL CVC WORDS" oninput="renderThumbnail()">
+            </div>
+            <div class="form-group">
+              <label>Subtitle (shared header)</label>
+              <input id="fSubtitle" value="SHORT VOWEL" oninput="renderThumbnail()">
+            </div>
+
+            <div id="structuredFields">
+              <div class="section-card">
+                <h4>Page Sections</h4>
+                <p style="font-size:12px;color:#6c757d;margin-bottom:8px;">Add sections and choose their width.</p>
+                <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">
+                  ${Object.keys(SECTION_TYPES).map(type =>
+                    `<button class="btn btn-outline btn-sm" onclick="addSection('${type}')">+ ${SECTION_TYPES[type].label}</button>`
+                  ).join('')}
+                </div>
+                <div id="sectionsContainer"></div>
+              </div>
+            </div>
+
+            <div id="codeFields" style="display:none;">
+              <div class="form-group">
+                <label>HTML (page body only)</label>
+                <textarea id="codeHTML" rows="9" oninput="renderThumbnail()"></textarea>
+              </div>
+              <div class="form-group">
+                <label>CSS (scoped to body content)</label>
+                <textarea id="codeCSS" rows="5" oninput="renderThumbnail()"></textarea>
+              </div>
+              <div class="form-group">
+                <label>Content Background Color</label>
+                <input id="codeBg" type="color" value="#ffffff" oninput="renderThumbnail()" style="width:80px;height:36px;padding:2px;">
+              </div>
+              <p style="font-size:12px;color:#6c757d;margin-top:4px;">
+                Header (title + subtitle + lesson number) matches Structured pages. Only the body content below the header is produced by your HTML/CSS.
+              </p>
+            </div>
+
+            <div class="form-actions">
+              <button class="btn btn-primary" id="saveBtn" onclick="savePage()">💾 Save Page</button>
+              <button class="btn btn-outline" id="cancelBtn" onclick="cancelEdit()" style="display:none">Cancel</button>
+            </div>
           </div>
-          <div class="tabs">
-            <button class="tab-btn active" data-tab="edit" onclick="switchTab('edit')">✏️ Edit</button>
-            <button class="btn btn-outline btn-sm" id="undoBtn" onclick="undoLast()" title="Undo (Ctrl+Z)">↶ Undo</button>
-            <button class="btn btn-outline btn-sm" id="redoBtn" onclick="redoLast()" title="Redo (Ctrl+Y)">↷ Redo</button>
-            <span class="history-status" id="historyStatus">No undo · No redo</span>
-            <button class="tab-btn" data-tab="pages" onclick="switchTab('pages')">📖 Pages</button>
-            <button class="tab-btn" data-tab="view" onclick="switchTab('view')">👁️ View</button>
-          </div>
+        </div>
 
-          <div class="tab-panel active" id="editPanel">
-            <div class="form-section">
-              <!-- THUMBNAIL AT THE TOP -->
-              <div class="thumbnail-wrapper">
-                <div class="thumb-label">📄 Live Page Preview</div>
-                <div class="thumbnail-container" id="thumbnailContainer"></div>
+        <div class="tab-panel" id="pagesPanel">
+          <div class="list-section">
+            <div style="margin-bottom:18px;border-bottom:2px solid #e9ecef;padding-bottom:18px;">
+              <h3>📘 Cover Page</h3>
+              <div class="form-group"><label>Cover Title</label>
+                <input id="coverTitleInput" value="${escapeHtml(coverData.title)}">
               </div>
+              <div class="form-group"><label>Cover Subtitle</label>
+                <input id="coverSubtitleInput" value="${escapeHtml(coverData.subtitle)}">
+              </div>
+              <button class="btn btn-success btn-sm" onclick="saveCover()">💾 Save Cover</button>
+              <div class="form-group" style="margin-top:14px;margin-bottom:0;">
+                <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-weight:700;">
+                  <input type="checkbox" id="includeTocToggle" ${includeToc ? 'checked' : ''} onchange="setIncludeToc(this.checked)" style="width:18px;height:18px;accent-color:#F5A623;">
+                  Auto-generate Table of Contents pages
+                </label>
+                <p style="font-size:12px;color:#6c757d;margin-top:4px;margin-bottom:0;">When off, View/Export skips TOC pages. Cover, sight words, and lesson pages are unchanged.</p>
+              </div>
+            </div>
 
-              <h2 id="formTitle">➕ Add New Page</h2>
+            <h2>📖 All Pages</h2>
+            <div class="list-toolbar">
+              <input class="search-box" placeholder="🔍 Search..." oninput="window.searchQuery=this.value;window.renderPageList()">
+              <span class="count" id="listCount">0/0</span>
+              <button class="btn btn-success btn-sm" onclick="exportJSON()">📤 Export</button>
+              <button class="btn btn-outline btn-sm" onclick="document.getElementById('importFile').click()">📥 Import</button>
+              <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(this)">
+            </div>
+            <div class="lesson-list" id="pageList"></div>
 
+            <div style="margin-top:24px;border-top:2px solid #e9ecef;padding-top:18px;">
+              <h3>📝 Sight Words</h3>
               <div class="form-group">
-                <label>Page Type</label>
-                <select id="pageTypeSelect" onchange="setPageType(this.value)">
-                  <option value="structured">Structured (Sections)</option>
-                  <option value="code">HTML / CSS Code</option>
-                </select>
+                <textarea id="fSightWords" rows="3" placeholder="the, of, and, a, to, ..."></textarea>
               </div>
-
-              <div class="form-group">
-                <label>Page Name</label>
-                <input id="fPageName" value="">
-              </div>
-
-              <div class="form-group">
-                <label>Main Title (shared header)</label>
-                <input id="fMainTitle" value="SHORT VOWEL CVC WORDS" oninput="renderThumbnail()">
-              </div>
-              <div class="form-group">
-                <label>Subtitle (shared header)</label>
-                <input id="fSubtitle" value="SHORT VOWEL" oninput="renderThumbnail()">
-              </div>
-
-              <div id="structuredFields">
-                <div class="section-card">
-                  <h4>Page Sections</h4>
-                  <p style="font-size:12px;color:#6c757d;margin-bottom:8px;">Add sections and choose their width.</p>
-                  <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">
-                    ${Object.keys(SECTION_TYPES).map(type =>
-                      `<button class="btn btn-outline btn-sm" onclick="addSection('${type}')">+ ${SECTION_TYPES[type].label}</button>`
-                    ).join('')}
-                  </div>
-                  <div id="sectionsContainer"></div>
-                </div>
-              </div>
-
-              <div id="codeFields" style="display:none;">
-                <div class="form-group">
-                  <label>HTML (page body only)</label>
-                  <textarea id="codeHTML" rows="9" oninput="renderThumbnail()"></textarea>
-                </div>
-                <div class="form-group">
-                  <label>CSS (scoped to body content)</label>
-                  <textarea id="codeCSS" rows="5" oninput="renderThumbnail()"></textarea>
-                </div>
-                <div class="form-group">
-                  <label>Content Background Color</label>
-                  <input id="codeBg" type="color" value="#ffffff" oninput="renderThumbnail()" style="width:80px;height:36px;padding:2px;">
-                </div>
-                <p style="font-size:12px;color:#6c757d;margin-top:4px;">
-                  Header (title + subtitle + lesson number) matches Structured pages. Only the body content below the header is produced by your HTML/CSS.
-                </p>
-              </div>
-
-              <div class="form-actions">
-                <button class="btn btn-primary" id="saveBtn" onclick="savePage()">💾 Save Page</button>
-                <button class="btn btn-outline" id="cancelBtn" onclick="cancelEdit()" style="display:none">Cancel</button>
+              <button class="btn btn-success btn-sm" onclick="saveSightWords()">💾 Save Sight Words</button>
+              <div style="margin-top:10px;"><strong>Preview:</strong>
+                <div id="sightWordsPreview" style="margin-top:6px;"></div>
               </div>
             </div>
           </div>
+        </div>
 
-          <div class="tab-panel" id="pagesPanel">
-            <div class="list-section">
-              <div style="margin-bottom:18px;border-bottom:2px solid #e9ecef;padding-bottom:18px;">
-                <h3>📘 Cover Page</h3>
-                <div class="form-group"><label>Cover Title</label>
-                  <input id="coverTitleInput" value="${escapeHtml(coverData.title)}">
-                </div>
-                <div class="form-group"><label>Cover Subtitle</label>
-                  <input id="coverSubtitleInput" value="${escapeHtml(coverData.subtitle)}">
-                </div>
-                <button class="btn btn-success btn-sm" onclick="saveCover()">💾 Save Cover</button>
-                <div class="form-group" style="margin-top:14px;margin-bottom:0;">
-                  <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-weight:700;">
-                    <input type="checkbox" id="includeTocToggle" ${includeToc ? 'checked' : ''} onchange="setIncludeToc(this.checked)" style="width:18px;height:18px;accent-color:#F5A623;">
-                    Auto-generate Table of Contents pages
-                  </label>
-                  <p style="font-size:12px;color:#6c757d;margin-top:4px;margin-bottom:0;">When off, View/Export skips TOC pages. Cover, sight words, and lesson pages are unchanged.</p>
-                </div>
-              </div>
-
-              <h2>📖 All Pages</h2>
-              <div class="list-toolbar">
-                <input class="search-box" placeholder="🔍 Search..." oninput="window.searchQuery=this.value;window.renderPageList()">
-                <span class="count" id="listCount">0/0</span>
-                <button class="btn btn-success btn-sm" onclick="exportJSON()">📤 Export</button>
-                <button class="btn btn-outline btn-sm" onclick="document.getElementById('importFile').click()">📥 Import</button>
-                <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(this)">
-              </div>
-              <div class="lesson-list" id="pageList"></div>
-
-              <div style="margin-top:24px;border-top:2px solid #e9ecef;padding-top:18px;">
-                <h3>📝 Sight Words</h3>
-                <div class="form-group">
-                  <textarea id="fSightWords" rows="3" placeholder="the, of, and, a, to, ..."></textarea>
-                </div>
-                <button class="btn btn-success btn-sm" onclick="saveSightWords()">💾 Save Sight Words</button>
-                <div style="margin-top:10px;"><strong>Preview:</strong>
-                  <div id="sightWordsPreview" style="margin-top:6px;"></div>
-                </div>
-              </div>
-            </div>
+        <div class="tab-panel" id="viewPanel">
+          <div class="view-toolbar">
+            <span class="info" id="viewInfo">0 pages · 0 total pages</span>
+            <button class="btn btn-primary btn-sm" id="viewEditToggle" onclick="toggleViewTextEditing()">✏️ Editing on</button>
+            <button class="btn btn-success" onclick="exportAllPages()">⬇ Export All</button>
           </div>
-
-          <div class="tab-panel" id="viewPanel">
-            <div class="view-toolbar">
-              <span class="info" id="viewInfo">0 pages · 0 total pages</span>
-              <button class="btn btn-primary btn-sm" id="viewEditToggle" onclick="toggleViewTextEditing()">✏️ Editing on</button>
-              <button class="btn btn-success" onclick="exportAllPages()">⬇ Export All</button>
-            </div>
-            <div class="rte-bar visible no-print" id="rteBar">
-              <span class="rte-label">Format</span>
-              <button class="btn btn-outline btn-xs" data-cmd="bold" onmousedown="event.preventDefault()" onclick="rteCommand('bold')" title="Bold"><b>B</b></button>
-              <button class="btn btn-outline btn-xs" data-cmd="italic" onmousedown="event.preventDefault()" onclick="rteCommand('italic')" title="Italic"><i>I</i></button>
-              <button class="btn btn-outline btn-xs" data-cmd="underline" onmousedown="event.preventDefault()" onclick="rteCommand('underline')" title="Underline"><u>U</u></button>
-              <button class="btn btn-outline btn-xs" onmousedown="event.preventDefault()" onclick="rteCommand('highlight')" title="Highlight">A</button>
-              <button class="btn btn-outline btn-xs" onmousedown="event.preventDefault()" onclick="rteCommand('removeFormat')" title="Clear format">Clear</button>
-              <span style="font-size:12px;color:#6c757d;">Click text on a page to edit. Changes save when you click away.</span>
-            </div>
-            <div class="view-container editing-on" id="viewContainer"></div>
+          <div class="rte-bar visible no-print" id="rteBar">
+            <span class="rte-label">Format</span>
+            <button class="btn btn-outline btn-xs" data-cmd="bold" onmousedown="event.preventDefault()" onclick="rteCommand('bold')" title="Bold"><b>B</b></button>
+            <button class="btn btn-outline btn-xs" data-cmd="italic" onmousedown="event.preventDefault()" onclick="rteCommand('italic')" title="Italic"><i>I</i></button>
+            <button class="btn btn-outline btn-xs" data-cmd="underline" onmousedown="event.preventDefault()" onclick="rteCommand('underline')" title="Underline"><u>U</u></button>
+            <button class="btn btn-outline btn-xs" onmousedown="event.preventDefault()" onclick="rteCommand('highlight')" title="Highlight">A</button>
+            <button class="btn btn-outline btn-xs" onmousedown="event.preventDefault()" onclick="rteCommand('removeFormat')" title="Clear format">Clear</button>
+            <span style="font-size:12px;color:#6c757d;">Click text on a page to edit. Changes save when you click away.</span>
           </div>
-        `;
+          <div class="view-container editing-on" id="viewContainer"></div>
+        </div>
+      `;
 
-        document.getElementById('fSightWords').value = sightWords.join(', ');
-        resetForm();
-        renderPageList();
-        renderAllView();
-        updateCounts();
-        updateHistoryUI();
-        switchTab('edit');
-      } catch (err) {
-        console.error('Initialization error:', err);
-        showToast('Failed to initialize app.', 'error');
-      }
+      document.getElementById('fSightWords').value = sightWords.join(', ');
+      resetForm();
+      renderPageList();
+      renderAllView();
+      updateCounts();
+      updateHistoryUI();
+      switchTab('edit');
     }
 
-    initApp();
+    initApp().catch(err => {
+      console.error(err);
+      showToast('Failed to initialize app.', 'error');
+    });
   })();
   </script>
 </body>
