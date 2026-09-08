@@ -893,9 +893,114 @@
       outline: 2px solid #E2571C;
       background: #fff;
     }
+    .view-img-box {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      vertical-align: middle;
+      background: #f8f9fa;
+      box-sizing: border-box;
+      max-width: 100%;
+    }
+    .view-img-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+    .view-img-ph {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      color: #6c757d;
+      font-size: 28px;
+      background: repeating-linear-gradient(45deg, #f8f9fa, #f8f9fa 8px, #eef1f4 8px, #eef1f4 16px);
+    }
+    .view-container.editing-on .view-img-box,
+    .view-container.editing-on [data-view-img] {
+      cursor: pointer;
+      outline: 1.5px dashed transparent;
+    }
+    .view-container.editing-on .view-img-box:hover,
+    .view-container.editing-on [data-view-img]:hover {
+      outline-color: #F5A623;
+    }
+    .todays-sound-body[data-view-img] { min-height: 80px; }
+    .img-dialog-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10050;
+      padding: 16px;
+    }
+    .img-dialog {
+      background: #fff;
+      border-radius: 16px;
+      padding: 22px;
+      max-width: 420px;
+      width: 100%;
+      box-shadow: 0 24px 48px rgba(0,0,0,0.22);
+    }
+    .img-dialog h3 { margin: 0 0 12px; font-size: 18px; }
+    .img-dialog .row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    .img-dialog .row label {
+      flex: 1;
+      min-width: 110px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #495057;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .img-dialog input[type="number"],
+    .img-dialog select {
+      padding: 8px 10px;
+      border: 2px solid #dee2e6;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+    }
+    .img-dialog .preview {
+      width: 100%;
+      height: 140px;
+      border: 2px dashed #dee2e6;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      margin-bottom: 12px;
+      background: #fafbfc;
+    }
+    .img-dialog .preview img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+    .img-dialog .actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
     @media print {
       .rte-bar { display: none !important; }
       [data-edit] { outline: none !important; background: transparent !important; }
+      .view-img-box, [data-view-img] { outline: none !important; }
+      .img-dialog-overlay { display: none !important; }
     }
     .page-actions {
       position: absolute;
@@ -1130,7 +1235,7 @@
       const base = { id, type, width: SECTION_TYPES[type]?.defaultWidth || 'full' };
       switch (type) {
         case 'tile':
-          return { ...base, tileMode: 'letter', letterTile: 'Aa', letterFontSize: 56, imagePath: '', imageCaption: "TODAY'S SOUND" };
+          return { ...base, tileMode: 'letter', letterTile: 'Aa', letterFontSize: 56, imagePath: '', imageCaption: "TODAY'S SOUND", imageWidth: 160, imageHeight: 120, imageBorder: 'none', imageFit: 'contain' };
         case 'introText':
         case 'instruction':
         case 'customText':
@@ -1459,6 +1564,8 @@
         ['href', 'src'].forEach(k => {
           const v = n.getAttribute(k) || '';
           if (/^\s*(javascript:|vbscript:|data:text\/html)/i.test(v)) n.removeAttribute(k);
+          // allow data:image/* for embedded lesson images
+          if (k === 'src' && /^\s*data:/i.test(v) && !/^\s*data:image\//i.test(v)) n.removeAttribute(k);
         });
       });
       return d.body.innerHTML;
@@ -1502,21 +1609,25 @@
     function renderSectionContent(section) {
       switch (section.type) {
         case 'tile': {
+          const borderCss = imageBorderCss(section.imageBorder || 'none');
+          const fit = section.imageFit === 'cover' ? 'cover' : 'contain';
+          const iw = Math.max(40, Math.min(600, Number(section.imageWidth) || 160));
+          const ih = Math.max(40, Math.min(600, Number(section.imageHeight) || 120));
           if ((section.tileMode || 'letter') === 'letter') {
             return `<div class="todays-sound-card">
               <div class="todays-sound-header">TODAY'S SOUND</div>
-              <div class="todays-sound-body">
+              <div class="todays-sound-body" data-view-img="tile" title="Tap to set image">
                 <div class="todays-sound-stars">★ ★ ★</div>
                 <div class="todays-sound-letter" style="font-size:${Math.min(96, Math.max(24, Number(section.letterFontSize) || 56))}px">${escapeHtml(section.letterTile || 'Aa')}</div>
               </div>
             </div>`;
           }
           const img = section.imagePath
-            ? `<img class="todays-sound-img" src="${escapeHtml(section.imagePath)}" alt="" />`
-            : `<div style="font-size:28px;opacity:0.4">🖼️</div>`;
+            ? `<img class="todays-sound-img" src="${escapeHtml(section.imagePath)}" alt="" style="width:${iw}px;height:${ih}px;object-fit:${fit};${borderCss}" />`
+            : `<div class="view-img-ph" style="width:${iw}px;height:${ih}px;${borderCss}">🖼️</div>`;
           return `<div class="todays-sound-card">
             <div class="todays-sound-header">${escapeHtml(section.imageCaption || "TODAY'S SOUND")}</div>
-            <div class="todays-sound-body">${img}</div>
+            <div class="todays-sound-body" data-view-img="tile" title="Tap to change image">${img}</div>
           </div>`;
         }
         case 'introText':
@@ -1601,9 +1712,29 @@
         if (!root.contains(n)) return;
         const tag = n.tagName.toLowerCase();
         if (tag === 'html' || tag === 'head' || tag === 'body') return;
-        const keep = ['b','i','u','strong','em','br','span'];
+        const keep = ['b','i','u','strong','em','br','span','img'];
+        if (tag === 'img') {
+          const src = n.getAttribute('src') || '';
+          const alt = n.getAttribute('alt') || '';
+          const style = n.getAttribute('style') || '';
+          [...n.attributes].forEach(a => n.removeAttribute(a.name));
+          if (src) n.setAttribute('src', src);
+          if (alt) n.setAttribute('alt', alt);
+          if (style) n.setAttribute('style', style);
+          return;
+        }
+        if (tag === 'span') {
+          const cls = n.getAttribute('class') || '';
+          const style = n.getAttribute('style') || '';
+          const isBox = cls.includes('view-img-box');
+          [...n.attributes].forEach(a => n.removeAttribute(a.name));
+          if (isBox) {
+            n.setAttribute('class', 'view-img-box');
+            if (style) n.setAttribute('style', style);
+          }
+          return;
+        }
         [...n.attributes].forEach(a => {
-          if (tag === 'span' && a.name === 'style') return;
           n.removeAttribute(a.name);
         });
         if (!keep.includes(tag)) {
@@ -1833,6 +1964,54 @@
           }
         }
       });
+      container.addEventListener('click', (e) => {
+        if (!viewTextEditing) return;
+        const tileBody = e.target.closest && e.target.closest('[data-view-img="tile"]');
+        if (tileBody) {
+          e.preventDefault();
+          e.stopPropagation();
+          const { page, section } = findSectionFromEl(tileBody);
+          if (!section) return;
+          const img = tileBody.querySelector('img');
+          openViewImageDialog({
+            mode: 'tile',
+            page,
+            section,
+            src: (img && img.getAttribute('src')) || section.imagePath || '',
+            width: section.imageWidth || 160,
+            height: section.imageHeight || 120,
+            border: section.imageBorder || 'none',
+            fit: section.imageFit || 'contain'
+          });
+          return;
+        }
+        const box = e.target.closest && e.target.closest('.view-img-box');
+        if (box) {
+          e.preventDefault();
+          e.stopPropagation();
+          const img = box.querySelector('img');
+          const style = box.getAttribute('style') || '';
+          const widthMatch = style.match(/width\s*:\s*(\d+)px/i);
+          const heightMatch = style.match(/height\s*:\s*(\d+)px/i);
+          let border = 'none';
+          if (/dashed/i.test(style)) border = 'dashed';
+          else if (/border-radius\s*:\s*12px/i.test(style)) border = 'rounded';
+          else if (/border\s*:\s*4px/i.test(style)) border = 'thick';
+          else if (/border\s*:\s*2px\s+solid/i.test(style)) border = 'thin';
+          const fit = /object-fit\s*:\s*cover/i.test((img && img.getAttribute('style')) || '') ? 'cover' : 'contain';
+          const editableEl = box.closest('[data-edit], .code-inner');
+          openViewImageDialog({
+            mode: 'edit-inline',
+            boxEl: box,
+            editableEl,
+            src: (img && img.getAttribute('src')) || '',
+            width: widthMatch ? parseInt(widthMatch[1], 10) : 200,
+            height: heightMatch ? parseInt(heightMatch[1], 10) : 150,
+            border,
+            fit
+          });
+        }
+      });
       setViewEditingEnabled(viewTextEditing);
     }
 
@@ -1841,8 +2020,267 @@
       showToast(viewTextEditing ? 'Click any text on a page to edit. Use B / I / U for rich text.' : 'View editing off.', 'info');
     };
 
+    const IMAGE_BORDER_PRESETS = {
+      none: { label: 'No border', css: 'border:none;border-radius:0;' },
+      thin: { label: 'Thin solid', css: 'border:2px solid #1a1a1a;border-radius:0;' },
+      thick: { label: 'Thick solid', css: 'border:4px solid #1a1a1a;border-radius:0;' },
+      dashed: { label: 'Dashed', css: 'border:2px dashed #E2571C;border-radius:0;' },
+      rounded: { label: 'Rounded frame', css: 'border:3px solid #F5A623;border-radius:12px;' }
+    };
+
+    function imageBorderCss(key) {
+      return (IMAGE_BORDER_PRESETS[key] || IMAGE_BORDER_PRESETS.none).css;
+    }
+
+    let imageDialogCtx = null;
+    let savedImageRange = null;
+
+    function saveSelectionRange() {
+      const sel = window.getSelection();
+      if (sel && sel.rangeCount > 0) {
+        const r = sel.getRangeAt(0);
+        const node = r.commonAncestorContainer;
+        const el = node.nodeType === 1 ? node : node.parentElement;
+        if (el && el.closest && el.closest('#viewContainer [contenteditable="true"]')) {
+          savedImageRange = r.cloneRange();
+          return;
+        }
+      }
+      savedImageRange = null;
+    }
+
+    function buildViewImgHtml(src, width, height, borderKey, fit) {
+      const w = Math.max(40, Math.min(800, Number(width) || 200));
+      const h = Math.max(40, Math.min(800, Number(height) || 150));
+      const border = imageBorderCss(borderKey || 'none');
+      const objFit = fit === 'cover' ? 'cover' : 'contain';
+      const inner = src
+        ? `<img src="${src}" alt="" style="width:100%;height:100%;object-fit:${objFit};display:block;" />`
+        : `<span class="view-img-ph">🖼️</span>`;
+      return `<span class="view-img-box" contenteditable="false" style="width:${w}px;height:${h}px;${border}">${inner}</span>`;
+    }
+
+    function closeImageDialog() {
+      document.querySelectorAll('.img-dialog-overlay').forEach(el => el.remove());
+      imageDialogCtx = null;
+    }
+
+    function openViewImageDialog(ctx) {
+      if (!viewTextEditing) {
+        showToast('Turn on Edit text first.', 'warning');
+        return;
+      }
+      closeImageDialog();
+      imageDialogCtx = ctx || { mode: 'insert' };
+      if (imageDialogCtx.mode === 'insert') saveSelectionRange();
+
+      const defaults = {
+        width: imageDialogCtx.width || 200,
+        height: imageDialogCtx.height || 150,
+        border: imageDialogCtx.border || 'none',
+        fit: imageDialogCtx.fit || 'contain',
+        src: imageDialogCtx.src || ''
+      };
+
+      const borderOpts = Object.keys(IMAGE_BORDER_PRESETS).map(k =>
+        `<option value="${k}" ${defaults.border === k ? 'selected' : ''}>${IMAGE_BORDER_PRESETS[k].label}</option>`
+      ).join('');
+
+      const overlay = document.createElement('div');
+      overlay.className = 'img-dialog-overlay';
+      overlay.innerHTML = `
+        <div class="img-dialog">
+          <h3>🖼️ ${imageDialogCtx.mode === 'insert' ? 'Insert image' : 'Edit image'}</h3>
+          <div class="preview" id="imgDlgPreview">${defaults.src ? `<img src="${defaults.src}" alt="">` : '<span style="color:#6c757d">No image yet</span>'}</div>
+          <div class="row">
+            <label>Width (px)<input type="number" id="imgDlgW" min="40" max="800" value="${defaults.width}"></label>
+            <label>Height (px)<input type="number" id="imgDlgH" min="40" max="800" value="${defaults.height}"></label>
+          </div>
+          <div class="row">
+            <label>Border
+              <select id="imgDlgBorder">${borderOpts}</select>
+            </label>
+            <label>Fit
+              <select id="imgDlgFit">
+                <option value="contain" ${defaults.fit === 'contain' ? 'selected' : ''}>Contain</option>
+                <option value="cover" ${defaults.fit === 'cover' ? 'selected' : ''}>Cover</option>
+              </select>
+            </label>
+          </div>
+          <div class="row">
+            <label style="flex:1 1 100%">Image file
+              <input type="file" id="imgDlgFile" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml">
+            </label>
+          </div>
+          <div class="actions">
+            ${imageDialogCtx.mode !== 'insert' ? '<button type="button" class="btn btn-danger btn-sm" id="imgDlgRemove">Remove</button>' : ''}
+            <button type="button" class="btn btn-outline btn-sm" id="imgDlgCancel">Cancel</button>
+            <button type="button" class="btn btn-primary btn-sm" id="imgDlgApply">Apply</button>
+          </div>
+        </div>`;
+      document.body.appendChild(overlay);
+
+      let pendingSrc = defaults.src || '';
+      const preview = overlay.querySelector('#imgDlgPreview');
+      const fileInput = overlay.querySelector('#imgDlgFile');
+      fileInput.addEventListener('change', () => {
+        const file = fileInput.files && fileInput.files[0];
+        if (!file) return;
+        if (!file.type.startsWith('image/')) {
+          showToast('Please choose an image file.', 'error');
+          fileInput.value = '';
+          return;
+        }
+        if (file.size > 2 * 1024 * 1024) {
+          showToast('Image must be under 2 MB.', 'error');
+          fileInput.value = '';
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          pendingSrc = ev.target.result;
+          preview.innerHTML = `<img src="${pendingSrc}" alt="">`;
+        };
+        reader.onerror = () => showToast('Could not read image.', 'error');
+        reader.readAsDataURL(file);
+      });
+
+      overlay.querySelector('#imgDlgCancel').onclick = () => closeImageDialog();
+      overlay.addEventListener('click', (e) => { if (e.target === overlay) closeImageDialog(); });
+      const removeBtn = overlay.querySelector('#imgDlgRemove');
+      if (removeBtn) {
+        removeBtn.onclick = () => {
+          applyImageDialog({ remove: true, src: '' });
+        };
+      }
+      overlay.querySelector('#imgDlgApply').onclick = () => {
+        const width = parseInt(overlay.querySelector('#imgDlgW').value, 10) || 200;
+        const height = parseInt(overlay.querySelector('#imgDlgH').value, 10) || 150;
+        const border = overlay.querySelector('#imgDlgBorder').value || 'none';
+        const fit = overlay.querySelector('#imgDlgFit').value || 'contain';
+        if (!pendingSrc && imageDialogCtx.mode === 'insert') {
+          showToast('Upload an image first.', 'warning');
+          return;
+        }
+        applyImageDialog({ src: pendingSrc, width, height, border, fit, remove: false });
+      };
+    }
+
+    function applyImageDialog(opts) {
+      const ctx = imageDialogCtx;
+      if (!ctx) return;
+      const before = currentState();
+
+      if (ctx.mode === 'tile') {
+        const { page, section } = ctx;
+        if (!page || !section) { closeImageDialog(); return; }
+        if (opts.remove) {
+          section.imagePath = '';
+          section.tileMode = 'letter';
+        } else {
+          section.tileMode = 'image';
+          if (opts.src) section.imagePath = opts.src;
+          section.imageWidth = opts.width;
+          section.imageHeight = opts.height;
+          section.imageBorder = opts.border;
+          section.imageFit = opts.fit;
+        }
+        recordHistory(before, currentState());
+        persistState();
+        closeImageDialog();
+        renderAllView();
+        showToast(opts.remove ? 'Tile image removed.' : 'Tile image updated.', 'success');
+        return;
+      }
+
+      function commitHostFromEl(startEl) {
+        if (!startEl) return false;
+        const host = startEl.closest ? (startEl.closest('[data-edit]') || startEl.closest('.code-inner')) : null;
+        if (!host) return false;
+        commitViewEdit(host);
+        return true;
+      }
+
+      // inline edit existing box in rich text / code HTML
+      if (ctx.mode === 'edit-inline' && ctx.boxEl) {
+        const box = ctx.boxEl;
+        const hostHint = ctx.editableEl || box.parentElement;
+        if (opts.remove) {
+          box.remove();
+        } else {
+          const html = buildViewImgHtml(opts.src || ctx.src || '', opts.width, opts.height, opts.border, opts.fit);
+          const tmp = document.createElement('div');
+          tmp.innerHTML = html;
+          const next = tmp.firstChild;
+          box.replaceWith(next);
+        }
+        commitHostFromEl(hostHint);
+        closeImageDialog();
+        renderAllView();
+        showToast(opts.remove ? 'Image removed.' : 'Image updated.', 'success');
+        return;
+      }
+
+      // insert new into rich text or code body
+      const html = buildViewImgHtml(opts.src, opts.width, opts.height, opts.border, opts.fit);
+      let host = null;
+      let inserted = false;
+      if (savedImageRange) {
+        try {
+          const sel = window.getSelection();
+          sel.removeAllRanges();
+          sel.addRange(savedImageRange);
+          const node = savedImageRange.commonAncestorContainer;
+          host = (node.nodeType === 1 ? node : node.parentElement);
+          document.execCommand('insertHTML', false, html);
+          inserted = true;
+        } catch (_) {}
+      }
+      if (!inserted) {
+        const active = document.activeElement && document.activeElement.closest
+          ? document.activeElement.closest('#viewContainer [contenteditable="true"]')
+          : null;
+        const candidates = active ? [active] : [...document.querySelectorAll('#viewContainer [data-edit="rich"], #viewContainer [data-edit="html"], #viewContainer .code-inner[contenteditable="true"]')];
+        for (const el of candidates) {
+          if (!el) continue;
+          if (!(el.getAttribute('data-edit') === 'rich' || el.getAttribute('data-edit') === 'html' || el.classList.contains('code-inner'))) continue;
+          el.focus();
+          host = el;
+          try {
+            document.execCommand('insertHTML', false, html);
+            inserted = true;
+          } catch (_) {
+            el.insertAdjacentHTML('beforeend', html);
+            inserted = true;
+          }
+          if (inserted) break;
+        }
+      }
+      if (!inserted) {
+        showToast('Click inside intro/custom text or a code page body first, then insert image.', 'warning');
+        closeImageDialog();
+        return;
+      }
+      commitHostFromEl(host || document.activeElement);
+      closeImageDialog();
+      renderAllView();
+      showToast('Image inserted.', 'success');
+    }
+
+    window.openImageInsertDialog = function () {
+      if (!viewTextEditing) {
+        showToast('Turn on Edit text first.', 'warning');
+        return;
+      }
+      openViewImageDialog({ mode: 'insert' });
+    };
+
     window.rteCommand = function (cmd) {
       if (!viewTextEditing) return;
+      if (cmd === 'image') {
+        openImageInsertDialog();
+        return;
+      }
       if (cmd === 'highlight') {
         document.execCommand('hiliteColor', false, '#fff3bf');
         document.execCommand('foreColor', false, '#E2571C');
@@ -2898,8 +3336,9 @@
             <button class="btn btn-outline btn-xs" data-cmd="italic" onmousedown="event.preventDefault()" onclick="rteCommand('italic')" title="Italic"><i>I</i></button>
             <button class="btn btn-outline btn-xs" data-cmd="underline" onmousedown="event.preventDefault()" onclick="rteCommand('underline')" title="Underline"><u>U</u></button>
             <button class="btn btn-outline btn-xs" onmousedown="event.preventDefault()" onclick="rteCommand('highlight')" title="Highlight">A</button>
+            <button class="btn btn-outline btn-xs" onmousedown="event.preventDefault()" onclick="rteCommand('image')" title="Insert image">🖼️</button>
             <button class="btn btn-outline btn-xs" onmousedown="event.preventDefault()" onclick="rteCommand('removeFormat')" title="Clear format">Clear</button>
-            <span style="font-size:12px;color:#6c757d;">Click text on a page to edit. Changes save when you click away.</span>
+            <span style="font-size:12px;color:#6c757d;">Click text to edit · tap image to change · 🖼️ to insert</span>
           </div>
           <div class="view-container editing-on" id="viewContainer"></div>
         </div>
