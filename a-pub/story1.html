@@ -478,50 +478,115 @@
       text-align: center; padding: 60px 20px; color: #94a3b8; font-size: 16px;
     }
 
-    /* Quiz UI */
-    .present-quiz-panel {
-      position: fixed; inset: 0; z-index: 10000;
-      background: rgba(15, 23, 42, 0.94); backdrop-filter: blur(8px);
-      display: flex; align-items: center; justify-content: center;
-      animation: fadeIn 0.2s ease; padding: 20px;
+    /* Present split layout (story left / quiz right) */
+    .present-workspace {
+      display: flex;
+      gap: 0;
+      align-items: stretch;
+      min-height: 70vh;
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      box-shadow: var(--shadow-lg);
+      background: #0f172a;
     }
-    .present-quiz-card {
-      background: #1e293b; border: 2px solid #f59e0b; border-radius: 20px;
-      padding: 28px 32px; max-width: 640px; width: 100%;
-      box-shadow: var(--shadow-xl); color: #f8fafc;
+    .present-workspace.quiz-open .present-stage {
+      flex: 1 1 50%;
+      max-width: 50%;
+      border-radius: 0;
+      box-shadow: none;
+      min-height: 70vh;
     }
-    .present-quiz-progress {
-      font-size: 13px; font-weight: 700; color: #94a3b8; margin-bottom: 12px; letter-spacing: 0.04em;
+    .present-workspace:not(.quiz-open) .present-stage {
+      flex: 1 1 100%;
+      max-width: 100%;
+      border-radius: var(--radius-xl);
+      min-height: 70vh;
+      box-shadow: none;
     }
-    .present-quiz-question {
-      font-size: 24px; font-weight: 800; line-height: 1.35; margin-bottom: 22px; color: #fff;
+    .present-workspace .present-stage {
+      transition: max-width 0.25s ease, flex-basis 0.25s ease;
     }
-    .present-quiz-options {
-      display: flex; flex-direction: column; gap: 10px;
+    .present-quiz-pane {
+      display: none;
+      flex: 1 1 50%;
+      max-width: 50%;
+      background: #ffffff;
+      color: #1e293b;
+      border-left: 3px solid #f59e0b;
+      padding: 20px 22px 28px;
+      overflow-y: auto;
+      position: relative;
+      animation: fadeSlideIn 0.25s ease;
+      min-height: 70vh;
+      box-sizing: border-box;
     }
-    .present-quiz-opt {
-      padding: 14px 18px; border-radius: 12px; border: 2px solid #334155;
-      background: #0f172a; color: #f8fafc; font-size: 18px; font-weight: 600;
+    .present-workspace.quiz-open .present-quiz-pane {
+      display: flex;
+      flex-direction: column;
+    }
+    .present-quiz-pane .present-quiz-card {
+      background: #fff;
+      border: 2px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 22px 24px;
+      width: 100%;
+      max-width: 100%;
+      box-shadow: var(--shadow-sm);
+      color: #1e293b;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .present-quiz-pane .present-quiz-progress {
+      font-size: 13px; font-weight: 700; color: #64748b; margin-bottom: 12px; letter-spacing: 0.04em;
+    }
+    .present-quiz-pane .present-quiz-question {
+      font-size: 22px; font-weight: 800; line-height: 1.35; margin-bottom: 20px; color: #0f172a;
+    }
+    .present-quiz-pane .present-quiz-options {
+      display: flex; flex-direction: column; gap: 10px; flex: 1;
+    }
+    .present-quiz-pane .present-quiz-opt {
+      padding: 14px 18px; border-radius: 12px; border: 2px solid #e2e8f0;
+      background: #f8fafc; color: #1e293b; font-size: 17px; font-weight: 600;
       cursor: pointer; text-align: left; font-family: var(--font);
       transition: border-color 0.15s, background 0.15s, transform 0.1s;
     }
-    .present-quiz-opt:hover { border-color: #f59e0b; background: #1a2332; }
-    .present-quiz-opt:active { transform: scale(0.98); }
-    .present-quiz-opt:disabled { opacity: 0.6; cursor: not-allowed; }
-    .present-quiz-actions {
-      display: flex; gap: 10px; margin-top: 20px; justify-content: space-between; flex-wrap: wrap;
+    .present-quiz-pane .present-quiz-opt:hover { border-color: #f59e0b; background: #fffbeb; }
+    .present-quiz-pane .present-quiz-opt:active { transform: scale(0.98); }
+    .present-quiz-pane .present-quiz-opt:disabled { opacity: 0.6; cursor: not-allowed; }
+    .present-quiz-pane .present-quiz-actions {
+      display: flex; gap: 10px; margin-top: 20px; justify-content: space-between; flex-wrap: wrap; align-items: center;
     }
-    .present-quiz-feedback {
-      position: fixed; inset: 0; z-index: 10001;
+    .present-quiz-pane .present-quiz-actions .hint {
+      font-size: 12px; color: #94a3b8; font-weight: 600;
+    }
+    .present-quiz-pane .present-quiz-feedback {
+      position: absolute; inset: 0; z-index: 5;
       display: flex; align-items: center; justify-content: center;
       animation: fadeIn 0.15s ease; pointer-events: none;
+      border-radius: 0;
     }
-    .present-quiz-feedback.correct { background: rgba(22, 163, 74, 0.92); }
-    .present-quiz-feedback.wrong { background: rgba(220, 38, 38, 0.92); }
-    .present-quiz-feedback-text {
-      font-size: clamp(36px, 10vw, 72px); font-weight: 900; color: #fff;
+    .present-quiz-pane .present-quiz-feedback.correct { background: rgba(22, 163, 74, 0.92); }
+    .present-quiz-pane .present-quiz-feedback.wrong { background: rgba(220, 38, 38, 0.92); }
+    .present-quiz-pane .present-quiz-feedback-text {
+      font-size: clamp(28px, 6vw, 56px); font-weight: 900; color: #fff;
       letter-spacing: 0.04em; text-shadow: 0 4px 20px rgba(0,0,0,0.25);
+      text-align: center; padding: 12px;
     }
+    @media (max-width: 900px) {
+      .present-workspace.quiz-open { flex-direction: column; }
+      .present-workspace.quiz-open .present-stage,
+      .present-workspace.quiz-open .present-quiz-pane {
+        max-width: 100%; flex: 1 1 auto; min-height: 40vh;
+      }
+      .present-workspace.quiz-open .present-quiz-pane {
+        border-left: none; border-top: 3px solid #f59e0b;
+      }
+    }
+    /* Hide any leftover full-screen quiz overlays */
+    .present-quiz-panel { display: none !important; }
+
 
     @media print {
       body {
@@ -5000,6 +5065,7 @@
         const sel = document.getElementById('presentLessonSelect');
         presentSelectedLessonId = sel ? sel.value : null;
         presentWordColors = {}; // reset colors when changing lesson
+        if (typeof closePresentQuiz === 'function') closePresentQuiz();
         renderPresentView();
       };
 
@@ -5131,8 +5197,8 @@
         document.addEventListener('keydown', onKey);
       }
 
-      // ---------- Present Quiz ----------
-      let quizState = { questions: [], index: 0, lessonId: null };
+      // ---------- Present Quiz (split-pane) ----------
+      let quizState = { questions: [], index: 0, lessonId: null, open: false };
 
       function shuffleArray(arr) {
         const a = arr.slice();
@@ -5154,7 +5220,6 @@
         );
       }
 
-      /** Build quiz items with options shuffled; correctIndex points at the right answer in the shuffled list. */
       function prepareShuffledQuizQuestions(rawQuestions) {
         return rawQuestions.map(q => {
           const opts = (q.options || []).map(o => String(o).trim()).filter(Boolean);
@@ -5172,7 +5237,24 @@
         });
       }
 
+      function setQuizOpen(open) {
+        quizState.open = !!open;
+        const workspace = document.getElementById('presentWorkspace');
+        const btn = document.getElementById('presentQuizBtn');
+        if (workspace) workspace.classList.toggle('quiz-open', quizState.open);
+        if (btn) {
+          btn.classList.toggle('btn-warning', quizState.open);
+          btn.classList.toggle('btn-primary', !quizState.open);
+          btn.textContent = quizState.open ? '✕ Hide Quiz' : '❓ Quiz';
+          btn.title = quizState.open ? 'Hide quiz side panel' : 'Show quiz side panel';
+        }
+      }
+
       window.startPresentQuiz = function() {
+        if (quizState.open) {
+          closePresentQuiz();
+          return;
+        }
         const lesson = lessons.find(l => l.id === presentSelectedLessonId);
         if (!lesson) return showToast('Select a lesson first.', 'warning');
         const raw = getQuizQuestions(lesson);
@@ -5180,70 +5262,64 @@
           return showToast('No multiple-choice questions for this lesson. Add some in Edit Readers and mark the correct answer.', 'warning');
         }
         const questions = prepareShuffledQuizQuestions(raw);
-        // Close any open segment overlay
         const existingSeg = document.querySelector('.present-overlay');
         if (existingSeg) existingSeg.remove();
-        quizState = { questions, index: 0, lessonId: lesson.id };
+        quizState = { questions, index: 0, lessonId: lesson.id, open: true };
+        setQuizOpen(true);
         renderQuizPanel();
       };
 
       function closePresentQuiz() {
-        const panel = document.querySelector('.present-quiz-panel');
-        if (panel) panel.remove();
-        const fb = document.querySelector('.present-quiz-feedback');
-        if (fb) fb.remove();
-        quizState = { questions: [], index: 0, lessonId: null };
+        removeQuizDomOnly();
+        quizState = { questions: [], index: 0, lessonId: null, open: false };
+        setQuizOpen(false);
       }
 
       function removeQuizDomOnly() {
-        const panel = document.querySelector('.present-quiz-panel');
-        if (panel) panel.remove();
-        const fb = document.querySelector('.present-quiz-feedback');
-        if (fb) fb.remove();
+        const pane = document.getElementById('presentQuizPane');
+        if (pane) pane.innerHTML = '';
+        document.querySelectorAll('body > .present-quiz-panel, body > .present-quiz-feedback').forEach(el => el.remove());
       }
 
       function renderQuizPanel() {
-        removeQuizDomOnly(); // keep quizState intact
+        const pane = document.getElementById('presentQuizPane');
+        if (!pane) return;
+        pane.innerHTML = '';
         const q = quizState.questions[quizState.index];
         if (!q) return;
 
-        const panel = document.createElement('div');
-        panel.className = 'present-quiz-panel';
         const opts = (q.options || []).map(o => String(o).trim()).filter(Boolean);
         const correctIndex = (typeof q.correctIndex === 'number' && q.correctIndex >= 0 && q.correctIndex < opts.length)
           ? q.correctIndex
           : 0;
 
-        panel.innerHTML = `
-          <div class="present-quiz-card" onclick="event.stopPropagation()">
-            <div class="present-quiz-progress">Question ${quizState.index + 1} of ${quizState.questions.length}</div>
-            <div class="present-quiz-question">${escapeHtml(q.question)}</div>
-            <div class="present-quiz-options">
-              ${opts.map((opt, i) =>
-                `<button type="button" class="present-quiz-opt" data-opt="${i}">${escapeHtml(opt)}</button>`
-              ).join('')}
-            </div>
-            <div class="present-quiz-actions">
-              <button type="button" class="btn btn-outline btn-sm" id="quizCloseBtn">Close</button>
-              <span style="font-size:12px;color:#94a3b8;font-weight:600;">Tap an answer</span>
-            </div>
+        const card = document.createElement('div');
+        card.className = 'present-quiz-card';
+        card.innerHTML = `
+          <div class="present-quiz-progress">Question ${quizState.index + 1} of ${quizState.questions.length}</div>
+          <div class="present-quiz-question">${escapeHtml(q.question)}</div>
+          <div class="present-quiz-options">
+            ${opts.map((opt, i) =>
+              `<button type="button" class="present-quiz-opt" data-opt="${i}">${escapeHtml(opt)}</button>`
+            ).join('')}
+          </div>
+          <div class="present-quiz-actions">
+            <button type="button" class="btn btn-outline btn-sm" id="quizCloseBtn">Hide Quiz</button>
+            <span class="hint">Tap an answer</span>
           </div>
         `;
-        document.body.appendChild(panel);
+        pane.appendChild(card);
 
-        panel.querySelector('#quizCloseBtn').onclick = () => closePresentQuiz();
-        // Background click closes
-        panel.addEventListener('click', (e) => {
-          if (e.target === panel) closePresentQuiz();
-        });
+        const closeBtn = card.querySelector('#quizCloseBtn');
+        if (closeBtn) closeBtn.onclick = () => closePresentQuiz();
 
-        panel.querySelectorAll('.present-quiz-opt').forEach(btn => {
+        card.querySelectorAll('.present-quiz-opt').forEach(btn => {
           btn.addEventListener('click', () => {
             const chosen = parseInt(btn.dataset.opt, 10);
             const isCorrect = chosen === correctIndex;
-            // Disable further clicks while feedback shows
-            panel.querySelectorAll('.present-quiz-opt').forEach(b => { b.disabled = true; });
+            card.querySelectorAll('.present-quiz-opt').forEach(b => { b.disabled = true; });
             showQuizFeedback(isCorrect, () => {
+              if (!quizState.open) return;
               if (quizState.index < quizState.questions.length - 1) {
                 quizState.index += 1;
                 renderQuizPanel();
@@ -5257,19 +5333,24 @@
       }
 
       function showQuizFeedback(isCorrect, onDone) {
-        const existing = document.querySelector('.present-quiz-feedback');
+        const pane = document.getElementById('presentQuizPane');
+        if (!pane) {
+          if (typeof onDone === 'function') onDone();
+          return;
+        }
+        const existing = pane.querySelector('.present-quiz-feedback');
         if (existing) existing.remove();
         const fb = document.createElement('div');
         fb.className = 'present-quiz-feedback ' + (isCorrect ? 'correct' : 'wrong');
         fb.innerHTML = `<div class="present-quiz-feedback-text">${isCorrect ? '✓ Correct!' : '✗ Wrong'}</div>`;
-        document.body.appendChild(fb);
+        pane.appendChild(fb);
         setTimeout(() => {
           fb.remove();
           if (typeof onDone === 'function') onDone();
         }, 2000);
       }
 
-      window.switchTab = function(tab) {
+            window.switchTab = function(tab) {
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
         document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === tab+'Panel'));
         if (tab === 'edit') { renderEditList(); renderThumbnail(); populateSpriteSheetSelect(); }
@@ -5481,12 +5562,15 @@
                 <input type="checkbox" id="presentSegmentToggle" onchange="onPresentSegmentToggle()">
                 Segment letters
               </label>
-              <button class="btn btn-primary btn-sm" onclick="startPresentQuiz()" title="Quiz this passage">❓ Quiz</button>
+              <button class="btn btn-primary btn-sm" id="presentQuizBtn" onclick="startPresentQuiz()" title="Toggle quiz side panel">❓ Quiz</button>
               <button class="btn btn-outline btn-sm" onclick="clearPresentColors()" title="Clear all word colors">🧹 Clear colors</button>
-              <span style="margin-left:auto;font-size:12px;color:var(--text-muted);font-weight:600;">Tap a word to cycle colors · Segment mode opens letter overlay</span>
+              <span style="margin-left:auto;font-size:12px;color:var(--text-muted);font-weight:600;">Tap a word to cycle colors · Segment mode opens letter overlay · Quiz toggles split view</span>
             </div>
-            <div class="present-stage" id="presentStage">
-              <div class="present-empty">Select a lesson to present.</div>
+            <div class="present-workspace" id="presentWorkspace">
+              <div class="present-stage" id="presentStage">
+                <div class="present-empty">Select a lesson to present.</div>
+              </div>
+              <div class="present-quiz-pane" id="presentQuizPane" aria-label="Quiz panel"></div>
             </div>
           </div>`;
 
