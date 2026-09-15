@@ -950,55 +950,6 @@
       margin-right: 4px;
     }
     .rte-bar button[data-cmd] { min-width: 32px; font-weight: 800; }
-    .rte-bar .rte-sep {
-      width: 1px;
-      height: 22px;
-      background: #e0c48a;
-      margin: 0 2px;
-    }
-    .rte-bar select.rte-size {
-      padding: 4px 6px;
-      border: 2px solid #dee2e6;
-      border-radius: 6px;
-      font-size: 12px;
-      font-weight: 700;
-      font-family: inherit;
-      background: #fff;
-      max-width: 88px;
-    }
-    .rte-bar select.rte-size:focus {
-      outline: none;
-      border-color: #F5A623;
-    }
-    .rte-bar .rte-swatches {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      flex-wrap: wrap;
-    }
-    .rte-bar .rte-swatch {
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      border: 2px solid #ced4da;
-      padding: 0;
-      cursor: pointer;
-      flex-shrink: 0;
-    }
-    .rte-bar .rte-swatch:hover,
-    .rte-bar .rte-swatch:focus {
-      outline: 2px solid #F5A623;
-      outline-offset: 1px;
-    }
-    .rte-bar input.rte-color {
-      width: 28px;
-      height: 24px;
-      padding: 0;
-      border: 2px solid #dee2e6;
-      border-radius: 6px;
-      background: #fff;
-      cursor: pointer;
-    }
     .view-container.editing-on [data-edit] {
       outline: 1.5px dashed transparent;
       border-radius: 4px;
@@ -2488,43 +2439,16 @@
       }
     }
 
-    function sanitizeInlineStyle(style) {
-      if (!style) return '';
-      const allowed = ['color', 'background-color', 'background', 'font-size', 'font-weight', 'font-style', 'text-decoration', 'text-decoration-line'];
-      const out = [];
-      String(style).split(';').forEach(part => {
-        const i = part.indexOf(':');
-        if (i < 0) return;
-        const prop = part.slice(0, i).trim().toLowerCase();
-        let val = part.slice(i + 1).trim();
-        if (!allowed.includes(prop) || !val) return;
-        // Block expressions / urls in styles
-        if (/expression|javascript:|url\s*\(/i.test(val)) return;
-        out.push(prop + ':' + val);
-      });
-      return out.join(';');
-    }
-
     function richTextToStored(html) {
       const d = new DOMParser().parseFromString(String(html || ''), 'text/html');
       const root = d.body || d;
       root.querySelectorAll('script,iframe,object,embed,link,meta,base,form').forEach(n => n.remove());
-      // Convert legacy <font> from execCommand into <span style="...">
-      root.querySelectorAll('font').forEach(n => {
-        const span = d.createElement('span');
-        const color = n.getAttribute('color');
-        const size = n.getAttribute('size');
-        const face = n.getAttribute('face');
-        const styles = [];
-        if (color) styles.push('color:' + color);
-        if (size) {
-          const map = { '1': '10px', '2': '13px', '3': '16px', '4': '18px', '5': '24px', '6': '32px', '7': '48px' };
-          styles.push('font-size:' + (map[size] || '16px'));
-        }
-        if (face) styles.push('font-family:' + face);
-        if (styles.length) span.setAttribute('style', styles.join(';'));
-        while (n.firstChild) span.appendChild(n.firstChild);
-        n.parentNode && n.parentNode.replaceChild(span, n);
+      // Only walk body descendants — never unwrap html/head/body (causes HierarchyRequestError)
+      root.querySelectorAll('span.highlight').forEach(n => {
+        const parent = n.parentNode;
+        if (!parent || parent === d) return;
+        while (n.firstChild) parent.insertBefore(n.firstChild, n);
+        parent.removeChild(n);
       });
       // Snapshot list first; unwrap non-allowed tags inside body only
       const nodes = Array.from(root.querySelectorAll('*'));
@@ -2532,11 +2456,11 @@
         if (!root.contains(n)) return;
         const tag = n.tagName.toLowerCase();
         if (tag === 'html' || tag === 'head' || tag === 'body') return;
-        const keep = ['b', 'i', 'u', 'strong', 'em', 'br', 'span', 'img'];
+        const keep = ['b','i','u','strong','em','br','span','img'];
         if (tag === 'img') {
           const src = n.getAttribute('src') || '';
           const alt = n.getAttribute('alt') || '';
-          const style = sanitizeInlineStyle(n.getAttribute('style') || '');
+          const style = n.getAttribute('style') || '';
           [...n.attributes].forEach(a => n.removeAttribute(a.name));
           if (src) n.setAttribute('src', src);
           if (alt) n.setAttribute('alt', alt);
@@ -2545,24 +2469,12 @@
         }
         if (tag === 'span') {
           const cls = n.getAttribute('class') || '';
-          const style = sanitizeInlineStyle(n.getAttribute('style') || '');
+          const style = n.getAttribute('style') || '';
           const isBox = cls.includes('view-img-box');
-          const isHighlight = cls.includes('highlight');
           [...n.attributes].forEach(a => n.removeAttribute(a.name));
           if (isBox) {
             n.setAttribute('class', 'view-img-box');
             if (style) n.setAttribute('style', style);
-          } else if (isHighlight) {
-            n.setAttribute('class', 'highlight');
-            if (style) n.setAttribute('style', style);
-          } else if (style) {
-            n.setAttribute('style', style);
-          } else {
-            // empty decorative span — unwrap
-            const parent = n.parentNode;
-            if (!parent || parent === d) return;
-            while (n.firstChild) parent.insertBefore(n.firstChild, n);
-            parent.removeChild(n);
           }
           return;
         }
@@ -3354,58 +3266,6 @@
       openViewImageDialog({ mode: 'insert' });
     };
 
-    function rteEnsureSelectionInView() {
-      const sel = window.getSelection();
-      if (!sel || !sel.rangeCount) return false;
-      const node = sel.anchorNode;
-      const el = node && (node.nodeType === 1 ? node : node.parentElement);
-      return !!(el && el.closest && el.closest('#viewContainer [contenteditable="true"]'));
-    }
-
-    function rteWrapSelectionStyle(styleProps) {
-      if (!rteEnsureSelectionInView()) {
-        showToast('Select text in a page first.', 'warning');
-        return false;
-      }
-      const sel = window.getSelection();
-      if (!sel || sel.isCollapsed) {
-        showToast('Select some text first.', 'warning');
-        return false;
-      }
-      try {
-        document.execCommand('styleWithCSS', false, true);
-      } catch (_) {}
-      // Prefer execCommand for color when only color is set
-      if (styleProps.color && Object.keys(styleProps).length === 1) {
-        document.execCommand('foreColor', false, styleProps.color);
-        return true;
-      }
-      try {
-        const range = sel.getRangeAt(0);
-        const span = document.createElement('span');
-        Object.keys(styleProps).forEach(k => {
-          span.style[k] = styleProps[k];
-        });
-        // surroundContents fails if range partially selects elements — extract + insert
-        try {
-          range.surroundContents(span);
-        } catch (_) {
-          const frag = range.extractContents();
-          span.appendChild(frag);
-          range.insertNode(span);
-        }
-        sel.removeAllRanges();
-        const nr = document.createRange();
-        nr.selectNodeContents(span);
-        sel.addRange(nr);
-        return true;
-      } catch (err) {
-        console.error(err);
-        showToast('Could not apply style to selection.', 'error');
-        return false;
-      }
-    }
-
     window.rteCommand = function (cmd) {
       if (!viewTextEditing) return;
       if (cmd === 'image') {
@@ -3413,42 +3273,11 @@
         return;
       }
       if (cmd === 'highlight') {
-        try { document.execCommand('styleWithCSS', false, true); } catch (_) {}
         document.execCommand('hiliteColor', false, '#fff3bf');
         document.execCommand('foreColor', false, '#E2571C');
-        return;
+      } else {
+        document.execCommand(cmd, false, null);
       }
-      document.execCommand(cmd, false, null);
-    };
-
-    window.rteSetColor = function (color) {
-      if (!viewTextEditing) return;
-      if (!color) return;
-      if (!rteEnsureSelectionInView()) {
-        showToast('Click or select text in a page first.', 'warning');
-        return;
-      }
-      try { document.execCommand('styleWithCSS', false, true); } catch (_) {}
-      document.execCommand('foreColor', false, color);
-    };
-
-    window.rteSetFontSize = function (px) {
-      if (!viewTextEditing) return;
-      const size = String(px || '').replace(/px/i, '');
-      if (!size) return;
-      rteWrapSelectionStyle({ fontSize: size + 'px' });
-    };
-
-    window.rteOnSizeChange = function (sel) {
-      if (!sel || !sel.value) return;
-      rteSetFontSize(sel.value);
-      // reset so same size can be re-picked
-      setTimeout(() => { sel.selectedIndex = 0; }, 0);
-    };
-
-    window.rteOnColorPicker = function (input) {
-      if (!input || !input.value) return;
-      rteSetColor(input.value);
     };
 
     // ========== BUILD PAGES ==========
@@ -4600,33 +4429,9 @@
               <button class="btn btn-outline btn-xs" data-cmd="italic" onmousedown="event.preventDefault()" onclick="rteCommand('italic')" title="Italic"><i>I</i></button>
               <button class="btn btn-outline btn-xs" data-cmd="underline" onmousedown="event.preventDefault()" onclick="rteCommand('underline')" title="Underline"><u>U</u></button>
               <button class="btn btn-outline btn-xs" onmousedown="event.preventDefault()" onclick="rteCommand('highlight')" title="Highlight">A</button>
-              <span class="rte-sep" aria-hidden="true"></span>
-              <select class="rte-size" id="rteFontSize" title="Font size" onmousedown="event.stopPropagation()" onchange="rteOnSizeChange(this)">
-                <option value="">Size</option>
-                <option value="12">12</option>
-                <option value="14">14</option>
-                <option value="16">16</option>
-                <option value="18">18</option>
-                <option value="20">20</option>
-                <option value="24">24</option>
-                <option value="28">28</option>
-                <option value="32">32</option>
-                <option value="40">40</option>
-              </select>
-              <span class="rte-swatches" title="Text color">
-                <button type="button" class="rte-swatch" style="background:#1a1a1a" onmousedown="event.preventDefault()" onclick="rteSetColor('#1a1a1a')" title="Black"></button>
-                <button type="button" class="rte-swatch" style="background:#E2571C" onmousedown="event.preventDefault()" onclick="rteSetColor('#E2571C')" title="Orange"></button>
-                <button type="button" class="rte-swatch" style="background:#c0392b" onmousedown="event.preventDefault()" onclick="rteSetColor('#c0392b')" title="Red"></button>
-                <button type="button" class="rte-swatch" style="background:#2c7be5" onmousedown="event.preventDefault()" onclick="rteSetColor('#2c7be5')" title="Blue"></button>
-                <button type="button" class="rte-swatch" style="background:#2d7d46" onmousedown="event.preventDefault()" onclick="rteSetColor('#2d7d46')" title="Green"></button>
-                <button type="button" class="rte-swatch" style="background:#6f42c1" onmousedown="event.preventDefault()" onclick="rteSetColor('#6f42c1')" title="Purple"></button>
-                <button type="button" class="rte-swatch" style="background:#6c757d" onmousedown="event.preventDefault()" onclick="rteSetColor('#6c757d')" title="Gray"></button>
-              </span>
-              <input type="color" class="rte-color" id="rteColorPicker" value="#E2571C" title="Custom color" onmousedown="event.preventDefault()" oninput="rteOnColorPicker(this)" onchange="rteOnColorPicker(this)">
-              <span class="rte-sep" aria-hidden="true"></span>
               <button class="btn btn-outline btn-xs" onmousedown="event.preventDefault()" onclick="rteCommand('image')" title="Insert image">🖼️</button>
               <button class="btn btn-outline btn-xs" onmousedown="event.preventDefault()" onclick="rteCommand('removeFormat')" title="Clear format">Clear</button>
-              <span style="font-size:12px;color:#6c757d;">Select text → size / color · 🖼️ insert</span>
+              <span style="font-size:12px;color:#6c757d;">Click text to edit · tap image to change · 🖼️ to insert</span>
             </div>
           </div>
           <div class="view-container editing-on" id="viewContainer"></div>
