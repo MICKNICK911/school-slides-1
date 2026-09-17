@@ -8,6 +8,16 @@ Format example:
   (text = "which", letters = "wh" at smile-only)
   (text = "mat", letter = "a" at x-under)
   (text = "mat", letter = "a" at x-line)
+  (text = "mat", letter = "at" at arrow-right)
+  (text = "robot", between "o" and "b" at vertical-bar)
+  single: (text = "mast", letter = "s" at star-above)
+  multiple: (text = "mast", letters = "st" at star-above)
+  single: (text = "mast", letter = "t" at underline)
+  group: (text = "mast", letters = "st" at underline)
+  (text = "flaunt", letters = "au" at x-between-smile)
+  (text = "gent", letter = "g" at j-arch-top)
+  (text = "something", letter = "o" at s-arch-top)
+
 
 
 
@@ -77,10 +87,108 @@ Color: pure vivid red (#FF0000).
 CRITICAL: The entire mark (vertical line + x) is locked exactly to the named letter only and can be applied to any single letter.
 No other marks are present.
 
+KEYWORD: arrow-right
+Exact visual description:
+A single straight horizontal vivid red arrow placed directly beneath the specified letter(s) or letter group, pointing to the right.
+Structure:
+1. Shaft: A clean, uniform-thickness straight horizontal red line, pure vivid red (#FF0000)
+2. Head: A solid filled red right-pointing triangular arrowhead at right end
+CRITICAL: MUST start exactly under first letter and end exactly under last, spanning full width (e.g. "ma" begins under left edge of "m" and ends under right edge of "a")
+
+KEYWORD: vertical-bar
+Exact visual description:
+A single straight vertical vivid red line.
+Color: pure vivid red (#FF0000).
+Thickness: uniform, clean, slightly rounded ends.
+
+CRITICAL POSITIONING:
+- The line is placed BETWEEN two specified letters (e.g. between "o" and "b" in "robot"), NOT over or under a single letter.
+- Horizontally, it must be centered exactly in the whitespace gap between the two letters.
+- Vertically, it must extend from ABOVE the letters to BELOW the baseline:
+    * Top reaches 40-50% above the top of the letters.
+    * Bottom reaches 20-30% below the baseline.
+- Thickness is roughly 4-6% of letter height.
+- It must NOT touch either letter — small clear gap on both sides.
+- No other marks — only the single vertical red divider.
+
+KEYWORD: star-above
+Exact visual description:
+A small solid red asterisk / star (*) placed directly above a single specified letter.
+Color: pure vivid red (#FF0000).
+Shape: 6-pointed asterisk (*), clean, uniform, slightly bold.
+
+CRITICAL POSITIONING:
+- The star sits exactly centered ABOVE the named letter only, not between letters.
+- It hovers with a small consistent gap clear of the top of the letter.
+- When applied to multiple letters (e.g. letters = "st"), place one star above EACH specified letter, each centered on its own letter.
+- Size is roughly 30-40% of letter height.
+- No other marks — only the red star(s) above.
+
+KEYWORD: underline
+Exact visual description:
+A single short straight horizontal vivid red bar placed directly beneath a specified letter or letter group.
+Color: pure vivid red (#FF0000).
+Shape: clean uniform thickness, slightly rounded ends, solid filled.
+
+CRITICAL POSITIONING:
+- The bar sits directly UNDER the named letter(s), not between or above.
+- Horizontally, it must be centered exactly under the specified letter(s).
+- It MUST start exactly under the left edge of the first specified letter and end exactly under the right edge of the last specified letter.
+- For a single letter (e.g. "t"), it is slightly wider than the letter: ~110-120% of letter width.
+- For multiple letters (e.g. "st"), it spans the full width from start of "s" to end of "t".
+- Vertically, it sits with a small consistent gap below the baseline.
+- Thickness is roughly 8-12% of letter height.
+- No other marks — only the single red underline.
+
+KEYWORD: x-between-smile
+Exact visual description:
+Combination of two vivid red elements: a smile arc under a letter GROUP + a small red "x" placed IN THE GAP BETWEEN two letters, in the middle.
+Color: pure vivid red (#FF0000) for both.
+Shapes: Smile = thick upward-curving arc, rounded ends. X = small clean "x".
+
+CRITICAL POSITIONING:
+- The smile MUST span the entire GROUP: start exactly under left edge of first letter, end exactly under right edge of last letter (e.g. from "a" to "u" in "flaunt").
+- The "x" is NOT under a vowel. It sits centered HORIZONTALLY IN THE WHITESPACE GAP BETWEEN the two letters.
+- Placement: middle of gap between "a" and "u", not aligned to either letter's center.
+- Vertical layout: baseline -> small clear gap -> x in middle gap -> tiny gap -> smile below.
+- Size: x ~25-30% of letter height. Smile thickness ~6-8% of letter height, length = full group width.
+- DIFFERENCE FROM x-smile: x-smile = x under a vowel; x-between-smile = x between 2 letters middle.
+
+KEYWORD: j-arch-top
+Exact visual description:
+Combination of two elements above a word: a small light-blue / periwinkle "j" and a thick vivid red arch behind it.
+Color: j = light blue (#6C8AFF approx). Arch = pure vivid red (#FF0000).
+Shapes: j = small lowercase j, clean. Arch = thick curved bar, slightly arched upward in middle, rounded ends.
+
+CRITICAL POSITIONING:
+- Applied ABOVE the first letter(s) of word (e.g. above "g" in "gent").
+- The small blue "j" sits centered directly ABOVE the first letter, floating clear of baseline.
+- The red arch sits directly BEHIND the "j", centered on the "j".
+- The arch spans horizontally from above the first letter to above the second letter (e.g. from "g" to "e").
+- The "j" overlaps / intersects the middle of the red arch, with the dot of "j" slightly above the arch.
+- Layout top to bottom: dot of j -> arch crossing stem of j -> main word below with gap.
+- No other marks — only small blue j + red arch above.
+
+KEYWORD: s-arch-top
+Exact visual description:
+Combination of two elements above a word: a small light-blue / periwinkle "s" and a thick vivid red arch behind it.
+Color: s = light blue (#6C8AFF approx). Arch = pure vivid red (#FF0000).
+Shapes: s = small lowercase s, clean. Arch = thick curved bar, slightly arched upward in middle, rounded ends.
+
+CRITICAL POSITIONING:
+- Applied ABOVE the specified letter(s) of word (mirror of j-arch-top).
+- The small blue "s" sits centered directly ABOVE the target letter(s), floating clear above.
+- The red arch sits directly BEHIND the "s", centered on the "s".
+- The arch spans horizontally from above the first letter to above the second letter.
+- The "s" overlaps / intersects the middle of the red arch, sitting slightly above it.
+- Layout top to bottom: s -> arch crossing behind s -> main word below with gap.
+- No other marks — only small blue s + red arch above.
+
+
+
+
 --------------------------------------------------
 USAGE NOTES
-
-
 
 - Always keep the original letter style (black, bold, clean sans-serif preferred).
 - Marks are never applied to letters that are not explicitly named in the prompt.
