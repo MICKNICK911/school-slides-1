@@ -1,0 +1,91 @@
+DIACRITIC MARK LIBRARY
+======================
+Use this library with any image generator.
+Format example:
+  (text = "mat", letter = "a" at short-arc)
+  (text = "all", letters = "all" at x-smile)
+  (text = "go", letter = "o" at long-bar)
+  (text = "which", letters = "wh" at smile-only)
+  (text = "mat", letter = "a" at x-under)
+  (text = "mat", letter = "a" at x-line)
+
+
+
+
+Only the specified letter(s) receive the mark. All other letters stay plain.
+
+--------------------------------------------------
+KEYWORD: short-arc
+Exact visual description:
+A single bright red concave arc (classic breve shape ̆). 
+The arc is smooth, evenly curved, slightly thicker in the middle, 
+with both ends gently lifting upward. 
+It sits perfectly centered directly above the letter, 
+hovering just clear of the top of the letter with a small, consistent gap.
+Color: pure vivid red (#FF0000 or equivalent saturated red).
+Size: proportional to the letter height – roughly 40-50% of the letter’s width.
+
+KEYWORD: long-bar
+Exact visual description:
+A single straight, flat horizontal red bar (classic macron ¯). 
+The bar is clean, uniform in thickness, with slightly rounded ends.
+It sits perfectly centered directly above the letter, 
+hovering just clear of the top of the letter with a small, consistent gap.
+Color: pure vivid red (#FF0000 or equivalent saturated red).
+Size: slightly wider than the letter itself, roughly 110-120% of the letter’s width.
+
+KEYWORD: x-smile
+Exact visual description:
+Two stacked red marks placed directly beneath the specified letter(s) or letter group:
+1. A small, clear red “×” (multiplication sign / cross) centered under the specified letter(s).
+2. Immediately below the ×, a smooth red upward-curving smile / crescent 
+   (soft U-shape or gentle smile). 
+   CRITICAL: The smile MUST start exactly under the first specified letter 
+   and end exactly under the last specified letter, spanning the full width 
+   of the named group (e.g. for “ull” it begins under “u” and ends under the final “l”).
+Both marks are pure vivid red (#FF0000).
+They sit close together under the text with a small gap from the baseline of the letters.
+The whole pair is horizontally centered under the specified letter(s) or group.
+
+KEYWORD: smile-only
+Exact visual description:
+A single smooth red upward-curving smile / crescent (soft U-shape or gentle smile) 
+placed directly beneath the specified letter(s) or letter group.
+NO × or any other mark is present — only the smile.
+CRITICAL: The smile MUST start exactly under the first specified letter 
+and end exactly under the last specified letter, spanning the full width 
+of the named group (e.g. for “wh” it begins under “w” and ends under “h”).
+Color: pure vivid red (#FF0000).
+It sits with a small gap from the baseline of the letters and is horizontally centered under the specified letter(s) or group.
+
+KEYWORD: x-under
+Exact visual description:
+A single plain red “x” (simple crossed lines, like a basic lowercase x or clean multiplication sign without heavy serifs).
+Color: pure vivid red (#FF0000).
+CRITICAL POSITIONING: The x must sit EXACTLY and precisely under the named letter only. 
+It must be horizontally centered on the vertical midline of that specific letter 
+(not centered on the whole word). 
+It sits close under the baseline of the letter with only a small, consistent gap.
+No smile, no arc, no other marks — just the single red x under the specified letter.
+
+KEYWORD: x-line
+Exact visual description:
+A thin, straight vertical red line that runs through the exact vertical center of the named letter.
+The line continues downward and passes precisely through the center of a plain red “x” that sits under the letter.
+The vertical line extends a short distance both above the letter and below the “x”.
+Color: pure vivid red (#FF0000).
+CRITICAL: The entire mark (vertical line + x) is locked exactly to the named letter only and can be applied to any single letter.
+No other marks are present.
+
+--------------------------------------------------
+USAGE NOTES
+
+
+
+- Always keep the original letter style (black, bold, clean sans-serif preferred).
+- Marks are never applied to letters that are not explicitly named in the prompt.
+- When multiple letters are specified, the mark is repeated under each named letter 
+  or centered under the whole group if the group is treated as one unit (e.g. “all”).
+- Do not add extra decorations, shadows, or outlines unless requested.
+
+End of library.
