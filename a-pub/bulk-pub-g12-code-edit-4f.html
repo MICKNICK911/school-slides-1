@@ -945,45 +945,8 @@
       overflow: auto;
       text-align: center;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-      white-space: pre-wrap;
-      word-wrap: break-word;
-      overflow-wrap: anywhere;
-      word-break: break-word;
-      line-height: 1.35;
-      max-width: 100%;
-    }
-    .grid-block .gb-text * {
-      max-width: 100%;
-      white-space: pre-wrap;
-      word-wrap: break-word;
-      overflow-wrap: anywhere;
-      word-break: break-word;
-    }
-    .view-container.editing-on .grid-blocks {
-      cursor: default;
-    }
-    .view-container.editing-on .grid-block[title] {
-      /* height hint via title attr */
-    }
-    .gb-height-hint {
-      position: absolute;
-      top: 2px;
-      right: 4px;
-      font-size: 10px;
-      font-weight: 700;
-      color: #6c757d;
-      background: rgba(255,255,255,0.85);
-      border-radius: 4px;
-      padding: 1px 5px;
-      pointer-events: none;
-      opacity: 0;
-      z-index: 2;
-    }
-    .view-container.editing-on .grid-block:hover .gb-height-hint {
-      opacity: 1;
     }
     .grid-block .gb-img-wrap {
       width: 100%;
@@ -2973,8 +2936,8 @@
         const t = e.target.closest && e.target.closest('[data-edit]');
         if (!t) return;
         if (t.dataset.rteBefore === t.innerHTML) return;
-        // Grid-block / word-grid text lives inside code-inner — commit host HTML
-        if (t.classList.contains('gb-text') || t.closest('.grid-block') || t.classList.contains('word-cell') || t.closest('.word-grid')) {
+        // Grid-block text lives inside code-inner — always commit the host HTML
+        if (t.classList.contains('gb-text') || t.closest('.grid-block')) {
           const host = t.closest('.code-inner');
           if (host) commitViewEdit(host);
           return;
@@ -3087,37 +3050,12 @@
           return;
         }
       });
-      // Double-click grid-block → Grid blocks setup; double-click word-grid → Word grid setup
-      container.addEventListener('dblclick', (e) => {
-        if (!viewTextEditing) return;
-        const gbCell = e.target.closest && e.target.closest('.grid-block');
-        if (gbCell) {
-          const grid = gbCell.closest('.grid-blocks');
-          if (grid) {
-            e.preventDefault();
-            e.stopPropagation();
-            const host = grid.closest('.code-inner');
-            openGridBlocksConfigDialog({ inner: host }, grid);
-            return;
-          }
-        }
-        const wgCell = e.target.closest && e.target.closest('.word-grid .word-cell, .word-grid');
-        if (wgCell) {
-          const grid = wgCell.classList.contains('word-grid') ? wgCell : wgCell.closest('.word-grid');
-          if (grid) {
-            e.preventDefault();
-            e.stopPropagation();
-            const host = grid.closest('.code-inner');
-            openWordGridConfigDialog({ inner: host }, grid);
-          }
-        }
-      });
       setViewEditingEnabled(viewTextEditing);
     }
 
     window.toggleViewTextEditing = function () {
       setViewEditingEnabled(!viewTextEditing);
-      showToast(viewTextEditing ? 'Click any text on a page to edit. Use B / I / U for rich text. Double-click a grid block to edit setup (height, columns, …).' : 'View editing off.', 'info');
+      showToast(viewTextEditing ? 'Click any text on a page to edit. Use B / I / U for rich text.' : 'View editing off.', 'info');
     };
 
     // ========== CODE PAGE: empty-space insert menu ==========
@@ -3131,7 +3069,7 @@
       { id: 'instruction', label: 'Instruction box', icon: '👉', html: '<div class="cvc-instruction-box"><p>Read each word aloud.</p></div>' },
       { id: 'custom', label: 'Custom text box', icon: '📝', html: '<div class="custom-text-box"><p>Custom text block.</p></div>' },
       { id: 'sep2', sep: true },
-      { id: 'grid', label: 'Word / text grid…', icon: '▦', html: '<div class="word-grid" style="grid-template-columns:repeat(4,1fr)"><div class="word-cell">word</div><div class="word-cell">word</div><div class="word-cell">word</div><div class="word-cell">word</div><div class="word-cell">word</div><div class="word-cell">word</div><div class="word-cell">word</div><div class="word-cell">word</div><div class="word-cell">word</div><div class="word-cell">word</div><div class="word-cell">word</div><div class="word-cell">word</div></div>' },
+      { id: 'grid', label: 'Word grid (4×3)', icon: '▦', html: '<div class="word-grid" style="grid-template-columns:repeat(4,1fr)"><div class="word-cell">word</div><div class="word-cell">word</div><div class="word-cell">word</div><div class="word-cell">word</div><div class="word-cell">word</div><div class="word-cell">word</div><div class="word-cell">word</div><div class="word-cell">word</div><div class="word-cell">word</div><div class="word-cell">word</div><div class="word-cell">word</div><div class="word-cell">word</div></div>' },
       { id: 'fill', label: 'Fill-in-blanks', icon: '⬜', html: '<div class="act-box"><div class="act-title">Fill in the missing letters</div><div class="fill-grid"><div class="fill-item">c<span class="blank-sq"></span>t</div><div class="fill-item">m<span class="blank-sq"></span>t</div><div class="fill-item">h<span class="blank-sq"></span>t</div></div></div>' },
       { id: 'decodable', label: 'Decodable sentences', icon: '📖', html: '<div class="act-box"><div class="act-title">Read aloud</div><div class="sentence">1. Write your sentence here.</div><div class="sentence">2. Write another sentence.</div></div>' },
       { id: 'writing', label: 'Writing lines', icon: '☰', html: '<div class="writing-lines-area"><div class="writing-set"><div class="line l1"></div><div class="line l2"></div><div class="line l3"></div><div class="line l4"></div></div><div class="writing-set"><div class="line l1"></div><div class="line l2"></div><div class="line l3"></div><div class="line l4"></div></div><div class="writing-set"><div class="line l1"></div><div class="line l2"></div><div class="line l3"></div><div class="line l4"></div></div></div>' },
@@ -3147,7 +3085,6 @@
         let codeInsertMenuEl = null;
     let codeInsertCtx = null;
     let lastFocusedCodeInner = null;
-    let savedCodeInsertRange = null; // caret/end position captured before menu/dialogs steal focus
     let gbChoiceMenuEl = null;
     let gbChoiceCell = null; // { inner, page, clientX, clientY }
 
@@ -3218,71 +3155,42 @@
 
     function insertHtmlIntoCodeInner(inner, html) {
       if (!inner || !html) return null;
+      inner.focus();
       let inserted = null;
-
-      // Prefer saved caret (captured before menu/dialog focus theft). Else append at end.
-      restoreCodeInsertRange(inner);
-
       try {
         const sel = window.getSelection();
-        let range = null;
-        if (savedCodeInsertRange && (inner.contains(savedCodeInsertRange.commonAncestorContainer) || savedCodeInsertRange.commonAncestorContainer === inner)) {
-          range = savedCodeInsertRange.cloneRange();
-        } else if (sel && sel.rangeCount > 0) {
-          const r = sel.getRangeAt(0);
-          if (inner.contains(r.commonAncestorContainer) || r.commonAncestorContainer === inner) {
-            range = r.cloneRange();
+        if (sel && sel.rangeCount > 0) {
+          const range = sel.getRangeAt(0);
+          if (inner.contains(range.commonAncestorContainer) || range.commonAncestorContainer === inner) {
+            range.collapse(false);
+            const temp = document.createElement('div');
+            temp.innerHTML = html;
+            const frag = document.createDocumentFragment();
+            let node;
+            let last = null;
+            while ((node = temp.firstChild)) {
+              last = frag.appendChild(node);
+            }
+            range.insertNode(frag);
+            inserted = last;
+            if (last) {
+              range.setStartAfter(last);
+              range.collapse(true);
+              sel.removeAllRanges();
+              sel.addRange(range);
+            }
           }
         }
-
-        if (range) {
-          // Insert AFTER the caret/selection end (not before)
-          range.collapse(false);
-          const temp = document.createElement('div');
-          temp.innerHTML = html;
-          const frag = document.createDocumentFragment();
-          let node;
-          let last = null;
-          while ((node = temp.firstChild)) {
-            last = frag.appendChild(node);
-          }
-          range.insertNode(frag);
-          inserted = last;
-          if (last) {
-            const after = document.createRange();
-            after.setStartAfter(last);
-            after.collapse(true);
-            sel.removeAllRanges();
-            sel.addRange(after);
-            savedCodeInsertRange = after.cloneRange();
-          }
-        }
-      } catch (err) {
-        console.warn('insertHtmlIntoCodeInner range insert failed', err);
-      }
-
-      // Guaranteed append at bottom if range insert did not happen
+      } catch (_) {}
       if (!inserted) {
         const temp = document.createElement('div');
         temp.innerHTML = html;
         while (temp.firstChild) {
           inserted = inner.appendChild(temp.firstChild);
         }
-        try {
-          if (inserted) {
-            const after = document.createRange();
-            after.setStartAfter(inserted);
-            after.collapse(true);
-            const sel = window.getSelection();
-            sel.removeAllRanges();
-            sel.addRange(after);
-            savedCodeInsertRange = after.cloneRange();
-          }
-        } catch (_) {}
       }
       return inserted;
     }
-
 
     function resolveCodeInsertTarget() {
       // Prefer current selection inside a code-inner
@@ -3311,62 +3219,6 @@
       return null;
     }
 
-
-    function captureCodeInsertRange(inner, forceEnd) {
-      savedCodeInsertRange = null;
-      if (!inner) return;
-      try {
-        if (forceEnd) {
-          const range = document.createRange();
-          range.selectNodeContents(inner);
-          range.collapse(false); // end
-          savedCodeInsertRange = range.cloneRange();
-          const sel = window.getSelection();
-          sel.removeAllRanges();
-          sel.addRange(range);
-          return;
-        }
-        const sel = window.getSelection();
-        if (sel && sel.rangeCount > 0) {
-          const range = sel.getRangeAt(0);
-          if (inner.contains(range.commonAncestorContainer) || range.commonAncestorContainer === inner) {
-            savedCodeInsertRange = range.cloneRange();
-            return;
-          }
-        }
-        // No valid caret → append at end
-        const range = document.createRange();
-        range.selectNodeContents(inner);
-        range.collapse(false);
-        savedCodeInsertRange = range.cloneRange();
-      } catch (_) {
-        savedCodeInsertRange = null;
-      }
-    }
-
-    function restoreCodeInsertRange(inner) {
-      if (!inner) return false;
-      try {
-        inner.focus();
-        const sel = window.getSelection();
-        if (savedCodeInsertRange && (inner.contains(savedCodeInsertRange.commonAncestorContainer) || savedCodeInsertRange.commonAncestorContainer === inner)) {
-          sel.removeAllRanges();
-          sel.addRange(savedCodeInsertRange.cloneRange());
-          return true;
-        }
-        // Fallback: end of content
-        const range = document.createRange();
-        range.selectNodeContents(inner);
-        range.collapse(false);
-        sel.removeAllRanges();
-        sel.addRange(range);
-        savedCodeInsertRange = range.cloneRange();
-        return true;
-      } catch (_) {
-        return false;
-      }
-    }
-
     window.openInsertMenuFromToolbar = function (ev) {
       if (!viewTextEditing) {
         showToast('Turn on Edit text first.', 'warning');
@@ -3377,8 +3229,18 @@
         showToast('Open a code page and click inside its body first.', 'warning');
         return;
       }
-      // Capture caret now (before button/menu steals focus). No caret → end of page (append).
-      captureCodeInsertRange(target.inner, !target.hasCaret);
+      // If no caret, collapse selection to end of content so insert appends
+      if (!target.hasCaret) {
+        try {
+          target.inner.focus();
+          const range = document.createRange();
+          range.selectNodeContents(target.inner);
+          range.collapse(false);
+          const sel = window.getSelection();
+          sel.removeAllRanges();
+          sel.addRange(range);
+        } catch (_) {}
+      }
       const anchorEl = (ev && ev.currentTarget) || document.getElementById('insertBlocksBtn');
       openCodeInsertMenu({
         inner: target.inner,
@@ -3484,11 +3346,6 @@
         return;
       }
 
-      if (block.id === 'grid') {
-        openWordGridConfigDialog(ctx);
-        return;
-      }
-
       const before = currentState();
       const inserted = insertHtmlIntoCodeInner(ctx.inner, block.html);
       commitViewEdit(ctx.inner);
@@ -3518,287 +3375,76 @@
       const total = cols * rows;
       let cells = '';
       for (let i = 0; i < total; i++) {
-        cells += `<div class="grid-block is-empty" data-gb-cell="1" style="height:${height}px;${border}" title="Height ${height}px — double-click to edit setup"><span class="gb-placeholder">Tap to add text or image</span></div>`;
+        cells += `<div class="grid-block is-empty" data-gb-cell="1" style="height:${height}px;${border}"><span class="gb-placeholder">Tap to add text or image</span></div>`;
       }
       return `<div class="grid-blocks" data-gb-cols="${cols}" data-gb-rows="${rows}" data-gb-height="${height}" data-gb-border="${borderKey}" data-gb-gap="${gap}" style="grid-template-columns:repeat(${cols},1fr);gap:${gap}px;">${cells}</div>`;
     }
 
-
-    function buildWordGridHtml(opts) {
-      const cols = Math.max(1, Math.min(8, Number(opts.columns) || 4));
-      const rows = Math.max(1, Math.min(12, Number(opts.rows) || 3));
-      const total = Math.min(24, cols * rows); // MAX_GRID_WORDS style cap
-      const placeholder = (opts.placeholder != null && String(opts.placeholder).trim() !== '')
-        ? String(opts.placeholder).trim()
-        : '';
-      let cells = '';
-      for (let i = 0; i < total; i++) {
-        const isLastCol = (i % cols) === cols - 1;
-        const isLastRow = i >= total - cols;
-        let style = '';
-        if (!isLastCol) style += 'border-right:1px solid #f0c9a8;';
-        else style += 'border-right:none;';
-        if (!isLastRow) style += 'border-bottom:1px solid #f0c9a8;';
-        else style += 'border-bottom:none;';
-        const emptyClass = placeholder ? '' : ' empty';
-        cells += '<div class="word-cell' + emptyClass + '" style="' + style + '" data-edit="plain" data-field="word" data-index="' + i + '">' +
-          (placeholder ? escapeHtml(placeholder) : '') + '</div>';
-      }
-      return '<div class="word-grid" data-wg-cols="' + cols + '" data-wg-rows="' + rows + '" style="grid-template-columns:repeat(' + cols + ',1fr)">' + cells + '</div>';
-    }
-
-    function openWordGridConfigDialog(ctx, existingGrid) {
+    function openGridBlocksConfigDialog(ctx) {
       document.querySelectorAll('.grid-config-overlay').forEach(el => el.remove());
-      const isEdit = !!(existingGrid && existingGrid.classList && existingGrid.classList.contains('word-grid'));
-      let defCols = 4, defRows = 3, defPh = '';
-      if (isEdit) {
-        defCols = parseInt(existingGrid.getAttribute('data-wg-cols'), 10) || 4;
-        defRows = parseInt(existingGrid.getAttribute('data-wg-rows'), 10) || 3;
-        // Infer from style if needed
-        const st = existingGrid.getAttribute('style') || '';
-        const cm = st.match(/repeat\((\d+)/);
-        if (cm) defCols = parseInt(cm[1], 10) || defCols;
-        const cellCount = existingGrid.querySelectorAll('.word-cell').length;
-        if (cellCount && defCols) defRows = Math.max(1, Math.ceil(cellCount / defCols));
-      }
-      const overlay = document.createElement('div');
-      overlay.className = 'grid-config-overlay no-print';
-      overlay.innerHTML = `
-        <div class="grid-config-dialog">
-          <h3>▦ Word / text grid</h3>
-          <p class="hint">${isEdit ? 'Update columns and rows. Existing cell text is kept where it still fits.' : 'Set how many columns and rows of text cells to insert. Click a cell on the page to type a word.'}</p>
-          <div class="row">
-            <label>Columns (1–8)
-              <input type="number" id="wgCfgCols" min="1" max="8" value="${defCols}">
-            </label>
-            <label>Rows (1–12)
-              <input type="number" id="wgCfgRows" min="1" max="12" value="${defRows}">
-            </label>
-          </div>
-          <div class="row">
-            <label style="flex:1 1 100%">Placeholder text (optional — same in every cell)
-              <input type="text" id="wgCfgPh" value="${escapeHtml(defPh)}" placeholder="Leave blank for empty cells">
-            </label>
-          </div>
-          <div class="actions">
-            <button type="button" class="btn btn-outline btn-sm" id="wgCfgCancel">Cancel</button>
-            <button type="button" class="btn btn-primary btn-sm" id="wgCfgApply">${isEdit ? 'Update' : 'Insert'}</button>
-          </div>
-        </div>`;
-      document.body.appendChild(overlay);
-      const close = () => overlay.remove();
-      overlay.querySelector('#wgCfgCancel').onclick = close;
-      overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
-      overlay.querySelector('#wgCfgCols').focus();
-      overlay.querySelector('#wgCfgApply').onclick = () => {
-        const columns = Math.max(1, Math.min(8, parseInt(overlay.querySelector('#wgCfgCols').value, 10) || 4));
-        const rows = Math.max(1, Math.min(12, parseInt(overlay.querySelector('#wgCfgRows').value, 10) || 3));
-        const placeholder = (overlay.querySelector('#wgCfgPh').value || '').trim();
-        close();
-        if (isEdit && existingGrid) {
-          updateExistingWordGrid(existingGrid, { columns, rows, placeholder });
-          const host = existingGrid.closest('.code-inner');
-          if (host) commitViewEdit(host);
-          showToast('Word grid updated.', 'success');
-          return;
-        }
-        if (!ctx || !ctx.inner) return;
-        const html = buildWordGridHtml({ columns, rows, placeholder });
-        const inserted = insertHtmlIntoCodeInner(ctx.inner, html);
-        if (inserted) {
-          inserted.querySelectorAll('[data-edit]').forEach(el => {
-            el.contentEditable = viewTextEditing ? 'true' : 'false';
-            el.spellcheck = true;
-          });
-          // word-grid itself may be the inserted root
-          if (inserted.classList && inserted.classList.contains('word-grid')) {
-            inserted.querySelectorAll('.word-cell').forEach(el => {
-              el.setAttribute('data-edit', 'plain');
-              el.contentEditable = viewTextEditing ? 'true' : 'false';
-            });
-          }
-        }
-        commitViewEdit(ctx.inner);
-        if (inserted) placeCaretInElement(inserted);
-        showToast('Word grid inserted (' + columns + '×' + rows + ').', 'success');
-      };
-    }
-
-    function updateExistingWordGrid(gridEl, opts) {
-      const cols = Math.max(1, Math.min(8, Number(opts.columns) || 4));
-      const rows = Math.max(1, Math.min(12, Number(opts.rows) || 3));
-      const total = Math.min(24, cols * rows);
-      const oldTexts = [...gridEl.querySelectorAll('.word-cell')].map(c =>
-        (c.textContent || '').replace(/\u00a0/g, ' ').trim()
-      );
-      gridEl.setAttribute('data-wg-cols', String(cols));
-      gridEl.setAttribute('data-wg-rows', String(rows));
-      gridEl.style.gridTemplateColumns = 'repeat(' + cols + ',1fr)';
-      gridEl.innerHTML = '';
-      for (let i = 0; i < total; i++) {
-        const isLastCol = (i % cols) === cols - 1;
-        const isLastRow = i >= total - cols;
-        let style = '';
-        if (!isLastCol) style += 'border-right:1px solid #f0c9a8;';
-        else style += 'border-right:none;';
-        if (!isLastRow) style += 'border-bottom:1px solid #f0c9a8;';
-        else style += 'border-bottom:none;';
-        const text = (i < oldTexts.length && oldTexts[i]) ? oldTexts[i] : (opts.placeholder || '');
-        const cell = document.createElement('div');
-        cell.className = 'word-cell' + (text ? '' : ' empty');
-        cell.setAttribute('style', style);
-        cell.setAttribute('data-edit', 'plain');
-        cell.setAttribute('data-field', 'word');
-        cell.setAttribute('data-index', String(i));
-        cell.textContent = text;
-        gridEl.appendChild(cell);
-      }
-    }
-
-    function readGridBlocksSettings(gridEl) {
-      if (!gridEl) {
-        return { columns: 3, rows: 1, height: 120, gap: 12, border: 'none' };
-      }
-      const cols = parseInt(gridEl.getAttribute('data-gb-cols'), 10) || 3;
-      const rows = parseInt(gridEl.getAttribute('data-gb-rows'), 10) || 1;
-      let height = parseInt(gridEl.getAttribute('data-gb-height'), 10) || 120;
-      const gap = parseInt(gridEl.getAttribute('data-gb-gap'), 10);
-      const border = gridEl.getAttribute('data-gb-border') || 'none';
-      const first = gridEl.querySelector('.grid-block');
-      if (first) {
-        const st = first.getAttribute('style') || '';
-        const hm = st.match(/height\s*:\s*(\d+)px/i);
-        if (hm) height = parseInt(hm[1], 10) || height;
-      }
-      return {
-        columns: Math.max(1, Math.min(8, cols)),
-        rows: Math.max(1, Math.min(8, rows)),
-        height: Math.max(40, Math.min(600, height)),
-        gap: Number.isFinite(gap) ? Math.max(0, Math.min(40, gap)) : 12,
-        border: border || 'none'
-      };
-    }
-
-    function openGridBlocksConfigDialog(ctx, existingGrid) {
-      document.querySelectorAll('.grid-config-overlay').forEach(el => el.remove());
-      const isEdit = !!(existingGrid && existingGrid.classList && existingGrid.classList.contains('grid-blocks'));
-      const defaults = isEdit
-        ? readGridBlocksSettings(existingGrid)
-        : { columns: 3, rows: 1, height: 120, gap: 12, border: 'none' };
-      const borderOpts = ['none', 'thin', 'thick', 'dashed', 'rounded']
-        .map(k => {
-          const labels = { none: 'No border', thin: 'Thin solid', thick: 'Thick solid', dashed: 'Dashed', rounded: 'Rounded frame' };
-          return '<option value="' + k + '"' + (defaults.border === k ? ' selected' : '') + '>' + labels[k] + '</option>';
-        }).join('');
       const overlay = document.createElement('div');
       overlay.className = 'grid-config-overlay no-print';
       overlay.innerHTML = `
         <div class="grid-config-dialog">
           <h3>⊞ Grid blocks</h3>
-          <p class="hint">${isEdit ? 'Update this grid. Height and other fields use the current values.' : 'Equal-width boxes in a grid. Set columns, rows, height, gap, and border before inserting. Each cell can hold text or an image.'}</p>
+          <p class="hint">Equal-width boxes in a grid. Each cell can hold text or an image.</p>
           <div class="row">
             <label>Columns (1–8)
-              <input type="number" id="gbCfgCols" min="1" max="8" value="${defaults.columns}">
+              <input type="number" id="gbCfgCols" min="1" max="8" value="3">
             </label>
             <label>Rows (1–8)
-              <input type="number" id="gbCfgRows" min="1" max="8" value="${defaults.rows}">
+              <input type="number" id="gbCfgRows" min="1" max="8" value="1">
             </label>
           </div>
           <div class="row">
             <label>Box height (px)
-              <input type="number" id="gbCfgH" min="40" max="600" value="${defaults.height}">
+              <input type="number" id="gbCfgH" min="40" max="600" value="120">
             </label>
             <label>Gap (px)
-              <input type="number" id="gbCfgGap" min="0" max="40" value="${defaults.gap}">
+              <input type="number" id="gbCfgGap" min="0" max="40" value="12">
             </label>
           </div>
           <div class="row">
             <label>Border
-              <select id="gbCfgBorder">${borderOpts}</select>
+              <select id="gbCfgBorder">
+                <option value="none" selected>No border</option>
+                <option value="thin">Thin solid</option>
+                <option value="thick">Thick solid</option>
+                <option value="dashed">Dashed</option>
+                <option value="rounded">Rounded frame</option>
+              </select>
             </label>
           </div>
           <div class="actions">
             <button type="button" class="btn btn-outline btn-sm" id="gbCfgCancel">Cancel</button>
-            <button type="button" class="btn btn-primary btn-sm" id="gbCfgApply">${isEdit ? 'Update' : 'Insert'}</button>
+            <button type="button" class="btn btn-primary btn-sm" id="gbCfgApply">Insert</button>
           </div>
         </div>`;
       document.body.appendChild(overlay);
       const close = () => overlay.remove();
       overlay.querySelector('#gbCfgCancel').onclick = close;
       overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
-      overlay.querySelector('#gbCfgH').focus();
-      overlay.querySelector('#gbCfgH').select();
       overlay.querySelector('#gbCfgApply').onclick = () => {
-        const columns = Math.max(1, Math.min(8, parseInt(overlay.querySelector('#gbCfgCols').value, 10) || 3));
-        const rows = Math.max(1, Math.min(8, parseInt(overlay.querySelector('#gbCfgRows').value, 10) || 1));
-        const height = Math.max(40, Math.min(600, parseInt(overlay.querySelector('#gbCfgH').value, 10) || 120));
-        const gapRaw = parseInt(overlay.querySelector('#gbCfgGap').value, 10);
-        const gap = Number.isFinite(gapRaw) ? Math.max(0, Math.min(40, gapRaw)) : 12;
+        const columns = parseInt(overlay.querySelector('#gbCfgCols').value, 10) || 3;
+        const rows = parseInt(overlay.querySelector('#gbCfgRows').value, 10) || 1;
+        const height = parseInt(overlay.querySelector('#gbCfgH').value, 10) || 120;
+        const gap = parseInt(overlay.querySelector('#gbCfgGap').value, 10);
         const border = overlay.querySelector('#gbCfgBorder').value || 'none';
-        const opts = { columns, rows, height, gap, border };
+        const html = buildGridBlocksHtml({
+          columns: Math.max(1, Math.min(8, columns)),
+          rows: Math.max(1, Math.min(8, rows)),
+          height,
+          gap: Number.isFinite(gap) ? gap : 12,
+          border
+        });
         close();
-
-        if (isEdit && existingGrid) {
-          // Preserve cell contents where possible when only height/gap/border change;
-          // if cols/rows change, rebuild structure but keep as many cells as fit.
-          updateExistingGridBlocks(existingGrid, opts);
-          const host = existingGrid.closest('.code-inner');
-          if (host) commitViewEdit(host);
-          showToast('Grid blocks updated.', 'success');
-          return;
-        }
-
         if (!ctx || !ctx.inner) return;
-        const html = buildGridBlocksHtml(opts);
         const inserted = insertHtmlIntoCodeInner(ctx.inner, html);
         commitViewEdit(ctx.inner);
         if (inserted) placeCaretInElement(inserted);
         showToast('Grid blocks inserted.', 'success');
       };
     }
-
-    function updateExistingGridBlocks(gridEl, opts) {
-      const cols = opts.columns;
-      const rows = opts.rows;
-      const height = opts.height;
-      const gap = opts.gap;
-      const borderKey = opts.border || 'none';
-      const border = gridBlockBorderCss(borderKey);
-      const needed = cols * rows;
-
-      // Collect existing cell HTML (content only)
-      const oldCells = [...gridEl.querySelectorAll('.grid-block')];
-      const contents = oldCells.map(c => {
-        if (c.classList.contains('is-empty')) return { empty: true, html: '' };
-        return { empty: false, html: c.innerHTML };
-      });
-
-      gridEl.setAttribute('data-gb-cols', String(cols));
-      gridEl.setAttribute('data-gb-rows', String(rows));
-      gridEl.setAttribute('data-gb-height', String(height));
-      gridEl.setAttribute('data-gb-gap', String(gap));
-      gridEl.setAttribute('data-gb-border', borderKey);
-      gridEl.style.gridTemplateColumns = 'repeat(' + cols + ',1fr)';
-      gridEl.style.gap = gap + 'px';
-
-      // Rebuild cells
-      gridEl.innerHTML = '';
-      for (let i = 0; i < needed; i++) {
-        const cell = document.createElement('div');
-        cell.className = 'grid-block';
-        cell.setAttribute('data-gb-cell', '1');
-        cell.setAttribute('style', 'height:' + height + 'px;' + border);
-        cell.title = 'Height ' + height + 'px — double-click to edit setup';
-        if (i < contents.length && !contents[i].empty && contents[i].html) {
-          cell.innerHTML = contents[i].html;
-        } else {
-          cell.classList.add('is-empty');
-          cell.innerHTML = '<span class="gb-placeholder">Tap to add text or image</span>';
-        }
-        gridEl.appendChild(cell);
-      }
-    }
-
 
     function closeGridBlockChoice() {
       if (gbChoiceMenuEl) {
@@ -3894,6 +3540,7 @@
         openViewImageDialog({ mode: 'grid-cell', cell });
       }
     }
+
 
     const IMAGE_BORDER_PRESETS = {
       none: { label: 'No border', css: 'border:none;border-radius:0;' },
@@ -4256,76 +3903,18 @@
       document.execCommand('foreColor', false, color);
     };
 
-    const RTE_SIZE_PRESET_KEY = 'phonics_rte_size_preset_v1';
-    let rteSizePreset = 16;
-
-    function loadRteSizePreset() {
-      try {
-        const raw = localStorage.getItem(RTE_SIZE_PRESET_KEY);
-        const n = parseInt(raw, 10);
-        if (n >= 8 && n <= 96) rteSizePreset = n;
-      } catch (_) {}
-      return rteSizePreset;
-    }
-
-    function saveRteSizePreset(px) {
-      const n = parseInt(px, 10);
-      if (!(n >= 8 && n <= 96)) return rteSizePreset;
-      rteSizePreset = n;
-      try { localStorage.setItem(RTE_SIZE_PRESET_KEY, String(n)); } catch (_) {}
-      return rteSizePreset;
-    }
-
-    function syncRteSizePresetUI() {
-      const sel = document.getElementById('rteFontSize');
-      const btn = document.getElementById('rteSizeApplyBtn');
-      if (sel) {
-        const val = String(rteSizePreset);
-        // ensure option exists
-        let found = false;
-        for (const opt of sel.options) {
-          if (opt.value === val) { found = true; break; }
-        }
-        if (!found) {
-          const opt = document.createElement('option');
-          opt.value = val;
-          opt.textContent = val;
-          sel.appendChild(opt);
-        }
-        sel.value = val;
-      }
-      if (btn) {
-        btn.textContent = String(rteSizePreset);
-        btn.title = 'Apply ' + rteSizePreset + 'px to selected text';
-      }
-    }
-
     window.rteSetFontSize = function (px) {
-      if (!viewTextEditing) return false;
+      if (!viewTextEditing) return;
       const size = String(px || '').replace(/px/i, '');
-      if (!size) return false;
-      return rteWrapSelectionStyle({ fontSize: size + 'px' });
+      if (!size) return;
+      rteWrapSelectionStyle({ fontSize: size + 'px' });
     };
 
-    /** Dropdown only changes the preset — does not apply to selection (avoids focus loss). */
-    window.rteOnSizePresetChange = function (sel) {
+    window.rteOnSizeChange = function (sel) {
       if (!sel || !sel.value) return;
-      saveRteSizePreset(sel.value);
-      syncRteSizePresetUI();
-    };
-
-    /** Legacy name: treat as preset change only if still referenced */
-    window.rteOnSizeChange = window.rteOnSizePresetChange;
-
-    /** One-tap apply: uses preset size; keeps selection via mousedown preventDefault on the button. */
-    window.rteApplySizePreset = function () {
-      if (!viewTextEditing) {
-        showToast('Turn on Edit text first.', 'warning');
-        return;
-      }
-      const size = String(rteSizePreset || 16);
-      const ok = rteSetFontSize(size);
-      if (ok) showToast('Applied ' + size + 'px.', 'success');
+      rteSetFontSize(sel.value);
+      // reset so same size can be re-picked
+      setTimeout(() => { sel.selectedIndex = 0; }, 0);
     };
 
     window.rteOnColorPicker = function (input) {
@@ -5483,10 +5072,11 @@
               <button class="btn btn-outline btn-xs" data-cmd="underline" onmousedown="event.preventDefault()" onclick="rteCommand('underline')" title="Underline"><u>U</u></button>
               <button class="btn btn-outline btn-xs" onmousedown="event.preventDefault()" onclick="rteCommand('highlight')" title="Highlight">A</button>
               <span class="rte-sep" aria-hidden="true"></span>
-              <select class="rte-size" id="rteFontSize" title="Set size preset (does not apply yet)" onmousedown="event.stopPropagation()" onchange="rteOnSizePresetChange(this)">
+              <select class="rte-size" id="rteFontSize" title="Font size" onmousedown="event.stopPropagation()" onchange="rteOnSizeChange(this)">
+                <option value="">Size</option>
                 <option value="12">12</option>
                 <option value="14">14</option>
-                <option value="16" selected>16</option>
+                <option value="16">16</option>
                 <option value="18">18</option>
                 <option value="20">20</option>
                 <option value="24">24</option>
@@ -5494,7 +5084,6 @@
                 <option value="32">32</option>
                 <option value="40">40</option>
               </select>
-              <button type="button" class="btn btn-outline btn-xs" id="rteSizeApplyBtn" onmousedown="event.preventDefault()" onclick="rteApplySizePreset()" title="Apply preset size to selected text">16</button>
               <span class="rte-swatches" title="Text color">
                 <button type="button" class="rte-swatch" style="background:#1a1a1a" onmousedown="event.preventDefault()" onclick="rteSetColor('#1a1a1a')" title="Black"></button>
                 <button type="button" class="rte-swatch" style="background:#E2571C" onmousedown="event.preventDefault()" onclick="rteSetColor('#E2571C')" title="Orange"></button>
@@ -5509,7 +5098,7 @@
               <button class="btn btn-outline btn-xs" id="insertBlocksBtn" onmousedown="event.preventDefault()" onclick="openInsertMenuFromToolbar(event)" title="Insert element">+ Insert</button>
               <button class="btn btn-outline btn-xs" onmousedown="event.preventDefault()" onclick="rteCommand('image')" title="Insert image">🖼️</button>
               <button class="btn btn-outline btn-xs" onmousedown="event.preventDefault()" onclick="rteCommand('removeFormat')" title="Clear format">Clear</button>
-              <span style="font-size:12px;color:#6c757d;">Size preset → tap size button to apply · + Insert · 🖼️</span>
+              <span style="font-size:12px;color:#6c757d;">+ Insert blocks · 🖼️ image · select text for size/color</span>
             </div>
           </div>
           <div class="view-container editing-on" id="viewContainer"></div>
@@ -5517,8 +5106,6 @@
       `;
 
       document.getElementById('fSightWords').value = sightWords.join(', ');
-      loadRteSizePreset();
-      syncRteSizePresetUI();
       resetForm();
       renderPageList();
       renderAllView();
