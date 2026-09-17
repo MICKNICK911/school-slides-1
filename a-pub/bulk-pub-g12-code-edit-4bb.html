@@ -902,176 +902,6 @@
       margin: 4px 6px;
     }
 
-
-    /* Grid blocks (insertable equal-share boxes) */
-    .grid-blocks {
-      display: grid;
-      width: 100%;
-      box-sizing: border-box;
-      margin: 10px 0;
-    }
-    .grid-block {
-      box-sizing: border-box;
-      background: #fafbfc;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-      position: relative;
-      min-width: 0;
-    }
-    .grid-block.is-empty {
-      background: repeating-linear-gradient(45deg, #f8f9fa, #f8f9fa 8px, #eef1f4 8px, #eef1f4 16px);
-      cursor: pointer;
-    }
-    .grid-block .gb-placeholder {
-      font-size: 12px;
-      font-weight: 700;
-      color: #6c757d;
-      text-align: center;
-      padding: 8px;
-      pointer-events: none;
-      user-select: none;
-    }
-    .grid-block .gb-text {
-      width: 100%;
-      height: 100%;
-      padding: 8px 10px;
-      box-sizing: border-box;
-      font-size: 14px;
-      font-weight: 600;
-      color: #1a1a1a;
-      outline: none;
-      overflow: auto;
-      text-align: center;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .grid-block .gb-img-wrap {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-    }
-    .grid-block .gb-img-wrap img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      display: block;
-    }
-    .view-container.editing-on .grid-block.is-empty:hover {
-      outline: 2px dashed #F5A623;
-      outline-offset: -2px;
-    }
-    .view-container.editing-on .grid-block:not(.is-empty) {
-      outline: 1.5px dashed transparent;
-    }
-    .view-container.editing-on .grid-block:not(.is-empty):hover {
-      outline-color: #F5A623;
-    }
-
-    /* Tiny choice popup for empty grid cell */
-    .gb-choice-menu {
-      position: fixed;
-      z-index: 10070;
-      min-width: 160px;
-      background: #fff;
-      border: 2px solid #F5A623;
-      border-radius: 12px;
-      box-shadow: 0 12px 36px rgba(0,0,0,0.18);
-      padding: 6px;
-      font-family: inherit;
-    }
-    .gb-choice-menu .gbc-title {
-      font-size: 11px;
-      font-weight: 800;
-      color: #6c757d;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-      padding: 6px 10px 4px;
-    }
-    .gb-choice-menu button.gbc-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      width: 100%;
-      text-align: left;
-      border: none;
-      background: transparent;
-      padding: 9px 10px;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 600;
-      font-family: inherit;
-      color: #1a1a1a;
-      cursor: pointer;
-    }
-    .gb-choice-menu button.gbc-item:hover,
-    .gb-choice-menu button.gbc-item:focus {
-      background: #fff8e8;
-      outline: none;
-    }
-
-    /* Grid blocks config dialog */
-    .grid-config-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.45);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 10050;
-      padding: 16px;
-    }
-    .grid-config-dialog {
-      background: #fff;
-      border-radius: 16px;
-      padding: 22px;
-      max-width: 420px;
-      width: 100%;
-      box-shadow: 0 24px 48px rgba(0,0,0,0.22);
-    }
-    .grid-config-dialog h3 { margin: 0 0 14px; font-size: 18px; }
-    .grid-config-dialog .row {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 12px;
-      flex-wrap: wrap;
-    }
-    .grid-config-dialog .row label {
-      flex: 1;
-      min-width: 110px;
-      font-size: 12px;
-      font-weight: 700;
-      color: #495057;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-    .grid-config-dialog input[type="number"],
-    .grid-config-dialog select {
-      padding: 8px 10px;
-      border: 2px solid #dee2e6;
-      border-radius: 8px;
-      font-size: 14px;
-      font-family: inherit;
-    }
-    .grid-config-dialog .hint {
-      font-size: 12px;
-      color: #6c757d;
-      margin: 0 0 12px;
-    }
-    .grid-config-dialog .actions {
-      display: flex;
-      gap: 8px;
-      justify-content: flex-end;
-      flex-wrap: wrap;
-      margin-top: 8px;
-    }
-
     /* Sticky chrome: toolbar + format bar stay visible while scrolling pages */
     .view-sticky-chrome {
       position: sticky;
@@ -2929,19 +2759,11 @@
       container.addEventListener('focusin', (e) => {
         const t = e.target.closest && e.target.closest('[data-edit]');
         if (t) t.dataset.rteBefore = t.innerHTML;
-        const codeInner = e.target.closest && e.target.closest('.code-inner');
-        if (codeInner) lastFocusedCodeInner = codeInner;
       });
       container.addEventListener('focusout', (e) => {
         const t = e.target.closest && e.target.closest('[data-edit]');
         if (!t) return;
         if (t.dataset.rteBefore === t.innerHTML) return;
-        // Grid-block text lives inside code-inner — always commit the host HTML
-        if (t.classList.contains('gb-text') || t.closest('.grid-block')) {
-          const host = t.closest('.code-inner');
-          if (host) commitViewEdit(host);
-          return;
-        }
         commitViewEdit(t);
       });
       container.addEventListener('input', (e) => {
@@ -3023,31 +2845,28 @@
           return;
         }
 
-        // Grid-block empty cell → tiny Text | Image choice
-        const gbEmpty = e.target.closest && e.target.closest('.grid-block.is-empty');
-        if (gbEmpty) {
-          e.preventDefault();
-          e.stopPropagation();
-          openGridBlockChoice(gbEmpty, e.clientX, e.clientY);
-          return;
-        }
-        // Filled grid-block image → re-edit
-        const gbImg = e.target.closest && e.target.closest('.grid-block .gb-img-wrap');
-        if (gbImg) {
-          e.preventDefault();
-          e.stopPropagation();
-          const cell = gbImg.closest('.grid-block');
-          const img = gbImg.querySelector('img');
-          openViewImageDialog({
-            mode: 'grid-cell',
-            cell,
-            src: (img && img.getAttribute('src')) || '',
-            width: 200,
-            height: 150,
-            border: 'none',
-            fit: /object-fit\s*:\s*cover/i.test((img && img.getAttribute('style')) || '') ? 'cover' : 'contain'
-          });
-          return;
+        // Code pages only: click empty body space → insert element menu
+        // (structured pages intentionally ignored)
+        if (codeInsertMenuEl && codeInsertMenuEl.contains(e.target)) return;
+        const codeInner = e.target.closest && e.target.closest('.code-inner');
+        const codeArea = e.target.closest && e.target.closest('.code-content-area');
+        if (codeInner || codeArea) {
+          const inner = codeInner || (codeArea && codeArea.querySelector('.code-inner'));
+          if (inner && isCodePageEmptyClick(e.target, inner, e.clientX, e.clientY)) {
+            // Don't steal clicks when user is selecting text
+            const sel = window.getSelection();
+            if (sel && !sel.isCollapsed && inner.contains(sel.anchorNode)) return;
+            e.preventDefault();
+            const pageEl = inner.closest('[data-page-id]');
+            const pageId = pageEl ? pageEl.getAttribute('data-page-id') : null;
+            const page = pageId ? pages.find(p => p.id === pageId) : null;
+            openCodeInsertMenu({
+              inner,
+              page,
+              clientX: e.clientX,
+              clientY: e.clientY
+            });
+          }
         }
       });
       setViewEditingEnabled(viewTextEditing);
@@ -3077,16 +2896,11 @@
       { id: 'ul', label: 'Bullet list', icon: '•', html: '<ul><li>Item one</li><li>Item two</li><li>Item three</li></ul>' },
       { id: 'ol', label: 'Numbered list', icon: '1.', html: '<ol><li>First</li><li>Second</li><li>Third</li></ol>' },
       { id: 'hr', label: 'Divider line', icon: '—', html: '<hr style="border:none;border-top:2px solid #F5A623;margin:16px 0;">' },
-      { id: 'sep4', sep: true },
-      { id: 'gridblocks', label: 'Grid blocks…', icon: '⊞', html: null },
       { id: 'image', label: 'Image…', icon: '🖼️', html: null }
     ];
 
-        let codeInsertMenuEl = null;
-    let codeInsertCtx = null;
-    let lastFocusedCodeInner = null;
-    let gbChoiceMenuEl = null;
-    let gbChoiceCell = null; // { inner, page, clientX, clientY }
+    let codeInsertMenuEl = null;
+    let codeInsertCtx = null; // { inner, page, clientX, clientY }
 
     function closeCodeInsertMenu() {
       if (codeInsertMenuEl) {
@@ -3192,65 +3006,6 @@
       return inserted;
     }
 
-    function resolveCodeInsertTarget() {
-      // Prefer current selection inside a code-inner
-      const sel = window.getSelection();
-      if (sel && sel.rangeCount) {
-        const node = sel.anchorNode;
-        const el = node && (node.nodeType === 1 ? node : node.parentElement);
-        const inner = el && el.closest && el.closest('#viewContainer .code-inner');
-        if (inner) {
-          return { inner, page: findPageFromEl(inner), hasCaret: true };
-        }
-      }
-      // Active element
-      const active = document.activeElement;
-      if (active) {
-        const inner = active.closest && active.closest('#viewContainer .code-inner');
-        if (inner) return { inner, page: findPageFromEl(inner), hasCaret: true };
-      }
-      // Last focused code page
-      if (lastFocusedCodeInner && document.contains(lastFocusedCodeInner)) {
-        return { inner: lastFocusedCodeInner, page: findPageFromEl(lastFocusedCodeInner), hasCaret: false };
-      }
-      // First code page in view
-      const first = document.querySelector('#viewContainer .code-inner');
-      if (first) return { inner: first, page: findPageFromEl(first), hasCaret: false };
-      return null;
-    }
-
-    window.openInsertMenuFromToolbar = function (ev) {
-      if (!viewTextEditing) {
-        showToast('Turn on Edit text first.', 'warning');
-        return;
-      }
-      const target = resolveCodeInsertTarget();
-      if (!target || !target.inner) {
-        showToast('Open a code page and click inside its body first.', 'warning');
-        return;
-      }
-      // If no caret, collapse selection to end of content so insert appends
-      if (!target.hasCaret) {
-        try {
-          target.inner.focus();
-          const range = document.createRange();
-          range.selectNodeContents(target.inner);
-          range.collapse(false);
-          const sel = window.getSelection();
-          sel.removeAllRanges();
-          sel.addRange(range);
-        } catch (_) {}
-      }
-      const anchorEl = (ev && ev.currentTarget) || document.getElementById('insertBlocksBtn');
-      openCodeInsertMenu({
-        inner: target.inner,
-        page: target.page,
-        anchorEl,
-        clientX: undefined,
-        clientY: undefined
-      });
-    };
-
     function openCodeInsertMenu(ctx) {
       closeCodeInsertMenu();
       if (!viewTextEditing || !ctx || !ctx.inner) return;
@@ -3271,16 +3026,11 @@
       document.body.appendChild(menu);
       codeInsertMenuEl = menu;
 
-      // Position near click or toolbar button, keep on-screen
+      // Position near click, keep on-screen
       const pad = 8;
       const rect = menu.getBoundingClientRect();
-      let left = (typeof ctx.clientX === 'number') ? ctx.clientX : Math.max(pad, (window.innerWidth - rect.width) / 2);
-      let top = (typeof ctx.clientY === 'number') ? ctx.clientY : 120;
-      if (ctx.anchorEl && typeof ctx.clientX !== 'number') {
-        const ar = ctx.anchorEl.getBoundingClientRect();
-        left = ar.left;
-        top = ar.bottom + 6;
-      }
+      let left = ctx.clientX;
+      let top = ctx.clientY;
       if (left + rect.width > window.innerWidth - pad) left = window.innerWidth - rect.width - pad;
       if (top + rect.height > window.innerHeight - pad) top = window.innerHeight - rect.height - pad;
       if (left < pad) left = pad;
@@ -3329,218 +3079,25 @@
         try {
           ctx.inner.focus();
           const sel = window.getSelection();
-          if (!sel.rangeCount || !ctx.inner.contains(sel.anchorNode)) {
-            const range = document.createRange();
-            range.selectNodeContents(ctx.inner);
-            range.collapse(false);
-            sel.removeAllRanges();
-            sel.addRange(range);
-          }
+          const range = document.createRange();
+          range.selectNodeContents(ctx.inner);
+          range.collapse(false);
+          sel.removeAllRanges();
+          sel.addRange(range);
         } catch (_) {}
         openViewImageDialog({ mode: 'insert' });
-        return;
-      }
-
-      if (block.id === 'gridblocks') {
-        openGridBlocksConfigDialog(ctx);
         return;
       }
 
       const before = currentState();
       const inserted = insertHtmlIntoCodeInner(ctx.inner, block.html);
       commitViewEdit(ctx.inner);
+      // commitViewEdit already records history when content changes; avoid double if unchanged
       if (inserted) placeCaretInElement(inserted);
       showToast(`Inserted ${block.label}.`, 'success');
+      // Soft re-render not required — DOM already updated; page.html synced via commitViewEdit
       void before;
     }
-
-    function gridBlockBorderCss(key) {
-      const map = {
-        none: 'border:none;border-radius:0;',
-        thin: 'border:2px solid #1a1a1a;border-radius:0;',
-        thick: 'border:4px solid #1a1a1a;border-radius:0;',
-        dashed: 'border:2px dashed #E2571C;border-radius:0;',
-        rounded: 'border:3px solid #F5A623;border-radius:12px;'
-      };
-      return map[key] || map.none;
-    }
-
-    function buildGridBlocksHtml(opts) {
-      const cols = Math.max(1, Math.min(8, Number(opts.columns) || 3));
-      const rows = Math.max(1, Math.min(8, Number(opts.rows) || 1));
-      const height = Math.max(40, Math.min(600, Number(opts.height) || 120));
-      const gap = Math.max(0, Math.min(40, Number(opts.gap) || 12));
-      const borderKey = opts.border || 'none';
-      const border = gridBlockBorderCss(borderKey);
-      const total = cols * rows;
-      let cells = '';
-      for (let i = 0; i < total; i++) {
-        cells += `<div class="grid-block is-empty" data-gb-cell="1" style="height:${height}px;${border}"><span class="gb-placeholder">Tap to add text or image</span></div>`;
-      }
-      return `<div class="grid-blocks" data-gb-cols="${cols}" data-gb-rows="${rows}" data-gb-height="${height}" data-gb-border="${borderKey}" data-gb-gap="${gap}" style="grid-template-columns:repeat(${cols},1fr);gap:${gap}px;">${cells}</div>`;
-    }
-
-    function openGridBlocksConfigDialog(ctx) {
-      document.querySelectorAll('.grid-config-overlay').forEach(el => el.remove());
-      const overlay = document.createElement('div');
-      overlay.className = 'grid-config-overlay no-print';
-      overlay.innerHTML = `
-        <div class="grid-config-dialog">
-          <h3>⊞ Grid blocks</h3>
-          <p class="hint">Equal-width boxes in a grid. Each cell can hold text or an image.</p>
-          <div class="row">
-            <label>Columns (1–8)
-              <input type="number" id="gbCfgCols" min="1" max="8" value="3">
-            </label>
-            <label>Rows (1–8)
-              <input type="number" id="gbCfgRows" min="1" max="8" value="1">
-            </label>
-          </div>
-          <div class="row">
-            <label>Box height (px)
-              <input type="number" id="gbCfgH" min="40" max="600" value="120">
-            </label>
-            <label>Gap (px)
-              <input type="number" id="gbCfgGap" min="0" max="40" value="12">
-            </label>
-          </div>
-          <div class="row">
-            <label>Border
-              <select id="gbCfgBorder">
-                <option value="none" selected>No border</option>
-                <option value="thin">Thin solid</option>
-                <option value="thick">Thick solid</option>
-                <option value="dashed">Dashed</option>
-                <option value="rounded">Rounded frame</option>
-              </select>
-            </label>
-          </div>
-          <div class="actions">
-            <button type="button" class="btn btn-outline btn-sm" id="gbCfgCancel">Cancel</button>
-            <button type="button" class="btn btn-primary btn-sm" id="gbCfgApply">Insert</button>
-          </div>
-        </div>`;
-      document.body.appendChild(overlay);
-      const close = () => overlay.remove();
-      overlay.querySelector('#gbCfgCancel').onclick = close;
-      overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
-      overlay.querySelector('#gbCfgApply').onclick = () => {
-        const columns = parseInt(overlay.querySelector('#gbCfgCols').value, 10) || 3;
-        const rows = parseInt(overlay.querySelector('#gbCfgRows').value, 10) || 1;
-        const height = parseInt(overlay.querySelector('#gbCfgH').value, 10) || 120;
-        const gap = parseInt(overlay.querySelector('#gbCfgGap').value, 10);
-        const border = overlay.querySelector('#gbCfgBorder').value || 'none';
-        const html = buildGridBlocksHtml({
-          columns: Math.max(1, Math.min(8, columns)),
-          rows: Math.max(1, Math.min(8, rows)),
-          height,
-          gap: Number.isFinite(gap) ? gap : 12,
-          border
-        });
-        close();
-        if (!ctx || !ctx.inner) return;
-        const inserted = insertHtmlIntoCodeInner(ctx.inner, html);
-        commitViewEdit(ctx.inner);
-        if (inserted) placeCaretInElement(inserted);
-        showToast('Grid blocks inserted.', 'success');
-      };
-    }
-
-    function closeGridBlockChoice() {
-      if (gbChoiceMenuEl) {
-        gbChoiceMenuEl.remove();
-        gbChoiceMenuEl = null;
-      }
-      gbChoiceCell = null;
-    }
-
-    function openGridBlockChoice(cell, clientX, clientY) {
-      if (!viewTextEditing) {
-        showToast('Turn on Edit text first.', 'warning');
-        return;
-      }
-      closeGridBlockChoice();
-      if (!cell || !cell.classList.contains('is-empty')) return;
-      gbChoiceCell = cell;
-      const menu = document.createElement('div');
-      menu.className = 'gb-choice-menu no-print';
-      menu.innerHTML = `
-        <div class="gbc-title">Add to cell</div>
-        <button type="button" class="gbc-item" data-gb-choice="text"><span>📝</span> Text</button>
-        <button type="button" class="gbc-item" data-gb-choice="image"><span>🖼️</span> Image</button>
-      `;
-      document.body.appendChild(menu);
-      gbChoiceMenuEl = menu;
-      const pad = 8;
-      let left = (clientX || 0) + 4;
-      let top = (clientY || 0) + 4;
-      const rect = menu.getBoundingClientRect();
-      if (left + rect.width > window.innerWidth - pad) left = window.innerWidth - rect.width - pad;
-      if (top + rect.height > window.innerHeight - pad) top = window.innerHeight - rect.height - pad;
-      if (left < pad) left = pad;
-      if (top < pad) top = pad;
-      menu.style.left = left + 'px';
-      menu.style.top = top + 'px';
-
-      menu.addEventListener('click', (e) => {
-        const btn = e.target.closest('[data-gb-choice]');
-        if (!btn) return;
-        e.preventDefault();
-        e.stopPropagation();
-        const choice = btn.getAttribute('data-gb-choice');
-        applyGridBlockChoice(choice);
-      });
-
-      setTimeout(() => {
-        const onDoc = (ev) => {
-          if (gbChoiceMenuEl && !gbChoiceMenuEl.contains(ev.target)) {
-            closeGridBlockChoice();
-            document.removeEventListener('mousedown', onDoc, true);
-            document.removeEventListener('keydown', onKey, true);
-          }
-        };
-        const onKey = (ev) => {
-          if (ev.key === 'Escape') {
-            closeGridBlockChoice();
-            document.removeEventListener('mousedown', onDoc, true);
-            document.removeEventListener('keydown', onKey, true);
-          }
-        };
-        document.addEventListener('mousedown', onDoc, true);
-        document.addEventListener('keydown', onKey, true);
-      }, 0);
-    }
-
-    function applyGridBlockChoice(choice) {
-      const cell = gbChoiceCell;
-      closeGridBlockChoice();
-      if (!cell) return;
-      const host = cell.closest('.code-inner');
-      if (choice === 'text') {
-        cell.classList.remove('is-empty');
-        cell.innerHTML = '<div class="gb-text" contenteditable="true" data-edit="rich" data-field="gbText">Type here…</div>';
-        const te = cell.querySelector('.gb-text');
-        if (te) {
-          try {
-            te.focus();
-            const range = document.createRange();
-            range.selectNodeContents(te);
-            const sel = window.getSelection();
-            sel.removeAllRanges();
-            sel.addRange(range);
-          } catch (_) {}
-        }
-        if (host) commitViewEdit(host);
-        showToast('Text cell ready — type to edit.', 'success');
-        return;
-      }
-      if (choice === 'image') {
-        // Mark cell; open image dialog; on apply we'll fill this cell
-        window._pendingGridBlockCell = cell;
-        openViewImageDialog({ mode: 'grid-cell', cell });
-      }
-    }
-
 
     const IMAGE_BORDER_PRESETS = {
       none: { label: 'No border', css: 'border:none;border-radius:0;' },
@@ -3612,7 +3169,7 @@
       overlay.className = 'img-dialog-overlay';
       overlay.innerHTML = `
         <div class="img-dialog">
-          <h3>🖼️ ${imageDialogCtx.mode === 'insert' || imageDialogCtx.mode === 'grid-cell' ? 'Insert image' : 'Edit image'}</h3>
+          <h3>🖼️ ${imageDialogCtx.mode === 'insert' ? 'Insert image' : 'Edit image'}</h3>
           <div class="preview" id="imgDlgPreview">${defaults.src ? `<img src="${defaults.src}" alt="">` : '<span style="color:#6c757d">No image yet</span>'}</div>
           <div class="row">
             <label>Width (px)<input type="number" id="imgDlgW" min="40" max="800" value="${defaults.width}"></label>
@@ -3692,30 +3249,6 @@
       const ctx = imageDialogCtx;
       if (!ctx) return;
       const before = currentState();
-
-      // Grid-block cell fill
-      if (ctx.mode === 'grid-cell') {
-        const cell = ctx.cell || window._pendingGridBlockCell;
-        window._pendingGridBlockCell = null;
-        if (!cell) { closeImageDialog(); return; }
-        if (opts.remove) {
-          cell.classList.add('is-empty');
-          cell.innerHTML = '<span class="gb-placeholder">Tap to add text or image</span>';
-        } else {
-          const fit = opts.fit === 'cover' ? 'cover' : 'contain';
-          const src = opts.src || '';
-          cell.classList.remove('is-empty');
-          cell.innerHTML = src
-            ? `<div class="gb-img-wrap"><img src="${src}" alt="" style="object-fit:${fit};" /></div>`
-            : '<span class="gb-placeholder">Tap to add text or image</span>';
-          if (!src) cell.classList.add('is-empty');
-        }
-        const host = cell.closest('.code-inner');
-        if (host) commitViewEdit(host);
-        closeImageDialog();
-        showToast(opts.remove ? 'Cell image removed.' : 'Image added to cell.', 'success');
-        return;
-      }
 
       if (ctx.mode === 'tile') {
         const { page, section } = ctx;
@@ -3875,10 +3408,6 @@
 
     window.rteCommand = function (cmd) {
       if (!viewTextEditing) return;
-      if (cmd === 'insert') {
-        window.openInsertMenuFromToolbar();
-        return;
-      }
       if (cmd === 'image') {
         openImageInsertDialog();
         return;
@@ -5095,10 +4624,9 @@
               </span>
               <input type="color" class="rte-color" id="rteColorPicker" value="#E2571C" title="Custom color" onmousedown="event.preventDefault()" oninput="rteOnColorPicker(this)" onchange="rteOnColorPicker(this)">
               <span class="rte-sep" aria-hidden="true"></span>
-              <button class="btn btn-outline btn-xs" id="insertBlocksBtn" onmousedown="event.preventDefault()" onclick="openInsertMenuFromToolbar(event)" title="Insert element">+ Insert</button>
               <button class="btn btn-outline btn-xs" onmousedown="event.preventDefault()" onclick="rteCommand('image')" title="Insert image">🖼️</button>
               <button class="btn btn-outline btn-xs" onmousedown="event.preventDefault()" onclick="rteCommand('removeFormat')" title="Clear format">Clear</button>
-              <span style="font-size:12px;color:#6c757d;">+ Insert blocks · 🖼️ image · select text for size/color</span>
+              <span style="font-size:12px;color:#6c757d;">Select text → size / color · 🖼️ insert</span>
             </div>
           </div>
           <div class="view-container editing-on" id="viewContainer"></div>
