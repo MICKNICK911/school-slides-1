@@ -955,25 +955,6 @@
       line-height: 1.35;
       max-width: 100%;
     }
-    /* Grid cell vertical align */
-    .grid-block[data-valign="top"] .gb-text,
-    .grid-block .gb-text[data-valign="top"] { justify-content: flex-start; }
-    .grid-block[data-valign="middle"] .gb-text,
-    .grid-block .gb-text[data-valign="middle"] { justify-content: center; }
-    .grid-block[data-valign="bottom"] .gb-text,
-    .grid-block .gb-text[data-valign="bottom"] { justify-content: flex-end; }
-    /* Grid cell horizontal align (content) */
-    .grid-block[data-halign="left"] .gb-text,
-    .grid-block .gb-text[data-halign="left"] { align-items: flex-start; text-align: left; }
-    .grid-block[data-halign="center"] .gb-text,
-    .grid-block .gb-text[data-halign="center"] { align-items: center; text-align: center; }
-    .grid-block[data-halign="right"] .gb-text,
-    .grid-block .gb-text[data-halign="right"] { align-items: flex-end; text-align: right; }
-    .grid-block[data-halign="justify"] .gb-text,
-    .grid-block .gb-text[data-halign="justify"] { align-items: stretch; text-align: justify; }
-    .grid-block .gb-img-wrap[data-valign="top"] { align-items: flex-start; }
-    .grid-block .gb-img-wrap[data-valign="middle"] { align-items: center; }
-    .grid-block .gb-img-wrap[data-valign="bottom"] { align-items: flex-end; }
     .grid-block .gb-text * {
       max-width: 100%;
       white-space: pre-wrap;
@@ -4291,126 +4272,6 @@
       document.execCommand(cmd, false, null);
     };
 
-    function rteSelectionGridBlock() {
-      const sel = window.getSelection();
-      if (sel && sel.rangeCount) {
-        const node = sel.anchorNode;
-        const el = node && (node.nodeType === 1 ? node : node.parentElement);
-        const cell = el && el.closest && el.closest('.grid-block');
-        if (cell) return cell;
-      }
-      const active = document.activeElement;
-      if (active && active.closest) {
-        const cell = active.closest('.grid-block');
-        if (cell) return cell;
-      }
-      return null;
-    }
-
-    function commitGridBlockHost(cell) {
-      if (!cell) return;
-      const host = cell.closest('.code-inner');
-      if (host) commitViewEdit(host);
-    }
-
-    /** Horizontal: left | center | right | justify. In grid cells also sets data-halign. */
-    window.rteAlign = function (how) {
-      if (!viewTextEditing) {
-        showToast('Turn on Edit text first.', 'warning');
-        return;
-      }
-      const map = { left: 'justifyLeft', center: 'justifyCenter', right: 'justifyRight', justify: 'justifyFull' };
-      const cmd = map[how];
-      if (!cmd) return;
-
-      const cell = rteSelectionGridBlock();
-      if (cell) {
-        cell.setAttribute('data-halign', how);
-        const te = cell.querySelector('.gb-text');
-        if (te) {
-          te.setAttribute('data-halign', how);
-          te.style.textAlign = how === 'justify' ? 'justify' : how;
-          if (how === 'left') { te.style.alignItems = 'flex-start'; }
-          else if (how === 'right') { te.style.alignItems = 'flex-end'; }
-          else if (how === 'justify') { te.style.alignItems = 'stretch'; }
-          else { te.style.alignItems = 'center'; }
-        }
-        commitGridBlockHost(cell);
-        showToast('Align ' + how + ' (grid cell).', 'success');
-        return;
-      }
-
-      if (!rteEnsureSelectionInView()) {
-        showToast('Select or place the cursor in text first.', 'warning');
-        return;
-      }
-      try { document.execCommand('styleWithCSS', false, true); } catch (_) {}
-      document.execCommand(cmd, false, null);
-      // Always set text-align on nearest block for reliability across browsers
-      try {
-        const sel = window.getSelection();
-        if (sel && sel.rangeCount) {
-          let el = sel.anchorNode;
-          if (el && el.nodeType === 3) el = el.parentElement;
-          let block = el && el.closest && el.closest('p,h1,h2,h3,h4,li,div.sentence,div.word-cell,[data-edit]');
-          // Prefer block-level, not the code-inner itself
-          if (block && (block.classList.contains('code-inner') || block.id === 'viewContainer')) {
-            block = null;
-          }
-          if (!block && el) {
-            // Walk up until a sensible block
-            let n = el;
-            while (n && n !== document.body) {
-              const tag = (n.tagName || '').toLowerCase();
-              if (['p','h1','h2','h3','h4','li','div','blockquote'].includes(tag) && !n.classList.contains('code-inner') && n.closest('#viewContainer')) {
-                block = n;
-                break;
-              }
-              n = n.parentElement;
-            }
-          }
-          if (block && block.closest('#viewContainer')) {
-            block.style.textAlign = how === 'justify' ? 'justify' : how;
-            const host = block.closest('.code-inner');
-            if (host) commitViewEdit(host);
-            else {
-              const page = block.closest('.page-card, .page');
-              // structured page fields still commit via focusout usually
-            }
-          }
-        }
-      } catch (_) {}
-      showToast('Align ' + how + '.', 'success');
-    };
-
-    /** Vertical: top | middle | bottom — grid cells only. */
-    window.rteVAlign = function (how) {
-      if (!viewTextEditing) {
-        showToast('Turn on Edit text first.', 'warning');
-        return;
-      }
-      if (!['top', 'middle', 'bottom'].includes(how)) return;
-      const cell = rteSelectionGridBlock();
-      if (!cell) {
-        showToast('Vertical align works in grid block cells — click a cell first.', 'warning');
-        return;
-      }
-      cell.setAttribute('data-valign', how);
-      const te = cell.querySelector('.gb-text');
-      if (te) {
-        te.setAttribute('data-valign', how);
-        te.style.justifyContent = how === 'top' ? 'flex-start' : how === 'bottom' ? 'flex-end' : 'center';
-      }
-      const imgWrap = cell.querySelector('.gb-img-wrap');
-      if (imgWrap) {
-        imgWrap.setAttribute('data-valign', how);
-        imgWrap.style.alignItems = how === 'top' ? 'flex-start' : how === 'bottom' ? 'flex-end' : 'center';
-      }
-      // Empty cell: still store for when content is added
-      commitGridBlockHost(cell);
-      showToast('Vertical ' + how + ' (grid cell).', 'success');
-    };
-
     window.rteSetColor = function (color) {
       if (!viewTextEditing) return;
       if (!color) return;
@@ -5738,19 +5599,6 @@
               <select class="rte-size" id="rteElementPreset" title="Set current element (does not insert yet)" onmousedown="event.stopPropagation()" onchange="rteOnElementPresetChange(this)" style="min-width:7.5rem;max-width:10rem;">
               </select>
               <button type="button" class="btn btn-outline btn-xs" id="rteElementApplyBtn" onmousedown="event.preventDefault()" onclick="rteApplyElementPreset()" title="Insert current element">¶</button>
-              <span class="rte-sep" aria-hidden="true"></span>
-              <span class="rte-align-group" title="Text alignment" style="display:inline-flex;gap:2px;align-items:center;">
-                <button type="button" class="btn btn-outline btn-xs" onmousedown="event.preventDefault()" onclick="rteAlign('left')" title="Align left">⬅</button>
-                <button type="button" class="btn btn-outline btn-xs" onmousedown="event.preventDefault()" onclick="rteAlign('center')" title="Align center">⬌</button>
-                <button type="button" class="btn btn-outline btn-xs" onmousedown="event.preventDefault()" onclick="rteAlign('right')" title="Align right">➡</button>
-                <button type="button" class="btn btn-outline btn-xs" onmousedown="event.preventDefault()" onclick="rteAlign('justify')" title="Justify">☰</button>
-              </span>
-              <span class="rte-sep" aria-hidden="true"></span>
-              <span class="rte-align-group" title="Vertical align (grid cells)" style="display:inline-flex;gap:2px;align-items:center;">
-                <button type="button" class="btn btn-outline btn-xs" onmousedown="event.preventDefault()" onclick="rteVAlign('top')" title="Vertical top (grid cell)">⬆</button>
-                <button type="button" class="btn btn-outline btn-xs" onmousedown="event.preventDefault()" onclick="rteVAlign('middle')" title="Vertical middle (grid cell)">⬍</button>
-                <button type="button" class="btn btn-outline btn-xs" onmousedown="event.preventDefault()" onclick="rteVAlign('bottom')" title="Vertical bottom (grid cell)">⬇</button>
-              </span>
               <span class="rte-swatches" title="Text color">
                 <button type="button" class="rte-swatch" style="background:#1a1a1a" onmousedown="event.preventDefault()" onclick="rteSetColor('#1a1a1a')" title="Black"></button>
                 <button type="button" class="rte-swatch" style="background:#E2571C" onmousedown="event.preventDefault()" onclick="rteSetColor('#E2571C')" title="Orange"></button>
