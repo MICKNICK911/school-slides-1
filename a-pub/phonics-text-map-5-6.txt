@@ -1,0 +1,294 @@
+PHONICS/SPELLING WORKBOOK REBUILD PLAYBOOK
+Derived from a full Grade 5 rebuild (184 -> 215 pages). Reuse this for Grade 6 or any
+similarly-structured workbook JSON. Paste this whole file into a new chat along with the
+target JSON, and say: "Follow this playbook on the attached JSON."
+
+============================================================
+0. FILE FORMAT ASSUMED
+============================================================
+A JSON file with a top-level "pages" array. Each page object has at least:
+  id, type, name, mainTitle, subtitle, html, css, contentBackground
+"html" is a fragment (e.g. <div class="wb-body">...</div>), "css" is a page-scoped
+stylesheet using classes like .wb-body, .wb-pagetitle, .wb-chiplist/.wb-chip,
+.wb-tablewrap/.wb-table, .wb-para, .wb-bullets. If the target file uses different class
+names, adapt but keep the same *approach*.
+
+============================================================
+1. FIRST: READ BEFORE YOU JUDGE OR EDIT
+============================================================
+- Load the JSON, print every page's id/name/type to get the full map of the book.
+- Do NOT trust page text extracted by stripping HTML tags with regex alone for anything
+  you plan to programmatically edit -- always re-view the raw HTML of a page before
+  editing it, and re-extract word lists via the actual markup structure (e.g. every
+  chip is `<div class="wb-chip">word</div>` -- extract with regex on THAT exact pattern,
+  not by eyeballing rendered text, which can silently drop or merge words).
+- Identify the repeating unit structure (e.g. "Final Pattern" list page -> "Word Sort"
+  page -> "Word Meaning" page -> "Reading Fluency" page -> "Proofreading" page -> a
+  decoding-skills page). Map pattern name -> each of these page ids in a dict up front.
+  You will reuse this map constantly.
+
+============================================================
+2. RENDER PAGES FOR REAL -- DO NOT JUDGE FROM HTML TEXT ALONE
+============================================================
+This was the single most important technique. A page's HTML can look fine in text and
+still be broken, overlapping, or overflowing when actually rendered.
+- Use Playwright + a real Chromium (NOT wkhtmltoimage/old WebKit -- it has broken
+  flexbox support and produces false-positive overlap bugs that don't reflect real
+  rendering). Check for a cached Chromium first (e.g. ~/.cache/puppeteer/chrome) before
+  assuming no network access blocks you.
+- Wrap each page's html+css in a fixed-size container matching the real page dimensions
+  (this book: 816x1056px, i.e. US Letter at 96dpi) and screenshot it with
+  page.screenshot(). View the resulting PNG with the image viewer tool.
+- Re-render after every batch of edits, not just once at the end. Several bugs were only
+  caught this way:
+    a) CSS class mismatch: injecting new HTML (e.g. chip lists, paragraphs) into a page
+       whose original <style> block never defined those classes -- renders as
+       unstyled/default browser text. FIX: always carry a complete, shared CSS block
+       (covering every class you might use: pagetitle, para, chiplist/chip, table,
+       bullets, footer) and apply it to every page you touch, don't reuse the
+       page's original partial CSS.
+    b) Content overflow: long word lists / long definition lists silently exceed the
+       fixed page height and get clipped (with overflow:hidden) or overlap (with some
+       renderers). FIX: measure empirically (render at your real content density) and
+       set a conservative "items per page" budget, then paginate automatically instead
+       of assuming everything fits on one page.
+
+============================================================
+3. DIAGNOSTIC PASS (do this before touching anything)
+============================================================
+For each of the following, check EVERY unit in the book, not a sample -- systemic
+template bugs typically affect all instances of a page type, not just a few:
+  a) Any "sort into categories" exercise: are the category labels actually TRUE of the
+     words being sorted? A common failure mode: a template's category headers
+     (e.g. "Short a spelled a / Short e spelled e...") get reused for every pattern
+     even when the words in that specific list don't vary that way (e.g. all words in
+     an "_ace" list share the exact same unstressed ending and have nothing to do with
+     short vowels). Count how many words would land in each category -- if a column
+     would be empty or if literally every word lands in the same column, the sort is
+     broken/degenerate, not just imperfect.
+  b) Any "match the definition" / word-meaning exercise: does the definition count
+     equal the word count? Does every word in the list have exactly one, unambiguous
+     matching definition? Flag near-synonym pairs (e.g. both "terrible" and "horrible"
+     matching "very bad") as ambiguous even if counts match.
+  c) Any place the front matter / introduction promises content (e.g. "we include
+     decodable stories", "weekly review tests") -- search the rest of the book for
+     whether that content actually exists. Promises with no matching pages are a real
+     defect, not a style nit.
+  d) Table of Contents: does it list real page numbers / real section names, or is it
+     generic placeholder text?
+  e) Cover page: is there an actual design, or just stacked plain text with no visual
+     treatment?
+  f) Render 8-10 varied pages (cover, intro, a sort page, a meaning page, a reference
+     table, a full-page worksheet like ruled lines) and visually check page-fill: what
+     fraction of the fixed page height is actually used? A workbook with a lot of
+     genuinely empty space below short content reads as unfinished even if the content
+     itself is correct.
+
+============================================================
+4. FIXING BROKEN "SORT" EXERCISES -- METHOD
+============================================================
+Never invent a phonetic/vowel-sound claim you can't verify (no pronouncing dictionary
+available offline = don't claim "short a" vs "long a" from memory alone for dozens of
+words -- too easy to be subtly wrong in a way that's hard to self-catch). Instead use
+criteria that are 100% mechanically checkable from the letters or that you can verify
+against real pronunciation with high confidence:
+
+  Criterion A -- SYLLABLE COUNT (best for genuinely polysyllabic, schwa-suffix
+  patterns, e.g. endings like -tion/-cious/-ious/-ate style families):
+    Heuristic (Python):
+      def syl_count(word):
+          w = re.sub(r"[^a-z]", "", word.lower())
+          vowels = "aeiouy"
+          count, prev_v = 0, False
+          for ch in w:
+              v = ch in vowels
+              if v and not prev_v: count += 1
+              prev_v = v
+          if w.endswith("e") and not w.endswith("le") and count > 1:
+              count -= 1
+          return max(count, 1)
+    KNOWN FAILURE MODE: this undercounts words where two vowel letters that are
+    pronounced as SEPARATE syllables sit next to each other (vowel hiatus), e.g.
+    "furious" (fu-ri-ous, 3) gets miscounted as 2 because "iou" is treated as one vowel
+    group. You must manually build a small override/exception list for the specific
+    word family you're working on by cross-checking real pronunciation (dictionary
+    syllable counts) for every word where the heuristic's answer looks surprising --
+    especially near -ious/-eous/-ion endings not preceded by c/t/s/x (those DO merge
+    correctly, e.g. "gracious"=2, "anxious"=2, but "curious"=3, "serious"=3 need +1).
+    ALWAYS spot check the resulting bucket distribution: if one bucket has almost all
+    the words and another has 0-1, syllable count is a bad discriminator for this list
+    -- fall through to Criterion B or C instead.
+
+  Criterion B -- LAST VOWEL LETTER BEFORE THE ENDING (best for monosyllabic /
+  consonant-cluster final patterns where syllable count has no variance, e.g. endings
+  like -ble/-dge/-mb/-ng/-nk/-tch style families -- these are almost always one
+  syllable so syllable count is useless):
+    def last_vowel_letter(word):
+        w = word.lower()
+        if w.endswith('e'): w = w[:-1]
+        for ch in reversed(w):
+            if ch in 'aeiouy': return ch
+        return '-'
+    This is purely orthographic (which letter is written), not a phonetic sound claim,
+    so it can't be "wrong" the way a short/long vowel judgment could be. Group words by
+    this letter, use headers like "Vowel A", "Vowel E", etc. Check variance before
+    committing to this pattern too -- if the fixed suffix itself always contains the
+    same vowel letter (e.g. every word in an "-age" family literally ends "...age", so
+    the letter right before the ending is always 'a' for all of them) this criterion is
+    ALSO degenerate. Fall through to Criterion C.
+
+  Criterion C -- ALPHABETICAL ORDER (universal fallback when a list of words shares a
+  fixed ending and neither syllable count nor letter-before-ending discriminates,
+  meaning there is no real phonetic/spelling variance to sort by):
+    Just sort words alphabetically and have pupils write them in order on numbered
+    lines. This is honest (no false claim about the words), always has a unique correct
+    answer, and is itself a genuine literacy skill (alphabetizing / dictionary skills).
+    Say explicitly in the instruction text why this list works differently ("these
+    words don't split into groups by sound -- alphabetize them instead").
+
+  For every pattern in the book, compute all three criteria's bucket distributions
+  first, THEN decide per-pattern which to use based on which actually discriminates
+  well (roughly balanced buckets, no zero-count buckets). Don't force one global
+  criterion on the whole book.
+
+============================================================
+5. FIXING "WORD MEANING" / DEFINITION-MATCHING EXERCISES
+============================================================
+- Extract the full word list for the unit (same chip-based extraction as above).
+- Write ONE accurate, concise (roughly one sentence), grade-appropriate definition per
+  word. Do this in a plain Python dict per pattern group, in batches, so you can review
+  and verify systematically rather than generating inline HTML strings by hand (much
+  higher error rate).
+- After writing all definitions, run an automated check:
+    - every word in the list has a definition (no missing)
+    - no defined word is missing from the list (no stray/extra)
+    - no two definitions in the SAME unit are identical strings (catches accidental
+      duplication, though it won't catch near-synonym ambiguity -- eyeball those,
+      especially pairs like terrible/horrible, furious/angry-adjacent words, etc.)
+- Shuffle the definition order relative to the word order (deterministic seed is fine)
+  so the exercise is a genuine matching task, not "definition #3 always matches word
+  #3 alphabetically."
+- Include the full word-bank chip list on the page so pupils don't have to flip back to
+  a previous page to see the words.
+- PAGINATE. Do not assume one page holds an arbitrary number of definitions. Render a
+  representative long list at your real font size/padding to find your actual safe
+  items-per-page budget (in this project: roughly 20 definitions per page at 13.5px
+  line-height 1.42, on an 816x1056 page, after a word-bank block). Split any unit
+  exceeding that budget into multiple pages, each with correctly continued numbering
+  (start="N" on the <ol>), and only show the full word bank on the FIRST page of a
+  split unit (repeating it on every continuation page wastes space).
+- Every split-page's title must include the pattern name AND page indicator, e.g.
+  "Word Meaning -- _age (2 of 2)" -- don't let it default to a generic "Word Meaning"
+  with no pattern identifier once split.
+
+============================================================
+6. ANSWER KEY (new section -- likely didn't exist before)
+============================================================
+- Build one compact "Answer Key -- Word Sort" section listing, per pattern, the correct
+  bucket assignments (or alphabetized order) you computed in step 4. Pack multiple
+  patterns per page (dense compact list format, not one page per pattern) -- budget by
+  total word count per page (roughly 90-100 words worth of content per page worked
+  well), not by pattern count, since patterns vary hugely in list size.
+- Build a second "Answer Key -- Word Meaning" section: one compact line per pattern,
+  "word = short definition" pairs, using a shortened version of the full definition
+  (e.g. first clause before a semicolon/comma) to keep it scannable.
+- Place both sections at the back of the book, after the last pattern unit.
+- Reflect the new page ids and organization in the Table of Contents (step 7).
+
+============================================================
+7. TABLE OF CONTENTS
+============================================================
+- Do this LAST, after all structural edits (pagination changes page numbers!).
+- Programmatically find the real page index of the start of each unit (search for the
+  page whose name/title marks a new pattern, e.g. starts with "Final Pattern") --
+  never hand-type page numbers, they will be wrong the moment you paginate anything.
+- List every pattern with a plain-language example ("_ble as in bubble"), grouped under
+  clear section headers (Front Matter / N Spelling Patterns / Back Matter), two-column
+  layout works well for high pattern counts. Include the Answer Key section(s) with
+  real page numbers too.
+- Watch for combined/compound pattern names (e.g. a unit covering multiple related
+  endings at once, like "_ace / _ice / _uce / _ce") -- a naive regex that grabs "the
+  first word after the page-type label" will truncate these to just the first fragment
+  and can even collide with a same-named earlier pattern. Extract the FULL pattern
+  label deliberately, don't assume single-token pattern names.
+
+============================================================
+8. COVER REDESIGN
+============================================================
+- A CSS-only redesign (gradient background, soft decorative circles/shapes via
+  border-radius, a colored badge for the grade level, a bordered "letter tile" row
+  spelling out a relevant word) reads as professionally designed without needing any
+  external image assets (which you likely can't fetch offline anyway).
+- Keep real author/institution credit text at the bottom in a clearly separated footer
+  block (thin top border, muted color) rather than mixed into the main title stack.
+- Render and visually check contrast (light text needs a genuinely dark background
+  color, verify with the screenshot, don't assume).
+
+============================================================
+9. GLOBAL "EMPTY PAGE" POLISH (footer pass)
+============================================================
+Rather than hand-redesigning every sparse page's internal layout (large effort, high
+risk of introducing new bugs across ~200 pages), add ONE consistent footer element to
+every page:
+  .rh-footer{position:fixed;left:0;right:0;bottom:0;height:34px;...}
+`position:fixed` anchors to the page's own rendering viewport/container regardless of
+that specific page's internal CSS structure (flex, unknown wrapper classes, etc.) --
+much more robust across a book where different page types have different internal
+markup than trying to use position:absolute with a shared parent you'd have to verify
+page-by-page.
+Footer contents: series/book name on the left, current section/pattern name in the
+middle (track this as you iterate through the page list in order, updating a
+"current unit" variable whenever you pass a new unit-start page), and the page number
+on the right. This alone makes every page look finished/branded even when its content
+naturally only fills part of the page -- it's a legitimate, honest fix (adds real
+navigational information) rather than padding with fake content.
+Skip the cover page (it should already have its own complete footer treatment from
+step 8).
+
+============================================================
+10. VALIDATION BEFORE DELIVERING
+============================================================
+- Confirm every page id is unique (no accidental id collisions when inserting new
+  pages/splitting units).
+- Confirm no page has empty/missing html.
+- Re-render a sample across every page TYPE you touched (not just one example) with
+  the real Chromium method from step 2, and actually view the screenshots -- don't
+  trust "the code ran without errors" as proof the output looks right.
+- Reconcile any place elsewhere in the book (front matter, TOC) that references page
+  counts or page numbers against the FINAL page list, since pagination/insertions
+  shift everything downstream.
+
+============================================================
+11. WHAT TO SCOPE OUT AND SAY SO EXPLICITLY
+============================================================
+Be honest with the person about what a single pass can't respectably cover, rather than
+faking it:
+  - Writing genuine decodable reading passages / connected stories (a real creative
+    writing project per pattern, not a mechanical fix) -- flag as a separate follow-up
+    task.
+  - Full internal-layout redesign of every sparse page (vs. the global footer patch)
+    -- flag as a possible further pass if the person wants tighter page-by-page
+    polish.
+  - Any content requiring grade-level judgment calls you're not fully confident about
+    (e.g. whether a specific word list is actually appropriate difficulty for the
+    stated grade) -- surface it as an observation, don't silently "fix" it by deleting
+    words the person didn't ask you to remove.
+
+============================================================
+QUICK CHECKLIST FOR THE NEXT AGENT
+============================================================
+[ ] Map every pattern -> its list/sort/meaning/etc. page ids
+[ ] Render 8-10 sample pages first to see real starting condition
+[ ] Diagnose: sort-category validity, definition coverage/ambiguity, TOC accuracy,
+    cover quality, front-matter promises vs actual content, page-fill/emptiness
+[ ] Fix Word Sort pages per-pattern using best-discriminating criterion (syllable
+    count / last-vowel-letter / alphabetical), verified bucket distributions
+[ ] Write full, unique, unambiguous Word Meaning definitions for every word;
+    paginate long lists based on a real rendered-content budget
+[ ] Build Answer Key section(s), placed at the back
+[ ] Rebuild Table of Contents last, with real computed page numbers
+[ ] Redesign cover (CSS-only if no image assets/network available)
+[ ] Add global footer pass (position:fixed) for consistent page-bottom branding
+[ ] Re-render broadly and actually view screenshots before calling it done
+[ ] Validate: unique ids, no empty content, internal page-number references correct
+[ ] Clearly state anything intentionally left out of scope (e.g. decodable stories)
