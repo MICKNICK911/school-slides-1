@@ -1,320 +1,2224 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Results Manager</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    <!-- Main module (ES6) -->
-    <script type="module" src="main.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#2563eb">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>Student Results Pro</title>
+<script>
+  (function(){
+    try{
+      var saved=localStorage.getItem('srp_theme');
+      if(saved==='dark'||(!saved&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)){
+        document.documentElement.setAttribute('data-theme','dark');
+      }
+    }catch(e){}
+  })();
+</script>
+<style>
+  :root{
+    color-scheme:light;
+    --primary:#2563eb; --primary-dark:#1d4ed8; --primary-light:#60a5fa;
+    --primary-soft:rgba(37,99,235,0.10);
+    --danger:#dc2626; --danger-dark:#b91c1c;
+    --success:#16a34a; --success-dark:#15803d;
+    --warning:#eab308; --warning-dark:#ca8a04;
+    --info:#0ea5e9; --info-dark:#0284c7;
+
+    --body-bg-1:#eff6ff; --body-bg-2:#dbeafe; --body-bg-3:#e0e7ff;
+    --container-bg:rgba(255,255,255,0.96);
+    --container-border:rgba(37,99,235,0.15);
+    --card:#ffffff; --card-2:#f8fafc; --surface:#f1f5f9; --hover:#eff6ff;
+    --border:#e2e8f0; --border-2:#cbd5e1;
+    --text:#0f172a; --muted:#64748b;
+    --input-bg:#f8fafc; --input-focus-bg:#ffffff;
+    --overlay-bg:rgba(15,23,42,0.55);
+    --toast-bg:#ffffff; --toast-text:#0f172a;
+
+    --shadow-sm:0 1px 2px rgba(15,23,42,0.06);
+    --shadow:0 4px 10px rgba(15,23,42,0.08);
+    --shadow-lg:0 10px 30px rgba(15,23,42,0.12);
+
+    --radius:20px;
+    --radius-sm:12px;
+    --transition:all .18s ease;
+  }
+
+  [data-theme="dark"]{
+    color-scheme:dark;
+    --primary:#3b82f6; --primary-dark:#2563eb; --primary-light:#93c5fd;
+    --primary-soft:rgba(59,130,246,0.18);
+    --danger:#ef4444; --danger-dark:#dc2626;
+    --success:#22c55e; --success-dark:#16a34a;
+    --warning:#facc15; --warning-dark:#eab308;
+    --info:#38bdf8; --info-dark:#0ea5e9;
+
+    --body-bg-1:#020617; --body-bg-2:#0f172a; --body-bg-3:#1e293b;
+    --container-bg:rgba(15,23,42,0.92);
+    --container-border:rgba(59,130,246,0.20);
+    --card:#1e293b; --card-2:#0f172a; --surface:#334155; --hover:#334155;
+    --border:#334155; --border-2:#475569;
+    --text:#e2e8f0; --muted:#94a3b8;
+    --input-bg:#0f172a; --input-focus-bg:#1e293b;
+    --overlay-bg:rgba(2,6,23,0.78);
+    --toast-bg:#1e293b; --toast-text:#e2e8f0;
+
+    --shadow-sm:0 1px 2px rgba(0,0,0,0.4);
+    --shadow:0 4px 12px rgba(0,0,0,0.45);
+    --shadow-lg:0 14px 40px rgba(0,0,0,0.55);
+  }
+
+  *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Roboto,system-ui,sans-serif}
+  html,body{transition:background .25s ease,color .25s ease}
+  body{background:linear-gradient(145deg,var(--body-bg-1) 0%,var(--body-bg-2) 60%,var(--body-bg-3) 100%);
+    min-height:100vh;color:var(--text);-webkit-tap-highlight-color:transparent;
+    padding-top:max(20px, env(safe-area-inset-top));
+    padding-bottom:max(20px, env(safe-area-inset-bottom));
+    padding-left:max(20px, env(safe-area-inset-left));
+    padding-right:max(20px, env(safe-area-inset-right));}
+
+  .ic{display:inline-block;width:1em;height:1em;vertical-align:-0.125em;
+    fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+  .ic-sm{width:.85em;height:.85em}
+  .ic-lg{width:1.5em;height:1.5em}
+  .ic-xl{width:2.5em;height:2.5em}
+
+  .container{max-width:1400px;margin:0 auto;background:var(--container-bg);
+    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    border-radius:26px;box-shadow:var(--shadow-lg),0 0 0 1px var(--container-border);
+    padding:28px 32px;border:1px solid var(--container-border);
+    transition:background .25s ease,border-color .25s ease}
+
+  header{display:flex;justify-content:space-between;align-items:center;
+    margin-bottom:24px;padding-bottom:16px;border-bottom:2px solid var(--container-border);
+    flex-wrap:wrap;gap:15px}
+
+  .header-left{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+  h1{color:var(--primary);font-size:1.9rem;display:flex;align-items:center;gap:12px;
+    font-weight:800;letter-spacing:-.02em}
+  h1 .ic{color:var(--warning);width:1.1em;height:1.1em}
+  .current-dataset{background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+    color:#fff;padding:8px 22px;border-radius:40px;font-weight:600;font-size:.92rem;
+    display:inline-flex;align-items:center;gap:10px;box-shadow:var(--shadow)}
+  .header-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+
+  .sheet-status{display:flex;align-items:center;gap:10px;background:var(--card);
+    padding:8px 18px;border-radius:40px;box-shadow:var(--shadow);
+    border:1px solid var(--border);font-weight:500;font-size:.88rem;color:var(--muted);
+    transition:background .25s ease,color .25s ease}
+  .sheet-status .dot{width:10px;height:10px;border-radius:50%;background:#94a3b8;flex-shrink:0;
+    box-shadow:0 0 0 3px transparent;transition:background .2s ease,box-shadow .2s ease}
+  .sheet-status.connected .dot{background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.2)}
+  .sheet-status.pending .dot{background:#f59e0b;box-shadow:0 0 0 3px rgba(245,158,11,.2)}
+
+  .icon-btn{background:var(--card);border:1px solid var(--border);color:var(--text);
+    width:42px;height:42px;border-radius:12px;cursor:pointer;font-size:1.05rem;
+    transition:var(--transition);display:inline-flex;align-items:center;justify-content:center}
+  .icon-btn:hover{background:var(--hover);color:var(--primary);border-color:var(--primary);transform:translateY(-1px)}
+  .icon-btn:active{transform:translateY(0)}
+  .icon-btn .ic{width:18px;height:18px}
+
+  .controls-wrapper{display:flex;justify-content:space-between;align-items:center;
+    flex-wrap:wrap;gap:20px;margin-bottom:22px}
+  .button-group{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+
+  .dropdown{position:relative;display:inline-block}
+  .dropdown-toggle{background:var(--card);border:1px solid var(--border);color:var(--text);
+    padding:11px 20px;border-radius:12px;font-weight:600;font-size:.9rem;
+    display:inline-flex;align-items:center;gap:8px;cursor:pointer;transition:var(--transition);
+    box-shadow:var(--shadow-sm);font-family:inherit}
+  .dropdown-toggle:hover{background:var(--hover);border-color:var(--primary);color:var(--primary);transform:translateY(-1px)}
+  .dropdown-menu{position:absolute;top:calc(100% + 8px);left:0;background:var(--card);
+    border-radius:14px;box-shadow:var(--shadow-lg);min-width:280px;padding:6px 0;
+    z-index:1000;display:none;border:1px solid var(--border)}
+  .dropdown-menu.show{display:block;animation:dropIn .15s ease}
+  @keyframes dropIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+  .dropdown-menu button{width:100%;text-align:left;background:transparent;border:none;
+    padding:11px 18px;font-size:.9rem;font-weight:500;color:var(--text);
+    display:flex;align-items:center;gap:12px;transition:var(--transition);cursor:pointer;
+    font-family:inherit}
+  .dropdown-menu button:hover{background:var(--hover);color:var(--primary)}
+  .dropdown-menu button .ic{color:var(--primary);width:16px;height:16px}
+  .dropdown-menu hr{border:none;border-top:1px solid var(--border);margin:6px 12px}
+
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;
+    border-radius:12px;border:1px solid var(--border);background:var(--card);
+    color:var(--text);font-weight:600;font-size:.88rem;cursor:pointer;
+    transition:var(--transition);box-shadow:var(--shadow-sm);white-space:nowrap;
+    font-family:inherit}
+  .btn:hover{transform:translateY(-1px);box-shadow:var(--shadow)}
+  .btn:active{transform:translateY(0)}
+  .btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+  .btn .ic{width:15px;height:15px}
+
+  .btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+    border-color:transparent;color:#fff}
+  .btn-primary:hover:not(:disabled){box-shadow:0 6px 18px var(--primary-soft)}
+  .btn-danger{background:linear-gradient(135deg,var(--danger),var(--danger-dark));
+    border-color:transparent;color:#fff}
+  .btn-success{background:linear-gradient(135deg,var(--success),var(--success-dark));
+    border-color:transparent;color:#fff}
+  .btn-warning{background:linear-gradient(135deg,var(--warning),var(--warning-dark));
+    border-color:transparent;color:#1e293b}
+  .btn-info{background:linear-gradient(135deg,var(--info),var(--info-dark));
+    border-color:transparent;color:#fff}
+  .btn-secondary{background:var(--card);color:var(--text)}
+  .btn-secondary:hover:not(:disabled){background:var(--hover);border-color:var(--primary);color:var(--primary)}
+
+  .badge{background:#fff;color:var(--primary);border-radius:20px;padding:1px 8px;
+    font-size:11px;font-weight:700;margin-left:4px;line-height:1.4}
+
+  .table-container{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);
+    overflow:hidden;margin-bottom:26px;border:1px solid var(--border);
+    transition:box-shadow .2s ease,border-color .2s ease}
+  .table-container:hover{box-shadow:var(--shadow-lg);border-color:var(--primary-light)}
+  .table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+
+  .table-header{background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+    color:#fff;padding:14px 22px;display:flex;justify-content:space-between;
+    align-items:center;flex-wrap:wrap;gap:10px}
+  .table-title{font-size:1.2rem;font-weight:700;padding:6px 14px;border-radius:12px;
+    background:rgba(255,255,255,.15);cursor:text;outline:none;color:#fff;
+    transition:background .15s ease;min-width:80px;
+    -webkit-user-select:text;user-select:text;caret-color:var(--warning)}
+  .table-title:focus{background:#fff;color:var(--text)}
+  .table-actions{display:flex;gap:6px;flex-wrap:wrap}
+  .table-actions button{background:rgba(255,255,255,.18);border:none;color:#fff;
+    padding:8px 10px;border-radius:10px;font-size:.85rem;cursor:pointer;
+    transition:var(--transition);display:inline-flex;align-items:center;justify-content:center;
+    font-family:inherit}
+  .table-actions button .ic{width:16px;height:16px}
+  .table-actions button:hover{background:rgba(255,255,255,.35);transform:translateY(-1px)}
+
+  .cat-config{background:var(--card-2);padding:18px 22px;border-bottom:1px solid var(--border)}
+  .cat-config-header{display:flex;justify-content:space-between;align-items:center;
+    margin-bottom:12px;flex-wrap:wrap;gap:10px}
+  .cat-config-title{font-size:1rem;font-weight:700;color:var(--primary);
+    display:flex;align-items:center;gap:8px}
+  .cat-config-title .ic{width:16px;height:16px}
+  .cat-columns-list{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px}
+  .cat-column-item{background:var(--card);border:1px solid var(--border);
+    border-radius:30px;padding:6px 14px;display:inline-flex;align-items:center;gap:10px}
+  .cat-column-name{font-weight:600;font-size:.9rem;color:var(--text)}
+  .cat-column-max{color:var(--primary);font-size:.85rem;font-weight:600}
+  .cat-column-actions{display:flex;gap:2px}
+  .cat-column-actions button{background:transparent;border:none;color:var(--muted);
+    cursor:pointer;padding:4px;border-radius:6px;transition:var(--transition);
+    display:inline-flex;align-items:center;justify-content:center}
+  .cat-column-actions button .ic{width:14px;height:14px}
+  .cat-column-actions button:hover{color:var(--primary);background:var(--hover)}
+
+  .add-cat-form{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;
+    padding:14px;background:var(--card);border-radius:14px;border:1px dashed var(--primary)}
+  .add-cat-form input{padding:9px 14px;border:1px solid var(--border);border-radius:10px;
+    flex:1 1 140px;background:var(--input-bg);color:var(--text);font-family:inherit;font-size:.9rem}
+  .add-cat-form input:focus{outline:none;border-color:var(--primary);
+    box-shadow:0 0 0 3px var(--primary-soft)}
+
+  table{width:100%;border-collapse:collapse;font-size:.9rem}
+  th{background:var(--card-2);color:var(--muted);font-weight:700;padding:12px 8px;
+    text-align:center;font-size:.75rem;text-transform:uppercase;letter-spacing:.5px;
+    border-bottom:2px solid var(--border)}
+  td{padding:8px 6px;text-align:center;border-bottom:1px solid var(--border);color:var(--text)}
+  tr:last-child td{border-bottom:none}
+
+  .editable{display:block;padding:6px 10px;border-radius:10px;background:var(--input-bg);
+    color:var(--text);cursor:text;min-width:60px;outline:none;
+    transition:background .15s ease,box-shadow .15s ease;font-weight:500;
+    -webkit-user-select:text;user-select:text;caret-color:var(--primary)}
+  .editable:hover{background:var(--hover)}
+  .editable:focus{outline:none;background:var(--input-focus-bg);box-shadow:0 0 0 2px var(--primary)}
+  .position-cell{color:var(--primary);font-weight:700}
+
+  .empty-state{text-align:center;padding:60px 20px;background:var(--card);
+    border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border);color:var(--muted)}
+  .empty-state .ic-xl{color:var(--border-2);margin-bottom:14px}
+  .empty-state p{margin-bottom:18px;font-size:1rem}
+
+  .modal-overlay{position:fixed;inset:0;background:var(--overlay-bg);
+    backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+    display:flex;align-items:center;justify-content:center;z-index:2000;
+    animation:fadeIn .15s ease;
+    height:100vh;height:100dvh;
+    padding-top:max(20px, env(safe-area-inset-top));
+    padding-bottom:max(20px, env(safe-area-inset-bottom));
+    padding-left:max(20px, env(safe-area-inset-left));
+    padding-right:max(20px, env(safe-area-inset-right))}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  .modal-content{background:var(--card);border-radius:22px;max-width:820px;width:100%;
+    max-height:calc(100vh - 40px);max-height:calc(100dvh - 40px);
+    overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;
+    box-shadow:var(--shadow-lg);border:1px solid var(--border);
+    color:var(--text);animation:popIn .18s cubic-bezier(.2,.9,.3,1.2)}
+  @keyframes popIn{from{transform:scale(.96);opacity:0}to{transform:scale(1);opacity:1}}
+  .modal-content.wide{max-width:1000px}
+  .modal-header{background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+    color:#fff;padding:16px 22px;border-radius:22px 22px 0 0;
+    display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10}
+  .modal-title{font-size:1.15rem;display:flex;align-items:center;gap:10px;font-weight:700}
+  .modal-title .ic{width:20px;height:20px}
+  .close-modal{background:transparent;border:none;color:#fff;cursor:pointer;
+    padding:6px;border-radius:8px;transition:var(--transition);
+    display:inline-flex;align-items:center;justify-content:center;font-family:inherit}
+  .close-modal:hover{background:rgba(255,255,255,.2)}
+  .close-modal .ic{width:20px;height:20px}
+  .modal-body{padding:22px}
+  .modal-footer{padding:14px 22px;border-top:1px solid var(--border);
+    display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+
+  .toast-container{position:fixed;top:max(20px, env(safe-area-inset-top));right:20px;z-index:3000;
+    display:flex;flex-direction:column;gap:10px;pointer-events:none;
+    padding-right:env(safe-area-inset-right)}
+  .toast{background:var(--toast-bg);color:var(--toast-text);border-radius:14px;
+    padding:14px 18px;box-shadow:var(--shadow-lg);display:flex;align-items:center;gap:14px;
+    min-width:280px;max-width:380px;border-left:4px solid;
+    animation:slideIn .25s ease;pointer-events:auto;border-top:1px solid var(--border);
+    border-right:1px solid var(--border);border-bottom:1px solid var(--border)}
+  .toast.success{border-left-color:var(--success)}
+  .toast.error{border-left-color:var(--danger)}
+  .toast.warning{border-left-color:var(--warning)}
+  .toast.info{border-left-color:var(--info)}
+  .toast > .ic{font-size:1.4rem;width:22px;height:22px}
+  .toast.success > .ic{color:var(--success)}
+  .toast.error > .ic{color:var(--danger)}
+  .toast.warning > .ic{color:var(--warning)}
+  .toast.info > .ic{color:var(--info)}
+  .toast-content{flex:1}
+  .toast-title{font-weight:700;margin-bottom:3px;font-size:.92rem}
+  .toast-message{font-size:.85rem;color:var(--muted)}
+  .toast-close{background:transparent;border:none;color:var(--muted);cursor:pointer;
+    padding:4px;border-radius:6px;transition:var(--transition);
+    display:inline-flex;align-items:center;justify-content:center;font-family:inherit}
+  .toast-close:hover{background:var(--hover);color:var(--text)}
+  .toast-close .ic{width:16px;height:16px}
+  @keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+
+  .loading-overlay{position:fixed;inset:0;background:var(--overlay-bg);
+    backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:4000}
+  .loading-spinner{background:var(--card);color:var(--text);padding:28px 40px;
+    border-radius:20px;box-shadow:var(--shadow-lg);text-align:center;
+    border:1px solid var(--border);display:flex;flex-direction:column;align-items:center;gap:12px}
+  .loading-spinner .ic-spin{width:36px;height:36px;color:var(--primary);animation:spin 1s linear infinite;
+    fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .loading-spinner p{font-weight:600;font-size:.95rem}
+
+  .bulk-list-item{display:flex;justify-content:space-between;align-items:center;
+    padding:14px 18px;border:1px solid var(--border);border-radius:14px;margin-bottom:10px;
+    cursor:pointer;transition:var(--transition);flex-wrap:wrap;gap:12px;background:var(--card)}
+  .bulk-list-item:hover{background:var(--hover);border-color:var(--primary)}
+  .bulk-list-item.active{background:var(--hover);border-color:var(--primary);border-width:2px}
+
+  .remarks-excellent{color:#16a34a;font-weight:700}
+  .remarks-very-good{color:#0d9488;font-weight:700}
+  .remarks-good{color:#0891b2;font-weight:700}
+  .remarks-pass{color:#ca8a04;font-weight:700}
+  .remarks-fail{color:#dc2626;font-weight:700}
+  [data-theme="dark"] .remarks-excellent{color:#4ade80}
+  [data-theme="dark"] .remarks-very-good{color:#2dd4bf}
+  [data-theme="dark"] .remarks-good{color:#22d3ee}
+  [data-theme="dark"] .remarks-pass{color:#fbbf24}
+  [data-theme="dark"] .remarks-fail{color:#f87171}
+
+  .footer{margin-top:26px;text-align:center;color:var(--muted);font-size:.88rem}
+  .footer p{margin-bottom:6px}
+  .input-hint{color:var(--primary);font-weight:500}
+
+  .settings-section{margin-bottom:22px}
+  .settings-section h3{color:var(--primary);font-size:1rem;margin-bottom:12px;
+    display:flex;align-items:center;gap:8px}
+  .settings-section h3 .ic{width:18px;height:18px}
+  .settings-form{display:flex;flex-direction:column;gap:12px}
+  .settings-form label{font-weight:600;color:var(--text);font-size:.82rem;
+    text-transform:uppercase;letter-spacing:.5px}
+  .settings-form input{width:100%;padding:11px 14px;border:1px solid var(--border);
+    border-radius:12px;font-size:.92rem;font-family:inherit;
+    background:var(--input-bg);color:var(--text)}
+  .settings-form input:focus{outline:none;border-color:var(--primary);
+    box-shadow:0 0 0 3px var(--primary-soft)}
+
+  .kv-grid{display:grid;grid-template-columns:150px 1fr;gap:8px 16px;
+    font-size:.88rem;margin-top:12px;color:var(--text)}
+  .kv-grid .k{color:var(--muted)}
+  .kv-grid code{font-family:ui-monospace,Menlo,Consolas,monospace;
+    font-size:.8rem;background:var(--surface);padding:2px 8px;border-radius:6px}
+
+  pre.snippet{background:#0f172a;color:#e2e8f0;padding:16px;border-radius:12px;
+    font-size:12px;overflow:auto;max-height:340px;line-height:1.55;white-space:pre;
+    font-family:ui-monospace,Menlo,Consolas,monospace;margin-top:12px;
+    border:1px solid var(--border)}
+
+  details{background:var(--card-2);border:1px solid var(--border);border-radius:14px;
+    padding:14px 18px;margin-top:12px}
+  details summary{cursor:pointer;font-weight:600;color:var(--primary);font-size:.92rem}
+  details[open] summary{margin-bottom:10px}
+  details ol{padding-left:22px;line-height:1.9;font-size:.9rem;color:var(--text)}
+  details p{font-size:.82rem;color:var(--muted);margin-top:8px;line-height:1.55}
+
+  .diff-summary{background:var(--card-2);border:1px solid var(--border);
+    border-radius:14px;padding:14px 16px;margin-bottom:16px;
+    font-size:.9rem;color:var(--text)}
+  .diff-dataset{border:1px solid var(--border);border-radius:14px;
+    padding:12px 16px;margin-bottom:10px;background:var(--card)}
+  .diff-dataset.matched{border-left:4px solid var(--warning)}
+  .diff-dataset.new{border-left:4px solid var(--success)}
+  .diff-dataset.local-only{border-left:4px solid var(--info)}
+  .diff-dataset h4{margin-bottom:8px;color:var(--primary);font-size:.95rem;
+    display:flex;align-items:center;gap:8px}
+  .diff-table{margin-left:10px;margin-top:8px;padding:8px 12px;
+    background:var(--card-2);border-radius:10px;font-size:.85rem;color:var(--text)}
+  .diff-table .changes{font-size:.82rem;color:var(--muted);margin-top:6px;line-height:1.7}
+  .change-add{color:var(--success);font-weight:700}
+  .change-del{color:var(--danger);font-weight:700}
+  .change-mod{color:var(--warning);font-weight:700}
+  [data-theme="dark"] .change-mod{color:#facc15}
+  .diff-radio{margin-top:12px;padding:12px 16px;background:var(--card-2);
+    border-radius:12px;border:1px solid var(--border)}
+  .diff-radio label{display:flex;align-items:center;gap:10px;cursor:pointer;
+    padding:6px 0;font-weight:500;color:var(--text)}
+  .diff-radio input[type=radio]{width:auto;margin:0;accent-color:var(--primary)}
+
+  .stats-table .clickable-name{color:var(--primary);cursor:pointer;font-weight:600}
+  .stats-table .clickable-name:hover{text-decoration:underline}
+  .comments-textarea{width:100%;padding:12px;border-radius:12px;
+    border:1px solid var(--border);min-height:80px;font-family:inherit;
+    background:var(--input-bg);color:var(--text);font-size:.92rem}
+  .comments-textarea:focus{outline:none;border-color:var(--primary);
+    box-shadow:0 0 0 3px var(--primary-soft)}
+
+  @media (max-width:700px){
+    body{padding-top:max(10px, env(safe-area-inset-top));
+      padding-bottom:max(10px, env(safe-area-inset-bottom));
+      padding-left:max(10px, env(safe-area-inset-left));
+      padding-right:max(10px, env(safe-area-inset-right))}
+    .container{padding:16px;border-radius:18px}
+    h1{font-size:1.45rem}
+    .button-group{flex-direction:column;align-items:stretch;width:100%}
+    .dropdown,.dropdown-toggle,.btn{width:100%;justify-content:center}
+    .dropdown-menu{left:auto;right:0;min-width:min(280px, calc(100vw - 20px))}
+    .modal-content{border-radius:18px}
+    .modal-header{border-radius:18px 18px 0 0}
+    .kv-grid{grid-template-columns:1fr}
+    .kv-grid .k{font-weight:600}
+    .sheet-status{font-size:.8rem;padding:6px 14px}
+  }
+
+  @media print{
+    :root{
+      color-scheme:light;
+      --text:#000;--muted:#444;--border:#999;--border-2:#999;
+      --card:#fff;--card-2:#f5f5f5;--surface:#f5f5f5;--hover:#f0f0f0;
+      --primary:#0000cc;--primary-dark:#000088;--primary-light:#6666ff;
+      --container-bg:#fff;--input-bg:#fff;--input-focus-bg:#fff;
+      --body-bg-1:#fff;--body-bg-2:#fff;--body-bg-3:#fff;
+      --danger:#c00;--success:#080;--warning:#880;--info:#008;
+      --overlay-bg:transparent;
+    }
+    body{background:#fff!important;color:#000!important}
+    .container{background:#fff!important;box-shadow:none!important;border:1px solid #ccc;border-radius:0}
+    .table-container{box-shadow:none!important;border:1px solid #ccc!important;border-radius:0}
+    .table-header{background:#2563eb!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .cat-config{background:#f5f5f5!important}
+    th{background:#eee!important;color:#000!important;border-bottom:1px solid #999}
+    td{border-bottom:1px solid #ddd;color:#000}
+    .editable{background:#fff!important;color:#000!important}
+    .controls-wrapper,.table-actions,.cat-config,.footer,
+    header .header-right,header .header-left .current-dataset{display:none!important}
+  }
+
+  /* ============ iOS / mobile hardening ============ */
+
+  button, a, .btn, .dropdown-toggle, .icon-btn, .table-actions button,
+  .cat-column-actions button, .close-modal, .toast-close,
+  input, select, textarea, [contenteditable] {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  @media (max-width: 768px) {
+    input, select, textarea,
+    .settings-form input, .add-cat-form input, .comments-textarea {
+      font-size: 16px !important;
+    }
+  }
+
+  body.modal-open {
+    overflow: hidden;
+    padding-right: calc(var(--sb-width, 0px) + env(safe-area-inset-right, 0px));
+  }
+
+  @media (max-width: 768px) {
+    .modal-overlay {
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      background: rgba(15, 23, 42, .72);
+    }
+    [data-theme="dark"] .modal-overlay {
+      background: rgba(2, 6, 23, .82);
+    }
+  }
+
+  .table-container, .table-scroll, .modal-content, .bulk-list-item {
+    -webkit-mask-image: -webkit-radial-gradient(white, black);
+  }
+</style>
 </head>
 <body>
-    <!-- Login Screen (Initially Visible) -->
-    <div id="loginScreen" class="login-screen">
-        <div class="login-container">
-            <div class="login-header">
-                <h1><i class="fas fa-chart-bar"></i> Student Results Manager</h1>
-                <p class="login-subtitle">Manage student grades efficiently</p>
-            </div>
-            
-            <div class="login-box">
-                <h2>Welcome Back</h2>
-                <p class="login-instruction">Please sign in to access your data</p>
-                
-                <form id="loginForm" class="login-form">
-                    <div class="form-group">
-                        <label for="email">Email</label>
-                        <input type="email" id="email" name="email" placeholder="Enter your email" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="password">Password</label>
-                        <input type="password" id="password" name="password" placeholder="Enter your password" required>
-                        <div class="password-toggle">
-                            <button type="button" id="togglePassword" class="btn-icon">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="form-options">
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="rememberMe">
-                            <span>Remember me</span>
-                        </label>
-                        <a href="#" id="forgotPassword" class="forgot-password">Forgot password?</a>
-                    </div>
-                    
-                    <button type="submit" id="loginBtn" class="btn btn-primary btn-block">
-                        <i class="fas fa-sign-in-alt"></i> Sign In
-                    </button>
-                    
-                    <div class="divider">
-                        <span>or</span>
-                    </div>
-                    
-                    <button type="button" id="signupBtn" class="btn btn-secondary btn-block">
-                        <i class="fas fa-user-plus"></i> Create New Account
-                    </button>
-                    
-                    <button type="button" id="guestBtn" class="btn btn-outline btn-block">
-                        <i class="fas fa-user-clock"></i> Continue as Guest
-                    </button>
-                </form>
-                
-                <div class="login-footer">
-                    <p><i class="fas fa-shield-alt"></i> Your data is securely stored and synced</p>
-                    <p class="login-hint">New user? Create an account to save your data in the cloud</p>
-                </div>
-            </div>
-            
-            <div class="login-info">
-                <div class="info-card">
-                    <i class="fas fa-cloud"></i>
-                    <h4>Cloud Storage</h4>
-                    <p>Access your data from anywhere</p>
-                </div>
-                <div class="info-card">
-                    <i class="fas fa-sync-alt"></i>
-                    <h4>Auto Sync</h4>
-                    <p>Changes saved automatically</p>
-                </div>
-                <div class="info-card">
-                    <i class="fas fa-lock"></i>
-                    <h4>Secure</h4>
-                    <p>Bank-level encryption</p>
-                </div>
-            </div>
+<div id="app">
+  <div id="mainApp">
+    <div class="container">
+      <header>
+        <div class="header-left">
+          <h1><span data-ic="brand"></span> Results Pro</h1>
+          <span id="currentDatasetIndicator" class="current-dataset" style="display:none;">
+            <span data-ic="database"></span> <span id="currentDatasetName">Default</span>
+          </span>
         </div>
-    </div>
-
-    <!-- Main App (Initially Hidden) -->
-    <div id="mainApp" class="container" style="display: none;">
-        <!-- Header with User Info -->
-        <header>
-            <div class="header-left">
-                <div class="user-info">
-                    <div class="user-avatar" id="userAvatar">
-                        <i class="fas fa-user"></i>
-                    </div>
-                    <div class="user-details">
-                        <h1><i class="fas fa-chart-bar"></i> Student Results Manager</h1>
-                        <div class="user-status">
-                            <span id="userEmail">Loading...</span>
-                            <span class="sync-status" id="syncStatus">
-                                <i class="fas fa-circle"></i> Syncing...
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="header-right">
-                <div class="auth-controls">
-                    <button id="cloudSyncBtn" class="btn btn-cloud" title="Sync with Cloud">
-                        <i class="fas fa-cloud-upload-alt"></i> Sync to Cloud
-                    </button>
-                    <button id="loadFromCloudBtn" class="btn btn-cloud" title="Load from Cloud">
-                        <i class="fas fa-cloud-download-alt"></i> Load from Cloud
-                    </button>
-                    <button id="logoutBtn" class="btn btn-danger">
-                        <i class="fas fa-sign-out-alt"></i> Logout
-                    </button>
-                </div>
-                <div class="controls">
-                    <button id="addTableBtn" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> Add New Table
-                    </button>
-                    <button id="importBtn" class="btn btn-success">
-                        <i class="fas fa-file-import"></i> Import Data
-                    </button>
-                    <button id="exportBtn" class="btn btn-warning">
-                        <i class="fas fa-file-export"></i> Export Data
-                    </button>
-                    <button id="statisticsBtn" class="btn btn-info">
-                        <i class="fas fa-chart-line"></i> Statistics
-                    </button>
-                    <button id="helpBtn" class="btn btn-help">
-                        <i class="fas fa-question-circle"></i> Help
-                    </button>
-                    <button id="clearDataBtn" class="btn btn-danger">
-                        <i class="fas fa-trash"></i> Clear All Data
-                    </button>
-                </div>
-                <div class="status-indicator" id="statusIndicator">
-                    <span id="saveStatus">All changes saved</span>
-                    <span id="lastSaved"></span>
-                    <span id="firebaseStatus" class="firebase-status">
-                        <i class="fas fa-cloud"></i> Cloud: <span id="cloudStatusText">Offline</span>
-                    </span>
-                </div>
-            </div>
-        </header>
-
-        <main id="tablesContainer">
-            <div class="empty-state" id="emptyState">
-                <div class="empty-state-icon">
-                    <i class="fas fa-table"></i>
-                </div>
-                <h3>No tables created yet</h3>
-                <p>Get started by creating your first results table</p>
-                <button id="initialAddTable" class="btn btn-primary btn-lg">
-                    <i class="fas fa-plus"></i> Create First Table
-                </button>
-                <div class="input-hint">
-                    <i class="fas fa-lightbulb"></i> Tip: You can enter marks in any format (e.g., 45/50, 90%, 14)
-                </div>
-            </div>
-        </main>
-
-        <footer class="footer">
-            <p>Student Results Manager &copy; <span id="currentYear"></span> | Version 2.1</p>
-            <div class="footer-info">
-                <span id="connectionStatus"><i class="fas fa-wifi"></i> Online</span>
-                <span id="userType">Guest Mode</span>
-            </div>
-            <p class="input-hint">Data stored: <span id="storageLocation">Local Storage</span></p>
-        </footer>
-    </div>
-
-    <!-- File Input (Hidden) -->
-    <input type="file" id="fileInput" class="file-input" accept=".json">
-
-    <!-- Modals -->
-    <div id="signupModal" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2><i class="fas fa-user-plus"></i> Create Account</h2>
-                <button class="close-modal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <form id="signupForm" class="auth-form">
-                    <div class="form-group">
-                        <label for="signupEmail">Email</label>
-                        <input type="email" id="signupEmail" name="email" placeholder="Enter your email" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="signupPassword">Password</label>
-                        <input type="password" id="signupPassword" name="password" placeholder="Create a password" required>
-                        <div class="password-strength">
-                            <div class="strength-bar"></div>
-                            <span class="strength-text">Password strength: <span id="strengthValue">Weak</span></span>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="confirmPassword">Confirm Password</label>
-                        <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm password" required>
-                        <span id="passwordMatch" class="validation-message"></span>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="termsAgreement" required>
-                            <span>I agree to the <a href="#" id="termsLink">Terms of Service</a> and <a href="#" id="privacyLink">Privacy Policy</a></span>
-                        </label>
-                    </div>
-                    
-                    <div class="form-actions">
-                        <button type="button" id="cancelSignup" class="btn btn-secondary">Cancel</button>
-                        <button type="submit" id="createAccountBtn" class="btn btn-primary">
-                            <i class="fas fa-user-plus"></i> Create Account
-                        </button>
-                    </div>
-                </form>
-            </div>
+        <div class="header-right">
+          <div class="sheet-status" id="sheetStatusPill" title="Cloud connection status">
+            <span class="dot"></span><span id="sheetStatusText">Offline — no Sheet connected</span>
+          </div>
+          <button id="themeBtn" class="icon-btn" title="Toggle theme" aria-label="Toggle theme">
+            <span data-ic="moon"></span>
+          </button>
+          <button id="settingsBtn" class="icon-btn" title="Settings" aria-label="Settings">
+            <span data-ic="cog"></span>
+          </button>
         </div>
-    </div>
+      </header>
 
-    <div id="resetPasswordModal" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2><i class="fas fa-key"></i> Reset Password</h2>
-                <button class="close-modal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <form id="resetPasswordForm" class="auth-form">
-                    <p>Enter your email address and we'll send you a link to reset your password.</p>
-                    
-                    <div class="form-group">
-                        <label for="resetEmail">Email</label>
-                        <input type="email" id="resetEmail" name="email" placeholder="Enter your email" required>
-                    </div>
-                    
-                    <div class="form-actions">
-                        <button type="button" id="cancelReset" class="btn btn-secondary">Cancel</button>
-                        <button type="submit" id="sendResetBtn" class="btn btn-primary">
-                            <i class="fas fa-paper-plane"></i> Send Reset Link
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
+      <div class="controls-wrapper">
+        <div class="button-group">
+          <button id="addTableBtn" class="btn btn-primary">
+            <span data-ic="plus-circle"></span> Add Table
+          </button>
 
-    <div id="statisticsModal" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2><i class="fas fa-chart-line"></i> Overall Statistics</h2>
-                <button class="close-modal">&times;</button>
+          <div class="dropdown" id="fileDropdown">
+            <button class="dropdown-toggle" id="fileDropdownToggle">
+              <span data-ic="file"></span> File <span data-ic="chevron-down" class="ic-sm"></span>
+            </button>
+            <div class="dropdown-menu" id="fileDropdownMenu">
+              <button id="importXlsxBtn"><span data-ic="file-excel"></span> Import Excel (.xlsx)</button>
+              <button id="importJsonBtn"><span data-ic="file-code"></span> Import JSON (backup)</button>
+              <hr>
+              <button id="exportCurrentXlsxBtn"><span data-ic="file-excel"></span> Export current dataset (xlsx)</button>
+              <button id="exportAllXlsxBtn"><span data-ic="file-excel"></span> Export all datasets (xlsx)</button>
+              <button id="exportCurrentJsonBtn"><span data-ic="download"></span> Export current dataset (json)</button>
+              <button id="exportAllJsonBtn"><span data-ic="download"></span> Export all datasets (json)</button>
+              <hr>
+              <button id="bulkImportBtn"><span data-ic="folder"></span> Bulk import</button>
+              <button id="clearDataBtn" style="color:var(--danger);"><span data-ic="trash"></span> Clear all data</button>
             </div>
-            <div class="modal-body">
-                <div id="statisticsContainer"></div>
-            </div>
-        </div>
-    </div>
+          </div>
 
-    <div id="terminalReportModal" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2><i class="fas fa-file-alt"></i> Student Terminal Report</h2>
-                <button class="close-modal">&times;</button>
+          <div class="dropdown" id="toolsDropdown">
+            <button class="dropdown-toggle" id="toolsDropdownToggle">
+              <span data-ic="wrench"></span> Tools <span data-ic="chevron-down" class="ic-sm"></span>
+            </button>
+            <div class="dropdown-menu" id="toolsDropdownMenu">
+              <button id="statisticsBtn"><span data-ic="bar-chart"></span> Statistics</button>
+              <button id="helpBtn"><span data-ic="help-circle"></span> Help</button>
+              <button id="bulkListBtn"><span data-ic="list"></span> Datasets</button>
+              <button id="setupGuideBtn"><span data-ic="book"></span> Setup guide</button>
             </div>
-            <div class="modal-body">
-                <div id="terminalReportContainer"></div>
-            </div>
-        </div>
-    </div>
+          </div>
 
-    <div id="helpModal" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2><i class="fas fa-question-circle"></i> Help Guide</h2>
-                <button class="close-modal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div id="helpContainer"></div>
-            </div>
+          <button id="pushBtn" class="btn btn-info" title="Push local data to Google Sheet">
+            <span data-ic="cloud-up"></span> Push <span class="badge" id="pushBadge" style="display:none;">!</span>
+          </button>
+          <button id="pullBtn" class="btn btn-secondary" title="Pull from Google Sheet">
+            <span data-ic="cloud-down"></span> Pull
+          </button>
         </div>
-    </div>
+      </div>
 
-    <div id="confirmModal" class="modal-overlay">
-        <div class="modal-content confirm-modal">
-            <div class="modal-header">
-                <h2 id="confirmTitle">Confirm Action</h2>
-            </div>
-            <div class="modal-body">
-                <p id="confirmMessage">Are you sure you want to proceed?</p>
-                <div class="modal-actions">
-                    <button id="confirmCancel" class="btn btn-secondary">Cancel</button>
-                    <button id="confirmOk" class="btn btn-danger">Confirm</button>
-                </div>
-            </div>
+      <main id="tablesContainer">
+        <div class="empty-state" id="emptyState">
+          <span data-ic="database" class="ic-xl"></span>
+          <p>No tables yet. Click "Add Table" to begin.</p>
+          <button id="initialAddTable" class="btn btn-primary">
+            <span data-ic="plus-circle"></span> Create First Table
+          </button>
         </div>
-    </div>
+      </main>
 
-    <!-- Notification Toast -->
-    <div id="notificationToast" class="notification-toast">
-        <div class="toast-content">
-            <i class="fas fa-check-circle"></i>
-            <span id="toastMessage">Operation completed successfully</span>
-        </div>
-        <button class="toast-close">&times;</button>
+      <footer class="footer">
+        <p><span data-ic="copyright" class="ic-sm"></span> 2025 Student Results Manager | Developed by Sir Mick | Contact: 0545800158</p>
+        <p class="input-hint"><span data-ic="lightbulb" class="ic-sm"></span> Marks: 45/50, 90%, 14 → auto-rounded.</p>
+      </footer>
     </div>
+  </div>
+</div>
+
+<input type="file" id="fileInputXlsx" accept=".xlsx,.xls" style="display:none">
+<input type="file" id="fileInputJson" accept=".json" style="display:none">
+<input type="file" id="bulkFileInputXlsx" accept=".xlsx,.xls" multiple style="display:none">
+<input type="file" id="bulkFileInputJson" accept=".json" multiple style="display:none">
+
+<div id="onboardingModal" class="modal-overlay" style="display:none;">
+  <div class="modal-content" style="max-width:520px;">
+    <div class="modal-header">
+      <h2 class="modal-title"><span data-ic="sparkles"></span> Welcome</h2>
+    </div>
+    <div class="modal-body">
+      <p style="margin-bottom:14px;">This app stores your results <b>on this device</b> (offline-first). You can optionally connect your own Google Sheet to back up and sync.</p>
+      <ul style="padding-left:22px;line-height:1.9;font-size:.92rem;">
+        <li>Works fully offline — nothing required to start.</li>
+        <li>Import / export Excel files anytime.</li>
+        <li>Connect a Google Sheet in Settings to push/pull.</li>
+      </ul>
+      <p style="margin-top:14px;font-size:.85rem;color:var(--muted);">Since data lives on this device, use <b>Export</b> regularly as a backup.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" id="onboardingLocalBtn"><span data-ic="check"></span> Start using locally</button>
+      <button class="btn btn-secondary" id="onboardingConnectBtn"><span data-ic="cloud-up"></span> Connect a Sheet</button>
+    </div>
+  </div>
+</div>
+
+<div id="settingsModal" class="modal-overlay" style="display:none;">
+  <div class="modal-content wide">
+    <div class="modal-header">
+      <h2 class="modal-title"><span data-ic="cog"></span> Settings</h2>
+      <button class="close-modal" data-close><span data-ic="x"></span></button>
+    </div>
+    <div class="modal-body">
+      <div class="settings-section">
+        <h3><span data-ic="cloud-up"></span> Cloud connection</h3>
+        <div class="settings-form">
+          <div>
+            <label>Apps Script Web App URL</label>
+            <input id="inpUrl" placeholder="https://script.google.com/macros/s/.../exec" autocomplete="off" spellcheck="false">
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="btn btn-primary" id="btnTest"><span data-ic="link"></span> Test connection</button>
+            <button class="btn btn-success" id="btnSaveUrl"><span data-ic="save"></span> Save URL</button>
+            <button class="btn btn-danger" id="btnDisconnect" style="display:none;"><span data-ic="x"></span> Disconnect</button>
+          </div>
+        </div>
+
+        <div class="kv-grid" style="margin-top:20px;">
+          <div class="k">Last push</div><div id="kvLastPush">—</div>
+          <div class="k">Last pull</div><div id="kvLastPull">—</div>
+          <div class="k">Device ID</div><div><code id="kvDeviceId"></code></div>
+          <div class="k">Local datasets</div><div id="kvDatasetCount">0</div>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h3><span data-ic="key"></span> Your secret token</h3>
+        <p style="font-size:.88rem;color:var(--muted);margin-bottom:10px;">Baked into the Apps Script snippet. Keep it private.</p>
+        <input id="inpSecret" readonly onclick="this.select()" style="width:100%;padding:11px 14px;border:1px solid var(--border);border-radius:12px;font-family:ui-monospace,monospace;font-size:.82rem;background:var(--input-bg);color:var(--text);">
+      </div>
+
+      <div class="settings-section">
+        <h3><span data-ic="code"></span> Apps Script snippet</h3>
+        <button class="btn btn-primary" id="btnCopySnippet"><span data-ic="copy"></span> Copy to clipboard</button>
+        <pre class="snippet" id="snippetBox"></pre>
+      </div>
+
+      <div class="settings-section">
+        <h3><span data-ic="database"></span> Local data</h3>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn btn-secondary" id="btnExportAllQuick"><span data-ic="download"></span> Export all (xlsx)</button>
+          <button class="btn btn-danger" id="btnWipeLocal"><span data-ic="trash"></span> Wipe local data</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="setupGuideModal" class="modal-overlay" style="display:none;">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 class="modal-title"><span data-ic="book"></span> Setup Guide</h2>
+      <button class="close-modal" data-close><span data-ic="x"></span></button>
+    </div>
+    <div class="modal-body">
+      <ol style="padding-left:22px;line-height:1.9;font-size:.92rem;">
+        <li>Create a new Google Sheet (any name).</li>
+        <li>In the sheet, click <b>Extensions → Apps Script</b>.</li>
+        <li>Delete the sample code and paste the snippet from <b>Settings</b>. Click Save.</li>
+        <li>Click <b>Deploy → New deployment</b>. Type: <b>Web app</b>. Execute as: <b>Me</b>. Who has access: <b>Anyone</b>. Click Deploy.</li>
+        <li>Authorize when prompted (it's your own script, so accept).</li>
+        <li>Copy the <b>Web app URL</b> (ends in <code>/exec</code>) and paste it into Settings → Save URL → Test connection.</li>
+        <li>Done. Use <b>Push</b> to send your local data to the sheet, <b>Pull</b> to fetch from it.</li>
+      </ol>
+      <p style="margin-top:16px;font-size:.85rem;color:var(--muted);">Your Web App URL is a secret. Anyone with it plus your secret token can read/write your sheet. Keep both private.</p>
+      <p style="margin-top:8px;font-size:.85rem;color:var(--muted);">If you edit the snippet later, use <b>Deploy → Manage deployments → Edit → New version</b> to keep the same URL.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" data-close>Got it</button>
+    </div>
+  </div>
+</div>
+
+<div id="diffModal" class="modal-overlay" style="display:none;">
+  <div class="modal-content wide">
+    <div class="modal-header">
+      <h2 class="modal-title"><span data-ic="exchange"></span> <span id="diffTitle">Changes preview</span></h2>
+      <button class="close-modal" data-close><span data-ic="x"></span></button>
+    </div>
+    <div class="modal-body" id="diffBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" data-close><span data-ic="x"></span> Cancel</button>
+      <button class="btn btn-primary" id="diffApplyBtn"><span data-ic="check"></span> Apply changes</button>
+    </div>
+  </div>
+</div>
+
+<div id="statisticsModal" class="modal-overlay" style="display:none;">
+  <div class="modal-content wide">
+    <div class="modal-header">
+      <h2 class="modal-title"><span data-ic="bar-chart"></span> Statistics</h2>
+      <button class="close-modal" data-close><span data-ic="x"></span></button>
+    </div>
+    <div class="modal-body"><div id="statisticsContainer"></div></div>
+  </div>
+</div>
+
+<div id="terminalReportModal" class="modal-overlay" style="display:none;">
+  <div class="modal-content wide">
+    <div class="modal-header">
+      <h2 class="modal-title"><span data-ic="file-text"></span> Terminal Report</h2>
+      <button class="close-modal" data-close><span data-ic="x"></span></button>
+    </div>
+    <div class="modal-body"><div id="terminalReportContainer"></div></div>
+  </div>
+</div>
+
+<div id="helpModal" class="modal-overlay" style="display:none;">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 class="modal-title"><span data-ic="help-circle"></span> Help</h2>
+      <button class="close-modal" data-close><span data-ic="x"></span></button>
+    </div>
+    <div class="modal-body"><div id="helpContainer"></div></div>
+  </div>
+</div>
+
+<div id="bulkListModal" class="modal-overlay" style="display:none;">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 class="modal-title"><span data-ic="list"></span> Datasets</h2>
+      <button class="close-modal" data-close><span data-ic="x"></span></button>
+    </div>
+    <div class="modal-body">
+      <div id="bulkListContainer"></div>
+      <div style="text-align:center;margin-top:20px;">
+        <button id="createNewDatasetBtn" class="btn btn-primary"><span data-ic="plus-circle"></span> Create New Dataset</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="loadingOverlay" class="loading-overlay" style="display:none;">
+  <div class="loading-spinner">
+    <svg class="ic-spin" viewBox="0 0 24 24">
+      <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+    </svg>
+    <p>Loading...</p>
+  </div>
+</div>
+<div id="toastContainer" class="toast-container"></div>
+
+<script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+<script>
+(function(){
+'use strict';
+
+/* ==================== SVG ICONS ==================== */
+const IC = {
+  brand:'<svg class="ic" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>',
+  moon:'<svg class="ic" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>',
+  sun:'<svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>',
+  cog:'<svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 10v6M4.2 4.2l4.3 4.3m7 7l4.3 4.3M1 12h6m10 0h6M4.2 19.8l4.3-4.3m7-7l4.3-4.3"/></svg>',
+  database:'<svg class="ic" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/></svg>',
+  'plus-circle':'<svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>',
+  file:'<svg class="ic" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>',
+  'chevron-down':'<svg class="ic" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>',
+  'file-excel':'<svg class="ic" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="m9 12 3 6M15 12l-3 6"/></svg>',
+  'file-code':'<svg class="ic" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="m10 12-2 2 2 2M14 12l2 2-2 2"/></svg>',
+  download:'<svg class="ic" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="3" x2="12" y2="15"/></svg>',
+  folder:'<svg class="ic" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>',
+  trash:'<svg class="ic" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>',
+  wrench:'<svg class="ic" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>',
+  'bar-chart':'<svg class="ic" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>',
+  'help-circle':'<svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+  list:'<svg class="ic" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>',
+  book:'<svg class="ic" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>',
+  'cloud-up':'<svg class="ic" viewBox="0 0 24 24"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/><polyline points="12 12 12 20"/><polyline points="9 15 12 12 15 15"/></svg>',
+  'cloud-down':'<svg class="ic" viewBox="0 0 24 24"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/><polyline points="12 12 12 20"/><polyline points="9 17 12 20 15 17"/></svg>',
+  x:'<svg class="ic" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
+  check:'<svg class="ic" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>',
+  'check-circle':'<svg class="ic" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
+  'alert-circle':'<svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
+  'alert-triangle':'<svg class="ic" viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+  info:'<svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
+  link:'<svg class="ic" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>',
+  save:'<svg class="ic" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>',
+  copy:'<svg class="ic" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
+  sparkles:'<svg class="ic" viewBox="0 0 24 24"><path d="M12 3l1.9 4.6 4.6 1.9-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/><path d="M19 17l.9 2.1 2.1.9-2.1.9L19 23l-.9-2.1-2.1-.9 2.1-.9z"/></svg>',
+  exchange:'<svg class="ic" viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>',
+  edit:'<svg class="ic" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>',
+  printer:'<svg class="ic" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>',
+  refresh:'<svg class="ic" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>',
+  'user-plus':'<svg class="ic" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>',
+  'file-text':'<svg class="ic" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>',
+  key:'<svg class="ic" viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>',
+  code:'<svg class="ic" viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>',
+  copyright:'<svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M14.83 14.83a4 4 0 1 1 0-5.66"/></svg>',
+  lightbulb:'<svg class="ic" viewBox="0 0 24 24"><path d="M9 18h6M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.4 1 2.3h6c0-.9.4-1.8 1-2.3A7 7 0 0 0 12 2z"/></svg>',
+};
+
+function renderAllIcons(){
+  document.querySelectorAll('[data-ic]').forEach(el=>{
+    const name=el.getAttribute('data-ic');
+    let svg=IC[name]||'';
+    if(el.classList.contains('ic-xl')) svg=svg.replace('class="ic"','class="ic ic-xl"');
+    else if(el.classList.contains('ic-lg')) svg=svg.replace('class="ic"','class="ic ic-lg"');
+    else if(el.classList.contains('ic-sm')) svg=svg.replace('class="ic"','class="ic ic-sm"');
+    el.innerHTML=svg;
+  });
+}
+
+/* ==================== THEME ==================== */
+function currentTheme(){ return document.documentElement.getAttribute('data-theme')==='dark'?'dark':'light'; }
+function applyTheme(theme){
+  if(theme==='dark') document.documentElement.setAttribute('data-theme','dark');
+  else document.documentElement.removeAttribute('data-theme');
+  try{ localStorage.setItem('srp_theme',theme); }catch(e){}
+  const btn=document.getElementById('themeBtn');
+  if(btn){
+    btn.innerHTML=theme==='dark'?IC.sun:IC.moon;
+    btn.title=theme==='dark'?'Switch to light':'Switch to dark';
+  }
+  const meta=document.querySelector('meta[name="theme-color"]');
+  if(meta) meta.setAttribute('content',theme==='dark'?'#0f172a':'#2563eb');
+}
+function toggleTheme(){ applyTheme(currentTheme()==='dark'?'light':'dark'); }
+
+/* ==================== CONSTANTS ==================== */
+const APP_VERSION='3.2.2';
+const DEFAULT_CAT_COLUMNS=[
+  {id:'cat1',name:'CAT1',maxScore:15},
+  {id:'cat2',name:'CAT2',maxScore:20},
+  {id:'cat3',name:'CAT3',maxScore:15}
+];
+const INITIAL_STUDENTS=Array.from({length:10},(_,i)=>`Student ${i+1}`);
+const GRADING_SCALE=[
+  {min:90,max:100,text:'Distinction',cls:'remarks-excellent'},
+  {min:80,max:89,text:'Excellent',cls:'remarks-excellent'},
+  {min:70,max:79,text:'Very Good',cls:'remarks-very-good'},
+  {min:60,max:69,text:'Good',cls:'remarks-good'},
+  {min:50,max:59,text:'Pass',cls:'remarks-pass'},
+  {min:0,max:49,text:'Fail',cls:'remarks-fail'}
+];
+
+/* ==================== UTILS ==================== */
+function generateId(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,9); }
+function uuid(){ return (crypto&&crypto.randomUUID)?crypto.randomUUID():'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==='x'?r:(r&0x3|0x8)).toString(16)}); }
+function deepClone(o){ return JSON.parse(JSON.stringify(o)); }
+function esc(s){ return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function fmtTime(ms){ return ms?new Date(ms).toLocaleString():'—'; }
+function today(){ return new Date().toISOString().slice(0,10); }
+function parseMarkInput(input,maxMark){
+  if(input===null||input===undefined||input==='')return 0;
+  const str=String(input).trim();let raw;
+  if(str.includes('/')){const p=str.split('/');if(p.length===2){const n=parseFloat(p[0]),d=parseFloat(p[1]);raw=(!isNaN(n)&&!isNaN(d)&&d!==0)?(n/d)*maxMark:NaN}else raw=NaN}
+  else if(str.includes('%')){const p=parseFloat(str);raw=!isNaN(p)?(p/100)*maxMark:NaN}
+  else{const n=parseFloat(str);raw=!isNaN(n)?n:NaN}
+  if(isNaN(raw))return 0;
+  return Math.min(Math.max(Math.round(raw),0),maxMark);
+}
+function getRemarks(score,maxScore=100){
+  const p=(score/maxScore)*100;
+  for(const g of GRADING_SCALE)if(p>=g.min&&p<=g.max)return{text:g.text,cls:g.cls};
+  return{text:'Fail',cls:'remarks-fail'};
+}
+/* 75 chars leaves room for " — <tableId>" so total stays under Google Sheets' 100-char limit */
+function sanitizeTabName(name){
+  return String(name).replace(/[\[\]:\\\/\?\*]/g,'-').trim().slice(0,75);
+}
+
+/* ==================== TOAST / LOADING ==================== */
+function showToast(type,title,msg,duration=4000){
+  const c=document.getElementById('toastContainer');if(!c)return;
+  const t=document.createElement('div');t.className='toast '+type;
+  const icName=type==='success'?'check-circle':type==='error'?'alert-circle':type==='warning'?'alert-triangle':'info';
+  t.innerHTML=IC[icName]+'<div class="toast-content"><div class="toast-title">'+esc(title)+'</div><div class="toast-message">'+esc(msg)+'</div></div><button class="toast-close" aria-label="Close">'+IC.x+'</button>';
+  c.appendChild(t);
+  const to=setTimeout(()=>t.remove(),duration);
+  t.querySelector('.toast-close').addEventListener('click',()=>{clearTimeout(to);t.remove()});
+}
+function showLoading(msg='Loading...'){const o=document.getElementById('loadingOverlay');if(o){o.querySelector('p').textContent=msg;o.style.display='flex'}}
+function hideLoading(){const o=document.getElementById('loadingOverlay');if(o)o.style.display='none'}
+
+/* ==================== INDEXEDDB ==================== */
+const DB_NAME='srp_db',DB_VERSION=1;
+let _db=null;
+function openDB(){
+  return new Promise((res,rej)=>{
+    if(!window.indexedDB){rej(new Error('IndexedDB unavailable'));return}
+    const r=indexedDB.open(DB_NAME,DB_VERSION);
+    r.onupgradeneeded=e=>{
+      const d=e.target.result;
+      if(!d.objectStoreNames.contains('state'))d.createObjectStore('state',{keyPath:'key'});
+      if(!d.objectStoreNames.contains('backups'))d.createObjectStore('backups',{keyPath:'id',autoIncrement:true});
+      if(!d.objectStoreNames.contains('settings'))d.createObjectStore('settings',{keyPath:'key'});
+    };
+    r.onsuccess=e=>{_db=e.target.result;res(_db)};
+    r.onerror=e=>rej(e.target.error||new Error('DB open failed'));
+  });
+}
+function tx(store,mode='readonly'){return _db.transaction(store,mode).objectStore(store)}
+function req(r){return new Promise((res,rej)=>{r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
+
+const DB={
+  async getState(){ return req(tx('state').get('main')); },
+  async setState(data){ return req(tx('state','readwrite').put({key:'main',data,ts:Date.now()})); },
+  async addBackup(reason,data){ return req(tx('backups','readwrite').add({reason,ts:Date.now(),data})); },
+  async listBackups(){ return req(tx('backups').getAll()); },
+  async deleteBackup(id){ return req(tx('backups','readwrite').delete(id)); },
+  async pruneBackups(keep=5){
+    const all=await this.listBackups();
+    all.sort((a,b)=>b.ts-a.ts);
+    for(let i=keep;i<all.length;i++) await this.deleteBackup(all[i].id);
+  },
+  async getSetting(k,def){ const r=await req(tx('settings').get(k)); return r?r.value:def; },
+  async setSetting(k,v){ return req(tx('settings','readwrite').put({key:k,value:v})); },
+  async allSettings(){ const a=await req(tx('settings').getAll()); return Object.fromEntries(a.map(r=>[r.key,r.value])); },
+  async clearAll(){ await req(tx('state','readwrite').clear()); await req(tx('backups','readwrite').clear()); }
+};
+
+/* ==================== APPS SCRIPT SNIPPET ==================== */
+function buildAppsScriptSnippet(secret){
+  return `// === Student Results Pro — Apps Script backend ===
+// Paste into Extensions → Apps Script, then Deploy as Web app.
+// Execute as: Me. Who has access: Anyone. Copy the /exec URL back into the app.
+
+const SECRET = '${secret}';
+const META_TAB = '_meta';
+const LOG_TAB = '_log';
+const MAX_LOG_ROWS = 500;
+
+function doGet(e){ return handle(e.parameter); }
+function doPost(e){
+  try { return handle(JSON.parse(e.postData.contents)); }
+  catch(err){ return json({ok:false, error:'invalid json: '+err}); }
+}
+
+function handle(p){
+  try {
+    if (p.secret !== SECRET) return json({ok:false, error:'invalid secret'});
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    switch(p.action){
+      case 'ping': return json({ok:true, tabs: ss.getSheets().length});
+      case 'read': return json(Object.assign({ok:true}, readAll(ss)));
+      case 'write': return json(Object.assign({ok:true}, writeAll(ss, p.payload)));
+    }
+    return json({ok:false, error:'unknown action'});
+  } catch(err){ return json({ok:false, error:String(err)}); }
+}
+
+function json(o){
+  return ContentService.createTextOutput(JSON.stringify(o))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function ensureTab(ss, name){
+  var sh = ss.getSheetByName(name);
+  if (!sh) sh = ss.insertSheet(name);
+  return sh;
+}
+
+function readAll(ss){
+  var out = { meta: {}, tabs: [] };
+  var metaSheet = ss.getSheetByName(META_TAB);
+  if (metaSheet && metaSheet.getLastRow() >= 1){
+    var metaData = metaSheet.getRange(1, 1, metaSheet.getLastRow(), 2).getValues();
+    metaData.forEach(function(row){
+      if (row[0]) out.meta[String(row[0])] = String(row[1]);
+    });
+  }
+  ss.getSheets().forEach(function(sh){
+    var name = sh.getName();
+    if (name === META_TAB || name === LOG_TAB) return;
+    var last = sh.getLastRow();
+    if (last < 1) return;
+    var maxCols = Math.max(1, sh.getLastColumn());
+    var values = sh.getRange(1, 1, last, maxCols).getValues();
+    out.tabs.push({ name: name, rows: values });
+  });
+  return out;
+}
+
+function writeAll(ss, payload){
+  if (!payload) return { written: 0 };
+  var meta = payload.meta || {};
+  var tabs = payload.tabs || [];
+  var logEntries = payload.logEntries || [];
+
+  var metaSheet = ensureTab(ss, META_TAB);
+  metaSheet.clear();
+  var metaRows = Object.keys(meta).map(function(k){ return [k, meta[k]]; });
+  if (metaRows.length === 0) metaRows = [['version', '3.2.2']];
+  metaSheet.getRange(1, 1, metaRows.length, 2).setValues(metaRows);
+
+  var expected = {};
+  tabs.forEach(function(t){ expected[t.name] = true; });
+  ss.getSheets().forEach(function(sh){
+    var name = sh.getName();
+    if (name === META_TAB || name === LOG_TAB) return;
+    if (!expected[name]) ss.deleteSheet(sh);
+  });
+
+  tabs.forEach(function(t){
+    var sh = ensureTab(ss, t.name);
+    sh.clear();
+    if (t.rows && t.rows.length > 0){
+      var maxCols = Math.max.apply(null, t.rows.map(function(r){ return r.length; }));
+      var normalized = t.rows.map(function(r){
+        var row = r.slice();
+        while (row.length < maxCols) row.push('');
+        return row;
+      });
+      sh.getRange(1, 1, normalized.length, maxCols).setValues(normalized);
+    }
+  });
+
+  if (logEntries.length > 0){
+    var logSheet = ensureTab(ss, LOG_TAB);
+    if (logSheet.getLastRow() === 0) logSheet.appendRow(['Timestamp','Device','Action','Detail']);
+    logEntries.forEach(function(e){ logSheet.appendRow(e); });
+    var total = logSheet.getLastRow();
+    if (total > MAX_LOG_ROWS + 1) logSheet.deleteRows(2, total - MAX_LOG_ROWS - 1);
+  }
+
+  return { written: tabs.length };
+}
+`;
+}
+
+/* ==================== CLOUD ADAPTER ==================== */
+async function cloudFetch(action,payload){
+  const url=await DB.getSetting('sheetUrl','');
+  const secret=await DB.getSetting('secret','');
+  if(!url) throw new Error('Cloud not configured');
+  let res;
+  try{
+    res=await fetch(url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action,secret,...payload})});
+  }catch(e){throw new Error('Network error — check your internet connection')}
+  if(!res.ok) throw new Error('Server returned HTTP '+res.status);
+  let data;
+  try{ data=await res.json(); }catch(e){ throw new Error('Server response was not valid JSON') }
+  if(!data.ok) throw new Error(data.error||'Unknown error from Apps Script');
+  return data;
+}
+
+/* ==================== SERIALIZE ==================== */
+function tableToRows(tbl){
+  const headers=['NAMES'];
+  for(const c of tbl.catColumns) headers.push(`${c.name} (${c.maxScore})`);
+  headers.push('CAT TOTAL','EXAM (50)','TOTAL','POSITION');
+  const rows=[headers];
+  for(const s of tbl.students){
+    const row=[s.name];
+    for(const c of tbl.catColumns) row.push(s.catMarks[c.id]||0);
+    row.push(s.catTotal,s.exam,s.total,s.position);
+    rows.push(row);
+  }
+  return rows;
+}
+function buildTabsFromDatasets(datasets){
+  const tabs=[];
+  for(const ds of datasets){
+    for(const tbl of ds.tables){
+      const displayName=sanitizeTabName(`${ds.name} - ${tbl.name}`);
+      const tabName=displayName+' — '+tbl.id;
+      tabs.push({ name:tabName, rows:tableToRows(tbl) });
+    }
+  }
+  return tabs;
+}
+function buildMetaFromDatasets(datasets,currentDatasetId){
+  const meta={ version:APP_VERSION, currentDatasetId:currentDatasetId||'', generatedAt:new Date().toISOString() };
+  for(const ds of datasets){
+    const slim={
+      id:ds.id, name:ds.name, tableCounter:ds.tableCounter,
+      tables:ds.tables.map(t=>({ id:t.id, name:t.name, catColumns:t.catColumns.map(c=>({id:c.id,name:c.name,maxScore:c.maxScore})) }))
+    };
+    meta['dataset:'+ds.id]=JSON.stringify(slim);
+  }
+  return meta;
+}
+function parseMetaDatasets(meta){
+  const datasets=[];
+  for(const k of Object.keys(meta||{})){
+    if(k.startsWith('dataset:')){
+      try{ datasets.push(JSON.parse(meta[k])); }catch(e){ console.error('bad dataset meta',k,e) }
+    }
+  }
+  return datasets;
+}
+
+/* ==================== PARSE ==================== */
+function parseTabName(tabName){
+  const m=String(tabName).match(/^(.*?)\s*—\s*(t[\w-]+)$/);
+  if(!m) return { displayPart:tabName, id:null };
+  return { displayPart:m[1].trim(), id:m[2] };
+}
+function matchCatColumns(incoming,metaCats){
+  const result=incoming.map(c=>({...c,id:null}));
+  if(!metaCats||metaCats.length===0){
+    return result.map(c=>({ ...c, id:'cat-'+generateId() }));
+  }
+  const used=new Set();
+  for(const ic of result){
+    const match=metaCats.find(mc=>mc.name===ic.name&&!used.has(mc.id));
+    if(match){ ic.id=match.id; used.add(match.id); }
+  }
+  if(result.length===metaCats.length){
+    for(let i=0;i<result.length;i++){
+      if(!result[i].id){ result[i].id=metaCats[i].id; used.add(metaCats[i].id); }
+    }
+  }
+  for(const ic of result){ if(!ic.id) ic.id='cat-'+generateId(); }
+  return result;
+}
+function parseTabRows(rows,metaTableDef){
+  if(!rows||rows.length<1) return null;
+  const header=(rows[0]||[]).map(v=>String(v||'').trim());
+  const catIncoming=[];let examIdx=-1;
+  for(let i=1;i<header.length;i++){
+    const h=header[i];
+    if(h==='CAT TOTAL'){ continue; }
+    if(h.startsWith('EXAM')){ examIdx=i; continue; }
+    if(h==='TOTAL'||h==='POSITION'){ continue; }
+    const m=h.match(/^(.+?)\s*\((\d+)\)$/);
+    if(m){ catIncoming.push({ name:m[1].trim(), maxScore:parseInt(m[2],10)||0, _colIdx:i }); }
+  }
+  const catColumns=matchCatColumns(catIncoming, metaTableDef&&metaTableDef.catColumns);
+  const students=[];
+  for(let r=1;r<rows.length;r++){
+    const row=rows[r]||[];
+    const name=String(row[0]||'').trim();
+    if(!name) continue;
+    const catMarks={};
+    for(const c of catColumns){
+      const v=row[c._colIdx];
+      let n=typeof v==='number'?v:parseFloat(v);
+      if(isNaN(n)) n=0;
+      catMarks[c.id]=Math.min(Math.max(Math.round(n),0),c.maxScore);
+    }
+    let examRaw=0;
+    if(examIdx>=0){
+      const v=row[examIdx];
+      examRaw=typeof v==='number'?v:(parseFloat(v)||0);
+    }
+    students.push({ name, catMarks, exam:Math.min(Math.max(Math.round(examRaw),0),50), catTotal:0,total:0,position:0 });
+  }
+  return { catColumns, students };
+}
+function buildDatasetsFromRaw(meta,tabs){
+  const datasetDefs=parseMetaDatasets(meta);
+  const tableLookup=new Map();
+  for(const ds of datasetDefs){
+    for(const t of ds.tables) tableLookup.set(t.id,{ datasetId:ds.id, tableDef:t });
+  }
+  const datasetMap=new Map();
+  for(const ds of datasetDefs){
+    datasetMap.set(ds.id,{ id:ds.id, name:ds.name, tableCounter:ds.tableCounter||1, tables:[] });
+  }
+  for(const tab of tabs){
+    const parsedName=parseTabName(tab.name);
+    let tableId=parsedName.id;
+    let targetDataset=null;
+    let tableDef=null;
+    if(tableId&&tableLookup.has(tableId)){
+      const info=tableLookup.get(tableId);
+      targetDataset=datasetMap.get(info.datasetId);
+      tableDef=info.tableDef;
+    }
+    if(!targetDataset){
+      const parts=(parsedName.displayPart||tab.name).split(' - ');
+      let dsName,tblName;
+      if(parts.length>=2){ dsName=parts[0].trim(); tblName=parts.slice(1).join(' - ').trim(); }
+      else{ dsName='Imported'; tblName=parsedName.displayPart||tab.name; }
+      let found=null;
+      for(const ds of datasetMap.values()){ if(ds.name===dsName){ found=ds; break; } }
+      if(!found){
+        const newId='ds-'+generateId();
+        found={ id:newId, name:dsName, tableCounter:1, tables:[] };
+        datasetMap.set(newId,found);
+      }
+      targetDataset=found;
+      tableId='t-'+generateId();
+      tableDef={ id:tableId, name:tblName, catColumns:null };
+    }
+    const parsed=parseTabRows(tab.rows, tableDef);
+    if(!parsed) continue;
+    const catColumns=parsed.catColumns.map(c=>({id:c.id,name:c.name,maxScore:c.maxScore}));
+    targetDataset.tables.push({
+      id:tableId,
+      name:tableDef.name||parsedName.displayPart||'Table',
+      catColumns,
+      students:parsed.students
+    });
+  }
+  const datasets=Array.from(datasetMap.values());
+  for(const ds of datasets){
+    if(!ds.tableCounter||ds.tableCounter<1) ds.tableCounter=ds.tables.length+1;
+    for(const t of ds.tables){
+      for(const s of t.students) recalcStudent(t,s);
+      updateTablePositions(t);
+    }
+  }
+  return datasets;
+}
+
+/* ==================== RECALC ==================== */
+function recalcStudent(t,s){
+  const raw=t.catColumns.reduce((sum,c)=>sum+(s.catMarks[c.id]||0),0);
+  s.catTotal=Math.min(50,raw);
+  s.total=s.catTotal+s.exam;
+}
+function updateTablePositions(t){
+  const sorted=[...t.students].sort((a,b)=>b.total-a.total);
+  let pos=1,prev=null;
+  sorted.forEach((s,i)=>{
+    if(prev!==null&&s.total===prev) s.position=pos;
+    else{ pos=i+1; s.position=pos; }
+    prev=s.total;
+  });
+}
+
+/* ==================== DIFF ==================== */
+function computeDiff(localDatasets,incomingDatasets){
+  const byId=new Map();
+  for(const ds of localDatasets) byId.set(ds.id,{local:ds,incoming:null});
+  for(const ds of incomingDatasets){
+    if(byId.has(ds.id)) byId.get(ds.id).incoming=ds;
+    else byId.set(ds.id,{local:null,incoming:ds});
+  }
+  const result=[];
+  for(const [id,{local,incoming}] of byId){
+    if(local&&incoming){
+      result.push({ id, name:incoming.name||local.name, status:'matched', tableDiffs:diffTables(local.tables,incoming.tables) });
+    }else if(incoming){
+      result.push({ id, name:incoming.name, status:'new', tables:incoming.tables.map(t=>({ name:t.name, studentCount:t.students.length, catCount:t.catColumns.length })) });
+    }else{
+      result.push({ id, name:local.name, status:'local-only', tableCount:local.tables.length });
+    }
+  }
+  return result;
+}
+function diffTables(localTables,incomingTables){
+  const byId=new Map();
+  for(const t of localTables) byId.set(t.id,{local:t,incoming:null});
+  for(const t of incomingTables){
+    if(byId.has(t.id)) byId.get(t.id).incoming=t;
+    else byId.set(t.id,{local:null,incoming:t});
+  }
+  const result=[];
+  for(const [id,{local,incoming}] of byId){
+    if(local&&incoming) result.push({ id, status:'matched', name:incoming.name, ...diffTableContent(local,incoming) });
+    else if(incoming) result.push({ id, status:'new', name:incoming.name, studentCount:incoming.students.length, catCount:incoming.catColumns.length });
+    else result.push({ id, status:'local-only', name:local.name });
+  }
+  return result;
+}
+function diffTableContent(local,incoming){
+  const changes=[];
+  const lc=new Map(local.catColumns.map(c=>[c.id,c]));
+  const ic=new Map(incoming.catColumns.map(c=>[c.id,c]));
+  for(const [id,c] of ic){
+    if(!lc.has(id)) changes.push({type:'col-add',name:c.name,maxScore:c.maxScore});
+    else{
+      const x=lc.get(id);
+      if(x.name!==c.name) changes.push({type:'col-rename',from:x.name,to:c.name});
+      if(x.maxScore!==c.maxScore) changes.push({type:'col-max',name:c.name,from:x.maxScore,to:c.maxScore});
+    }
+  }
+  for(const [id,c] of lc){ if(!ic.has(id)) changes.push({type:'col-del',name:c.name}); }
+  const ls=new Map(local.students.map(s=>[s.name,s]));
+  const is=new Map(incoming.students.map(s=>[s.name,s]));
+  let added=0,removed=0,modified=0;
+  const addedNames=[],removedNames=[],modifiedList=[];
+  for(const [name,s] of is){
+    if(!ls.has(name)){ added++; if(addedNames.length<5) addedNames.push(name); }
+    else{
+      const x=ls.get(name);const diffs=[];
+      for(const c of incoming.catColumns){
+        const lv=x.catMarks[c.id]||0, iv=s.catMarks[c.id]||0;
+        if(lv!==iv) diffs.push({field:c.name,from:lv,to:iv});
+      }
+      if(x.exam!==s.exam) diffs.push({field:'EXAM',from:x.exam,to:s.exam});
+      if(diffs.length){ modified++; if(modifiedList.length<5) modifiedList.push({name,diffs}); }
+    }
+  }
+  for(const [name] of ls){ if(!is.has(name)){ removed++; if(removedNames.length<5) removedNames.push(name); } }
+  return { changes, studentSummary:{added,addedNames,removed,removedNames,modified,modifiedList} };
+}
+
+/* ==================== MODALS ==================== */
+function closeAllModals(){
+  document.querySelectorAll('.modal-overlay').forEach(m=>m.style.display='none');
+  document.body.classList.remove('modal-open');
+}
+document.addEventListener('click',e=>{ if(e.target.classList.contains('modal-overlay')) e.target.style.display='none'; });
+document.addEventListener('click',e=>{ if(e.target.closest('[data-close]')){ const ov=e.target.closest('.modal-overlay'); if(ov) ov.style.display='none'; } });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeAllModals(); });
+
+/* Auto-lock body scroll whenever any modal is visible */
+(function(){
+  const observer=new MutationObserver(()=>{
+    const anyOpen=Array.from(document.querySelectorAll('.modal-overlay')).some(m=>m.style.display==='flex');
+    if(anyOpen){
+      const sbw=window.innerWidth - document.documentElement.clientWidth;
+      document.body.style.setProperty('--sb-width', sbw + 'px');
+      document.body.classList.add('modal-open');
+    } else {
+      document.body.classList.remove('modal-open');
+    }
+  });
+  document.addEventListener('DOMContentLoaded',()=>{
+    document.querySelectorAll('.modal-overlay').forEach(m=>{
+      observer.observe(m,{attributes:true,attributeFilter:['style']});
+    });
+  });
+})();
+
+/* ==================== APP ==================== */
+const App={
+  datasets:[], currentDatasetId:null, settings:{}, onboarded:false,
+  _dirty:false,  /* persisted boolean — true when local differs from last push/pull */
+
+  async init(){
+    try{ await openDB(); }
+    catch(e){
+      document.getElementById('mainApp').innerHTML='<div class="container"><div class="empty-state">'+IC['alert-triangle']+'<h2>Storage unavailable</h2><p>'+esc(e.message||'Unknown error')+'</p><button class="btn btn-primary" onclick="location.reload()">Reload</button></div></div>';
+      return;
+    }
+    if(!await DB.getSetting('secret','')) await DB.setSetting('secret',uuid());
+    if(!await DB.getSetting('deviceId','')) await DB.setSetting('deviceId',uuid());
+    this.settings=await DB.allSettings();
+    this.onboarded=await DB.getSetting('onboarded',false);
+
+    const stored=await DB.getState();
+    if(stored&&stored.data&&stored.data.datasets&&stored.data.datasets.length){
+      this.datasets=stored.data.datasets;
+      this.currentDatasetId=stored.data.currentDatasetId;
+      /* Restore persisted dirty flag so "Unsynced changes" survives reload */
+      this._dirty = !!stored.data.dirty;
+    }else{
+      this.createDefaultDataset(false);
+      this._dirty = false;
+    }
+    this.validateAll();
+    this.renderAll();
+    this.bindEvents();
+    this.refreshStatus();
+
+    if(!this.onboarded) document.getElementById('onboardingModal').style.display='flex';
+  },
+
+  bindEvents(){
+    document.getElementById('settingsBtn').addEventListener('click',()=>this.openSettings());
+    document.getElementById('themeBtn').addEventListener('click',()=>toggleTheme());
+    document.getElementById('pushBtn').addEventListener('click',()=>this.push());
+    document.getElementById('pullBtn').addEventListener('click',()=>this.pull());
+    document.getElementById('addTableBtn').addEventListener('click',()=>this.addNewTable());
+    /* initialAddTable is wired inside renderTables to avoid duplicate listeners */
+
+    const fdt=document.getElementById('fileDropdownToggle');
+    const tdt=document.getElementById('toolsDropdownToggle');
+    const fdm=document.getElementById('fileDropdownMenu');
+    const tdm=document.getElementById('toolsDropdownMenu');
+    fdt.addEventListener('click',e=>{e.stopPropagation();fdm.classList.toggle('show');tdm.classList.remove('show')});
+    tdt.addEventListener('click',e=>{e.stopPropagation();tdm.classList.toggle('show');fdm.classList.remove('show')});
+    document.addEventListener('click',()=>{fdm.classList.remove('show');tdm.classList.remove('show')});
+
+    document.getElementById('importXlsxBtn').addEventListener('click',()=>{ closeAllModals(); document.getElementById('fileInputXlsx').click(); });
+    document.getElementById('importJsonBtn').addEventListener('click',()=>{ closeAllModals(); document.getElementById('fileInputJson').click(); });
+    document.getElementById('exportCurrentXlsxBtn').addEventListener('click',()=>{ closeAllModals(); this.exportCurrentXlsx(); });
+    document.getElementById('exportAllXlsxBtn').addEventListener('click',()=>{ closeAllModals(); this.exportAllXlsx(); });
+    document.getElementById('exportCurrentJsonBtn').addEventListener('click',()=>{ closeAllModals(); this.exportCurrentJson(); });
+    document.getElementById('exportAllJsonBtn').addEventListener('click',()=>{ closeAllModals(); this.exportAllJson(); });
+    document.getElementById('bulkImportBtn').addEventListener('click',()=>{ closeAllModals(); document.getElementById('bulkFileInputXlsx').click(); });
+    document.getElementById('clearDataBtn').addEventListener('click',()=>{ closeAllModals(); this.clearAllData(); });
+
+    document.getElementById('statisticsBtn').addEventListener('click',()=>{ closeAllModals(); this.showStatistics(); });
+    document.getElementById('helpBtn').addEventListener('click',()=>{ closeAllModals(); this.showHelp(); });
+    document.getElementById('bulkListBtn').addEventListener('click',()=>{ closeAllModals(); this.showDatasets(); });
+    document.getElementById('setupGuideBtn').addEventListener('click',()=>{ closeAllModals(); document.getElementById('setupGuideModal').style.display='flex'; });
+
+    document.getElementById('fileInputXlsx').addEventListener('change',e=>this.handleImportFile(e,'xlsx'));
+    document.getElementById('fileInputJson').addEventListener('change',e=>this.handleImportFile(e,'json'));
+    document.getElementById('bulkFileInputXlsx').addEventListener('change',e=>this.handleBulkImport(e,'xlsx'));
+    document.getElementById('bulkFileInputJson').addEventListener('change',e=>this.handleBulkImport(e,'json'));
+
+    document.getElementById('btnTest').addEventListener('click',()=>this.testConnection());
+    document.getElementById('btnSaveUrl').addEventListener('click',()=>this.saveSheetUrl());
+    document.getElementById('btnDisconnect').addEventListener('click',()=>this.disconnectSheet());
+    document.getElementById('btnCopySnippet').addEventListener('click',()=>this.copySnippet());
+    document.getElementById('btnExportAllQuick').addEventListener('click',()=>this.exportAllXlsx());
+    document.getElementById('btnWipeLocal').addEventListener('click',()=>this.wipeLocal());
+
+    document.getElementById('onboardingLocalBtn').addEventListener('click',async()=>{
+      await DB.setSetting('onboarded',true); this.onboarded=true;
+      document.getElementById('onboardingModal').style.display='none';
+    });
+    document.getElementById('onboardingConnectBtn').addEventListener('click',async()=>{
+      await DB.setSetting('onboarded',true); this.onboarded=true;
+      document.getElementById('onboardingModal').style.display='none';
+      this.openSettings();
+    });
+
+    document.getElementById('createNewDatasetBtn').addEventListener('click',()=>this.createNewDataset());
+  },
+
+  createDefaultDataset(save=true){
+    const id=generateId();
+    this.datasets=[{ id, name:'My Dataset', tables:[], tableCounter:1 }];
+    this.currentDatasetId=id;
+    if(save) this.saveState();
+  },
+  getCurrentDataset(){ return this.datasets.find(d=>d.id===this.currentDatasetId); },
+  findTable(tid){ for(const d of this.datasets){ const t=d.tables.find(x=>x.id===tid); if(t) return t; } return null; },
+  findDatasetByTable(tid){ return this.datasets.find(d=>d.tables.some(t=>t.id===tid)); },
+
+  validateAll(){
+    this.datasets.forEach(ds=>{
+      if(!ds.tables) ds.tables=[];
+      if(!ds.tableCounter||ds.tableCounter<1) ds.tableCounter=1;
+      ds.tables.forEach(t=>{
+        if(!t.catColumns||!t.catColumns.length) t.catColumns=deepClone(DEFAULT_CAT_COLUMNS);
+        if(!t.students) t.students=[];
+        t.students.forEach(s=>{
+          if(!s.catMarks) s.catMarks={};
+          t.catColumns.forEach(c=>{
+            let v=s.catMarks[c.id];
+            if(typeof v!=='number') v=0;
+            s.catMarks[c.id]=Math.min(Math.max(Math.round(v),0),c.maxScore);
+          });
+          if(typeof s.exam!=='number') s.exam=0;
+          s.exam=Math.min(Math.max(Math.round(s.exam),0),50);
+          recalcStudent(t,s);
+        });
+        updateTablePositions(t);
+      });
+    });
+  },
+  async saveState(){
+    this.validateAll();
+    await DB.setState({
+      datasets:this.datasets,
+      currentDatasetId:this.currentDatasetId,
+      lastUpdated:Date.now(),
+      dirty:this._dirty
+    });
+    this.refreshStatus();
+  },
+  refreshStatus(){
+    const pill=document.getElementById('sheetStatusPill');
+    const text=document.getElementById('sheetStatusText');
+    const cloud=!!(this.settings.sheetUrl||'');
+    if(!cloud){ pill.className='sheet-status'; text.textContent='Offline — no Sheet connected'; }
+    else if(this._dirty){ pill.className='sheet-status pending'; text.textContent='Unsynced changes'; }
+    else{ pill.className='sheet-status connected'; text.textContent='Sheet connected'; }
+    const badge=document.getElementById('pushBadge');
+    if(this._dirty) badge.style.display='inline-block';
+    else badge.style.display='none';
+    document.getElementById('pushBtn').disabled=!cloud;
+    document.getElementById('pullBtn').disabled=!cloud;
+  },
+  markDirty(){
+    if(this._dirty) return;      /* already dirty; no need to rewrite state */
+    this._dirty = true;
+    this.saveState();            /* persist immediately so reload preserves it */
+  },
+  clearDirty(){
+    this._dirty = false;
+    this.saveState();
+  },
+
+  patchTableDOM(t){
+    const container=document.getElementById(t.id);
+    if(!container) return;
+    const rows=container.querySelectorAll('tbody tr');
+    const nCats=t.catColumns.length;
+    t.students.forEach((s,i)=>{
+      const row=rows[i]; if(!row) return;
+      const cells=row.children;
+      t.catColumns.forEach((c,ci)=>{
+        const cell=cells[1+ci];
+        if(cell && cell.firstChild && cell.firstChild.classList && cell.firstChild.classList.contains('editable')){
+          const expected=String(s.catMarks[c.id]||0);
+          if(cell.firstChild.textContent!==expected) cell.firstChild.textContent=expected;
+        }
+      });
+      const ct=cells[1+nCats];
+      if(ct && ct.textContent!==String(s.catTotal)) ct.textContent=s.catTotal;
+      const ex=cells[2+nCats];
+      if(ex && ex.firstChild && ex.firstChild.classList && ex.firstChild.classList.contains('editable')){
+        const expected=String(s.exam);
+        if(ex.firstChild.textContent!==expected) ex.firstChild.textContent=expected;
+      }
+      const tot=cells[3+nCats];
+      if(tot && tot.textContent!==String(s.total)) tot.textContent=s.total;
+      const pos=cells[4+nCats];
+      if(pos && pos.textContent!==String(s.position)) pos.textContent=s.position;
+    });
+  },
+
+  renderAll(){
+    const ds=this.getCurrentDataset();
+    document.getElementById('currentDatasetName').textContent=ds?ds.name:'';
+    document.getElementById('currentDatasetIndicator').style.display=ds?'inline-flex':'none';
+    this.renderTables(ds);
+  },
+  renderTables(ds){
+    const c=document.getElementById('tablesContainer');
+    if(!ds||!ds.tables.length){
+      c.innerHTML='<div class="empty-state" id="emptyState">'+IC.database.replace('class="ic"','class="ic ic-xl"')+'<p>No tables yet. Click "Add Table" to begin.</p><button id="initialAddTable" class="btn btn-primary">'+IC['plus-circle']+' Create First Table</button></div>';
+      document.getElementById('initialAddTable').addEventListener('click',()=>this.addNewTable());
+      return;
+    }
+    c.innerHTML='';
+    ds.tables.forEach(t=>c.appendChild(this.createTableElement(t)));
+  },
+  createTableElement(t){
+    const div=document.createElement('div');
+    div.className='table-container'; div.id=t.id;
+    div.appendChild(this.createTableHeader(t));
+    div.appendChild(this.createCatConfig(t));
+    const scroll=document.createElement('div');
+    scroll.className='table-scroll';
+    scroll.appendChild(this.createTable(t));
+    div.appendChild(scroll);
+    div.appendChild(this.createAddStudentRow(t.id));
+    return div;
+  },
+  createTableHeader(t){
+    const h=document.createElement('div');h.className='table-header';
+    const title=document.createElement('div');title.className='table-title';
+    title.setAttribute('contenteditable','true');title.textContent=t.name;
+    title.addEventListener('focus',()=>{
+      const sel=window.getSelection();
+      if(sel && sel.rangeCount){
+        const range=document.createRange();
+        range.selectNodeContents(title);
+        range.collapse(false);
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }
+    });
+    title.addEventListener('blur',e=>{ this.updateTableName(t.id,e.target.textContent); });
+    title.addEventListener('keydown',e=>{ if(e.key==='Enter'){e.preventDefault();e.target.blur();} });
+    const acts=document.createElement('div');acts.className='table-actions';
+    acts.appendChild(this.mkTableBtn('refresh','Reset',()=>this.resetTable(t.id)));
+    acts.appendChild(this.mkTableBtn('printer','Print',()=>this.printTable(t.id)));
+    acts.appendChild(this.mkTableBtn('copy','Clone',()=>this.cloneTable(t.id)));
+    acts.appendChild(this.mkTableBtn('edit','Edit',()=>title.focus()));
+    acts.appendChild(this.mkTableBtn('trash','Delete',()=>this.deleteTable(t.id)));
+    h.appendChild(title);h.appendChild(acts);
+    return h;
+  },
+  mkTableBtn(iconName,tip,onClick){
+    const b=document.createElement('button');b.title=tip;b.type='button';
+    b.innerHTML=IC[iconName]||'';
+    b.addEventListener('click',onClick);
+    return b;
+  },
+  createCatConfig(t){
+    const s=document.createElement('div');s.className='cat-config';
+    const h=document.createElement('div');h.className='cat-config-header';
+    h.innerHTML='<div class="cat-config-title">'+IC.cog+' CAT Columns</div><button class="btn btn-primary" type="button">'+IC['plus-circle']+' Add CAT Column</button>';
+    h.querySelector('button').addEventListener('click',()=>this.toggleCatForm(t.id));
+    const list=document.createElement('div');list.className='cat-columns-list';
+    t.catColumns.forEach((cat,idx)=>list.appendChild(this.createCatItem(t.id,cat,idx)));
+    const form=document.createElement('div');form.className='add-cat-form';form.id='cat-form-'+t.id;form.style.display='none';
+    form.innerHTML='<input class="cat-name-input" placeholder="CAT name"><input type="number" class="cat-max-input" placeholder="Max" min="1" value="10"><button class="btn btn-success" type="button">'+IC.save+' Save</button><button class="btn btn-secondary" type="button">'+IC.x+' Cancel</button>';
+    form.querySelector('.btn-success').addEventListener('click',()=>{
+      const name=form.querySelector('.cat-name-input').value.trim();
+      const max=parseInt(form.querySelector('.cat-max-input').value,10);
+      if(name&&max>0){ this.addCatColumn(t.id,name,max); form.style.display='none'; }
+      else showToast('warning','Invalid','Name and max > 0 required');
+    });
+    form.querySelector('.btn-secondary').addEventListener('click',()=>{form.style.display='none'});
+    s.appendChild(h);s.appendChild(list);s.appendChild(form);
+    return s;
+  },
+  createCatItem(tid,cat,idx){
+    const i=document.createElement('div');i.className='cat-column-item';
+    i.innerHTML='<span class="cat-column-name">'+esc(cat.name)+'</span><span class="cat-column-max">Max: '+cat.maxScore+'</span><div class="cat-column-actions"><button class="btn-edit" title="Edit">'+IC.edit+'</button><button class="btn-del" title="Delete">'+IC.trash+'</button></div>';
+    i.querySelector('.btn-edit').addEventListener('click',()=>this.editCatColumn(tid,idx));
+    i.querySelector('.btn-del').addEventListener('click',()=>this.deleteCatColumn(tid,idx));
+    return i;
+  },
+  toggleCatForm(tid){
+    const f=document.getElementById('cat-form-'+tid);
+    if(f){ f.style.display=f.style.display==='none'?'flex':'none'; if(f.style.display==='flex') f.querySelector('.cat-name-input').focus(); }
+  },
+  createTable(t){
+    const tbl=document.createElement('table');
+    const thead=document.createElement('thead');
+    const hr=document.createElement('tr');
+    hr.appendChild(this.mkTh('NAMES'));
+    t.catColumns.forEach(c=>hr.appendChild(this.mkTh(c.name+' ('+c.maxScore+')')));
+    hr.appendChild(this.mkTh('CAT TOTAL (50)'));
+    hr.appendChild(this.mkTh('EXAM (50)'));
+    hr.appendChild(this.mkTh('TOTAL (100)'));
+    hr.appendChild(this.mkTh('POSITION'));
+    hr.appendChild(this.mkTh('ACTIONS'));
+    thead.appendChild(hr);tbl.appendChild(thead);
+    const tb=document.createElement('tbody');
+    t.students.forEach((s,i)=>tb.appendChild(this.createStudentRow(t,s,i)));
+    tbl.appendChild(tb);
+    return tbl;
+  },
+  mkTh(txt){ const th=document.createElement('th'); th.textContent=txt; return th; },
+  createStudentRow(t,s,idx){
+    const row=document.createElement('tr');
+    row.appendChild(this.editableCell(s.name,v=>this.updateStudentName(t.id,idx,v)));
+    t.catColumns.forEach(c=>{
+      row.appendChild(this.editableCell(s.catMarks[c.id]||0,v=>{
+        const table=this.findTable(t.id);if(!table)return;
+        const col=table.catColumns.find(x=>x.id===c.id);if(!col)return;
+        const conv=parseMarkInput(v,col.maxScore);
+        this.updateStudentCatMark(t.id,idx,c.id,conv);
+      }));
+    });
+    row.appendChild(this.staticCell(s.catTotal));
+    row.appendChild(this.editableCell(s.exam,v=>{ const conv=parseMarkInput(v,50); this.updateStudentMark(t.id,idx,'exam',conv); }));
+    row.appendChild(this.staticCell(s.total));
+    const pos=document.createElement('td');pos.className='position-cell';pos.textContent=s.position;
+    row.appendChild(pos);
+    const act=document.createElement('td');
+    const del=document.createElement('button');
+    del.className='btn btn-danger';del.style.padding='6px 10px';del.style.fontSize='0.8rem';
+    del.innerHTML=IC.trash;
+    del.addEventListener('click',()=>this.deleteStudent(t.id,idx));
+    act.appendChild(del);row.appendChild(act);
+    return row;
+  },
+  editableCell(val,onChange){
+    const td=document.createElement('td');
+    const span=document.createElement('span');
+    span.className='editable';span.setAttribute('contenteditable','true');
+    span.textContent=val;
+    const original=String(val);
+    span.addEventListener('focus',()=>{
+      const sel=window.getSelection();
+      if(sel && sel.rangeCount){
+        const range=document.createRange();
+        range.selectNodeContents(span);
+        range.collapse(false);
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }
+    });
+    span.addEventListener('blur',e=>onChange(e.target.textContent));
+    span.addEventListener('keydown',e=>{
+      if(e.key==='Enter'){ e.preventDefault(); e.target.blur(); }
+      if(e.key==='Escape'){ e.preventDefault(); e.target.textContent=original; e.target.blur(); }
+    });
+    td.appendChild(span);return td;
+  },
+  staticCell(val){ const td=document.createElement('td'); td.textContent=val; return td; },
+  createAddStudentRow(tid){
+    const d=document.createElement('div');
+    d.style.padding='15px 20px';d.style.borderTop='1px solid var(--border)';d.style.textAlign='center';
+    const b=document.createElement('button');b.className='btn btn-primary';b.type='button';
+    b.innerHTML=IC['user-plus']+' Add Student';
+    b.addEventListener('click',()=>this.addStudent(tid));
+    d.appendChild(b);return d;
+  },
+
+  async updateTableName(tid,name){
+    const t=this.findTable(tid); if(!t) return;
+    const finalName=(name||'').trim()||'Unnamed';
+    if(t.name===finalName) return;
+    t.name=finalName;
+    const container=document.getElementById(tid);
+    if(container){
+      const title=container.querySelector('.table-title');
+      if(title && title.textContent!==finalName) title.textContent=finalName;
+    }
+    this.markDirty();
+    await this.saveState();
+  },
+  async updateStudentName(tid,idx,name){
+    const t=this.findTable(tid); if(!t||!t.students[idx]) return;
+    const finalName=(name||'').trim()||'Unnamed';
+    t.students[idx].name=finalName;
+    if(finalName!==name){
+      const container=document.getElementById(t.id);
+      if(container){
+        const rows=container.querySelectorAll('tbody tr');
+        const row=rows[idx];
+        if(row && row.firstChild && row.firstChild.firstChild){
+          row.firstChild.firstChild.textContent=finalName;
+        }
+      }
+    }
+    this.markDirty();
+    await this.saveState();
+  },
+  async updateStudentCatMark(tid,idx,cid,val){
+    const t=this.findTable(tid);
+    if(!t||!t.students[idx]) return;
+    t.students[idx].catMarks[cid]=val;
+    recalcStudent(t,t.students[idx]);
+    updateTablePositions(t);
+    this.markDirty();
+    this.patchTableDOM(t);
+    await this.saveState();
+  },
+  async updateStudentMark(tid,idx,type,val){
+    const t=this.findTable(tid);
+    if(!t||!t.students[idx]) return;
+    t.students[idx][type]=val;
+    recalcStudent(t,t.students[idx]);
+    updateTablePositions(t);
+    this.markDirty();
+    this.patchTableDOM(t);
+    await this.saveState();
+  },
+  async addStudent(tid){ const t=this.findTable(tid); if(!t) return; const marks={}; t.catColumns.forEach(c=>marks[c.id]=0); t.students.push({name:'New Student',catMarks:marks,exam:0,catTotal:0,total:0,position:0}); updateTablePositions(t); this.markDirty(); this.renderAll(); this.saveState(); },
+  async deleteStudent(tid,idx){ if(!confirm('Delete this student?')) return; const t=this.findTable(tid); if(t&&t.students[idx]){ t.students.splice(idx,1); updateTablePositions(t); this.markDirty(); this.renderAll(); this.saveState(); } },
+  async deleteTable(tid){ if(!confirm('Delete this table?')) return; const ds=this.findDatasetByTable(tid); if(ds){ ds.tables=ds.tables.filter(t=>t.id!==tid); this.markDirty(); this.renderAll(); this.saveState(); } },
+  async resetTable(tid){ if(!confirm('Reset all marks to 0? Names are kept.')) return; const t=this.findTable(tid); if(!t) return; t.students.forEach(s=>{ t.catColumns.forEach(c=>s.catMarks[c.id]=0); s.exam=0; recalcStudent(t,s); }); updateTablePositions(t); this.markDirty(); this.renderAll(); this.saveState(); showToast('info','Reset','All marks cleared'); },
+  async addCatColumn(tid,name,max){ const t=this.findTable(tid); if(!t) return; const id='cat-'+generateId(); t.catColumns.push({id,name,maxScore:max}); t.students.forEach(s=>{ s.catMarks[id]=0; recalcStudent(t,s); }); updateTablePositions(t); this.markDirty(); this.renderAll(); this.saveState(); showToast('success','Added',name+' (max '+max+')'); },
+  async editCatColumn(tid,idx){ const t=this.findTable(tid); if(!t||!t.catColumns[idx]) return; const c=t.catColumns[idx]; const nn=prompt('New name:',c.name); if(!nn) return; const nm=parseInt(prompt('New max:',c.maxScore),10); if(isNaN(nm)||nm<=0){ showToast('warning','Invalid','Max must be > 0'); return; } c.name=nn; c.maxScore=nm; t.students.forEach(s=>{ if((s.catMarks[c.id]||0)>nm) s.catMarks[c.id]=nm; recalcStudent(t,s); }); updateTablePositions(t); this.markDirty(); this.renderAll(); this.saveState(); },
+  async deleteCatColumn(tid,idx){ const t=this.findTable(tid); if(!t||!t.catColumns[idx]) return; const c=t.catColumns[idx]; if(!confirm('Delete column "'+c.name+'"?')) return; t.catColumns.splice(idx,1); t.students.forEach(s=>{ delete s.catMarks[c.id]; recalcStudent(t,s); }); updateTablePositions(t); this.markDirty(); this.renderAll(); this.saveState(); },
+  async addNewTable(){
+    const ds=this.getCurrentDataset(); if(!ds) return;
+    const id='table-'+ds.tableCounter++;
+    const catColumns=deepClone(DEFAULT_CAT_COLUMNS);
+    const students=INITIAL_STUDENTS.map(name=>{
+      const marks={}; catColumns.forEach(c=>marks[c.id]=0);
+      return { name, catMarks:marks, exam:0, catTotal:0, total:0, position:0 };
+    });
+    ds.tables.push({ id, name:'Class '+(ds.tableCounter-1), catColumns, students });
+    this.markDirty(); this.renderAll(); this.saveState();
+  },
+  async cloneTable(tid){
+    const src=this.findTable(tid); if(!src) return;
+    const ds=this.getCurrentDataset(); if(!ds) return;
+    const newId='table-'+ds.tableCounter++;
+    const idMap=new Map();
+    const newCats=src.catColumns.map(c=>{ const nid='cat-'+generateId(); idMap.set(c.id,nid); return { id:nid, name:c.name, maxScore:c.maxScore }; });
+    const newStudents=src.students.map(s=>{
+      const marks={};
+      idMap.forEach((nid,oid)=>{ marks[nid]=(typeof s.catMarks[oid]==='number')?s.catMarks[oid]:0; });
+      return { name:s.name, exam:s.exam, catMarks:marks, catTotal:0, total:0, position:0 };
+    });
+    const nt={ id:newId, name:src.name+' (Copy)', catColumns:newCats, students:newStudents };
+    newStudents.forEach(s=>recalcStudent(nt,s));
+    updateTablePositions(nt);
+    ds.tables.push(nt);
+    this.markDirty(); this.renderAll(); this.saveState();
+    showToast('success','Cloned','Independent copy created');
+  },
+  async createNewDataset(){
+    const name=prompt('Dataset name:', 'Dataset '+(this.datasets.length+1));
+    if(!name) return;
+    const id=generateId();
+    this.datasets.push({ id, name, tables:[], tableCounter:1 });
+    this.currentDatasetId=id;
+    this.markDirty(); this.renderAll(); this.saveState();
+    document.getElementById('bulkListModal').style.display='none';
+  },
+  async switchDataset(id){ this.currentDatasetId=id; this.renderAll(); this.saveState(); document.getElementById('bulkListModal').style.display='none'; },
+  async deleteDataset(id){
+    if(this.datasets.length<=1){ showToast('warning','Cannot delete','Keep at least one dataset'); return; }
+    const ds=this.datasets.find(d=>d.id===id); if(!ds) return;
+    if(!confirm('Delete dataset "'+ds.name+'" and all its tables?')) return;
+    this.datasets=this.datasets.filter(d=>d.id!==id);
+    if(this.currentDatasetId===id) this.currentDatasetId=this.datasets[0].id;
+    this.markDirty(); this.renderAll(); this.saveState();
+    this.renderDatasetList();
+  },
+
+  showStatistics(){
+    const ds=this.getCurrentDataset();
+    if(!ds||!ds.tables.length){ showToast('info','No data','Add tables first'); return; }
+    this.renderStatistics(ds);
+    document.getElementById('statisticsModal').style.display='flex';
+  },
+  renderStatistics(ds){
+    const c=document.getElementById('statisticsContainer');
+    const allNames=[...new Set(ds.tables.flatMap(t=>t.students.map(s=>s.name)))].sort();
+    const stats=allNames.map(n=>{
+      const totals=ds.tables.map(t=>{ const s=t.students.find(x=>x.name===n); return s?s.total:0; });
+      return { name:n, totals, overall:totals.reduce((a,b)=>a+b,0) };
+    }).sort((a,b)=>b.overall-a.overall);
+    let pos=1,prev=null;
+    stats.forEach((s,i)=>{ if(prev!==null&&s.overall===prev) s.position=pos; else{ pos=i+1; s.position=pos; } prev=s.overall; });
+    let html='<table class="stats-table"><thead><tr><th>NAMES</th>';
+    ds.tables.forEach(t=>{ html+='<th>'+esc(t.name)+'</th>'; });
+    html+='<th>TOTAL</th><th>POSITION</th></tr></thead><tbody>';
+    stats.forEach(s=>{
+      html+='<tr><td><span class="clickable-name" data-name="'+esc(s.name)+'">'+esc(s.name)+'</span></td>';
+      s.totals.forEach(tot=>{ html+='<td>'+tot+'</td>'; });
+      html+='<td><b>'+s.overall+'</b></td><td>'+s.position+'</td></tr>';
+    });
+    html+='</tbody></table>';
+    c.innerHTML=html;
+    c.querySelectorAll('.clickable-name').forEach(el=>{
+      el.addEventListener('click',()=>{
+        document.getElementById('statisticsModal').style.display='none';
+        this.showTerminalReport(el.dataset.name);
+      });
+    });
+  },
+  showTerminalReport(name){
+    const ds=this.getCurrentDataset();
+    const c=document.getElementById('terminalReportContainer');
+    let rows='';let grand=0,cnt=0;
+    ds.tables.forEach(t=>{
+      const s=t.students.find(x=>x.name===name);
+      if(s){
+        const rem=getRemarks(s.total,100);
+        rows+='<tr><td>'+esc(t.name)+'</td><td>'+s.catTotal+'</td><td>'+s.exam+'</td><td>'+s.total+'</td><td class="'+rem.cls+'">'+rem.text+'</td></tr>';
+        grand+=s.total;cnt++;
+      }
+    });
+    const overall=getRemarks(grand,cnt*100);
+    c.innerHTML=
+      '<div style="text-align:center;margin-bottom:20px;">'+
+        '<h2 style="color:var(--primary);">'+IC['file-text']+' Terminal Report</h2>'+
+        '<h3 style="color:var(--primary-dark);">'+esc(name)+'</h3>'+
+        '<p style="color:var(--muted);font-size:0.9rem;">Generated: '+new Date().toLocaleString()+'</p>'+
+      '</div>'+
+      '<table><thead><tr><th>SUBJECT</th><th>CAT TOTAL</th><th>EXAM</th><th>SUBJECT TOTAL</th><th>REMARKS</th></tr></thead>'+
+      '<tbody>'+rows+'<tr style="font-weight:700;background:var(--card-2);"><td colspan="3">GRAND TOTAL</td><td>'+grand+'</td><td class="'+overall.cls+'">'+overall.text+'</td></tr></tbody></table>'+
+      '<div style="margin-top:20px;">'+
+        '<h3 style="color:var(--primary);">'+IC.info+' Teacher Comments:</h3>'+
+        '<textarea class="comments-textarea" id="reportComments" placeholder="Enter comments..."></textarea>'+
+      '</div>'+
+      '<div style="text-align:center;margin-top:20px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">'+
+        '<button class="btn btn-info" id="reportPrintBtn">'+IC.printer+' Print Report</button>'+
+        '<button class="btn btn-secondary" data-close>'+IC.x+' Close</button>'+
+      '</div>';
+    document.getElementById('terminalReportModal').style.display='flex';
+    document.getElementById('reportPrintBtn').addEventListener('click',()=>{
+      const comments=document.getElementById('reportComments').value;
+      this.printTerminalReport(name, comments, rows, grand, overall);
+    });
+  },
+  printTerminalReport(name,comments,rows,grand,overall){
+    const w=window.open('','_blank');
+    w.document.write('<!DOCTYPE html><html><head><title>Terminal Report — '+esc(name)+'</title><style>body{font-family:Arial;padding:24px;max-width:800px;margin:0 auto}.header{text-align:center;border-bottom:3px solid #2563eb;padding-bottom:16px;margin-bottom:20px}table{width:100%;border-collapse:collapse;margin-top:16px}th,td{border:1px solid #ccc;padding:8px;text-align:center}th{background:#eff6ff;color:#1d4ed8}.remarks-excellent{color:#16a34a;font-weight:700}.remarks-very-good{color:#0d9488;font-weight:700}.remarks-good{color:#0891b2;font-weight:700}.remarks-pass{color:#ca8a04;font-weight:700}.remarks-fail{color:#dc2626;font-weight:700}.comments{margin-top:20px;padding:16px;background:#f8fafc;border-radius:8px}.sig{margin-top:40px;display:flex;justify-content:space-between}</style></head><body><div class="header"><h1>Terminal Report</h1><h2>'+esc(name)+'</h2><p>'+new Date().toLocaleString()+'</p></div><table><thead><tr><th>SUBJECT</th><th>CAT TOTAL</th><th>EXAM</th><th>SUBJECT TOTAL</th><th>REMARKS</th></tr></thead><tbody>'+rows+'<tr style="font-weight:bold;background:#f5f5f5"><td colspan="3">GRAND TOTAL</td><td>'+grand+'</td><td>'+overall.text+'</td></tr></tbody></table><div class="comments"><h3>Teacher Comments:</h3><p>'+esc(comments||'No comments.')+'</p></div><div class="sig"><div>School Stamp: _______________</div><div>Signature: _______________</div></div></body></html>');
+    w.document.close();
+    w.onload=()=>w.print();
+  },
+  printTable(tid){
+    const t=this.findTable(tid); if(!t) return;
+    const w=window.open('','_blank');
+    let ch='';t.catColumns.forEach(c=>{ch+='<th>'+esc(c.name)+' ('+c.maxScore+')</th>'});
+    let rows='';
+    t.students.forEach(s=>{
+      let cc='';t.catColumns.forEach(c=>{cc+='<td>'+(s.catMarks[c.id]||0)+'</td>'});
+      rows+='<tr><td>'+esc(s.name)+'</td>'+cc+'<td>'+s.catTotal+'</td><td>'+s.exam+'</td><td>'+s.total+'</td><td>'+s.position+'</td></tr>';
+    });
+    w.document.write('<!DOCTYPE html><html><head><title>'+esc(t.name)+'</title><style>body{font-family:Arial;padding:24px}table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border:1px solid #ccc;padding:8px;text-align:center}th{background:#eff6ff;color:#1d4ed8}.header{text-align:center;border-bottom:3px solid #2563eb;padding-bottom:12px}</style></head><body><div class="header"><h1>'+esc(t.name)+'</h1><p>Student Results</p></div><table><thead><tr><th>NAMES</th>'+ch+'<th>CAT TOTAL</th><th>EXAM</th><th>TOTAL</th><th>POS</th></tr></thead><tbody>'+rows+'</tbody></table><p>Generated: '+new Date().toLocaleString()+'</p></body></html>');
+    w.document.close();
+    w.onload=()=>w.print();
+  },
+
+  showDatasets(){ this.renderDatasetList(); document.getElementById('bulkListModal').style.display='flex'; },
+  renderDatasetList(){
+    const c=document.getElementById('bulkListContainer');
+    if(!this.datasets.length){ c.innerHTML='<p style="text-align:center;color:var(--muted);">No datasets.</p>'; return; }
+    c.innerHTML='';
+    this.datasets.forEach(d=>{
+      const it=document.createElement('div');
+      it.className='bulk-list-item'+(d.id===this.currentDatasetId?' active':'');
+      const totalStu=d.tables.reduce((s,t)=>s+t.students.length,0);
+      it.innerHTML='<div><div style="font-weight:600;color:var(--primary);">'+IC.database+' '+esc(d.name)+'</div>'+
+        '<div style="font-size:0.85rem;color:var(--muted);">'+d.tables.length+' table(s), '+totalStu+' student(s)</div></div>'+
+        '<div style="display:flex;gap:8px;">'+
+          '<button class="btn btn-primary" data-switch>'+IC.exchange+' Switch</button>'+
+          '<button class="btn btn-danger" data-delete>'+IC.trash+' Delete</button>'+
+        '</div>';
+      it.querySelector('[data-switch]').addEventListener('click',e=>{ e.stopPropagation(); this.switchDataset(d.id); });
+      it.querySelector('[data-delete]').addEventListener('click',e=>{ e.stopPropagation(); this.deleteDataset(d.id); });
+      it.addEventListener('click',()=>this.switchDataset(d.id));
+      c.appendChild(it);
+    });
+  },
+
+  showHelp(){
+    document.getElementById('helpContainer').innerHTML=
+      '<h3 style="color:var(--primary);margin-bottom:10px;">'+IC.sparkles+' Getting Started</h3>'+
+      '<p style="margin-bottom:12px;">Create tables, add students, enter marks. Use datasets to organize.</p>'+
+      '<ul style="padding-left:22px;line-height:1.9;">'+
+        '<li>Marks: <code>45/50</code>, <code>90%</code>, or plain numbers — all auto-rounded.</li>'+
+        '<li>CAT columns are fully customizable — add, rename, change max.</li>'+
+        '<li>Statistics and terminal reports on demand.</li>'+
+        '<li>Push/Pull sync to your own Google Sheet.</li>'+
+        '<li>Export/import via Excel or JSON backup anytime.</li>'+
+      '</ul>'+
+      '<h3 style="color:var(--primary);margin:20px 0 10px;">'+IC.edit+' Manual Excel Edits</h3>'+
+      '<p>You can open the exported xlsx (or your Google Sheet) in Excel, edit marks, add students, rename columns — then re-import or Pull. A diff preview will show exactly what changed before anything is applied.</p>';
+    document.getElementById('helpModal').style.display='flex';
+  },
+
+  async openSettings(){
+    const s=await DB.allSettings();
+    this.settings=s;
+    document.getElementById('inpUrl').value=s.sheetUrl||'';
+    document.getElementById('inpSecret').value=s.secret||'';
+    document.getElementById('kvLastPush').textContent=fmtTime(s.lastPush);
+    document.getElementById('kvLastPull').textContent=fmtTime(s.lastPull);
+    document.getElementById('kvDeviceId').textContent=s.deviceId||'—';
+    document.getElementById('kvDatasetCount').textContent=this.datasets.length;
+    document.getElementById('btnDisconnect').style.display=s.sheetUrl?'inline-flex':'none';
+    document.getElementById('snippetBox').textContent=buildAppsScriptSnippet(s.secret||'');
+    document.getElementById('settingsModal').style.display='flex';
+  },
+  async saveSheetUrl(){
+    const v=document.getElementById('inpUrl').value.trim();
+    if(v && !/^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec$/.test(v)) showToast('warning','Check URL','It should end with /exec');
+    await DB.setSetting('sheetUrl', v);
+    this.settings.sheetUrl=v;
+    this.refreshStatus();
+    showToast('success','Saved','URL updated');
+    this.openSettings();
+  },
+  async testConnection(){
+    const v=document.getElementById('inpUrl').value.trim();
+    if(!v){ showToast('warning','Enter URL first'); return; }
+    await DB.setSetting('sheetUrl', v);
+    this.settings.sheetUrl=v;
+    const btn=document.getElementById('btnTest');
+    btn.disabled=true; btn.innerHTML='Testing...';
+    try{
+      const res=await cloudFetch('ping');
+      showToast('success','Connected',(res.tabs||0)+' tab(s) in sheet');
+      this.refreshStatus();
+    }catch(e){ showToast('error','Failed',e.message||String(e),6000); }
+    finally{ btn.disabled=false; btn.innerHTML=IC.link+' Test connection'; }
+  },
+  async disconnectSheet(){
+    if(!confirm('Disconnect cloud? Local data is kept.')) return;
+    await DB.setSetting('sheetUrl','');
+    this.settings.sheetUrl='';
+    this.refreshStatus();
+    this.openSettings();
+    showToast('info','Disconnected');
+  },
+  async copySnippet(){
+    const txt=document.getElementById('snippetBox').textContent;
+    try{ await navigator.clipboard.writeText(txt); showToast('success','Copied'); }
+    catch(e){ showToast('warning','Select and copy manually'); }
+  },
+  async wipeLocal(){
+    if(!confirm('Permanently delete ALL local data? Cloud Sheet is unaffected.')) return;
+    await DB.clearAll();
+    this.createDefaultDataset(false);
+    this._dirty = false;
+    await this.saveState();
+    this.renderAll();
+    showToast('info','Local data wiped');
+    closeAllModals();
+  },
+
+  exportCurrentXlsx(){
+    if(typeof XLSX==='undefined'){ showToast('error','Library missing','Reload page'); return; }
+    const ds=this.getCurrentDataset(); if(!ds){ showToast('info','No data'); return; }
+    this.exportDatasetsToXlsx([ds], sanitizeTabName(ds.name)+'-'+today()+'.xlsx');
+  },
+  exportAllXlsx(){
+    if(typeof XLSX==='undefined'){ showToast('error','Library missing','Reload page'); return; }
+    if(!this.datasets.length){ showToast('info','No data'); return; }
+    this.exportDatasetsToXlsx(this.datasets, 'all-datasets-'+today()+'.xlsx');
+  },
+  exportDatasetsToXlsx(datasets,filename){
+    const wb=XLSX.utils.book_new();
+    const meta=buildMetaFromDatasets(datasets, this.currentDatasetId);
+    meta.currentDatasetId=this.currentDatasetId||'';
+    const metaRows=[['key','value']];
+    for(const k of Object.keys(meta)) metaRows.push([k, meta[k]]);
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(metaRows), '_meta');
+    const usedNames=new Set(['_meta']);
+    for(const ds of datasets){
+      for(const tbl of ds.tables){
+        const displayName=sanitizeTabName(ds.name+' - '+tbl.name);
+        const tabName=(displayName+' — '+tbl.id).slice(0,31);
+        let unique=tabName; let n=2;
+        while(usedNames.has(unique)){ unique=(displayName.slice(0,25)+' ('+n+')').slice(0,31); n++; }
+        usedNames.add(unique);
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(tableToRows(tbl)), unique);
+      }
+    }
+    const out=XLSX.write(wb,{bookType:'xlsx',type:'array'});
+    this.downloadBlob(filename, new Blob([out],{type:'application/octet-stream'}));
+    showToast('success','Exported',datasets.length+' dataset(s)');
+  },
+  exportCurrentJson(){
+    const ds=this.getCurrentDataset(); if(!ds){ showToast('info','No data'); return; }
+    const data={ version:APP_VERSION, exportedAt:new Date().toISOString(), kind:'dataset', dataset:ds };
+    this.downloadJson('dataset-'+sanitizeTabName(ds.name)+'-'+today()+'.json', data);
+  },
+  exportAllJson(){
+    if(!this.datasets.length){ showToast('info','No data'); return; }
+    const data={ version:APP_VERSION, exportedAt:new Date().toISOString(), kind:'all', datasets:this.datasets, currentDatasetId:this.currentDatasetId };
+    this.downloadJson('all-datasets-'+today()+'.json', data);
+  },
+  downloadJson(name,data){ this.downloadBlob(name, new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); showToast('success','Exported',name); },
+  downloadBlob(name, blob){
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download=name;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+  },
+
+  async handleImportFile(e,type){
+    const f=e.target.files[0]; if(!f) return;
+    showLoading('Reading file...');
+    try{
+      const incoming = type==='xlsx' ? await this.readXlsxFile(f) : await this.readJsonFile(f);
+      if(!incoming || !incoming.length){ showToast('warning','No data','File had no usable datasets'); return; }
+      hideLoading();
+      await this.promptDiffAndApply(incoming, 'Import: '+f.name, 'import');
+    }catch(err){
+      hideLoading();
+      showToast('error','Import failed', err.message||String(err), 6000);
+    }finally{ e.target.value=''; }
+  },
+  async handleBulkImport(e,type){
+    const files=e.target.files; if(!files||!files.length) return;
+    showLoading('Reading files...');
+    let allIncoming=[];
+    try{
+      for(const f of files){
+        try{
+          const inc = type==='xlsx' ? await this.readXlsxFile(f) : await this.readJsonFile(f);
+          if(inc && inc.length) allIncoming.push(...inc);
+        }catch(err){ console.warn('skip',f.name,err); }
+      }
+      hideLoading();
+      if(!allIncoming.length){ showToast('warning','Nothing to import'); return; }
+      const seen=new Set();const deduped=[];
+      for(const ds of allIncoming){ if(!seen.has(ds.id)){ seen.add(ds.id); deduped.push(ds); } }
+      await this.promptDiffAndApply(deduped, 'Bulk import: '+files.length+' file(s)', 'import');
+    }catch(err){
+      hideLoading();
+      showToast('error','Bulk import failed', err.message||String(err), 6000);
+    }finally{ e.target.value=''; }
+  },
+  async readXlsxFile(file){
+    const buf=await file.arrayBuffer();
+    const wb=XLSX.read(buf);
+    return this.parseWorkbook(wb);
+  },
+  parseWorkbook(wb){
+    let meta={};
+    const metaName=wb.SheetNames.find(n=>n==='_meta');
+    if(metaName){
+      const rows=XLSX.utils.sheet_to_json(wb.Sheets[metaName],{header:1,defval:''});
+      for(let i=1;i<rows.length;i++){
+        const k=String(rows[i][0]||''); const v=String(rows[i][1]||'');
+        if(k) meta[k]=v;
+      }
+    }
+    const tabs=[];
+    for(const name of wb.SheetNames){
+      if(name==='_meta'||name==='_log') continue;
+      const rows=XLSX.utils.sheet_to_json(wb.Sheets[name],{header:1,defval:''});
+      if(rows.length) tabs.push({ name, rows });
+    }
+    return buildDatasetsFromRaw(meta, tabs);
+  },
+  async readJsonFile(file){
+    const text=await file.text();
+    const data=JSON.parse(text);
+    if(data.kind==='all' && Array.isArray(data.datasets)) return data.datasets.map(ds=>this.normalizeJsonDataset(ds));
+    if(data.kind==='dataset' && data.dataset) return [this.normalizeJsonDataset(data.dataset)];
+    if(Array.isArray(data)) return data.map(ds=>this.normalizeJsonDataset(ds)).filter(Boolean);
+    if(data.id && data.tables) return [this.normalizeJsonDataset(data)];
+    throw new Error('Unrecognized JSON structure');
+  },
+  normalizeJsonDataset(ds){
+    const out={ id:ds.id||('ds-'+generateId()), name:ds.name||'Imported', tableCounter:ds.tableCounter||1, tables:[] };
+    (ds.tables||[]).forEach(t=>{
+      const tId=t.id||('t-'+generateId());
+      const catColumns=(t.catColumns||deepClone(DEFAULT_CAT_COLUMNS)).map(c=>({
+        id:c.id||('cat-'+generateId()), name:c.name||'CAT', maxScore:parseInt(c.maxScore,10)||10
+      }));
+      const students=(t.students||[]).map(s=>{
+        const marks={};
+        catColumns.forEach(c=>{
+          const v=s.catMarks&&s.catMarks[c.id];
+          marks[c.id]=Math.min(Math.max(Math.round(typeof v==='number'?v:parseFloat(v)||0),0),c.maxScore);
+        });
+        const exam=Math.min(Math.max(Math.round(typeof s.exam==='number'?s.exam:parseFloat(s.exam)||0),0),50);
+        return { name:s.name||'Unnamed', catMarks:marks, exam, catTotal:0,total:0,position:0 };
+      });
+      const tbl={ id:tId, name:t.name||'Table', catColumns, students };
+      students.forEach(s=>recalcStudent(tbl,s));
+      updateTablePositions(tbl);
+      out.tables.push(tbl);
+    });
+    if(out.tableCounter<out.tables.length+1) out.tableCounter=out.tables.length+1;
+    return out;
+  },
+
+  async promptDiffAndApply(incomingDatasets,contextTitle,source){
+    const diff=computeDiff(this.datasets, incomingDatasets);
+    const missing=diff.filter(d=>d.status==='local-only');
+    const hasMissing=missing.length>0;
+    let html='<div class="diff-summary"><b>Preview — nothing applied yet.</b><br>Review the changes below, then choose how to apply them.</div>';
+    let totalAdded=0,totalRemoved=0,totalModified=0,totalNewTables=0;
+    for(const d of diff){
+      if(d.status==='matched'){
+        html+='<div class="diff-dataset matched"><h4>'+IC.refresh+' Dataset "'+esc(d.name)+'" — matched</h4>';
+        d.tableDiffs.forEach(td=>{
+          if(td.status==='matched'){
+            const sum=td.studentSummary;
+            totalAdded+=sum.added; totalRemoved+=sum.removed; totalModified+=sum.modified;
+            const hasChanges=sum.added||sum.removed||sum.modified||td.changes.length;
+            html+='<div class="diff-table"><b>'+esc(td.name)+'</b>';
+            if(!hasChanges) html+=' — no changes';
+            html+='<div class="changes">';
+            if(sum.added) html+='<span class="change-add">+ '+sum.added+' student(s)</span>'+(sum.addedNames.length?' ('+sum.addedNames.map(esc).join(', ')+(sum.added>sum.addedNames.length?', …':'')+')':'')+'<br>';
+            if(sum.removed) html+='<span class="change-del">− '+sum.removed+' student(s)</span>'+(sum.removedNames.length?' ('+sum.removedNames.map(esc).join(', ')+(sum.removed>sum.removedNames.length?', …':'')+')':'')+'<br>';
+            if(sum.modified) html+='<span class="change-mod">~ '+sum.modified+' student(s) modified</span><br>';
+            sum.modifiedList.forEach(m=>{
+              html+='<span style="font-size:0.8rem;">'+esc(m.name)+': '+m.diffs.map(x=>esc(x.field)+' '+x.from+'→'+x.to).join(', ')+'</span><br>';
+            });
+            td.changes.forEach(c=>{
+              if(c.type==='col-add') html+='<span class="change-add">+ New column "'+esc(c.name)+'" (max '+c.maxScore+')</span><br>';
+              else if(c.type==='col-del') html+='<span class="change-del">− Removed column "'+esc(c.name)+'"</span><br>';
+              else if(c.type==='col-rename') html+='<span class="change-mod">~ Column renamed "'+esc(c.from)+'" → "'+esc(c.to)+'"</span><br>';
+              else if(c.type==='col-max') html+='<span class="change-mod">~ "'+esc(c.name)+'" max '+c.from+' → '+c.to+'</span><br>';
+            });
+            html+='</div></div>';
+          } else if(td.status==='new'){
+            totalNewTables++;
+            html+='<div class="diff-table"><span class="change-add">+ New table "'+esc(td.name)+'"</span> ('+td.studentCount+' students, '+td.catCount+' CAT columns)</div>';
+          } else if(td.status==='local-only'){
+            html+='<div class="diff-table"><span class="change-del">− Local-only table "'+esc(td.name)+'" will be removed</span></div>';
+          }
+        });
+        html+='</div>';
+      } else if(d.status==='new'){
+        html+='<div class="diff-dataset new"><h4>'+IC['plus-circle']+' New dataset "'+esc(d.name)+'"</h4>';
+        d.tables.forEach(t=>{
+          totalNewTables++;
+          html+='<div class="diff-table"><span class="change-add">+ "'+esc(t.name)+'"</span> ('+t.studentCount+' students, '+t.catCount+' CAT columns)</div>';
+        });
+        html+='</div>';
+      }
+    }
+    if(hasMissing){
+      html+='<div class="diff-dataset local-only"><h4>'+IC['alert-triangle']+' Local-only datasets</h4>';
+      missing.forEach(d=>{ html+='<div class="diff-table">"'+esc(d.name)+'" ('+d.tableCount+' table(s)) — not in the incoming data</div>'; });
+      html+='</div>';
+      html+='<div class="diff-radio"><label><input type="radio" name="mergeMode" value="merge" checked> <b>Merge</b> — keep local-only datasets</label><label><input type="radio" name="mergeMode" value="replace"> <b>Replace all</b> — delete local-only datasets</label></div>';
+    } else {
+      html+='<input type="hidden" name="mergeMode" value="replace">';
+    }
+    html+='<div style="margin-top:14px;padding:12px;background:var(--card-2);border-radius:12px;font-size:0.9rem;"><b>Summary:</b> +'+totalAdded+' students · −'+totalRemoved+' students · ~'+totalModified+' modified · '+totalNewTables+' new table(s)</div>';
+    document.getElementById('diffTitle').textContent=contextTitle;
+    document.getElementById('diffBody').innerHTML=html;
+    document.getElementById('diffModal').style.display='flex';
+    const applyBtn=document.getElementById('diffApplyBtn');
+    const newBtn=applyBtn.cloneNode(true);
+    applyBtn.parentNode.replaceChild(newBtn,applyBtn);
+    newBtn.addEventListener('click', async()=>{
+      const mode=(document.querySelector('input[name=mergeMode]:checked')||{}).value||'replace';
+      closeAllModals();
+      await this.applyIncoming(incomingDatasets, mode, source);
+    });
+  },
+
+  async applyIncoming(incomingDatasets, mode, source){
+    showLoading('Applying...');
+    try{
+      await DB.addBackup(source||'apply',{ datasets:this.datasets, currentDatasetId:this.currentDatasetId });
+      await DB.pruneBackups(5);
+      let merged;
+      if(mode==='replace') merged=incomingDatasets;
+      else{
+        const incomingIds=new Set(incomingDatasets.map(d=>d.id));
+        const localsKept=this.datasets.filter(d=>!incomingIds.has(d.id));
+        merged=[...incomingDatasets, ...localsKept];
+      }
+      this.datasets=merged;
+      if(!this.datasets.length){ this.createDefaultDataset(false); }
+      if(!this.datasets.find(d=>d.id===this.currentDatasetId)) this.currentDatasetId=this.datasets[0]?.id||null;
+      if(this.currentDatasetId==null && this.datasets.length) this.currentDatasetId=this.datasets[0].id;
+      this.validateAll();
+      /* Pull = authoritative sync → clear dirty. Import = local-only change → set dirty. */
+      if(source==='pull') this._dirty = false; else this._dirty = true;
+      await this.saveState();
+      this.renderAll();
+      showToast('success','Applied',incomingDatasets.length+' dataset(s)');
+    }catch(e){ showToast('error','Apply failed', e.message||String(e), 6000); }
+    finally{ hideLoading(); }
+  },
+
+  async push(){
+    const url=this.settings.sheetUrl||'';
+    if(!url){ showToast('warning','Connect a Sheet first'); return; }
+    const ok=confirm('Push to Google Sheet?\n\nThis will REPLACE the entire sheet contents with your local data:\n• '+this.datasets.length+' dataset(s)\n• '+this.datasets.reduce((s,d)=>s+d.tables.length,0)+' table(s)\n• '+this.datasets.reduce((s,d)=>s+d.tables.reduce((x,t)=>x+t.students.length,0),0)+' student(s)\n\nAny manual edits made directly in the sheet since the last Push will be lost.\n\nContinue?');
+    if(!ok) return;
+    showLoading('Pushing to Sheet...');
+    try{
+      const meta=buildMetaFromDatasets(this.datasets, this.currentDatasetId);
+      const tabs=buildTabsFromDatasets(this.datasets);
+      const logEntries=[[ new Date().toISOString(), this.settings.deviceId||'unknown', 'Push', this.datasets.length+' datasets, '+tabs.length+' tables' ]];
+      const res=await cloudFetch('write', { payload:{ meta, tabs, logEntries } });
+      await DB.setSetting('lastPush', Date.now());
+      this.settings.lastPush=Date.now();
+      this._dirty = false;
+      await this.saveState();
+      showToast('success','Pushed',(res.written||tabs.length)+' tab(s) written');
+    }catch(e){ showToast('error','Push failed', e.message||String(e), 6000); }
+    finally{ hideLoading(); }
+  },
+
+  async pull(){
+    const url=this.settings.sheetUrl||'';
+    if(!url){ showToast('warning','Connect a Sheet first'); return; }
+    showLoading('Reading from Sheet...');
+    try{
+      const res=await cloudFetch('read');
+      hideLoading();
+      const incoming=buildDatasetsFromRaw(res.meta||{}, res.tabs||[]);
+      if(!incoming.length){ showToast('info','Sheet has no datasets yet','Push first to send data up'); return; }
+      await this.promptDiffAndApply(incoming, 'Pull from Google Sheet', 'pull');
+    }catch(e){ hideLoading(); showToast('error','Pull failed', e.message||String(e), 6000); }
+  },
+
+  async clearAllData(){
+    if(!confirm('Delete ALL datasets permanently?\n\nThis does NOT touch your Google Sheet. Use Push to sync the empty state.')) return;
+    await DB.addBackup('before-clear',{ datasets:this.datasets, currentDatasetId:this.currentDatasetId });
+    this.datasets=[];
+    this.currentDatasetId=null;
+    this.createDefaultDataset(false);
+    this._dirty = false;
+    await this.saveState();
+    this.renderAll();
+    showToast('info','Cleared','Local data reset');
+  }
+};
+
+window.app=App;
+document.addEventListener('DOMContentLoaded',()=>{
+  renderAllIcons();
+  applyTheme(currentTheme());
+  App.init();
+});
+})();
+</script>
 </body>
 </html>
