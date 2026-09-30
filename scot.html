@@ -1,0 +1,1688 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Student Data Collector</title>
+<script>
+  /* Apply saved/system theme before paint to avoid flash */
+  (function(){
+    try {
+      var saved = localStorage.getItem('theme');
+      if (saved === 'dark' || (!saved && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.setAttribute('data-theme','dark');
+      }
+    } catch(e){}
+  })();
+</script>
+<style>
+  :root{
+    --bg:#f5f7fa; --card:#fff; --bg-2:#f8fafc; --hover:#eef2f7;
+    --text:#1a2233; --muted:#68758a; --border:#e2e8f0;
+    --primary:#2563eb; --primary-2:#1d4ed8;
+    --danger:#dc2626; --danger-2:#b91c1c; --warn:#d97706; --ok:#16a34a;
+    --zero:#cbd5e1;
+    --shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+  }
+  [data-theme="dark"]{
+    --bg:#0f172a; --card:#1e293b; --bg-2:#172033; --hover:#2a3648;
+    --text:#e2e8f0; --muted:#94a3b8; --border:#334155;
+    --primary:#3b82f6; --primary-2:#2563eb;
+    --danger:#ef4444; --danger-2:#dc2626; --warn:#f59e0b; --ok:#22c55e;
+    --zero:#475569;
+    --shadow:0 1px 3px rgba(0,0,0,.4),0 1px 2px rgba(0,0,0,.3);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
+    font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    transition:background .2s, color .2s;}
+  button{font:inherit;cursor:pointer}
+  input,select{font:inherit;color:inherit}
+
+  .app-bar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:8px;
+    padding:10px 14px;background:var(--card);border-bottom:1px solid var(--border);
+    box-shadow:var(--shadow);}
+  .app-title{font-weight:600;font-size:16px;flex:1;display:flex;align-items:center;gap:8px}
+  .app-actions{display:flex;gap:6px;align-items:center}
+
+  .btn{background:var(--card);border:1px solid var(--border);color:var(--text);
+    padding:7px 12px;border-radius:8px;transition:.15s;white-space:nowrap;}
+  .btn:hover:not(:disabled){background:var(--hover)}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .btn-primary{background:var(--primary);border-color:var(--primary);color:#fff}
+  .btn-primary:hover:not(:disabled){background:var(--primary-2)}
+  .btn-danger{background:var(--danger);border-color:var(--danger);color:#fff}
+  .btn-danger:hover:not(:disabled){background:var(--danger-2)}
+  .btn-icon{background:transparent;border:1px solid transparent;padding:6px 8px;
+    border-radius:8px;font-size:16px;line-height:1}
+  .btn-icon:hover{background:var(--hover)}
+
+  .badge{background:#fff;color:var(--primary);border-radius:10px;padding:1px 7px;
+    font-size:11px;font-weight:600;margin-left:4px}
+  .btn-primary .badge{background:#fff;color:var(--primary)}
+
+  main{padding:14px;max-width:1100px;margin:0 auto}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;
+    padding:16px;box-shadow:var(--shadow);margin-bottom:14px;
+    transition:background .2s, border-color .2s}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .row.spread{justify-content:space-between}
+  .muted{color:var(--muted)}
+  .small{font-size:12px}
+  h2{margin:0 0 10px;font-size:16px}
+  h3{margin:0 0 12px;font-size:13px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+
+  .banner{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;
+    padding:10px 14px;border-radius:10px;margin-bottom:14px;font-size:13px;
+    display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .banner.info{background:#eff6ff;border-color:#bfdbfe;color:#1e40af}
+  .banner.ok{background:#f0fdf4;border-color:#bbf7d0;color:#166534}
+  [data-theme="dark"] .banner{background:#3b2818;border-color:#7c4a1e;color:#fed7aa}
+  [data-theme="dark"] .banner.info{background:#1e3a5f;border-color:#2d5f8e;color:#93c5fd}
+  [data-theme="dark"] .banner.ok{background:#14371f;border-color:#1e6b3a;color:#86efac}
+
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--border);white-space:nowrap}
+  th{background:var(--bg-2);font-weight:600;color:var(--muted);font-size:12px;
+    text-transform:uppercase;letter-spacing:.3px}
+  tr.clickable{cursor:pointer}
+  tr.clickable:hover{background:var(--hover)}
+  .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+
+  .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:middle}
+  .dot.pending{background:#f59e0b}
+  .dot.synced{background:var(--ok)}
+  .dot.error{background:var(--danger)}
+
+  form .field{margin-bottom:12px;display:flex;flex-direction:column;gap:4px}
+  form label{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.3px}
+  form select,form input{padding:9px 11px;border:1px solid var(--border);border-radius:8px;
+    background:var(--card);width:100%;max-width:100%}
+  form select:focus,form input:focus{outline:none;border-color:var(--primary);
+    box-shadow:0 0 0 3px rgba(37,99,235,.15)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:560px){.grid2{grid-template-columns:1fr}}
+
+  .modal-back{position:fixed;inset:0;background:rgba(15,23,42,.5);display:flex;
+    align-items:center;justify-content:center;padding:16px;z-index:100;backdrop-filter:blur(2px)}
+  .modal{background:var(--card);color:var(--text);border-radius:14px;max-width:640px;width:100%;
+    max-height:90vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.25);overflow:hidden}
+  .modal.wide{max-width:900px}
+  .modal-head{padding:16px;border-bottom:1px solid var(--border);font-weight:600;font-size:16px}
+  .modal-body{padding:16px;overflow:auto}
+  .modal-foot{padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;
+    justify-content:flex-end;flex-wrap:wrap}
+
+  #toast-root{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+    z-index:200;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
+  .toast{background:#111827;color:#fff;padding:10px 14px;border-radius:10px;
+    font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.25);pointer-events:auto;
+    display:flex;align-items:center;gap:12px;max-width:90vw}
+  .toast.warn{background:#b45309}
+  .toast.error{background:#b91c1c}
+  .toast.ok{background:#166534}
+  .toast button{background:transparent;border:1px solid rgba(255,255,255,.5);
+    color:#fff;border-radius:6px;padding:4px 8px;font-size:12px}
+
+  .kv{display:grid;grid-template-columns:140px 1fr;gap:6px 12px;font-size:13px}
+  .kv .k{color:var(--muted)}
+  code,pre{font-family:ui-monospace,Menlo,Consolas,monospace}
+  pre.snippet{background:#0f172a;color:#e2e8f0;padding:14px;border-radius:10px;
+    font-size:12px;overflow:auto;max-height:340px;line-height:1.5;white-space:pre}
+
+  .stat{display:flex;flex-direction:column;padding:10px 12px;background:var(--bg-2);
+    border-radius:10px;border:1px solid var(--border);flex:1;min-width:110px}
+  .stat .v{font-size:20px;font-weight:600}
+  .stat .l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+
+  details{background:var(--bg-2);border:1px solid var(--border);border-radius:10px;
+    padding:10px 14px;margin-top:10px}
+  summary{cursor:pointer;font-weight:600;font-size:13px}
+  details[open] summary{margin-bottom:10px}
+
+  .empty{text-align:center;padding:40px 20px;color:var(--muted)}
+
+  .tabs{display:flex;gap:4px;background:var(--card);border:1px solid var(--border);
+    border-radius:10px;padding:4px;margin-bottom:14px;box-shadow:var(--shadow)}
+  .tab{flex:1;text-align:center;padding:9px 14px;border-radius:8px;text-decoration:none;
+    color:var(--text);font-weight:500;font-size:13px;transition:.15s}
+  .tab:hover{background:var(--hover)}
+  .tab.active{background:var(--primary);color:#fff}
+  .tab.active:hover{background:var(--primary-2)}
+
+  .bar-row{display:grid;grid-template-columns:150px 1fr 110px;gap:10px;align-items:center;
+    padding:5px 0;font-size:13px}
+  .bar-label{color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .bar-track{background:var(--bg-2);border-radius:5px;height:18px;overflow:hidden}
+  .bar-fill{height:100%;background:linear-gradient(90deg,#60a5fa,#2563eb);
+    border-radius:5px;transition:width .3s}
+  [data-theme="dark"] .bar-fill{background:linear-gradient(90deg,#3b82f6,#1d4ed8)}
+  .bar-value{text-align:right;font-variant-numeric:tabular-nums;color:var(--text)}
+  @media(max-width:560px){
+    .bar-row{grid-template-columns:110px 1fr 80px;font-size:12px}
+  }
+
+  .ct-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:4px}
+  .ct-table{width:100%;border-collapse:collapse;font-size:13px}
+  .ct-table th,.ct-table td{padding:7px 10px;text-align:right;border-bottom:1px solid var(--border);white-space:nowrap}
+  .ct-table th:first-child,.ct-table td:first-child{text-align:left;font-weight:500;
+    position:sticky;left:0;background:var(--card);z-index:1}
+  .ct-table thead th{background:var(--bg-2);color:var(--muted);font-size:11px;
+    text-transform:uppercase;letter-spacing:.3px;font-weight:600}
+  .ct-table thead th:first-child{background:var(--bg-2)}
+  .ct-table tbody tr:hover td{background:var(--hover)}
+  .ct-table tbody tr:hover td:first-child{background:var(--hover)}
+  .ct-table .total-col{background:var(--bg-2);font-weight:600}
+  .ct-table .total-row td{background:var(--bg-2);font-weight:600}
+  .ct-table .zero{color:var(--zero)}
+
+  /* Import preview row tints adapt to dark */
+  [data-theme="dark"] .row-new{background:rgba(34,197,94,.08) !important}
+  [data-theme="dark"] .row-dup{background:rgba(245,158,11,.1) !important}
+  [data-theme="dark"] .row-bad{background:rgba(239,68,68,.1) !important}
+
+  /* Global error / fatal screen */
+  .fatal{padding:40px 20px;text-align:center;max-width:520px;margin:60px auto}
+  .fatal h2{font-size:20px;margin-bottom:12px}
+  .fatal p{color:var(--muted);margin-bottom:16px}
+
+  @media(max-width:560px){
+    .app-title span.t{display:none}
+    .btn{padding:7px 10px}
+  }
+
+  /* Print */
+  @media print {
+    .app-bar, .tabs, #toast-root, .modal-back, .no-print { display: none !important; }
+    body, main { background: #fff !important; color: #000 !important; }
+    .card { box-shadow: none; border: 1px solid #ddd; break-inside: avoid; page-break-inside: avoid; }
+    .bar-fill { background: #2563eb !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .stat, .ct-table thead th, .ct-table .total-col, .ct-table .total-row td { background: #f5f5f5 !important; }
+  }
+</style>
+</head>
+<body>
+
+<header class="app-bar">
+  <div class="app-title">
+    <span>🎓</span><span class="t">Student Data Collector</span>
+  </div>
+  <div class="app-actions">
+    <button id="btnPush" class="btn btn-primary" title="Push local changes">Push<span class="badge" id="pushBadge" hidden>0</span></button>
+    <button id="btnPull" class="btn" title="Pull from Google Sheet">Pull</button>
+    <button id="btnTheme" class="btn-icon" title="Toggle theme">🌙</button>
+    <button id="btnSettings" class="btn-icon" title="Settings">⚙</button>
+  </div>
+</header>
+
+<main id="view"></main>
+<div id="modal-root"></div>
+<div id="toast-root"></div>
+
+<script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+<script>
+/* ==================== CONSTANTS ==================== */
+const GRADES = ['Nursery','KG1','KG2','Grade 1','Grade 2','Grade 3','Grade 4','Grade 5','Grade 6','JHS1','JHS2','JHS3','SHS1','SHS2','SHS3'];
+const GENDERS = ['Male','Female'];
+const RESIDENCES = ['Day','Boarder'];
+const TRANSPORTS = ['Bus','Parents','Guardian'];
+const REFERRALS = ['Referral','TikTok','Facebook','Instagram','YouTube','WhatsApp','Banner Ad','Radio','TV','Flyer','Church/Mosque','Family','Friend','Walk-in','Other'];
+const HEADERS = ['StudentID','Grade','Gender','Residence','Transport','ReferralSource'];
+const SHEETJS_CDN = 'https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js';
+
+/* ==================== THEME ==================== */
+function currentTheme(){ return document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light'; }
+function applyTheme(theme){
+  if(theme === 'dark') document.documentElement.setAttribute('data-theme','dark');
+  else document.documentElement.removeAttribute('data-theme');
+  try { localStorage.setItem('theme', theme); } catch(e){}
+  const btn = document.getElementById('btnTheme');
+  if(btn){ btn.textContent = theme === 'dark' ? '☀️' : '🌙'; btn.title = theme === 'dark' ? 'Switch to light' : 'Switch to dark'; }
+}
+function toggleTheme(){ applyTheme(currentTheme() === 'dark' ? 'light' : 'dark'); }
+
+/* ==================== INDEXEDDB ==================== */
+const DB_NAME = 'studentapp', DB_VERSION = 1;
+let db;
+
+function openDB(){
+  return new Promise((res, rej) => {
+    if(!window.indexedDB){ rej(new Error('IndexedDB not available')); return; }
+    let r;
+    try { r = indexedDB.open(DB_NAME, DB_VERSION); }
+    catch(e){ rej(e); return; }
+    r.onupgradeneeded = e => {
+      const d = e.target.result;
+      if(!d.objectStoreNames.contains('students')){
+        const s = d.createObjectStore('students', { keyPath:'studentId' });
+        s.createIndex('by_syncStatus','syncStatus');
+        s.createIndex('by_deleted','deleted');
+        s.createIndex('by_grade','grade');
+        s.createIndex('by_referralSource','referralSource');
+      }
+      if(!d.objectStoreNames.contains('students_backup')){
+        d.createObjectStore('students_backup', { keyPath:'snapshotId', autoIncrement:true });
+      }
+      if(!d.objectStoreNames.contains('settings')){
+        d.createObjectStore('settings', { keyPath:'key' });
+      }
+    };
+    r.onsuccess = e => { db = e.target.result; res(db); };
+    r.onerror = e => rej(e.target.error || new Error('DB open failed'));
+    r.onblocked = () => rej(new Error('Database blocked — close other tabs of this app'));
+  });
+}
+function store(name, mode='readonly'){ return db.transaction(name, mode).objectStore(name); }
+function req(r){ return new Promise((res, rej) => { r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); }
+
+async function getAllStudents(){ return req(store('students').getAll()); }
+async function getStudent(id){ return req(store('students').get(id)); }
+async function putStudent(s){ return req(store('students','readwrite').put(s)); }
+async function deleteStudent(id){ return req(store('students','readwrite').delete(id)); }
+async function clearStudents(){ return req(store('students','readwrite').clear()); }
+async function getAllSnapshots(){ return req(store('students_backup').getAll()); }
+async function getSnapshot(id){ return req(store('students_backup').get(id)); }
+async function addSnapshot(reason, records){
+  return req(store('students_backup','readwrite').add({ takenAt: Date.now(), reason, records }));
+}
+async function deleteSnapshot(id){ return req(store('students_backup','readwrite').delete(id)); }
+
+async function getSetting(key, def){
+  try {
+    const r = await req(store('settings').get(key));
+    return r ? r.value : def;
+  } catch(e){ return def; }
+}
+async function setSetting(key, value){
+  return req(store('settings','readwrite').put({ key, value }));
+}
+async function allSettings(){
+  const arr = await req(store('settings').getAll());
+  return Object.fromEntries(arr.map(r => [r.key, r.value]));
+}
+
+/* ==================== UTILITIES ==================== */
+function uuid(){
+  if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = Math.random()*16|0; return (c==='x'?r:(r&0x3|0x8)).toString(16);
+  });
+}
+function esc(s){ return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function pad4(n){ return String(n).padStart(4,'0'); }
+function fmtTime(ms){ return ms ? new Date(ms).toLocaleString() : '—'; }
+function chunk(arr, n){ const out=[]; for(let i=0;i<arr.length;i+=n) out.push(arr.slice(i,i+n)); return out; }
+function download(name, blob){ const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000); }
+function today(){ return new Date().toISOString().slice(0,10); }
+
+/* Serialize ID generation to avoid races on rapid adds */
+let idLock = Promise.resolve();
+function nextStudentId(){
+  idLock = idLock.then(async () => {
+    let counter = await getSetting('idCounter', 0);
+    let id;
+    let guard = 0;
+    do {
+      counter++;
+      id = 'STU-' + pad4(counter);
+      guard++;
+      if(guard > 100000) throw new Error('ID generation exhausted');
+      const exists = await getStudent(id);
+      if (!exists) break;
+    } while(true);
+    await setSetting('idCounter', counter);
+    return id;
+  });
+  return idLock;
+}
+async function syncCounterFromStudents(){
+  const all = await getAllStudents();
+  let max = 0;
+  for(const s of all){
+    const m = /^STU-(\d+)$/.exec(s.studentId || '');
+    if(m) max = Math.max(max, parseInt(m[1],10));
+  }
+  const cur = await getSetting('idCounter', 0);
+  if(max > cur) await setSetting('idCounter', max);
+}
+async function pruneSnapshots(keep=5){
+  const all = await getAllSnapshots();
+  all.sort((a,b)=>b.takenAt - a.takenAt);
+  for(let i=keep;i<all.length;i++) await deleteSnapshot(all[i].snapshotId);
+}
+
+/* ==================== TOAST / MODAL ==================== */
+function toast(msg, opts={}){
+  const { type='', duration=3500, action } = opts;
+  const root = document.getElementById('toast-root');
+  // Cap visible toasts at 3
+  while(root.children.length >= 3) root.firstChild.remove();
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.innerHTML = `<span>${esc(msg)}</span>`;
+  if(action){
+    const b = document.createElement('button');
+    b.textContent = action.label;
+    b.onclick = () => { try { action.onClick(); } finally { el.remove(); } };
+    el.appendChild(b);
+  }
+  root.appendChild(el);
+  if(duration) setTimeout(() => el.remove(), duration);
+  return el;
+}
+
+function showModal({ title, body, actions = [], wide = false }){
+  hideModal();
+  const root = document.getElementById('modal-root');
+  const back = document.createElement('div');
+  back.className = 'modal-back';
+  back.onclick = e => { if(e.target === back) hideModal(); };
+  const m = document.createElement('div');
+  m.className = 'modal' + (wide ? ' wide' : '');
+  m.innerHTML = `
+    <div class="modal-head">${esc(title)}</div>
+    <div class="modal-body">${body}</div>
+    <div class="modal-foot"></div>
+  `;
+  const foot = m.querySelector('.modal-foot');
+  actions.forEach(a => {
+    const b = document.createElement('button');
+    b.className = a.class || 'btn';
+    b.textContent = a.label;
+    b.onclick = () => a.onClick ? a.onClick() : hideModal();
+    foot.appendChild(b);
+  });
+  back.appendChild(m);
+  root.appendChild(back);
+  document.addEventListener('keydown', escClose);
+  return m;
+}
+function escClose(e){ if(e.key === 'Escape') hideModal(); }
+function hideModal(){
+  document.getElementById('modal-root').innerHTML = '';
+  document.removeEventListener('keydown', escClose);
+}
+
+/* ==================== STATE ==================== */
+const state = {
+  students: [],
+  settings: {},
+  filters: { grade:'', gender:'', residence:'', referral:'', q:'' },
+  busy: false,
+};
+
+async function loadState(){
+  state.students = (await getAllStudents()).filter(s => !s.deleted)
+    .sort((a,b) => (a.studentId < b.studentId ? -1 : 1));
+  state.settings = await allSettings();
+}
+function currentFiltered(){
+  const f = state.filters;
+  let list = state.students;
+  if(f.grade)    list = list.filter(s => s.grade === f.grade);
+  if(f.gender)   list = list.filter(s => s.gender === f.gender);
+  if(f.residence)list = list.filter(s => s.residence === f.residence);
+  if(f.referral) list = list.filter(s => s.referralSource === f.referral);
+  if(f.q){
+    const q = f.q.toLowerCase();
+    list = list.filter(s => Object.values(s).some(v => String(v).toLowerCase().includes(q)));
+  }
+  return list;
+}
+
+/* ==================== ROUTER ==================== */
+function currentRoute(){
+  const h = (location.hash || '').replace(/^#/, '') || '/list';
+  const parts = h.split('/').filter(Boolean);
+  return { name: parts[0] || 'list', param: parts[1] || '' };
+}
+function go(hash){ if(location.hash === hash) render(); else location.hash = hash; }
+window.addEventListener('hashchange', () => { render().catch(handleFatal); });
+
+async function render(){
+  const r = currentRoute();
+  const view = document.getElementById('view');
+  if(r.name === 'add')      return renderAdd(view);
+  if(r.name === 'edit')     return renderEdit(view, r.param);
+  if(r.name === 'trash')    return renderTrash(view);
+  if(r.name === 'snapshots')return renderSnapshots(view);
+  if(r.name === 'settings') return renderSettings(view);
+  if(r.name === 'summary')  return renderSummary(view);
+  return renderList(view);
+}
+
+function handleFatal(e){
+  console.error(e);
+  document.getElementById('view').innerHTML = `
+    <div class="card fatal">
+      <h2>Something went wrong</h2>
+      <p>${esc(e && e.message ? e.message : 'Unknown error')}</p>
+      <button class="btn btn-primary" onclick="location.reload()">Reload</button>
+    </div>
+  `;
+}
+
+/* ==================== HEADER ==================== */
+async function updateHeader(){
+  const pending = state.students.filter(s => s.syncStatus === 'pending').length;
+  const badge = document.getElementById('pushBadge');
+  if(pending > 0){ badge.textContent = pending; badge.hidden = false; }
+  else { badge.hidden = true; }
+
+  const cloud = !!(state.settings.sheetUrl || '').trim();
+  const pushBtn = document.getElementById('btnPush');
+  const pullBtn = document.getElementById('btnPull');
+  pushBtn.disabled = !cloud || state.busy;
+  pullBtn.disabled = !cloud || state.busy;
+  pushBtn.title = cloud ? 'Push local changes to your Google Sheet' : 'Connect a Google Sheet in Settings to enable sync';
+  pullBtn.title = cloud ? 'Pull from your Google Sheet' : 'Connect a Google Sheet in Settings to enable sync';
+}
+
+document.getElementById('btnSettings').onclick = () => go('/settings');
+document.getElementById('btnTheme').onclick = toggleTheme;
+document.getElementById('btnPush').onclick = push;
+document.getElementById('btnPull').onclick = pull;
+
+/* ==================== SHARED UI ==================== */
+function tabsHTML(active){
+  return `<div class="tabs no-print">
+    <a class="tab ${active==='list'?'active':''}" href="#/list">📋 Students</a>
+    <a class="tab ${active==='summary'?'active':''}" href="#/summary">📊 Summary</a>
+  </div>`;
+}
+function filterBarHTML(){
+  const f = state.filters;
+  return `
+    <div class="row no-print" style="margin-top:12px">
+      <select id="fGrade"><option value="">All grades</option>${GRADES.map(g=>`<option ${f.grade===g?'selected':''}>${g}</option>`).join('')}</select>
+      <select id="fGender"><option value="">All genders</option>${GENDERS.map(g=>`<option ${f.gender===g?'selected':''}>${g}</option>`).join('')}</select>
+      <select id="fResidence"><option value="">All residence</option>${RESIDENCES.map(g=>`<option ${f.residence===g?'selected':''}>${g}</option>`).join('')}</select>
+      <select id="fReferral"><option value="">All referrals</option>${REFERRALS.map(g=>`<option ${f.referral===g?'selected':''}>${g}</option>`).join('')}</select>
+      <input id="fQ" placeholder="Search…" value="${esc(f.q)}" style="flex:1;min-width:120px;padding:7px 10px;border:1px solid var(--border);border-radius:8px;background:var(--card);color:var(--text)">
+      <button class="btn" id="fClear">Clear</button>
+    </div>
+  `;
+}
+function bindFilterBar(view){
+  const f = state.filters;
+  const rerender = () => render().catch(handleFatal);
+  view.querySelector('#fGrade').onchange    = e => { f.grade = e.target.value;    rerender(); };
+  view.querySelector('#fGender').onchange   = e => { f.gender = e.target.value;   rerender(); };
+  view.querySelector('#fResidence').onchange= e => { f.residence = e.target.value;rerender(); };
+  view.querySelector('#fReferral').onchange = e => { f.referral = e.target.value; rerender(); };
+  view.querySelector('#fQ').oninput         = e => { f.q = e.target.value;        rerender(); };
+  view.querySelector('#fClear').onclick     = () => {
+    state.filters = { grade:'',gender:'',residence:'',referral:'',q:'' };
+    rerender();
+  };
+}
+
+/* ==================== LIST VIEW ==================== */
+async function renderList(view){
+  await loadState();
+  const list = currentFiltered();
+  const cloud = !!(state.settings.sheetUrl || '').trim();
+  const banner = cloud
+    ? `<div class="banner ok no-print">☁️ Connected to your Google Sheet. Local data saves automatically; use Push to send changes, Pull to fetch.</div>`
+    : `<div class="banner no-print">⚠️ Running offline. Data is saved on this device only. <a href="#/settings">Connect a Sheet</a> to sync.</div>`;
+
+  view.innerHTML = `
+    ${tabsHTML('list')}
+    ${banner}
+    <div class="card">
+      <div class="row spread">
+        <h2>Students <span class="muted small">(${list.length})</span></h2>
+        <div class="row no-print">
+          <button class="btn btn-primary" id="btnAdd">+ Add</button>
+          <button class="btn" id="btnImport">Import</button>
+          <button class="btn" id="btnExport">Export</button>
+          <button class="btn" id="btnTrash">Trash</button>
+          <button class="btn" id="btnSnapshots">Snapshots</button>
+        </div>
+      </div>
+      ${filterBarHTML()}
+    </div>
+
+    <div class="card" style="padding:0">
+      ${list.length === 0 ? `<div class="empty">No students yet. Tap <b>+ Add</b> to begin.</div>` : `
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th></th><th>StudentID</th><th>Grade</th><th>Gender</th><th>Residence</th><th>Transport</th><th>Referral</th>
+          </tr></thead>
+          <tbody>
+            ${list.map(s => `
+              <tr class="clickable" data-id="${esc(s.studentId)}">
+                <td><span class="dot ${esc(s.syncStatus||'pending')}" title="${esc(s.syncStatus||'pending')}"></span></td>
+                <td><b>${esc(s.studentId)}</b></td>
+                <td>${esc(s.grade)}</td>
+                <td>${esc(s.gender)}</td>
+                <td>${esc(s.residence)}</td>
+                <td>${esc(s.transport)}</td>
+                <td>${esc(s.referralSource)}</td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>`}
+    </div>
+  `;
+
+  document.getElementById('btnAdd').onclick = () => go('/add');
+  document.getElementById('btnImport').onclick = doImportPick;
+  document.getElementById('btnExport').onclick = doExportMenu;
+  document.getElementById('btnTrash').onclick = () => go('/trash');
+  document.getElementById('btnSnapshots').onclick = () => go('/snapshots');
+  bindFilterBar(view);
+  view.querySelectorAll('tr.clickable').forEach(tr => tr.onclick = () => go('/edit/' + tr.dataset.id));
+
+  await updateHeader();
+}
+
+/* ==================== SUMMARY VIEW ==================== */
+function countBy(list, field, values){
+  const out = {};
+  for(const v of values) out[v] = 0;
+  for(const s of list){
+    if(out[s[field]] !== undefined) out[s[field]]++;
+  }
+  return out;
+}
+function crossTab(list, rowField, colField, rowValues, colValues){
+  const m = {};
+  for(const r of rowValues){
+    m[r] = { _total: 0 };
+    for(const c of colValues) m[r][c] = 0;
+  }
+  for(const s of list){
+    const r = s[rowField], c = s[colField];
+    if(m[r] && m[r][c] !== undefined){ m[r][c]++; m[r]._total++; }
+  }
+  return m;
+}
+function barCard(title, counts, total){
+  const max = Math.max(1, ...Object.values(counts));
+  const rows = Object.entries(counts).map(([k,v]) => {
+    const pct = total ? (v/total*100).toFixed(1) : '0.0';
+    const w = (v/max*100).toFixed(1);
+    return `<div class="bar-row">
+      <div class="bar-label" title="${esc(k)}">${esc(k)}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${w}%"></div></div>
+      <div class="bar-value">${v} <span class="muted small">(${pct}%)</span></div>
+    </div>`;
+  }).join('');
+  return `<div class="card"><h3>${esc(title)}</h3>${rows}</div>`;
+}
+function ctCard(title, matrix, rowKeys, colKeys, rowLabel){
+  const grandTotal = Object.values(matrix).reduce((a, r) => a + r._total, 0);
+  const colTotals = {};
+  for(const c of colKeys){
+    colTotals[c] = rowKeys.reduce((a, r) => a + (matrix[r][c] || 0), 0);
+  }
+  const header = `<tr><th>${esc(rowLabel)}</th>${colKeys.map(c=>`<th>${esc(c)}</th>`).join('')}<th>Total</th></tr>`;
+  const body = rowKeys.map(r => {
+    const row = matrix[r];
+    const cells = colKeys.map(c => {
+      const v = row[c];
+      return `<td class="${v===0?'zero':''}">${v}</td>`;
+    }).join('');
+    return `<tr><td>${esc(r)}</td>${cells}<td class="total-col">${row._total}</td></tr>`;
+  }).join('');
+  const footer = `<tr class="total-row"><td>Total</td>${colKeys.map(c=>`<td>${colTotals[c]}</td>`).join('')}<td>${grandTotal}</td></tr>`;
+
+  return `<div class="card">
+    <h3>${esc(title)}</h3>
+    <div class="ct-wrap">
+      <table class="ct-table">
+        <thead>${header}</thead>
+        <tbody>${body}${footer}</tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+async function renderSummary(view){
+  await loadState();
+  const list = currentFiltered();
+  const total = list.length;
+
+  const gradeCounts     = countBy(list, 'grade', GRADES);
+  const genderCounts    = countBy(list, 'gender', GENDERS);
+  const residenceCounts = countBy(list, 'residence', RESIDENCES);
+  const transportCounts = countBy(list, 'transport', TRANSPORTS);
+  const referralCounts  = countBy(list, 'referralSource', REFERRALS);
+
+  const ctGradeGender    = crossTab(list, 'grade', 'gender', GRADES, GENDERS);
+  const ctReferralGender = crossTab(list, 'referralSource', 'gender', REFERRALS, GENDERS);
+  const ctGradeResidence = crossTab(list, 'grade', 'residence', GRADES, RESIDENCES);
+  const ctReferralResidence = crossTab(list, 'referralSource', 'residence', REFERRALS, RESIDENCES);
+
+  const dayCount = residenceCounts['Day'] || 0;
+  const boarderCount = residenceCounts['Boarder'] || 0;
+  const maleCount = genderCounts['Male'] || 0;
+  const femaleCount = genderCounts['Female'] || 0;
+
+  const filtersActive = Object.values(state.filters).some(v => v);
+  const banner = total === 0 && filtersActive
+    ? `<div class="banner info no-print">No students match the current filters. <a href="#/list">Adjust filters</a>.</div>`
+    : filtersActive
+      ? `<div class="banner info no-print">Showing summaries for <b>${total}</b> filtered student${total===1?'':'s'}.</div>`
+      : '';
+
+  view.innerHTML = `
+    ${tabsHTML('summary')}
+    ${banner}
+
+    <div class="card">
+      <div class="row spread">
+        <h2>Summary</h2>
+        <div class="row no-print">
+          <button class="btn" id="btnExportSummary" ${total===0?'disabled':''}>Export to Excel</button>
+          <button class="btn" id="btnPrint" ${total===0?'disabled':''}>Print</button>
+        </div>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <div class="stat"><div class="v">${total}</div><div class="l">Total</div></div>
+        <div class="stat"><div class="v">${dayCount}</div><div class="l">Day</div></div>
+        <div class="stat"><div class="v">${boarderCount}</div><div class="l">Boarder</div></div>
+        <div class="stat"><div class="v">${maleCount}</div><div class="l">Male</div></div>
+        <div class="stat"><div class="v">${femaleCount}</div><div class="l">Female</div></div>
+      </div>
+      ${filterBarHTML()}
+    </div>
+
+    ${barCard('By Grade', gradeCounts, total)}
+    ${barCard('By Gender', genderCounts, total)}
+    ${barCard('By Residence', residenceCounts, total)}
+    ${barCard('By Transport', transportCounts, total)}
+    ${barCard('By Referral Source', referralCounts, total)}
+
+    ${ctCard('Grade × Gender', ctGradeGender, GRADES, GENDERS, 'Grade')}
+    ${ctCard('Referral Source × Gender', ctReferralGender, REFERRALS, GENDERS, 'Referral')}
+    ${ctCard('Grade × Residence', ctGradeResidence, GRADES, RESIDENCES, 'Grade')}
+    ${ctCard('Referral Source × Residence', ctReferralResidence, REFERRALS, RESIDENCES, 'Referral')}
+  `;
+
+  bindFilterBar(view);
+  document.getElementById('btnExportSummary').onclick = () => {
+    if(typeof XLSX === 'undefined'){ toast('Excel library not loaded — check internet', { type:'error' }); return; }
+    exportSummary(list, {
+      gradeCounts, genderCounts, residenceCounts, transportCounts, referralCounts,
+      ctGradeGender, ctReferralGender, ctGradeResidence, ctReferralResidence,
+    });
+  };
+  document.getElementById('btnPrint').onclick = () => window.print();
+
+  await updateHeader();
+}
+
+/* ==================== EXPORT SUMMARY ==================== */
+function exportSummary(list, data){
+  const wb = XLSX.utils.book_new();
+  const total = list.length;
+
+  const flat = [['Category','Value','Count','Percent']];
+  const addCat = (cat, counts) => {
+    for(const [k,v] of Object.entries(counts)){
+      flat.push([cat, k, v, total ? ((v/total)*100).toFixed(1) + '%' : '0%']);
+    }
+  };
+  addCat('Grade', data.gradeCounts);
+  addCat('Gender', data.genderCounts);
+  addCat('Residence', data.residenceCounts);
+  addCat('Transport', data.transportCounts);
+  addCat('Referral Source', data.referralCounts);
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(flat), 'Totals');
+
+  const addCTSheet = (name, matrix, rowKeys, colKeys, rowLabel) => {
+    const aoa = [[rowLabel, ...colKeys, 'Total']];
+    for(const r of rowKeys){
+      const row = [r];
+      for(const c of colKeys) row.push(matrix[r][c]);
+      row.push(matrix[r]._total);
+      aoa.push(row);
+    }
+    const totals = ['Total'];
+    let grand = 0;
+    for(const c of colKeys){
+      let ct = 0;
+      for(const r of rowKeys) ct += matrix[r][c];
+      totals.push(ct); grand += ct;
+    }
+    totals.push(grand);
+    aoa.push(totals);
+    const safe = name.replace(/[\\\/\?\*\[\]:]/g,'-').slice(0,31);
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aoa), safe);
+  };
+  addCTSheet('Grade x Gender', data.ctGradeGender, GRADES, GENDERS, 'Grade');
+  addCTSheet('Referral x Gender', data.ctReferralGender, REFERRALS, GENDERS, 'Referral');
+  addCTSheet('Grade x Residence', data.ctGradeResidence, GRADES, RESIDENCES, 'Grade');
+  addCTSheet('Referral x Residence', data.ctReferralResidence, REFERRALS, RESIDENCES, 'Referral');
+
+  const out = XLSX.write(wb, { bookType:'xlsx', type:'array' });
+  download('summary-' + today() + '.xlsx', new Blob([out], { type:'application/octet-stream' }));
+  toast('Summary exported', { type:'ok' });
+}
+
+/* ==================== ADD / EDIT ==================== */
+function formHTML(s = {}, isAdd){
+  const id = s.studentId || '';
+  return `
+    <form class="card" id="studentForm">
+      <h2>${isAdd ? 'New student' : 'Edit student'}</h2>
+      ${!isAdd ? `<div class="field"><label>Student ID</label><input value="${esc(id)}" readonly></div>` : ''}
+      <div class="grid2">
+        <div class="field"><label>Grade</label>
+          <select name="grade" required>
+            <option value="">— Select —</option>
+            ${GRADES.map(g => `<option ${s.grade===g?'selected':''}>${g}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field"><label>Gender</label>
+          <select name="gender" required>
+            <option value="">— Select —</option>
+            ${GENDERS.map(g => `<option ${s.gender===g?'selected':''}>${g}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field"><label>Residence</label>
+          <select name="residence" required>
+            <option value="">— Select —</option>
+            ${RESIDENCES.map(g => `<option ${s.residence===g?'selected':''}>${g}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field"><label>Transport</label>
+          <select name="transport" required>
+            <option value="">— Select —</option>
+            ${TRANSPORTS.map(g => `<option ${s.transport===g?'selected':''}>${g}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="field"><label>How did they hear about the school?</label>
+        <select name="referralSource" required>
+          <option value="">— Select —</option>
+          ${REFERRALS.map(g => `<option ${s.referralSource===g?'selected':''}>${g}</option>`).join('')}
+        </select>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <button type="submit" class="btn btn-primary">Save</button>
+        <button type="button" class="btn" data-act="cancel">Cancel</button>
+        ${!isAdd ? `<button type="button" class="btn btn-danger" id="btnDelete" style="margin-left:auto">Delete</button>` : ''}
+      </div>
+    </form>
+  `;
+}
+
+async function renderAdd(view){
+  await loadState();
+  view.innerHTML = formHTML({}, true);
+  const f = view.querySelector('#studentForm');
+  let submitting = false;
+  f.addEventListener('submit', async e => {
+    e.preventDefault();
+    if(submitting) return;
+    submitting = true;
+    const submitBtn = f.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Saving…';
+    try {
+      const data = Object.fromEntries(new FormData(f).entries());
+      const id = await nextStudentId();
+      const now = Date.now();
+      await putStudent({ studentId: id, ...data, deleted:false, syncStatus:'pending', remoteRow:null, createdAt:now, updatedAt:now });
+      toast('Added ' + id, { type:'ok' });
+      go('/list');
+    } catch(err){
+      submitting = false;
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Save';
+      toast('Save failed: ' + err.message, { type:'error' });
+    }
+  });
+  f.querySelector('[data-act="cancel"]').onclick = () => go('/list');
+  await updateHeader();
+}
+
+async function renderEdit(view, id){
+  await loadState();
+  const s = await getStudent(id);
+  if(!s){
+    view.innerHTML = `<div class="card fatal"><h2>Student not found</h2><p>${esc(id)} doesn't exist or was removed.</p>
+      <button class="btn btn-primary" onclick="location.hash='/list'">Back to list</button></div>`;
+    return;
+  }
+  view.innerHTML = formHTML(s, false);
+  const f = view.querySelector('#studentForm');
+  let submitting = false;
+  f.addEventListener('submit', async e => {
+    e.preventDefault();
+    if(submitting) return;
+    submitting = true;
+    try {
+      const data = Object.fromEntries(new FormData(f).entries());
+      const updated = { ...s, ...data, syncStatus:'pending', updatedAt: Date.now() };
+      await putStudent(updated);
+      toast('Saved', { type:'ok' });
+      go('/list');
+    } catch(err){
+      submitting = false;
+      toast('Save failed: ' + err.message, { type:'error' });
+    }
+  });
+  f.querySelector('[data-act="cancel"]').onclick = () => go('/list');
+  f.querySelector('#btnDelete').onclick = async () => {
+    showModal({
+      title: 'Delete student?',
+      body: `<p>${esc(s.studentId)} will be moved to Trash. On next Push, it will be removed from your Google Sheet.</p>`,
+      actions: [
+        { label:'Cancel', class:'btn' },
+        { label:'Delete', class:'btn-danger', onClick: async () => {
+          hideModal();
+          try {
+            s.deleted = true; s.syncStatus = 'pending'; s.updatedAt = Date.now();
+            await putStudent(s);
+            toast('Moved to Trash');
+            go('/list');
+          } catch(err){ toast('Delete failed: ' + err.message, { type:'error' }); }
+        }}
+      ]
+    });
+  };
+  await updateHeader();
+}
+
+/* ==================== TRASH ==================== */
+async function renderTrash(view){
+  const all = await getAllStudents();
+  const deleted = all.filter(s => s.deleted).sort((a,b)=>b.updatedAt - a.updatedAt);
+  view.innerHTML = `
+    <div class="card">
+      <div class="row spread">
+        <h2>Trash <span class="muted small">(${deleted.length})</span></h2>
+        <button class="btn" onclick="location.hash='/list'">← Back</button>
+      </div>
+      <p class="muted small">Items here will be removed from your Google Sheet on next Push. Restore to keep them.</p>
+    </div>
+    <div class="card" style="padding:0">
+      ${deleted.length === 0 ? `<div class="empty">Trash is empty.</div>` : `
+      <div class="table-wrap"><table>
+        <thead><tr><th>StudentID</th><th>Grade</th><th>Gender</th><th>Residence</th><th>Transport</th><th>Referral</th><th>Actions</th></tr></thead>
+        <tbody>
+          ${deleted.map(s=>`
+            <tr>
+              <td><b>${esc(s.studentId)}</b></td>
+              <td>${esc(s.grade)}</td><td>${esc(s.gender)}</td><td>${esc(s.residence)}</td>
+              <td>${esc(s.transport)}</td><td>${esc(s.referralSource)}</td>
+              <td>
+                <button class="btn" data-restore="${esc(s.studentId)}">Restore</button>
+                ${s.remoteRow == null ? `<button class="btn btn-danger" data-purge="${esc(s.studentId)}">Purge</button>` : ''}
+              </td>
+            </tr>`).join('')}
+        </tbody>
+      </table></div>`}
+    </div>
+  `;
+  view.querySelectorAll('[data-restore]').forEach(b => b.onclick = async () => {
+    const id = b.dataset.restore;
+    try {
+      const s = await getStudent(id);
+      if(!s) return;
+      s.deleted = false; s.syncStatus = 'pending'; s.updatedAt = Date.now();
+      await putStudent(s);
+      toast('Restored ' + id, { type:'ok' });
+      render().catch(handleFatal);
+    } catch(err){ toast('Restore failed: ' + err.message, { type:'error' }); }
+  });
+  view.querySelectorAll('[data-purge]').forEach(b => b.onclick = async () => {
+    const id = b.dataset.purge;
+    showModal({
+      title: 'Purge permanently?',
+      body: `<p>${esc(id)} has never been pushed. It will be deleted from this device only.</p>`,
+      actions: [
+        { label:'Cancel', class:'btn' },
+        { label:'Purge', class:'btn-danger', onClick: async () => {
+          hideModal();
+          try { await deleteStudent(id); toast('Purged'); render().catch(handleFatal); }
+          catch(err){ toast('Purge failed: ' + err.message, { type:'error' }); }
+        }}
+      ]
+    });
+  });
+  await updateHeader();
+}
+
+/* ==================== SNAPSHOTS ==================== */
+async function renderSnapshots(view){
+  const snaps = (await getAllSnapshots()).sort((a,b)=>b.takenAt - a.takenAt);
+  view.innerHTML = `
+    <div class="card">
+      <div class="row spread">
+        <h2>Snapshots <span class="muted small">(${snaps.length})</span></h2>
+        <div class="row">
+          <button class="btn" id="btnManual">Take snapshot</button>
+          <button class="btn" onclick="location.hash='/list'">← Back</button>
+        </div>
+      </div>
+      <p class="muted small">Automatic backups are made before each Pull. Only the last 5 are kept.</p>
+    </div>
+    <div class="card" style="padding:0">
+      ${snaps.length === 0 ? `<div class="empty">No snapshots yet.</div>` : `
+      <div class="table-wrap"><table>
+        <thead><tr><th>When</th><th>Reason</th><th>Records</th><th>Actions</th></tr></thead>
+        <tbody>${snaps.map(s=>`
+          <tr>
+            <td>${fmtTime(s.takenAt)}</td>
+            <td>${esc(s.reason)}</td>
+            <td>${s.records.length}</td>
+            <td>
+              <button class="btn" data-restore="${s.snapshotId}">Restore</button>
+              <button class="btn" data-export="${s.snapshotId}">Export</button>
+              <button class="btn btn-danger" data-del="${s.snapshotId}">Delete</button>
+            </td>
+          </tr>`).join('')}
+        </tbody>
+      </table></div>`}
+    </div>
+  `;
+  view.querySelector('#btnManual').onclick = async () => {
+    const all = await getAllStudents();
+    await addSnapshot('manual', all);
+    await pruneSnapshots(5);
+    toast('Snapshot saved', { type:'ok' });
+    render().catch(handleFatal);
+  };
+  view.querySelectorAll('[data-restore]').forEach(b => b.onclick = async () => {
+    const id = Number(b.dataset.restore);
+    const snap = await getSnapshot(id);
+    if(!snap) return;
+    showModal({
+      title: 'Restore snapshot?',
+      body: `<p>This replaces all current local data with the snapshot from ${fmtTime(snap.takenAt)} (${snap.records.length} records).</p>`,
+      actions: [
+        { label:'Cancel', class:'btn' },
+        { label:'Restore', class:'btn-danger', onClick: async () => {
+          hideModal();
+          try {
+            await clearStudents();
+            for(const r of snap.records) await putStudent(r);
+            await syncCounterFromStudents();
+            toast('Restored ' + snap.records.length + ' records', { type:'ok' });
+            go('/list');
+          } catch(err){ toast('Restore failed: ' + err.message, { type:'error' }); }
+        }}
+      ]
+    });
+  });
+  view.querySelectorAll('[data-export]').forEach(b => b.onclick = async () => {
+    if(typeof XLSX === 'undefined'){ toast('Excel library not loaded — check internet', { type:'error' }); return; }
+    const snap = await getSnapshot(Number(b.dataset.export));
+    if(!snap) return;
+    const d = new Date(snap.takenAt);
+    const name = 'snapshot-' + d.toISOString().slice(0,10) + '-' + d.toISOString().slice(11,16).replace(':','');
+    exportRecords(snap.records.filter(r=>!r.deleted), name);
+  });
+  view.querySelectorAll('[data-del]').forEach(b => b.onclick = async () => {
+    await deleteSnapshot(Number(b.dataset.del));
+    toast('Deleted');
+    render().catch(handleFatal);
+  });
+  await updateHeader();
+}
+
+/* ==================== SETTINGS ==================== */
+async function renderSettings(view){
+  await loadState();
+  let secret = await getSetting('secret', '');
+  if(!secret){ secret = uuid(); await setSetting('secret', secret); }
+  let deviceId = await getSetting('deviceId', '');
+  if(!deviceId){ deviceId = uuid(); await setSetting('deviceId', deviceId); }
+  const url = await getSetting('sheetUrl', '');
+  const lastPush = await getSetting('lastPush', 0);
+  const lastPull = await getSetting('lastPull', 0);
+
+  const snippet = buildSnippet(secret);
+
+  view.innerHTML = `
+    <div class="card">
+      <div class="row spread">
+        <h2>Settings</h2>
+        <button class="btn" onclick="location.hash='/list'">← Back</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Cloud connection</h3>
+      <div class="field"><label>Apps Script Web App URL</label>
+        <input id="inpUrl" placeholder="https://script.google.com/macros/s/.../exec" value="${esc(url)}" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="row">
+        <button class="btn btn-primary" id="btnTest">Test connection</button>
+        <button class="btn" id="btnSaveUrl">Save URL</button>
+        ${url ? `<button class="btn btn-danger" id="btnDisconnect">Disconnect</button>` : ''}
+      </div>
+      <div class="kv" style="margin-top:14px">
+        <div class="k">Last push</div><div>${fmtTime(lastPush)}</div>
+        <div class="k">Last pull</div><div>${fmtTime(lastPull)}</div>
+        <div class="k">Device ID</div><div><code>${esc(deviceId)}</code></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Your secret token</h3>
+      <p class="muted small">This is baked into the Apps Script snippet below. Keep it private.</p>
+      <input readonly value="${esc(secret)}" onclick="this.select()">
+    </div>
+
+    <div class="card">
+      <h3>Setup guide</h3>
+      <details>
+        <summary>Step-by-step setup (click to expand)</summary>
+        <ol style="padding-left:20px;line-height:1.8">
+          <li>Create a Google Sheet (any name). Add a tab named <b>Students</b>, or leave it blank — the script will create it.</li>
+          <li>In the sheet: <b>Extensions → Apps Script</b>.</li>
+          <li>Delete the sample code, paste the snippet below, click 💾 <b>Save</b>.</li>
+          <li>Click <b>Deploy → New deployment</b>. Type: <b>Web app</b>. Execute as: <b>Me</b>. Who has access: <b>Anyone</b>. Click Deploy.</li>
+          <li>Authorize the script when prompted (it's your own script, so accept).</li>
+          <li>Copy the <b>Web app URL</b> and paste it above, then click <b>Save URL</b> → <b>Test connection</b>.</li>
+          <li>Done. Use <b>Push</b> to send changes to the sheet, <b>Pull</b> to fetch from it.</li>
+        </ol>
+        <p class="muted small">⚠️ Your Web App URL is a secret. Anyone with the URL + your secret token can read/write that sheet. Keep both private. If leaked, redeploy or change the secret.</p>
+        <p class="muted small">If you edit the snippet later, use <b>Deploy → Manage deployments → Edit → New version</b> to keep the same URL.</p>
+      </details>
+    </div>
+
+    <div class="card">
+      <h3>Apps Script snippet</h3>
+      <button class="btn btn-primary" id="btnCopy">Copy to clipboard</button>
+      <pre class="snippet" id="snippet">${esc(snippet)}</pre>
+    </div>
+
+    <div class="card">
+      <h3>Local data</h3>
+      <div class="row">
+        <button class="btn" id="btnExportAll">Export all data</button>
+        <button class="btn btn-danger" id="btnWipe">Wipe local data</button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('btnSaveUrl').onclick = async () => {
+    const v = document.getElementById('inpUrl').value.trim();
+    if(v && !/^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec$/.test(v)){
+      toast('That doesn\'t look like a Google Apps Script Web App URL. It should end with /exec.', { type:'warn', duration: 6000 });
+    }
+    await setSetting('sheetUrl', v);
+    toast('URL saved', { type:'ok' });
+    render().catch(handleFatal);
+  };
+  document.getElementById('btnTest').onclick = async () => {
+    const v = document.getElementById('inpUrl').value.trim();
+    if(!v){ toast('Enter a URL first', { type:'warn' }); return; }
+    await setSetting('sheetUrl', v);
+    const btn = document.getElementById('btnTest');
+    btn.disabled = true; btn.textContent = 'Testing…';
+    try {
+      const res = await cloudFetch('ping');
+      toast('Connected. ' + (res.rows ?? 0) + ' rows in sheet.', { type:'ok', duration:5000 });
+    } catch(e){
+      toast('Test failed: ' + (e.message || e), { type:'error', duration:6000 });
+    } finally {
+      btn.disabled = false; btn.textContent = 'Test connection';
+    }
+  };
+  const dis = document.getElementById('btnDisconnect');
+  if(dis) dis.onclick = async () => {
+    showModal({
+      title:'Disconnect cloud?',
+      body:'<p>Local data is kept. You can reconnect anytime.</p>',
+      actions:[
+        { label:'Cancel', class:'btn' },
+        { label:'Disconnect', class:'btn-danger', onClick: async () => {
+          hideModal(); await setSetting('sheetUrl',''); toast('Disconnected'); render().catch(handleFatal);
+        }}
+      ]
+    });
+  };
+  document.getElementById('btnCopy').onclick = async () => {
+    try { await navigator.clipboard.writeText(snippet); toast('Copied', { type:'ok' }); }
+    catch(e){ toast('Copy failed — select and copy manually', { type:'warn' }); }
+  };
+  document.getElementById('btnExportAll').onclick = () => {
+    if(typeof XLSX === 'undefined'){ toast('Excel library not loaded — check internet', { type:'error' }); return; }
+    exportRecords(state.students, 'students-' + today());
+  };
+  document.getElementById('btnWipe').onclick = () => {
+    showModal({
+      title:'Wipe all local data?',
+      body:'<p>This permanently deletes all students from this device. Cloud sheet is not affected. Export first if you need a backup.</p>',
+      actions:[
+        { label:'Cancel', class:'btn' },
+        { label:'Wipe', class:'btn-danger', onClick: async () => {
+          hideModal();
+          try { await clearStudents(); toast('Local data wiped'); go('/list'); }
+          catch(err){ toast('Wipe failed: ' + err.message, { type:'error' }); }
+        }}
+      ]
+    });
+  };
+  await updateHeader();
+}
+
+/* ==================== CLOUD ADAPTER ==================== */
+async function cloudFetch(action, payload = {}){
+  const url = await getSetting('sheetUrl', '');
+  const secret = await getSetting('secret', '');
+  if(!url) throw new Error('Cloud not configured');
+  let res;
+  try {
+    res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action, secret, ...payload }),
+    });
+  } catch(e){
+    throw new Error('Network error — check your internet connection');
+  }
+  if(!res.ok) throw new Error('Server returned HTTP ' + res.status);
+  let data;
+  try { data = await res.json(); }
+  catch(e){ throw new Error('Server response was not valid JSON'); }
+  if(!data.ok) throw new Error(data.error || 'Unknown error from Apps Script');
+  return data;
+}
+async function cloudList(){ return cloudFetch('list'); }
+async function cloudBatch(ops){ return cloudFetch('batch', { ops }); }
+
+/* ==================== PUSH ==================== */
+async function push(){
+  if(state.busy){ toast('Please wait — operation in progress'); return; }
+  const url = await getSetting('sheetUrl','');
+  if(!url){ toast('Connect a Sheet first', { type:'warn' }); return; }
+
+  const all = await getAllStudents();
+  const pending = all.filter(s => s.syncStatus === 'pending' || s.deleted);
+  if(pending.length === 0){ toast('Nothing to push'); return; }
+
+  state.busy = true;
+  await updateHeader();
+  const ops = [];
+  for(const s of pending){
+    const data = toRow(s);
+    if(s.deleted && s.remoteRow) ops.push({ type:'delete', studentId: s.studentId });
+    else if(s.deleted) continue;
+    else if(s.remoteRow) ops.push({ type:'update', data });
+    else ops.push({ type:'append', data });
+  }
+
+  let added=0, updated=0, deleted=0, failed=0;
+  try {
+    const batches = chunk(ops, 100);
+    for(const b of batches){
+      try {
+        const res = await cloudBatch(b);
+        for(const r of res.results || []){
+          if(!r.ok){ failed++; continue; }
+          if(r.type === 'append' || r.type === 'update'){
+            const s = await getStudent(r.studentId);
+            if(s){ s.syncStatus='synced'; s.remoteRow=r.row; await putStudent(s); if(r.type==='append') added++; else updated++; }
+          } else if(r.type === 'delete'){
+            await deleteStudent(r.studentId); deleted++;
+          }
+        }
+      } catch(e){
+        failed += b.length;
+      }
+    }
+    for(const s of pending){
+      if(s.deleted && !s.remoteRow) await deleteStudent(s.studentId);
+    }
+    await setSetting('lastPush', Date.now());
+    const msg = `${added} added · ${updated} updated · ${deleted} deleted${failed ? ' · ' + failed + ' failed' : ''}`;
+    toast(msg, { type: failed ? 'warn' : 'ok', duration: 5000 });
+  } catch(e){
+    toast('Push failed: ' + (e.message || e), { type:'error', duration: 6000 });
+  } finally {
+    state.busy = false;
+    await loadState();
+    await render();
+  }
+}
+function toRow(s){
+  return { studentId: s.studentId, grade: s.grade, gender: s.gender,
+           residence: s.residence, transport: s.transport, referralSource: s.referralSource };
+}
+
+/* ==================== PULL ==================== */
+async function pull(){
+  if(state.busy){ toast('Please wait — operation in progress'); return; }
+  const url = await getSetting('sheetUrl','');
+  if(!url){ toast('Connect a Sheet first', { type:'warn' }); return; }
+
+  const all = await getAllStudents();
+  const pending = all.filter(s => s.syncStatus === 'pending');
+
+  const confirmAndPull = () => showModal({
+    title: 'Replace local data?',
+    body: `<p>This will replace all local data with the version from your Google Sheet. A backup will be saved and you can revert.</p>`,
+    actions: [
+      { label:'Cancel', class:'btn' },
+      { label:'Continue', class:'btn-danger', onClick: async () => { hideModal(); await doPull(all); } }
+    ]
+  });
+
+  if(pending.length > 0){
+    showModal({
+      title: 'Unsynced changes',
+      body: `<p>You have <strong>${pending.length}</strong> unsynced change(s). Pulling will discard them.</p>`,
+      actions: [
+        { label:'Cancel', class:'btn' },
+        { label:'Pull anyway', class:'btn-danger', onClick: () => { hideModal(); confirmAndPull(); } },
+        { label:'Push then Pull', class:'btn-primary', onClick: async () => {
+          hideModal(); await push();
+          if(state.busy) return;
+          await doPull(await getAllStudents());
+        } },
+      ]
+    });
+  } else {
+    confirmAndPull();
+  }
+}
+async function doPull(currentAll){
+  state.busy = true;
+  await updateHeader();
+  try {
+    await addSnapshot('pre-pull', currentAll);
+    await pruneSnapshots(5);
+    const res = await cloudList();
+    const rows = res.rows || [];
+    await clearStudents();
+    const now = Date.now();
+    for(const r of rows){
+      if(!r.studentId) continue; // skip malformed
+      await putStudent({
+        studentId: String(r.studentId),
+        grade: String(r.grade || ''),
+        gender: String(r.gender || ''),
+        residence: String(r.residence || ''),
+        transport: String(r.transport || ''),
+        referralSource: String(r.referralSource || ''),
+        deleted: false, syncStatus:'synced', remoteRow: r.row,
+        createdAt: now, updatedAt: now,
+      });
+    }
+    await syncCounterFromStudents();
+    await setSetting('lastPull', Date.now());
+    toast(`Pulled ${rows.length} students. Backup saved.`, {
+      type:'ok', duration:60000,
+      action: { label:'Revert', onClick: revertLastPull }
+    });
+  } catch(e){
+    toast('Pull failed: ' + (e.message || e), { type:'error', duration:6000 });
+  } finally {
+    state.busy = false;
+    await loadState();
+    await render();
+  }
+}
+async function revertLastPull(){
+  const snaps = (await getAllSnapshots()).sort((a,b)=>b.takenAt - a.takenAt);
+  const last = snaps[0];
+  if(!last){ toast('No backup found', { type:'warn' }); return; }
+  try {
+    await clearStudents();
+    for(const r of last.records) await putStudent(r);
+    await deleteSnapshot(last.snapshotId);
+    await syncCounterFromStudents();
+    toast('Reverted to previous data', { type:'ok' });
+    await loadState();
+    render().catch(handleFatal);
+  } catch(e){ toast('Revert failed: ' + e.message, { type:'error' }); }
+}
+
+/* ==================== IMPORT ==================== */
+function doImportPick(){
+  if(typeof XLSX === 'undefined'){
+    toast('Excel library not loaded — check your internet connection and reload.', { type:'error', duration: 6000 });
+    return;
+  }
+  const inp = document.createElement('input');
+  inp.type = 'file';
+  inp.accept = '.xlsx,.xls,.csv';
+  inp.onchange = () => { if(inp.files[0]) handleImportFile(inp.files[0]); };
+  inp.click();
+}
+async function handleImportFile(file){
+  try {
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf);
+    if(!wb.SheetNames || wb.SheetNames.length === 0){
+      toast('That file has no sheets.', { type:'warn' }); return;
+    }
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    if(!ws){ toast('First sheet is empty.', { type:'warn' }); return; }
+    const rows = XLSX.utils.sheet_to_json(ws, { defval:'' });
+    if(rows.length === 0){
+      toast('No data rows found in the first sheet.', { type:'warn' }); return;
+    }
+    const analyzed = await analyzeImport(rows);
+    if(analyzed.length === 0){
+      toast('Nothing to import.', { type:'warn' }); return;
+    }
+    showImportPreview(analyzed);
+  } catch(e){
+    toast('Could not read file: ' + (e.message || e), { type:'error', duration:6000 });
+  }
+}
+async function analyzeImport(rows){
+  const existing = new Map((await getAllStudents()).map(s => [s.studentId, s]));
+  const out = [];
+  for(const raw of rows){
+    const r = normalizeRow(raw);
+    // Skip rows that are entirely empty
+    const hasAny = Object.values(r).some(v => v !== '');
+    if(!hasAny) continue;
+    const errors = validateRow(r);
+    const dup = r.studentId && existing.has(r.studentId);
+    out.push({ ...r, _errors: errors, _dup: !!dup, _override: false });
+  }
+  return out;
+}
+function normalizeRow(raw){
+  const map = {};
+  for(const [k,v] of Object.entries(raw)){
+    const key = String(k).toLowerCase().replace(/\s+/g,'').replace(/[_-]/g,'');
+    if(key.startsWith('__empty')) continue;
+    map[key] = String(v ?? '').trim();
+  }
+  const get = (...keys) => { for(const k of keys){ if(map[k] !== undefined && map[k] !== '') return map[k]; } return ''; };
+  return {
+    studentId: get('studentid','id','student'),
+    grade: get('grade','gradelevel','class'),
+    gender: get('gender','sex'),
+    residence: get('residence','dayboarder','boarding'),
+    transport: get('transport','transportation'),
+    referralSource: get('referralsource','referral','source','howdidyouhear','heardabout'),
+  };
+}
+function validateRow(r){
+  const e = [];
+  if(r.grade && !GRADES.includes(r.grade)) e.push('invalid grade: ' + r.grade);
+  if(r.gender && !GENDERS.includes(r.gender)) e.push('invalid gender: ' + r.gender);
+  if(r.residence && !RESIDENCES.includes(r.residence)) e.push('invalid residence: ' + r.residence);
+  if(r.transport && !TRANSPORTS.includes(r.transport)) e.push('invalid transport: ' + r.transport);
+  if(r.referralSource && !REFERRALS.includes(r.referralSource)) e.push('invalid referral: ' + r.referralSource);
+  if(!r.grade) e.push('missing grade');
+  if(!r.gender) e.push('missing gender');
+  if(!r.residence) e.push('missing residence');
+  if(!r.transport) e.push('missing transport');
+  if(!r.referralSource) e.push('missing referral');
+  return e;
+}
+function showImportPreview(rows){
+  const newCount = rows.filter(r => !r._dup && r._errors.length === 0).length;
+  const dupCount = rows.filter(r => r._dup && r._errors.length === 0).length;
+  const badCount = rows.filter(r => r._errors.length > 0).length;
+
+  const rowsHTML = rows.map((r, i) => {
+    const cls = r._errors.length ? 'row-bad' : (r._dup ? 'row-dup' : 'row-new');
+    const bg = r._errors.length ? '#fef2f2' : (r._dup ? '#fffbeb' : '#f0fdf4');
+    const badge = r._errors.length ? 'Invalid' : (r._dup ? 'Duplicate' : 'New');
+    return `<tr class="${cls}" style="background:${bg}">
+      <td>${i+1}</td>
+      <td>${badge}</td>
+      <td>${esc(r.studentId) || '<i class="muted">auto</i>'}</td>
+      <td>${esc(r.grade)}</td><td>${esc(r.gender)}</td><td>${esc(r.residence)}</td>
+      <td>${esc(r.transport)}</td><td>${esc(r.referralSource)}</td>
+      <td>${r._errors.length ? esc(r._errors.join('; ')) : (r._dup ? `<label><input type="checkbox" data-ovr="${i}" ${r._override?'checked':''}> override</label>` : '')}</td>
+    </tr>`;
+  }).join('');
+
+  const m = showModal({
+    title: 'Import preview',
+    wide: true,
+    body: `
+      <div class="row" style="margin-bottom:10px">
+        <div class="stat"><div class="v">${newCount}</div><div class="l">New</div></div>
+        <div class="stat"><div class="v">${dupCount}</div><div class="l">Duplicates</div></div>
+        <div class="stat"><div class="v">${badCount}</div><div class="l">Invalid</div></div>
+      </div>
+      <div class="table-wrap" style="max-height:50vh">
+        <table><thead><tr><th>#</th><th>Status</th><th>ID</th><th>Grade</th><th>Gender</th><th>Residence</th><th>Transport</th><th>Referral</th><th>Notes</th></tr></thead>
+        <tbody>${rowsHTML}</tbody></table>
+      </div>
+      <p class="muted small" style="margin-top:10px">Tick "override" to replace existing records on duplicates. Invalid rows are skipped.</p>
+    `,
+    actions: [
+      { label:'Cancel', class:'btn' },
+      { label:'Import valid rows', class:'btn-primary', onClick: async () => {
+        const checks = m.querySelectorAll('[data-ovr]');
+        checks.forEach(c => { rows[Number(c.dataset.ovr)]._override = c.checked; });
+        hideModal();
+        await commitImport(rows);
+      }}
+    ]
+  });
+}
+async function commitImport(rows){
+  let added = 0, overridden = 0, skipped = 0;
+  const now = Date.now();
+  try {
+    for(const r of rows){
+      if(r._errors.length){ skipped++; continue; }
+      if(r._dup && !r._override){ skipped++; continue; }
+      let id = r.studentId;
+      if(!id) id = await nextStudentId();
+      const rec = {
+        studentId: id, grade: r.grade, gender: r.gender,
+        residence: r.residence, transport: r.transport, referralSource: r.referralSource,
+        deleted: false, syncStatus: 'pending', remoteRow: null,
+        createdAt: now, updatedAt: now,
+      };
+      const existed = await getStudent(id);
+      if(existed){ rec.createdAt = existed.createdAt; rec.remoteRow = existed.remoteRow; overridden++; }
+      else added++;
+      await putStudent(rec);
+    }
+    await syncCounterFromStudents();
+    toast(`${added} added · ${overridden} overridden · ${skipped} skipped`, { type: added||overridden ? 'ok' : 'warn', duration: 5000 });
+    await loadState();
+    await render();
+  } catch(e){
+    toast('Import failed: ' + (e.message || e), { type:'error', duration:6000 });
+  }
+}
+
+/* ==================== EXPORT ==================== */
+function doExportMenu(){
+  if(typeof XLSX === 'undefined'){
+    toast('Excel library not loaded — check your internet connection and reload.', { type:'error', duration: 6000 });
+    return;
+  }
+  showModal({
+    title: 'Export to Excel',
+    body: `
+      <p>Choose what to export as an <code>.xlsx</code> file.</p>
+      <div class="row" style="flex-direction:column;align-items:stretch">
+        <button class="btn" id="ex1">Students (current view)</button>
+        <button class="btn" id="ex2">All students</button>
+      </div>
+    `,
+    actions: [{ label:'Cancel', class:'btn' }]
+  });
+  setTimeout(() => {
+    const ex1 = document.getElementById('ex1');
+    const ex2 = document.getElementById('ex2');
+    if(ex1) ex1.onclick = () => { hideModal(); exportRecords(currentFiltered(), 'students-' + today()); };
+    if(ex2) ex2.onclick = () => { hideModal(); exportRecords(state.students, 'students-' + today()); };
+  }, 0);
+}
+function exportRecords(records, filename){
+  const aoa = [HEADERS];
+  for(const s of records){
+    aoa.push([s.studentId, s.grade, s.gender, s.residence, s.transport, s.referralSource]);
+  }
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Students');
+  const out = XLSX.write(wb, { bookType:'xlsx', type:'array' });
+  download(filename + '.xlsx', new Blob([out], { type:'application/octet-stream' }));
+  toast('Exported ' + records.length + ' records', { type:'ok' });
+}
+
+/* ==================== APPS SCRIPT SNIPPET ==================== */
+function buildSnippet(secret){
+  return `// === Student Data Collector — Apps Script backend ===
+// Paste into Extensions → Apps Script. Deploy as Web app (Execute as: Me, Access: Anyone).
+
+const SECRET = '${secret}';
+const TAB = 'Students';
+const HEADERS = ['StudentID','Grade','Gender','Residence','Transport','ReferralSource'];
+
+function doGet(e){ return handle(e.parameter); }
+function doPost(e){ return handle(JSON.parse(e.postData.contents)); }
+
+function handle(p){
+  try {
+    if (p.secret !== SECRET) return json({ok:false, error:'invalid secret'});
+    var sheet = getSheet();
+    switch(p.action){
+      case 'ping':   return json({ok:true, rows: Math.max(0, sheet.getLastRow()-1)});
+      case 'list':   return json({ok:true, rows: listAll(sheet)});
+      case 'append': return json({ok:true, row: appendRow(sheet, p.data)});
+      case 'update': return json({ok:true, row: updateRow(sheet, p.row, p.data)});
+      case 'delete': return json({ok:true, row: deleteRow(sheet, p.row)});
+      case 'batch':  return json({ok:true, results: batch(sheet, p.ops || [])});
+    }
+    return json({ok:false, error:'unknown action'});
+  } catch(err){ return json({ok:false, error:String(err)}); }
+}
+
+function json(o){
+  return ContentService.createTextOutput(JSON.stringify(o))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function getSheet(){
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sh = ss.getSheetByName(TAB);
+  if (!sh){ sh = ss.insertSheet(TAB); sh.appendRow(HEADERS); }
+  else if (sh.getLastRow() === 0){ sh.appendRow(HEADERS); }
+  return sh;
+}
+
+function recordToRow(d){
+  return [d.studentId, d.grade, d.gender, d.residence, d.transport, d.referralSource];
+}
+
+function listAll(sh){
+  var last = sh.getLastRow();
+  if (last < 2) return [];
+  var vals = sh.getRange(2, 1, last - 1, HEADERS.length).getValues();
+  var out = [];
+  for (var i = 0; i < vals.length; i++){
+    var r = vals[i];
+    if (!r[0]) continue;
+    out.push({
+      row: i + 2,
+      studentId: String(r[0]), grade: String(r[1]), gender: String(r[2]),
+      residence: String(r[3]), transport: String(r[4]), referralSource: String(r[5])
+    });
+  }
+  return out;
+}
+
+function findRow(sh, studentId){
+  var last = sh.getLastRow();
+  if (last < 2) return -1;
+  var vals = sh.getRange(2, 1, last - 1, 1).getValues();
+  for (var i = 0; i < vals.length; i++){
+    if (String(vals[i][0]) === String(studentId)) return i + 2;
+  }
+  return -1;
+}
+
+function appendRow(sh, d){ sh.appendRow(recordToRow(d)); return sh.getLastRow(); }
+function updateRow(sh, row, d){ sh.getRange(row, 1, 1, HEADERS.length).setValues([recordToRow(d)]); return row; }
+function deleteRow(sh, row){ sh.deleteRow(row); return row; }
+
+function batch(sh, ops){
+  var out = [];
+  var updates = ops.filter(function(o){return o.type==='update';});
+  var appends = ops.filter(function(o){return o.type==='append';});
+  var deletes = ops.filter(function(o){return o.type==='delete';});
+
+  updates.forEach(function(op){
+    try {
+      var row = findRow(sh, op.data.studentId);
+      if (row < 0){ var r = appendRow(sh, op.data); out.push({ok:true, type:'append', studentId: op.data.studentId, row: r}); }
+      else { updateRow(sh, row, op.data); out.push({ok:true, type:'update', studentId: op.data.studentId, row: row}); }
+    } catch(err){ out.push({ok:false, error:String(err), studentId: op.data.studentId}); }
+  });
+  appends.forEach(function(op){
+    try { var r = appendRow(sh, op.data); out.push({ok:true, type:'append', studentId: op.data.studentId, row: r}); }
+    catch(err){ out.push({ok:false, error:String(err), studentId: op.data.studentId}); }
+  });
+  deletes.forEach(function(op){
+    try {
+      var row = findRow(sh, op.studentId);
+      if (row > 0) deleteRow(sh, row);
+      out.push({ok:true, type:'delete', studentId: op.studentId});
+    } catch(err){ out.push({ok:false, error:String(err), studentId: op.studentId}); }
+  });
+  return out;
+}
+`;
+}
+
+/* ==================== ONBOARDING ==================== */
+async function maybeOnboard(){
+  const done = await getSetting('onboarded', false);
+  if(done) return;
+  await setSetting('onboarded', true);
+  showModal({
+    title: 'Welcome 👋',
+    body: `
+      <p>This app stores student data <b>on your device</b> (offline-first). You can optionally connect your own Google Sheet to sync.</p>
+      <ul style="padding-left:20px">
+        <li>Works fully offline — nothing required to start.</li>
+        <li>Your data stays on this browser unless you set up a Sheet.</li>
+        <li>Import and export Excel files anytime.</li>
+      </ul>
+      <p class="muted small">Heads up: since data lives on this device, use <b>Export</b> regularly as a backup.</p>
+    `,
+    actions: [
+      { label:'Start using locally', class:'btn btn-primary', onClick: () => hideModal() },
+      { label:'Connect a Sheet', class:'btn', onClick: () => { hideModal(); go('/settings'); } }
+    ]
+  });
+}
+
+/* ==================== BOOTSTRAP ==================== */
+(async function init(){
+  applyTheme(currentTheme());
+  try {
+    await openDB();
+  } catch(e){
+    document.getElementById('view').innerHTML = `
+      <div class="card fatal">
+        <h2>Storage unavailable</h2>
+        <p>This app needs IndexedDB to store your data. This can happen in private/incognito mode, or if browser storage is blocked.</p>
+        <p class="muted small">Error: ${esc(e.message || e)}</p>
+        <button class="btn btn-primary" onclick="location.reload()">Try again</button>
+      </div>
+    `;
+    return;
+  }
+  try {
+    if(!await getSetting('deviceId','')) await setSetting('deviceId', uuid());
+    if(!await getSetting('secret',''))   await setSetting('secret', uuid());
+    await loadState();
+    if(!location.hash) location.hash = '/list';
+    await render();
+    await maybeOnboard();
+  } catch(e){
+    handleFatal(e);
+  }
+})();
+</script>
+</body>
+</html>
