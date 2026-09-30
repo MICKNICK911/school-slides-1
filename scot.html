@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Student Data Collector</title>
 <script>
-  /* Apply saved/system theme before paint to avoid flash */
   (function(){
     try {
       var saved = localStorage.getItem('theme');
@@ -17,186 +16,316 @@
 </script>
 <style>
   :root{
-    --bg:#f5f7fa; --card:#fff; --bg-2:#f8fafc; --hover:#eef2f7;
-    --text:#1a2233; --muted:#68758a; --border:#e2e8f0;
-    --primary:#2563eb; --primary-2:#1d4ed8;
-    --danger:#dc2626; --danger-2:#b91c1c; --warn:#d97706; --ok:#16a34a;
+    color-scheme:light;
+    --bg:#f4f6fb;
+    --bg-2:#eef2f8;
+    --card:#ffffff;
+    --hover:#f1f5fb;
+    --text:#0f172a;
+    --muted:#64748b;
+    --border:#e5e9f0;
+    --border-2:#d8dee9;
+    --primary:#4f46e5;
+    --primary-2:#4338ca;
+    --primary-soft:rgba(79,70,229,.10);
+    --danger:#e11d48;
+    --danger-2:#be123c;
+    --warn:#d97706;
+    --ok:#059669;
     --zero:#cbd5e1;
-    --shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+    --shadow-sm:0 1px 2px rgba(15,23,42,.04);
+    --shadow:0 1px 3px rgba(15,23,42,.06), 0 1px 2px rgba(15,23,42,.04);
+    --shadow-lg:0 10px 30px rgba(15,23,42,.08), 0 2px 8px rgba(15,23,42,.04);
+    --radius:14px;
+    --radius-sm:10px;
   }
   [data-theme="dark"]{
-    --bg:#0f172a; --card:#1e293b; --bg-2:#172033; --hover:#2a3648;
-    --text:#e2e8f0; --muted:#94a3b8; --border:#334155;
-    --primary:#3b82f6; --primary-2:#2563eb;
-    --danger:#ef4444; --danger-2:#dc2626; --warn:#f59e0b; --ok:#22c55e;
+    color-scheme:dark;
+    --bg:#0b1220;
+    --bg-2:#111a2e;
+    --card:#151f36;
+    --hover:#1c2740;
+    --text:#e6edf7;
+    --muted:#94a3b8;
+    --border:#25324c;
+    --border-2:#2f3d5a;
+    --primary:#7c7cf7;
+    --primary-2:#6565e8;
+    --primary-soft:rgba(124,124,247,.14);
+    --danger:#f87171;
+    --danger-2:#ef4444;
+    --warn:#fbbf24;
+    --ok:#34d399;
     --zero:#475569;
-    --shadow:0 1px 3px rgba(0,0,0,.4),0 1px 2px rgba(0,0,0,.3);
+    --shadow-sm:0 1px 2px rgba(0,0,0,.35);
+    --shadow:0 1px 3px rgba(0,0,0,.4), 0 1px 2px rgba(0,0,0,.3);
+    --shadow-lg:0 20px 50px rgba(0,0,0,.5), 0 4px 12px rgba(0,0,0,.3);
   }
   *{box-sizing:border-box}
   html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
-    font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    transition:background .2s, color .2s;}
+    font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+    transition:background .25s ease, color .25s ease;}
   button{font:inherit;cursor:pointer}
   input,select{font:inherit;color:inherit}
 
-  .app-bar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:8px;
-    padding:10px 14px;background:var(--card);border-bottom:1px solid var(--border);
-    box-shadow:var(--shadow);}
-  .app-title{font-weight:600;font-size:16px;flex:1;display:flex;align-items:center;gap:8px}
+  /* Generic select styling (applies outside forms too) */
+  select{
+    padding:8px 34px 8px 12px;
+    border:1px solid var(--border);
+    border-radius:10px;
+    background-color:var(--card);
+    color:var(--text);
+    font-size:13.5px;
+    appearance:none;-webkit-appearance:none;
+    background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;
+    background-position:right 12px center;
+    cursor:pointer;
+    max-width:100%;
+    transition:border-color .15s ease, box-shadow .15s ease, background-color .25s ease;
+  }
+  select:hover{border-color:var(--border-2)}
+  select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 4px var(--primary-soft)}
+  [data-theme="dark"] select{
+    background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  }
+
+  /* ---------- ICONS ---------- */
+  .ic{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.75;
+    stroke-linecap:round;stroke-linejoin:round;display:inline-block;vertical-align:middle;flex-shrink:0}
+  .ic-sm{width:15px;height:15px}
+  .ic-lg{width:22px;height:22px}
+
+  /* ---------- APP BAR ---------- */
+  .app-bar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:10px;
+    padding:12px 18px;background:color-mix(in srgb, var(--card) 92%, transparent);
+    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    border-bottom:1px solid var(--border);}
+  .app-title{font-weight:700;font-size:16px;flex:1;display:flex;align-items:center;gap:10px;
+    letter-spacing:-.01em}
+  .brand-mark{display:inline-flex;align-items:center;justify-content:center;
+    width:30px;height:30px;border-radius:9px;
+    background:linear-gradient(135deg,var(--primary),#8b5cf6);color:#fff}
+  [data-theme="dark"] .brand-mark{background:linear-gradient(135deg,#6366f1,#a855f7)}
+  .brand-mark svg{width:18px;height:18px;stroke:#fff}
   .app-actions{display:flex;gap:6px;align-items:center}
 
+  /* ---------- BUTTONS ---------- */
   .btn{background:var(--card);border:1px solid var(--border);color:var(--text);
-    padding:7px 12px;border-radius:8px;transition:.15s;white-space:nowrap;}
-  .btn:hover:not(:disabled){background:var(--hover)}
-  .btn:disabled{opacity:.5;cursor:not-allowed}
-  .btn-primary{background:var(--primary);border-color:var(--primary);color:#fff}
-  .btn-primary:hover:not(:disabled){background:var(--primary-2)}
-  .btn-danger{background:var(--danger);border-color:var(--danger);color:#fff}
-  .btn-danger:hover:not(:disabled){background:var(--danger-2)}
-  .btn-icon{background:transparent;border:1px solid transparent;padding:6px 8px;
-    border-radius:8px;font-size:16px;line-height:1}
-  .btn-icon:hover{background:var(--hover)}
+    padding:8px 14px;border-radius:10px;transition:all .15s ease;
+    white-space:nowrap;font-weight:500;font-size:13.5px;
+    display:inline-flex;align-items:center;gap:7px;line-height:1;
+    box-shadow:var(--shadow-sm);}
+  .btn:hover:not(:disabled){background:var(--hover);border-color:var(--border-2);transform:translateY(-1px)}
+  .btn:active:not(:disabled){transform:translateY(0)}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary-2));
+    border-color:transparent;color:#fff;box-shadow:0 4px 12px rgba(79,70,229,.25)}
+  .btn-primary:hover:not(:disabled){background:linear-gradient(135deg,var(--primary-2),var(--primary-2));
+    box-shadow:0 6px 18px rgba(79,70,229,.35)}
+  [data-theme="dark"] .btn-primary{box-shadow:0 4px 14px rgba(124,124,247,.3)}
+  .btn-danger{background:linear-gradient(135deg,var(--danger),var(--danger-2));
+    border-color:transparent;color:#fff;box-shadow:0 4px 12px rgba(225,29,72,.22)}
+  .btn-danger:hover:not(:disabled){box-shadow:0 6px 18px rgba(225,29,72,.32)}
+  .btn-icon{background:transparent;border:1px solid transparent;padding:8px;
+    border-radius:10px;color:var(--text);line-height:0;
+    display:inline-flex;align-items:center;justify-content:center;
+    transition:all .15s ease;box-shadow:none}
+  .btn-icon:hover{background:var(--hover);color:var(--primary)}
 
-  .badge{background:#fff;color:var(--primary);border-radius:10px;padding:1px 7px;
-    font-size:11px;font-weight:600;margin-left:4px}
-  .btn-primary .badge{background:#fff;color:var(--primary)}
+  .badge{background:rgba(255,255,255,.22);color:#fff;border-radius:20px;
+    padding:2px 8px;font-size:11px;font-weight:600;margin-left:2px;line-height:1.4}
 
-  main{padding:14px;max-width:1100px;margin:0 auto}
-  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;
-    padding:16px;box-shadow:var(--shadow);margin-bottom:14px;
-    transition:background .2s, border-color .2s}
-  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  main{padding:20px;max-width:1140px;margin:0 auto}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+    padding:20px;box-shadow:var(--shadow);margin-bottom:16px;
+    transition:background .25s ease, border-color .25s ease}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
   .row.spread{justify-content:space-between}
   .muted{color:var(--muted)}
   .small{font-size:12px}
-  h2{margin:0 0 10px;font-size:16px}
-  h3{margin:0 0 12px;font-size:13px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+  h2{margin:0 0 4px;font-size:17px;font-weight:700;letter-spacing:-.01em}
+  h3{margin:0 0 14px;font-size:11.5px;color:var(--muted);font-weight:700;
+    text-transform:uppercase;letter-spacing:.08em}
 
-  .banner{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;
-    padding:10px 14px;border-radius:10px;margin-bottom:14px;font-size:13px;
-    display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .banner{background:#fffbeb;border:1px solid #fde68a;color:#92400e;
+    padding:12px 16px;border-radius:var(--radius-sm);margin-bottom:16px;font-size:13.5px;
+    display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-weight:500}
+  .banner svg{flex-shrink:0}
   .banner.info{background:#eff6ff;border-color:#bfdbfe;color:#1e40af}
   .banner.ok{background:#f0fdf4;border-color:#bbf7d0;color:#166534}
-  [data-theme="dark"] .banner{background:#3b2818;border-color:#7c4a1e;color:#fed7aa}
-  [data-theme="dark"] .banner.info{background:#1e3a5f;border-color:#2d5f8e;color:#93c5fd}
-  [data-theme="dark"] .banner.ok{background:#14371f;border-color:#1e6b3a;color:#86efac}
+  .banner a{color:inherit;font-weight:600}
+  [data-theme="dark"] .banner{background:rgba(217,119,6,.12);border-color:rgba(217,119,6,.4);color:#fcd34d}
+  [data-theme="dark"] .banner.info{background:rgba(59,130,246,.12);border-color:rgba(59,130,246,.4);color:#93c5fd}
+  [data-theme="dark"] .banner.ok{background:rgba(5,150,105,.12);border-color:rgba(5,150,105,.4);color:#6ee7b7}
 
-  table{width:100%;border-collapse:collapse;font-size:13px}
-  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--border);white-space:nowrap}
-  th{background:var(--bg-2);font-weight:600;color:var(--muted);font-size:12px;
-    text-transform:uppercase;letter-spacing:.3px}
-  tr.clickable{cursor:pointer}
+  /* ---------- TABLES ---------- */
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--border);white-space:nowrap}
+  th{background:var(--bg-2);font-weight:600;color:var(--muted);font-size:11px;
+    text-transform:uppercase;letter-spacing:.06em}
+  tbody tr:last-child td{border-bottom:none}
+  tr.clickable{cursor:pointer;transition:background .1s ease}
   tr.clickable:hover{background:var(--hover)}
   .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
 
-  .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:middle}
-  .dot.pending{background:#f59e0b}
-  .dot.synced{background:var(--ok)}
-  .dot.error{background:var(--danger)}
+  .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;
+    vertical-align:middle;box-shadow:0 0 0 3px transparent}
+  .dot.pending{background:#f59e0b;box-shadow:0 0 0 3px rgba(245,158,11,.18)}
+  .dot.synced{background:var(--ok);box-shadow:0 0 0 3px rgba(5,150,105,.18)}
+  .dot.error{background:var(--danger);box-shadow:0 0 0 3px rgba(225,29,72,.18)}
 
-  form .field{margin-bottom:12px;display:flex;flex-direction:column;gap:4px}
-  form label{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.3px}
-  form select,form input{padding:9px 11px;border:1px solid var(--border);border-radius:8px;
-    background:var(--card);width:100%;max-width:100%}
+  /* ---------- FORMS ---------- */
+  form .field{margin-bottom:14px;display:flex;flex-direction:column;gap:6px}
+  form label{font-size:11.5px;font-weight:600;color:var(--muted);
+    text-transform:uppercase;letter-spacing:.06em}
+  form select,form input{padding:10px 13px;border:1px solid var(--border);border-radius:var(--radius-sm);
+    background:var(--card);width:100%;max-width:100%;transition:all .15s ease;
+    font-size:13.5px;appearance:none;-webkit-appearance:none}
+  form select{padding-right:36px}
   form select:focus,form input:focus{outline:none;border-color:var(--primary);
-    box-shadow:0 0 0 3px rgba(37,99,235,.15)}
-  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    box-shadow:0 0 0 4px var(--primary-soft)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
   @media(max-width:560px){.grid2{grid-template-columns:1fr}}
 
-  .modal-back{position:fixed;inset:0;background:rgba(15,23,42,.5);display:flex;
-    align-items:center;justify-content:center;padding:16px;z-index:100;backdrop-filter:blur(2px)}
-  .modal{background:var(--card);color:var(--text);border-radius:14px;max-width:640px;width:100%;
-    max-height:90vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.25);overflow:hidden}
-  .modal.wide{max-width:900px}
-  .modal-head{padding:16px;border-bottom:1px solid var(--border);font-weight:600;font-size:16px}
-  .modal-body{padding:16px;overflow:auto}
-  .modal-foot{padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;
+  /* ---------- MODAL ---------- */
+  .modal-back{position:fixed;inset:0;background:rgba(15,23,42,.55);
+    display:flex;align-items:center;justify-content:center;padding:16px;z-index:100;
+    backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+    animation:fadeIn .15s ease}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  .modal{background:var(--card);color:var(--text);border-radius:16px;max-width:640px;width:100%;
+    max-height:90vh;display:flex;flex-direction:column;
+    box-shadow:var(--shadow-lg);overflow:hidden;
+    animation:popIn .18s cubic-bezier(.2,.9,.3,1.2)}
+  @keyframes popIn{from{transform:scale(.95);opacity:0}to{transform:scale(1);opacity:1}}
+  .modal.wide{max-width:960px}
+  .modal-head{padding:20px 24px 16px;border-bottom:1px solid var(--border);
+    font-weight:700;font-size:16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .modal-body{padding:20px 24px;overflow:auto}
+  .modal-foot{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;
     justify-content:flex-end;flex-wrap:wrap}
 
-  #toast-root{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
-    z-index:200;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
-  .toast{background:#111827;color:#fff;padding:10px 14px;border-radius:10px;
-    font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.25);pointer-events:auto;
-    display:flex;align-items:center;gap:12px;max-width:90vw}
+  /* ---------- TOASTS ---------- */
+  #toast-root{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);
+    z-index:200;display:flex;flex-direction:column;gap:10px;align-items:center;pointer-events:none}
+  .toast{background:#0f172a;color:#fff;padding:12px 16px;border-radius:12px;
+    font-size:13.5px;box-shadow:0 10px 40px rgba(0,0,0,.35);pointer-events:auto;
+    display:flex;align-items:center;gap:12px;max-width:90vw;font-weight:500;
+    animation:slideUp .2s ease}
+  @keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+  [data-theme="dark"] .toast{background:#1e293b;border:1px solid var(--border-2)}
   .toast.warn{background:#b45309}
   .toast.error{background:#b91c1c}
-  .toast.ok{background:#166534}
+  .toast.ok{background:#047857}
   .toast button{background:transparent;border:1px solid rgba(255,255,255,.5);
-    color:#fff;border-radius:6px;padding:4px 8px;font-size:12px}
+    color:#fff;border-radius:8px;padding:5px 10px;font-size:12px;font-weight:600}
+  .toast button:hover{background:rgba(255,255,255,.1)}
 
-  .kv{display:grid;grid-template-columns:140px 1fr;gap:6px 12px;font-size:13px}
-  .kv .k{color:var(--muted)}
+  .kv{display:grid;grid-template-columns:150px 1fr;gap:8px 16px;font-size:13.5px}
+  .kv .k{color:var(--muted);font-weight:500}
   code,pre{font-family:ui-monospace,Menlo,Consolas,monospace}
-  pre.snippet{background:#0f172a;color:#e2e8f0;padding:14px;border-radius:10px;
-    font-size:12px;overflow:auto;max-height:340px;line-height:1.5;white-space:pre}
+  pre.snippet{background:#0b1220;color:#e2e8f0;padding:16px;border-radius:12px;
+    font-size:12px;overflow:auto;max-height:360px;line-height:1.6;white-space:pre;
+    border:1px solid var(--border)}
 
-  .stat{display:flex;flex-direction:column;padding:10px 12px;background:var(--bg-2);
-    border-radius:10px;border:1px solid var(--border);flex:1;min-width:110px}
-  .stat .v{font-size:20px;font-weight:600}
-  .stat .l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+  .stat{display:flex;flex-direction:column;padding:14px 16px;background:var(--bg-2);
+    border-radius:var(--radius-sm);border:1px solid var(--border);flex:1;min-width:110px;
+    transition:all .15s ease}
+  .stat:hover{transform:translateY(-1px);box-shadow:var(--shadow)}
+  .stat .v{font-size:22px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+  .stat .l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
 
-  details{background:var(--bg-2);border:1px solid var(--border);border-radius:10px;
-    padding:10px 14px;margin-top:10px}
-  summary{cursor:pointer;font-weight:600;font-size:13px}
-  details[open] summary{margin-bottom:10px}
+  details{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-sm);
+    padding:14px 18px;margin-top:12px}
+  summary{cursor:pointer;font-weight:600;font-size:13.5px}
+  details[open] summary{margin-bottom:12px}
 
-  .empty{text-align:center;padding:40px 20px;color:var(--muted)}
+  .empty{text-align:center;padding:56px 24px;color:var(--muted);font-size:14px}
+  .empty svg{width:42px;height:42px;stroke:currentColor;opacity:.35;
+    display:block;margin:0 auto 12px}
 
-  .tabs{display:flex;gap:4px;background:var(--card);border:1px solid var(--border);
-    border-radius:10px;padding:4px;margin-bottom:14px;box-shadow:var(--shadow)}
-  .tab{flex:1;text-align:center;padding:9px 14px;border-radius:8px;text-decoration:none;
-    color:var(--text);font-weight:500;font-size:13px;transition:.15s}
-  .tab:hover{background:var(--hover)}
-  .tab.active{background:var(--primary);color:#fff}
-  .tab.active:hover{background:var(--primary-2)}
+  /* ---------- TABS ---------- */
+  .tabs{display:flex;gap:6px;background:var(--card);border:1px solid var(--border);
+    border-radius:12px;padding:5px;margin-bottom:16px;box-shadow:var(--shadow);
+    max-width:420px}
+  .tab{flex:1;text-align:center;padding:9px 16px;border-radius:9px;text-decoration:none;
+    color:var(--muted);font-weight:600;font-size:13px;transition:all .15s ease;
+    display:inline-flex;align-items:center;justify-content:center;gap:8px}
+  .tab:hover{background:var(--hover);color:var(--text)}
+  .tab.active{background:linear-gradient(135deg,var(--primary),var(--primary-2));color:#fff;
+    box-shadow:0 4px 12px rgba(79,70,229,.25)}
+  [data-theme="dark"] .tab.active{box-shadow:0 4px 14px rgba(124,124,247,.3)}
+  .tab svg{width:16px;height:16px}
 
-  .bar-row{display:grid;grid-template-columns:150px 1fr 110px;gap:10px;align-items:center;
-    padding:5px 0;font-size:13px}
-  .bar-label{color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .bar-track{background:var(--bg-2);border-radius:5px;height:18px;overflow:hidden}
-  .bar-fill{height:100%;background:linear-gradient(90deg,#60a5fa,#2563eb);
-    border-radius:5px;transition:width .3s}
-  [data-theme="dark"] .bar-fill{background:linear-gradient(90deg,#3b82f6,#1d4ed8)}
-  .bar-value{text-align:right;font-variant-numeric:tabular-nums;color:var(--text)}
+  /* ---------- SUMMARY BARS ---------- */
+  .bar-row{display:grid;grid-template-columns:170px 1fr 120px;gap:12px;align-items:center;
+    padding:7px 0;font-size:13.5px}
+  .bar-label{color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}
+  .bar-track{background:var(--bg-2);border-radius:6px;height:20px;overflow:hidden;
+    position:relative}
+  .bar-fill{height:100%;background:linear-gradient(90deg,#818cf8,#4f46e5);
+    border-radius:6px;transition:width .35s cubic-bezier(.2,.9,.3,1);
+    box-shadow:inset 0 -8px 12px -8px rgba(0,0,0,.15)}
+  [data-theme="dark"] .bar-fill{background:linear-gradient(90deg,#818cf8,#6366f1)}
+  .bar-value{text-align:right;font-variant-numeric:tabular-nums;color:var(--text);
+    font-weight:600;font-size:13px}
+  .bar-value .muted{font-weight:400}
   @media(max-width:560px){
-    .bar-row{grid-template-columns:110px 1fr 80px;font-size:12px}
+    .bar-row{grid-template-columns:110px 1fr 90px;font-size:12.5px;gap:8px}
   }
 
-  .ct-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:4px}
+  /* ---------- CROSS-TABS ---------- */
+  .ct-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:6px;
+    border-radius:var(--radius-sm);border:1px solid var(--border)}
   .ct-table{width:100%;border-collapse:collapse;font-size:13px}
-  .ct-table th,.ct-table td{padding:7px 10px;text-align:right;border-bottom:1px solid var(--border);white-space:nowrap}
-  .ct-table th:first-child,.ct-table td:first-child{text-align:left;font-weight:500;
-    position:sticky;left:0;background:var(--card);z-index:1}
+  .ct-table th,.ct-table td{padding:9px 12px;text-align:right;
+    border-bottom:1px solid var(--border);white-space:nowrap;
+    font-variant-numeric:tabular-nums}
+  .ct-table tr:last-child td{border-bottom:none}
+  .ct-table th:first-child,.ct-table td:first-child{text-align:left;font-weight:600;
+    position:sticky;left:0;background:var(--card);z-index:1;
+    box-shadow:1px 0 0 var(--border)}
   .ct-table thead th{background:var(--bg-2);color:var(--muted);font-size:11px;
-    text-transform:uppercase;letter-spacing:.3px;font-weight:600}
+    text-transform:uppercase;letter-spacing:.06em;font-weight:600}
   .ct-table thead th:first-child{background:var(--bg-2)}
   .ct-table tbody tr:hover td{background:var(--hover)}
   .ct-table tbody tr:hover td:first-child{background:var(--hover)}
-  .ct-table .total-col{background:var(--bg-2);font-weight:600}
-  .ct-table .total-row td{background:var(--bg-2);font-weight:600}
+  .ct-table .total-col{background:var(--bg-2);font-weight:700}
+  .ct-table .total-row td{background:var(--bg-2);font-weight:700}
   .ct-table .zero{color:var(--zero)}
 
-  /* Import preview row tints adapt to dark */
-  [data-theme="dark"] .row-new{background:rgba(34,197,94,.08) !important}
-  [data-theme="dark"] .row-dup{background:rgba(245,158,11,.1) !important}
-  [data-theme="dark"] .row-bad{background:rgba(239,68,68,.1) !important}
+  [data-theme="dark"] .row-new{background:rgba(52,211,153,.08) !important}
+  [data-theme="dark"] .row-dup{background:rgba(251,191,36,.1) !important}
+  [data-theme="dark"] .row-bad{background:rgba(248,113,113,.1) !important}
 
-  /* Global error / fatal screen */
-  .fatal{padding:40px 20px;text-align:center;max-width:520px;margin:60px auto}
-  .fatal h2{font-size:20px;margin-bottom:12px}
-  .fatal p{color:var(--muted);margin-bottom:16px}
+  /* ---------- FATAL ---------- */
+  .fatal{padding:56px 28px;text-align:center;max-width:540px;margin:80px auto}
+  .fatal .ic-lg{width:52px;height:52px;color:var(--danger);margin-bottom:16px;
+    stroke-width:1.5}
+  .fatal h2{font-size:22px;margin-bottom:12px;letter-spacing:-.02em}
+  .fatal p{color:var(--muted);margin-bottom:20px;line-height:1.7}
+
+  /* ---------- TWEAKS ---------- */
+  .search-wrap{position:relative;flex:1;min-width:160px}
+  .search-wrap svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);
+    width:15px;height:15px;stroke:var(--muted);pointer-events:none}
+  .search-wrap input{padding-left:36px !important;width:100% !important}
 
   @media(max-width:560px){
+    main{padding:14px}
+    .card{padding:16px}
     .app-title span.t{display:none}
-    .btn{padding:7px 10px}
+    .btn{padding:8px 12px}
+    .bar-row{grid-template-columns:100px 1fr 80px}
   }
 
-  /* Print */
   @media print {
     .app-bar, .tabs, #toast-root, .modal-back, .no-print { display: none !important; }
     body, main { background: #fff !important; color: #000 !important; }
     .card { box-shadow: none; border: 1px solid #ddd; break-inside: avoid; page-break-inside: avoid; }
-    .bar-fill { background: #2563eb !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .bar-fill { background: #4f46e5 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .stat, .ct-table thead th, .ct-table .total-col, .ct-table .total-row td { background: #f5f5f5 !important; }
   }
 </style>
@@ -205,13 +334,34 @@
 
 <header class="app-bar">
   <div class="app-title">
-    <span>🎓</span><span class="t">Student Data Collector</span>
+    <span class="brand-mark">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+        <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+      </svg>
+    </span>
+    <span class="t">Student Data Collector</span>
   </div>
   <div class="app-actions">
-    <button id="btnPush" class="btn btn-primary" title="Push local changes">Push<span class="badge" id="pushBadge" hidden>0</span></button>
-    <button id="btnPull" class="btn" title="Pull from Google Sheet">Pull</button>
-    <button id="btnTheme" class="btn-icon" title="Toggle theme">🌙</button>
-    <button id="btnSettings" class="btn-icon" title="Settings">⚙</button>
+    <button id="btnPush" class="btn btn-primary" title="Push local changes">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 19V5"/><path d="m5 12 7-7 7 7"/>
+      </svg>
+      <span>Push</span><span class="badge" id="pushBadge" hidden>0</span>
+    </button>
+    <button id="btnPull" class="btn" title="Pull from Google Sheet">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 5v14"/><path d="m19 12-7 7-7-7"/>
+      </svg>
+      <span>Pull</span>
+    </button>
+    <button id="btnTheme" class="btn-icon" title="Toggle theme"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+    <button id="btnSettings" class="btn-icon" title="Settings">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+    </button>
   </div>
 </header>
 
@@ -225,10 +375,33 @@
 const GRADES = ['Nursery','KG1','KG2','Grade 1','Grade 2','Grade 3','Grade 4','Grade 5','Grade 6','JHS1','JHS2','JHS3','SHS1','SHS2','SHS3'];
 const GENDERS = ['Male','Female'];
 const RESIDENCES = ['Day','Boarder'];
-const TRANSPORTS = ['Bus','Parents','Guardian'];
+const TRANSPORTS = ['Bus','Parents','Guardian','None'];
 const REFERRALS = ['Referral','TikTok','Facebook','Instagram','YouTube','WhatsApp','Banner Ad','Radio','TV','Flyer','Church/Mosque','Family','Friend','Walk-in','Other'];
 const HEADERS = ['StudentID','Grade','Gender','Residence','Transport','ReferralSource'];
-const SHEETJS_CDN = 'https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js';
+
+/* ==================== ICONS (SVG strings) ==================== */
+const I = {
+  moon: `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`,
+  sun: `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>`,
+  list: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>`,
+  chart: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>`,
+  plus: `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`,
+  upload: `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>`,
+  download: `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>`,
+  trash: `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>`,
+  history: `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>`,
+  search: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>`,
+  warning: `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,
+  cloud: `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>`,
+  copy: `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`,
+  print: `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>`,
+  check: `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
+  save: `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>`,
+  x: `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`,
+  back: `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>`,
+  inbox: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>`,
+  link: `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>`,
+};
 
 /* ==================== THEME ==================== */
 function currentTheme(){ return document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light'; }
@@ -237,7 +410,10 @@ function applyTheme(theme){
   else document.documentElement.removeAttribute('data-theme');
   try { localStorage.setItem('theme', theme); } catch(e){}
   const btn = document.getElementById('btnTheme');
-  if(btn){ btn.textContent = theme === 'dark' ? '☀️' : '🌙'; btn.title = theme === 'dark' ? 'Switch to light' : 'Switch to dark'; }
+  if(btn){
+    btn.innerHTML = theme === 'dark' ? I.sun : I.moon;
+    btn.title = theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme';
+  }
 }
 function toggleTheme(){ applyTheme(currentTheme() === 'dark' ? 'light' : 'dark'); }
 
@@ -269,7 +445,7 @@ function openDB(){
     };
     r.onsuccess = e => { db = e.target.result; res(db); };
     r.onerror = e => rej(e.target.error || new Error('DB open failed'));
-    r.onblocked = () => rej(new Error('Database blocked — close other tabs of this app'));
+    r.onblocked = () => rej(new Error('Database blocked — close other tabs'));
   });
 }
 function store(name, mode='readonly'){ return db.transaction(name, mode).objectStore(name); }
@@ -315,7 +491,6 @@ function chunk(arr, n){ const out=[]; for(let i=0;i<arr.length;i+=n) out.push(ar
 function download(name, blob){ const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000); }
 function today(){ return new Date().toISOString().slice(0,10); }
 
-/* Serialize ID generation to avoid races on rapid adds */
 let idLock = Promise.resolve();
 function nextStudentId(){
   idLock = idLock.then(async () => {
@@ -355,7 +530,6 @@ async function pruneSnapshots(keep=5){
 function toast(msg, opts={}){
   const { type='', duration=3500, action } = opts;
   const root = document.getElementById('toast-root');
-  // Cap visible toasts at 3
   while(root.children.length >= 3) root.firstChild.remove();
   const el = document.createElement('div');
   el.className = 'toast ' + type;
@@ -388,7 +562,7 @@ function showModal({ title, body, actions = [], wide = false }){
   actions.forEach(a => {
     const b = document.createElement('button');
     b.className = a.class || 'btn';
-    b.textContent = a.label;
+    b.innerHTML = a.icon ? a.icon + '<span>' + esc(a.label) + '</span>' : esc(a.label);
     b.onclick = () => a.onClick ? a.onClick() : hideModal();
     foot.appendChild(b);
   });
@@ -416,6 +590,7 @@ async function loadState(){
     .sort((a,b) => (a.studentId < b.studentId ? -1 : 1));
   state.settings = await allSettings();
 }
+
 function currentFiltered(){
   const f = state.filters;
   let list = state.students;
@@ -424,9 +599,17 @@ function currentFiltered(){
   if(f.residence)list = list.filter(s => s.residence === f.residence);
   if(f.referral) list = list.filter(s => s.referralSource === f.referral);
   if(f.q){
-    const q = f.q.toLowerCase();
-    list = list.filter(s => Object.values(s).some(v => String(v).toLowerCase().includes(q)));
+  const q = f.q.trim().toLowerCase();
+  if(q){
+    const qTokens = q.split(/\s+/).filter(Boolean);
+    list = list.filter(s => {
+      const fields = [s.studentId, s.grade, s.gender, s.residence, s.transport, s.referralSource]
+        .map(v => String(v ?? '').toLowerCase());
+      const allTokens = fields.join(' ').split(/[\s,\/-]+/).filter(Boolean);
+      return qTokens.every(qt => allTokens.some(t => t.startsWith(qt)));
+    });
   }
+}
   return list;
 }
 
@@ -434,7 +617,9 @@ function currentFiltered(){
 function currentRoute(){
   const h = (location.hash || '').replace(/^#/, '') || '/list';
   const parts = h.split('/').filter(Boolean);
-  return { name: parts[0] || 'list', param: parts[1] || '' };
+  let param = parts[1] || '';
+  try { param = decodeURIComponent(param); } catch(e){}
+  return { name: parts[0] || 'list', param };
 }
 function go(hash){ if(location.hash === hash) render(); else location.hash = hash; }
 window.addEventListener('hashchange', () => { render().catch(handleFatal); });
@@ -455,6 +640,7 @@ function handleFatal(e){
   console.error(e);
   document.getElementById('view').innerHTML = `
     <div class="card fatal">
+      <svg class="ic-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
       <h2>Something went wrong</h2>
       <p>${esc(e && e.message ? e.message : 'Unknown error')}</p>
       <button class="btn btn-primary" onclick="location.reload()">Reload</button>
@@ -486,85 +672,86 @@ document.getElementById('btnPull').onclick = pull;
 /* ==================== SHARED UI ==================== */
 function tabsHTML(active){
   return `<div class="tabs no-print">
-    <a class="tab ${active==='list'?'active':''}" href="#/list">📋 Students</a>
-    <a class="tab ${active==='summary'?'active':''}" href="#/summary">📊 Summary</a>
+    <a class="tab ${active==='list'?'active':''}" href="#/list">${I.list} Students</a>
+    <a class="tab ${active==='summary'?'active':''}" href="#/summary">${I.chart} Summary</a>
   </div>`;
 }
 function filterBarHTML(){
   const f = state.filters;
   return `
-    <div class="row no-print" style="margin-top:12px">
+    <div class="row no-print" style="margin-top:14px">
       <select id="fGrade"><option value="">All grades</option>${GRADES.map(g=>`<option ${f.grade===g?'selected':''}>${g}</option>`).join('')}</select>
       <select id="fGender"><option value="">All genders</option>${GENDERS.map(g=>`<option ${f.gender===g?'selected':''}>${g}</option>`).join('')}</select>
       <select id="fResidence"><option value="">All residence</option>${RESIDENCES.map(g=>`<option ${f.residence===g?'selected':''}>${g}</option>`).join('')}</select>
       <select id="fReferral"><option value="">All referrals</option>${REFERRALS.map(g=>`<option ${f.referral===g?'selected':''}>${g}</option>`).join('')}</select>
-      <input id="fQ" placeholder="Search…" value="${esc(f.q)}" style="flex:1;min-width:120px;padding:7px 10px;border:1px solid var(--border);border-radius:8px;background:var(--card);color:var(--text)">
+      <div class="search-wrap">
+        ${I.search}
+        <input id="fQ" placeholder="Search students…"
+               title="Searches StudentID, Grade, Gender, Residence, Transport, and Referral"
+               value="${esc(f.q)}"
+               style="padding:8px 12px 8px 36px;border:1px solid var(--border);border-radius:10px;background:var(--card);color:var(--text);font-size:13.5px">
+      </div>
       <button class="btn" id="fClear">Clear</button>
     </div>
   `;
 }
-function bindFilterBar(view){
+function bindFilterBar(view, onChange){
   const f = state.filters;
-  const rerender = () => render().catch(handleFatal);
-  view.querySelector('#fGrade').onchange    = e => { f.grade = e.target.value;    rerender(); };
-  view.querySelector('#fGender').onchange   = e => { f.gender = e.target.value;   rerender(); };
-  view.querySelector('#fResidence').onchange= e => { f.residence = e.target.value;rerender(); };
-  view.querySelector('#fReferral').onchange = e => { f.referral = e.target.value; rerender(); };
-  view.querySelector('#fQ').oninput         = e => { f.q = e.target.value;        rerender(); };
-  view.querySelector('#fClear').onclick     = () => {
+  const fire = () => (onChange ? onChange() : render().catch(handleFatal));
+
+  view.querySelector('#fGrade').onchange    = e => { f.grade = e.target.value;    fire(); };
+  view.querySelector('#fGender').onchange   = e => { f.gender = e.target.value;   fire(); };
+  view.querySelector('#fResidence').onchange= e => { f.residence = e.target.value;fire(); };
+  view.querySelector('#fReferral').onchange = e => { f.referral = e.target.value; fire(); };
+
+  const input = view.querySelector('#fQ');
+  let timer;
+  input.oninput = e => {
+    const v = e.target.value;
+    clearTimeout(timer);
+    timer = setTimeout(() => { f.q = v; fire(); }, 180);
+  };
+  input.onkeydown = e => {
+    if(e.key === 'Enter'){ clearTimeout(timer); f.q = input.value; fire(); }
+  };
+
+  view.querySelector('#fClear').onclick = () => {
+    clearTimeout(timer);
     state.filters = { grade:'',gender:'',residence:'',referral:'',q:'' };
-    rerender();
+    view.querySelector('#fGrade').value = '';
+    view.querySelector('#fGender').value = '';
+    view.querySelector('#fResidence').value = '';
+    view.querySelector('#fReferral').value = '';
+    input.value = '';
+    fire();
   };
 }
 
 /* ==================== LIST VIEW ==================== */
 async function renderList(view){
   await loadState();
-  const list = currentFiltered();
   const cloud = !!(state.settings.sheetUrl || '').trim();
   const banner = cloud
-    ? `<div class="banner ok no-print">☁️ Connected to your Google Sheet. Local data saves automatically; use Push to send changes, Pull to fetch.</div>`
-    : `<div class="banner no-print">⚠️ Running offline. Data is saved on this device only. <a href="#/settings">Connect a Sheet</a> to sync.</div>`;
+    ? `<div class="banner ok no-print">${I.cloud}<span>Connected to your Google Sheet. Local data saves automatically; use Push to send changes, Pull to fetch.</span></div>`
+    : `<div class="banner no-print">${I.warning}<span>Running offline. Data is saved on this device only. <a href="#/settings">Connect a Sheet</a> to sync.</span></div>`;
 
   view.innerHTML = `
     ${tabsHTML('list')}
     ${banner}
     <div class="card">
-      <div class="row spread">
-        <h2>Students <span class="muted small">(${list.length})</span></h2>
+      <div class="row spread" style="margin-bottom:0">
+        <h2>Students <span class="muted small" id="listCount" style="font-weight:500"></span></h2>
         <div class="row no-print">
-          <button class="btn btn-primary" id="btnAdd">+ Add</button>
-          <button class="btn" id="btnImport">Import</button>
-          <button class="btn" id="btnExport">Export</button>
-          <button class="btn" id="btnTrash">Trash</button>
-          <button class="btn" id="btnSnapshots">Snapshots</button>
+          <button class="btn btn-primary" id="btnAdd">${I.plus}<span>Add</span></button>
+          <button class="btn" id="btnImport">${I.upload}<span>Import</span></button>
+          <button class="btn" id="btnExport">${I.download}<span>Export</span></button>
+          <button class="btn" id="btnTrash">${I.trash}<span>Trash</span></button>
+          <button class="btn" id="btnSnapshots">${I.history}<span>Snapshots</span></button>
         </div>
       </div>
       ${filterBarHTML()}
     </div>
-
-    <div class="card" style="padding:0">
-      ${list.length === 0 ? `<div class="empty">No students yet. Tap <b>+ Add</b> to begin.</div>` : `
-      <div class="table-wrap">
-        <table>
-          <thead><tr>
-            <th></th><th>StudentID</th><th>Grade</th><th>Gender</th><th>Residence</th><th>Transport</th><th>Referral</th>
-          </tr></thead>
-          <tbody>
-            ${list.map(s => `
-              <tr class="clickable" data-id="${esc(s.studentId)}">
-                <td><span class="dot ${esc(s.syncStatus||'pending')}" title="${esc(s.syncStatus||'pending')}"></span></td>
-                <td><b>${esc(s.studentId)}</b></td>
-                <td>${esc(s.grade)}</td>
-                <td>${esc(s.gender)}</td>
-                <td>${esc(s.residence)}</td>
-                <td>${esc(s.transport)}</td>
-                <td>${esc(s.referralSource)}</td>
-              </tr>`).join('')}
-          </tbody>
-        </table>
-      </div>`}
-    </div>
+    <div class="card" id="listTableCard" style="padding:0;overflow:hidden"></div>
   `;
 
   document.getElementById('btnAdd').onclick = () => go('/add');
@@ -572,10 +759,50 @@ async function renderList(view){
   document.getElementById('btnExport').onclick = doExportMenu;
   document.getElementById('btnTrash').onclick = () => go('/trash');
   document.getElementById('btnSnapshots').onclick = () => go('/snapshots');
-  bindFilterBar(view);
-  view.querySelectorAll('tr.clickable').forEach(tr => tr.onclick = () => go('/edit/' + tr.dataset.id));
 
+  bindFilterBar(view, updateListTable);
+  updateListTable();
   await updateHeader();
+}
+
+function updateListTable(){
+  const list = currentFiltered();
+  const count = document.getElementById('listCount');
+  if(count) count.textContent = `(${list.length})`;
+
+  const card = document.getElementById('listTableCard');
+  if(!card) return;
+
+  if(list.length === 0){
+    const msg = state.students.length === 0
+      ? 'No students yet. Tap <b>Add</b> to begin.'
+      : 'No students match the current filters.';
+    card.innerHTML = `<div class="empty">${I.inbox}${msg}</div>`;
+    return;
+  }
+
+  card.innerHTML = `
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th></th><th>StudentID</th><th>Grade</th><th>Gender</th><th>Residence</th><th>Transport</th><th>Referral</th>
+        </tr></thead>
+        <tbody>
+          ${list.map(s => `
+            <tr class="clickable" data-id="${esc(s.studentId)}">
+              <td><span class="dot ${esc(s.syncStatus||'pending')}" title="${esc(s.syncStatus||'pending')}"></span></td>
+              <td><b>${esc(s.studentId)}</b></td>
+              <td>${esc(s.grade)}</td>
+              <td>${esc(s.gender)}</td>
+              <td>${esc(s.residence)}</td>
+              <td>${esc(s.transport)}</td>
+              <td>${esc(s.referralSource)}</td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+  card.querySelectorAll('tr.clickable').forEach(tr => tr.onclick = () => go('/edit/' + encodeURIComponent(tr.dataset.id)));
 }
 
 /* ==================== SUMMARY VIEW ==================== */
@@ -642,77 +869,104 @@ function ctCard(title, matrix, rowKeys, colKeys, rowLabel){
 
 async function renderSummary(view){
   await loadState();
-  const list = currentFiltered();
-  const total = list.length;
 
+  view.innerHTML = `
+    ${tabsHTML('summary')}
+    <div id="summaryBanner"></div>
+    <div class="card">
+      <div class="row spread">
+        <h2>Summary</h2>
+        <div class="row no-print">
+          <button class="btn" id="btnExportSummary">${I.download}<span>Export</span></button>
+          <button class="btn" id="btnPrint">${I.print}<span>Print</span></button>
+        </div>
+      </div>
+      <div class="row" id="summaryStats" style="margin-top:14px"></div>
+      ${filterBarHTML()}
+    </div>
+    <div id="summaryBody"></div>
+  `;
+
+  bindFilterBar(view, updateSummary);
+
+  document.getElementById('btnExportSummary').onclick = () => {
+    if(typeof XLSX === 'undefined'){ toast('Excel library not loaded — check internet', { type:'error' }); return; }
+    const list = currentFiltered();
+    if(list.length === 0){ toast('Nothing to export', { type:'warn' }); return; }
+    exportSummary(list, computeSummaryData(list));
+  };
+  document.getElementById('btnPrint').onclick = () => window.print();
+
+  updateSummary();
+  await updateHeader();
+}
+
+function computeSummaryData(list){
   const gradeCounts     = countBy(list, 'grade', GRADES);
   const genderCounts    = countBy(list, 'gender', GENDERS);
   const residenceCounts = countBy(list, 'residence', RESIDENCES);
   const transportCounts = countBy(list, 'transport', TRANSPORTS);
   const referralCounts  = countBy(list, 'referralSource', REFERRALS);
-
   const ctGradeGender    = crossTab(list, 'grade', 'gender', GRADES, GENDERS);
   const ctReferralGender = crossTab(list, 'referralSource', 'gender', REFERRALS, GENDERS);
   const ctGradeResidence = crossTab(list, 'grade', 'residence', GRADES, RESIDENCES);
   const ctReferralResidence = crossTab(list, 'referralSource', 'residence', REFERRALS, RESIDENCES);
+  return {
+    gradeCounts, genderCounts, residenceCounts, transportCounts, referralCounts,
+    ctGradeGender, ctReferralGender, ctGradeResidence, ctReferralResidence,
+  };
+}
 
-  const dayCount = residenceCounts['Day'] || 0;
-  const boarderCount = residenceCounts['Boarder'] || 0;
-  const maleCount = genderCounts['Male'] || 0;
-  const femaleCount = genderCounts['Female'] || 0;
+function updateSummary(){
+  const list = currentFiltered();
+  const total = list.length;
+  const data = computeSummaryData(list);
 
   const filtersActive = Object.values(state.filters).some(v => v);
-  const banner = total === 0 && filtersActive
-    ? `<div class="banner info no-print">No students match the current filters. <a href="#/list">Adjust filters</a>.</div>`
-    : filtersActive
-      ? `<div class="banner info no-print">Showing summaries for <b>${total}</b> filtered student${total===1?'':'s'}.</div>`
-      : '';
+  const bannerHost = document.getElementById('summaryBanner');
+  if(bannerHost){
+    if(total === 0 && filtersActive){
+      bannerHost.innerHTML = `<div class="banner info no-print">${I.warning}<span>No students match the current filters.</span><button class="btn" id="sumClear" style="padding:5px 10px;font-size:12px">Clear filters</button></div>`;
+      const clr = document.getElementById('sumClear');
+      if(clr) clr.onclick = () => {
+        state.filters = { grade:'',gender:'',residence:'',referral:'',q:'' };
+        render().catch(handleFatal);
+      };
+    } else if(filtersActive){
+      bannerHost.innerHTML = `<div class="banner info no-print">${I.chart}<span>Showing summaries for <b>${total}</b> filtered student${total===1?'':'s'}.</span></div>`;
+    } else {
+      bannerHost.innerHTML = '';
+    }
+  }
 
-  view.innerHTML = `
-    ${tabsHTML('summary')}
-    ${banner}
+  const statsHost = document.getElementById('summaryStats');
+  if(statsHost){
+    const dayCount = data.residenceCounts['Day'] || 0;
+    const boarderCount = data.residenceCounts['Boarder'] || 0;
+    const maleCount = data.genderCounts['Male'] || 0;
+    const femaleCount = data.genderCounts['Female'] || 0;
+    statsHost.innerHTML = `
+      <div class="stat"><div class="v">${total}</div><div class="l">Total</div></div>
+      <div class="stat"><div class="v">${dayCount}</div><div class="l">Day</div></div>
+      <div class="stat"><div class="v">${boarderCount}</div><div class="l">Boarder</div></div>
+      <div class="stat"><div class="v">${maleCount}</div><div class="l">Male</div></div>
+      <div class="stat"><div class="v">${femaleCount}</div><div class="l">Female</div></div>
+    `;
+  }
 
-    <div class="card">
-      <div class="row spread">
-        <h2>Summary</h2>
-        <div class="row no-print">
-          <button class="btn" id="btnExportSummary" ${total===0?'disabled':''}>Export to Excel</button>
-          <button class="btn" id="btnPrint" ${total===0?'disabled':''}>Print</button>
-        </div>
-      </div>
-      <div class="row" style="margin-top:10px">
-        <div class="stat"><div class="v">${total}</div><div class="l">Total</div></div>
-        <div class="stat"><div class="v">${dayCount}</div><div class="l">Day</div></div>
-        <div class="stat"><div class="v">${boarderCount}</div><div class="l">Boarder</div></div>
-        <div class="stat"><div class="v">${maleCount}</div><div class="l">Male</div></div>
-        <div class="stat"><div class="v">${femaleCount}</div><div class="l">Female</div></div>
-      </div>
-      ${filterBarHTML()}
-    </div>
-
-    ${barCard('By Grade', gradeCounts, total)}
-    ${barCard('By Gender', genderCounts, total)}
-    ${barCard('By Residence', residenceCounts, total)}
-    ${barCard('By Transport', transportCounts, total)}
-    ${barCard('By Referral Source', referralCounts, total)}
-
-    ${ctCard('Grade × Gender', ctGradeGender, GRADES, GENDERS, 'Grade')}
-    ${ctCard('Referral Source × Gender', ctReferralGender, REFERRALS, GENDERS, 'Referral')}
-    ${ctCard('Grade × Residence', ctGradeResidence, GRADES, RESIDENCES, 'Grade')}
-    ${ctCard('Referral Source × Residence', ctReferralResidence, REFERRALS, RESIDENCES, 'Referral')}
+  const bodyHost = document.getElementById('summaryBody');
+  if(!bodyHost) return;
+  bodyHost.innerHTML = `
+    ${barCard('By Grade', data.gradeCounts, total)}
+    ${barCard('By Gender', data.genderCounts, total)}
+    ${barCard('By Residence', data.residenceCounts, total)}
+    ${barCard('By Transport', data.transportCounts, total)}
+    ${barCard('By Referral Source', data.referralCounts, total)}
+    ${ctCard('Grade × Gender', data.ctGradeGender, GRADES, GENDERS, 'Grade')}
+    ${ctCard('Referral Source × Gender', data.ctReferralGender, REFERRALS, GENDERS, 'Referral')}
+    ${ctCard('Grade × Residence', data.ctGradeResidence, GRADES, RESIDENCES, 'Grade')}
+    ${ctCard('Referral Source × Residence', data.ctReferralResidence, REFERRALS, RESIDENCES, 'Referral')}
   `;
-
-  bindFilterBar(view);
-  document.getElementById('btnExportSummary').onclick = () => {
-    if(typeof XLSX === 'undefined'){ toast('Excel library not loaded — check internet', { type:'error' }); return; }
-    exportSummary(list, {
-      gradeCounts, genderCounts, residenceCounts, transportCounts, referralCounts,
-      ctGradeGender, ctReferralGender, ctGradeResidence, ctReferralResidence,
-    });
-  };
-  document.getElementById('btnPrint').onclick = () => window.print();
-
-  await updateHeader();
 }
 
 /* ==================== EXPORT SUMMARY ==================== */
@@ -769,7 +1023,7 @@ function formHTML(s = {}, isAdd){
   return `
     <form class="card" id="studentForm">
       <h2>${isAdd ? 'New student' : 'Edit student'}</h2>
-      ${!isAdd ? `<div class="field"><label>Student ID</label><input value="${esc(id)}" readonly></div>` : ''}
+      ${!isAdd ? `<div class="field" style="margin-top:14px"><label>Student ID</label><input value="${esc(id)}" readonly style="background:var(--bg-2);color:var(--muted)"></div>` : `<p class="muted small" style="margin:6px 0 14px">An ID will be auto-generated on save.</p>`}
       <div class="grid2">
         <div class="field"><label>Grade</label>
           <select name="grade" required>
@@ -802,10 +1056,10 @@ function formHTML(s = {}, isAdd){
           ${REFERRALS.map(g => `<option ${s.referralSource===g?'selected':''}>${g}</option>`).join('')}
         </select>
       </div>
-      <div class="row" style="margin-top:8px">
-        <button type="submit" class="btn btn-primary">Save</button>
-        <button type="button" class="btn" data-act="cancel">Cancel</button>
-        ${!isAdd ? `<button type="button" class="btn btn-danger" id="btnDelete" style="margin-left:auto">Delete</button>` : ''}
+      <div class="row" style="margin-top:14px">
+        <button type="submit" class="btn btn-primary">${I.save}<span>Save</span></button>
+        <button type="button" class="btn" data-act="cancel">${I.x}<span>Cancel</span></button>
+        ${!isAdd ? `<button type="button" class="btn btn-danger" id="btnDelete" style="margin-left:auto">${I.trash}<span>Delete</span></button>` : ''}
       </div>
     </form>
   `;
@@ -822,7 +1076,7 @@ async function renderAdd(view){
     submitting = true;
     const submitBtn = f.querySelector('button[type="submit"]');
     submitBtn.disabled = true;
-    submitBtn.textContent = 'Saving…';
+    submitBtn.innerHTML = '<span>Saving…</span>';
     try {
       const data = Object.fromEntries(new FormData(f).entries());
       const id = await nextStudentId();
@@ -833,7 +1087,7 @@ async function renderAdd(view){
     } catch(err){
       submitting = false;
       submitBtn.disabled = false;
-      submitBtn.textContent = 'Save';
+      submitBtn.innerHTML = I.save + '<span>Save</span>';
       toast('Save failed: ' + err.message, { type:'error' });
     }
   });
@@ -846,7 +1100,7 @@ async function renderEdit(view, id){
   const s = await getStudent(id);
   if(!s){
     view.innerHTML = `<div class="card fatal"><h2>Student not found</h2><p>${esc(id)} doesn't exist or was removed.</p>
-      <button class="btn btn-primary" onclick="location.hash='/list'">Back to list</button></div>`;
+      <button class="btn btn-primary" onclick="location.hash='/list'">${I.back}<span>Back to list</span></button></div>`;
     return;
   }
   view.innerHTML = formHTML(s, false);
@@ -874,7 +1128,7 @@ async function renderEdit(view, id){
       body: `<p>${esc(s.studentId)} will be moved to Trash. On next Push, it will be removed from your Google Sheet.</p>`,
       actions: [
         { label:'Cancel', class:'btn' },
-        { label:'Delete', class:'btn-danger', onClick: async () => {
+        { label:'Delete', class:'btn-danger', icon:I.trash, onClick: async () => {
           hideModal();
           try {
             s.deleted = true; s.syncStatus = 'pending'; s.updatedAt = Date.now();
@@ -896,13 +1150,13 @@ async function renderTrash(view){
   view.innerHTML = `
     <div class="card">
       <div class="row spread">
-        <h2>Trash <span class="muted small">(${deleted.length})</span></h2>
-        <button class="btn" onclick="location.hash='/list'">← Back</button>
+        <h2>Trash <span class="muted small" style="font-weight:500">(${deleted.length})</span></h2>
+        <button class="btn" onclick="location.hash='/list'">${I.back}<span>Back</span></button>
       </div>
-      <p class="muted small">Items here will be removed from your Google Sheet on next Push. Restore to keep them.</p>
+      <p class="muted small" style="margin:8px 0 0">Items here will be removed from your Google Sheet on next Push. Restore to keep them.</p>
     </div>
-    <div class="card" style="padding:0">
-      ${deleted.length === 0 ? `<div class="empty">Trash is empty.</div>` : `
+    <div class="card" style="padding:0;overflow:hidden">
+      ${deleted.length === 0 ? `<div class="empty">${I.trash}Trash is empty.</div>` : `
       <div class="table-wrap"><table>
         <thead><tr><th>StudentID</th><th>Grade</th><th>Gender</th><th>Residence</th><th>Transport</th><th>Referral</th><th>Actions</th></tr></thead>
         <tbody>
@@ -912,8 +1166,8 @@ async function renderTrash(view){
               <td>${esc(s.grade)}</td><td>${esc(s.gender)}</td><td>${esc(s.residence)}</td>
               <td>${esc(s.transport)}</td><td>${esc(s.referralSource)}</td>
               <td>
-                <button class="btn" data-restore="${esc(s.studentId)}">Restore</button>
-                ${s.remoteRow == null ? `<button class="btn btn-danger" data-purge="${esc(s.studentId)}">Purge</button>` : ''}
+                <button class="btn" data-restore="${esc(s.studentId)}" style="padding:6px 10px;font-size:12px">Restore</button>
+                ${s.remoteRow == null ? `<button class="btn btn-danger" data-purge="${esc(s.studentId)}" style="padding:6px 10px;font-size:12px">Purge</button>` : ''}
               </td>
             </tr>`).join('')}
         </tbody>
@@ -938,7 +1192,7 @@ async function renderTrash(view){
       body: `<p>${esc(id)} has never been pushed. It will be deleted from this device only.</p>`,
       actions: [
         { label:'Cancel', class:'btn' },
-        { label:'Purge', class:'btn-danger', onClick: async () => {
+        { label:'Purge', class:'btn-danger', icon:I.trash, onClick: async () => {
           hideModal();
           try { await deleteStudent(id); toast('Purged'); render().catch(handleFatal); }
           catch(err){ toast('Purge failed: ' + err.message, { type:'error' }); }
@@ -955,16 +1209,16 @@ async function renderSnapshots(view){
   view.innerHTML = `
     <div class="card">
       <div class="row spread">
-        <h2>Snapshots <span class="muted small">(${snaps.length})</span></h2>
+        <h2>Snapshots <span class="muted small" style="font-weight:500">(${snaps.length})</span></h2>
         <div class="row">
-          <button class="btn" id="btnManual">Take snapshot</button>
-          <button class="btn" onclick="location.hash='/list'">← Back</button>
+          <button class="btn btn-primary" id="btnManual">${I.plus}<span>Take snapshot</span></button>
+          <button class="btn" onclick="location.hash='/list'">${I.back}<span>Back</span></button>
         </div>
       </div>
-      <p class="muted small">Automatic backups are made before each Pull. Only the last 5 are kept.</p>
+      <p class="muted small" style="margin:8px 0 0">Automatic backups are made before each Pull. Only the last 5 are kept.</p>
     </div>
-    <div class="card" style="padding:0">
-      ${snaps.length === 0 ? `<div class="empty">No snapshots yet.</div>` : `
+    <div class="card" style="padding:0;overflow:hidden">
+      ${snaps.length === 0 ? `<div class="empty">${I.history}No snapshots yet.</div>` : `
       <div class="table-wrap"><table>
         <thead><tr><th>When</th><th>Reason</th><th>Records</th><th>Actions</th></tr></thead>
         <tbody>${snaps.map(s=>`
@@ -973,9 +1227,9 @@ async function renderSnapshots(view){
             <td>${esc(s.reason)}</td>
             <td>${s.records.length}</td>
             <td>
-              <button class="btn" data-restore="${s.snapshotId}">Restore</button>
-              <button class="btn" data-export="${s.snapshotId}">Export</button>
-              <button class="btn btn-danger" data-del="${s.snapshotId}">Delete</button>
+              <button class="btn" data-restore="${s.snapshotId}" style="padding:6px 10px;font-size:12px">Restore</button>
+              <button class="btn" data-export="${s.snapshotId}" style="padding:6px 10px;font-size:12px">Export</button>
+              <button class="btn btn-danger" data-del="${s.snapshotId}" style="padding:6px 10px;font-size:12px">Delete</button>
             </td>
           </tr>`).join('')}
         </tbody>
@@ -1044,7 +1298,7 @@ async function renderSettings(view){
     <div class="card">
       <div class="row spread">
         <h2>Settings</h2>
-        <button class="btn" onclick="location.hash='/list'">← Back</button>
+        <button class="btn" onclick="location.hash='/list'">${I.back}<span>Back</span></button>
       </div>
     </div>
 
@@ -1054,11 +1308,11 @@ async function renderSettings(view){
         <input id="inpUrl" placeholder="https://script.google.com/macros/s/.../exec" value="${esc(url)}" autocomplete="off" spellcheck="false">
       </div>
       <div class="row">
-        <button class="btn btn-primary" id="btnTest">Test connection</button>
-        <button class="btn" id="btnSaveUrl">Save URL</button>
-        ${url ? `<button class="btn btn-danger" id="btnDisconnect">Disconnect</button>` : ''}
+        <button class="btn btn-primary" id="btnTest">${I.link}<span>Test connection</span></button>
+        <button class="btn" id="btnSaveUrl">${I.save}<span>Save URL</span></button>
+        ${url ? `<button class="btn btn-danger" id="btnDisconnect">${I.x}<span>Disconnect</span></button>` : ''}
       </div>
-      <div class="kv" style="margin-top:14px">
+      <div class="kv" style="margin-top:16px">
         <div class="k">Last push</div><div>${fmtTime(lastPush)}</div>
         <div class="k">Last pull</div><div>${fmtTime(lastPull)}</div>
         <div class="k">Device ID</div><div><code>${esc(deviceId)}</code></div>
@@ -1067,7 +1321,7 @@ async function renderSettings(view){
 
     <div class="card">
       <h3>Your secret token</h3>
-      <p class="muted small">This is baked into the Apps Script snippet below. Keep it private.</p>
+      <p class="muted small" style="margin:0 0 10px">This is baked into the Apps Script snippet below. Keep it private.</p>
       <input readonly value="${esc(secret)}" onclick="this.select()">
     </div>
 
@@ -1075,31 +1329,31 @@ async function renderSettings(view){
       <h3>Setup guide</h3>
       <details>
         <summary>Step-by-step setup (click to expand)</summary>
-        <ol style="padding-left:20px;line-height:1.8">
+        <ol style="padding-left:20px;line-height:1.9">
           <li>Create a Google Sheet (any name). Add a tab named <b>Students</b>, or leave it blank — the script will create it.</li>
           <li>In the sheet: <b>Extensions → Apps Script</b>.</li>
-          <li>Delete the sample code, paste the snippet below, click 💾 <b>Save</b>.</li>
+          <li>Delete the sample code, paste the snippet below, click Save.</li>
           <li>Click <b>Deploy → New deployment</b>. Type: <b>Web app</b>. Execute as: <b>Me</b>. Who has access: <b>Anyone</b>. Click Deploy.</li>
           <li>Authorize the script when prompted (it's your own script, so accept).</li>
           <li>Copy the <b>Web app URL</b> and paste it above, then click <b>Save URL</b> → <b>Test connection</b>.</li>
           <li>Done. Use <b>Push</b> to send changes to the sheet, <b>Pull</b> to fetch from it.</li>
         </ol>
-        <p class="muted small">⚠️ Your Web App URL is a secret. Anyone with the URL + your secret token can read/write that sheet. Keep both private. If leaked, redeploy or change the secret.</p>
+        <p class="muted small">Your Web App URL is a secret. Anyone with the URL + your secret token can read/write that sheet. Keep both private. If leaked, redeploy or change the secret.</p>
         <p class="muted small">If you edit the snippet later, use <b>Deploy → Manage deployments → Edit → New version</b> to keep the same URL.</p>
       </details>
     </div>
 
     <div class="card">
       <h3>Apps Script snippet</h3>
-      <button class="btn btn-primary" id="btnCopy">Copy to clipboard</button>
+      <button class="btn btn-primary" id="btnCopy">${I.copy}<span>Copy to clipboard</span></button>
       <pre class="snippet" id="snippet">${esc(snippet)}</pre>
     </div>
 
     <div class="card">
       <h3>Local data</h3>
       <div class="row">
-        <button class="btn" id="btnExportAll">Export all data</button>
-        <button class="btn btn-danger" id="btnWipe">Wipe local data</button>
+        <button class="btn" id="btnExportAll">${I.download}<span>Export all data</span></button>
+        <button class="btn btn-danger" id="btnWipe">${I.trash}<span>Wipe local data</span></button>
       </div>
     </div>
   `;
@@ -1118,14 +1372,14 @@ async function renderSettings(view){
     if(!v){ toast('Enter a URL first', { type:'warn' }); return; }
     await setSetting('sheetUrl', v);
     const btn = document.getElementById('btnTest');
-    btn.disabled = true; btn.textContent = 'Testing…';
+    btn.disabled = true; btn.innerHTML = '<span>Testing…</span>';
     try {
       const res = await cloudFetch('ping');
       toast('Connected. ' + (res.rows ?? 0) + ' rows in sheet.', { type:'ok', duration:5000 });
     } catch(e){
       toast('Test failed: ' + (e.message || e), { type:'error', duration:6000 });
     } finally {
-      btn.disabled = false; btn.textContent = 'Test connection';
+      btn.disabled = false; btn.innerHTML = I.link + '<span>Test connection</span>';
     }
   };
   const dis = document.getElementById('btnDisconnect');
@@ -1155,7 +1409,7 @@ async function renderSettings(view){
       body:'<p>This permanently deletes all students from this device. Cloud sheet is not affected. Export first if you need a backup.</p>',
       actions:[
         { label:'Cancel', class:'btn' },
-        { label:'Wipe', class:'btn-danger', onClick: async () => {
+        { label:'Wipe', class:'btn-danger', icon:I.trash, onClick: async () => {
           hideModal();
           try { await clearStudents(); toast('Local data wiped'); go('/list'); }
           catch(err){ toast('Wipe failed: ' + err.message, { type:'error' }); }
@@ -1297,7 +1551,7 @@ async function doPull(currentAll){
     await clearStudents();
     const now = Date.now();
     for(const r of rows){
-      if(!r.studentId) continue; // skip malformed
+      if(!r.studentId) continue;
       await putStudent({
         studentId: String(r.studentId),
         grade: String(r.grade || ''),
@@ -1377,7 +1631,6 @@ async function analyzeImport(rows){
   const out = [];
   for(const raw of rows){
     const r = normalizeRow(raw);
-    // Skip rows that are entirely empty
     const hasAny = Object.values(r).some(v => v !== '');
     if(!hasAny) continue;
     const errors = validateRow(r);
@@ -1426,13 +1679,14 @@ function showImportPreview(rows){
     const cls = r._errors.length ? 'row-bad' : (r._dup ? 'row-dup' : 'row-new');
     const bg = r._errors.length ? '#fef2f2' : (r._dup ? '#fffbeb' : '#f0fdf4');
     const badge = r._errors.length ? 'Invalid' : (r._dup ? 'Duplicate' : 'New');
+    const badgeColor = r._errors.length ? '#dc2626' : (r._dup ? '#d97706' : '#059669');
     return `<tr class="${cls}" style="background:${bg}">
       <td>${i+1}</td>
-      <td>${badge}</td>
+      <td><span style="color:${badgeColor};font-weight:600;font-size:12px">${badge}</span></td>
       <td>${esc(r.studentId) || '<i class="muted">auto</i>'}</td>
       <td>${esc(r.grade)}</td><td>${esc(r.gender)}</td><td>${esc(r.residence)}</td>
       <td>${esc(r.transport)}</td><td>${esc(r.referralSource)}</td>
-      <td>${r._errors.length ? esc(r._errors.join('; ')) : (r._dup ? `<label><input type="checkbox" data-ovr="${i}" ${r._override?'checked':''}> override</label>` : '')}</td>
+      <td>${r._errors.length ? esc(r._errors.join('; ')) : (r._dup ? `<label style="cursor:pointer"><input type="checkbox" data-ovr="${i}" ${r._override?'checked':''}> override</label>` : '')}</td>
     </tr>`;
   }).join('');
 
@@ -1440,20 +1694,20 @@ function showImportPreview(rows){
     title: 'Import preview',
     wide: true,
     body: `
-      <div class="row" style="margin-bottom:10px">
-        <div class="stat"><div class="v">${newCount}</div><div class="l">New</div></div>
-        <div class="stat"><div class="v">${dupCount}</div><div class="l">Duplicates</div></div>
-        <div class="stat"><div class="v">${badCount}</div><div class="l">Invalid</div></div>
+      <div class="row" style="margin-bottom:14px">
+        <div class="stat"><div class="v" style="color:var(--ok)">${newCount}</div><div class="l">New</div></div>
+        <div class="stat"><div class="v" style="color:var(--warn)">${dupCount}</div><div class="l">Duplicates</div></div>
+        <div class="stat"><div class="v" style="color:var(--danger)">${badCount}</div><div class="l">Invalid</div></div>
       </div>
-      <div class="table-wrap" style="max-height:50vh">
+      <div class="table-wrap" style="max-height:50vh;border-radius:10px;border:1px solid var(--border)">
         <table><thead><tr><th>#</th><th>Status</th><th>ID</th><th>Grade</th><th>Gender</th><th>Residence</th><th>Transport</th><th>Referral</th><th>Notes</th></tr></thead>
         <tbody>${rowsHTML}</tbody></table>
       </div>
-      <p class="muted small" style="margin-top:10px">Tick "override" to replace existing records on duplicates. Invalid rows are skipped.</p>
+      <p class="muted small" style="margin-top:12px">Tick "override" to replace existing records on duplicates. Invalid rows are skipped.</p>
     `,
     actions: [
       { label:'Cancel', class:'btn' },
-      { label:'Import valid rows', class:'btn-primary', onClick: async () => {
+      { label:'Import valid rows', class:'btn-primary', icon:I.upload, onClick: async () => {
         const checks = m.querySelectorAll('[data-ovr]');
         checks.forEach(c => { rows[Number(c.dataset.ovr)]._override = c.checked; });
         hideModal();
@@ -1501,9 +1755,9 @@ function doExportMenu(){
     title: 'Export to Excel',
     body: `
       <p>Choose what to export as an <code>.xlsx</code> file.</p>
-      <div class="row" style="flex-direction:column;align-items:stretch">
-        <button class="btn" id="ex1">Students (current view)</button>
-        <button class="btn" id="ex2">All students</button>
+      <div class="row" style="flex-direction:column;align-items:stretch;margin-top:14px">
+        <button class="btn" id="ex1">${I.download}<span>Students (current view)</span></button>
+        <button class="btn" id="ex2">${I.download}<span>All students</span></button>
       </div>
     `,
     actions: [{ label:'Cancel', class:'btn' }]
@@ -1639,19 +1893,19 @@ async function maybeOnboard(){
   if(done) return;
   await setSetting('onboarded', true);
   showModal({
-    title: 'Welcome 👋',
+    title: 'Welcome',
     body: `
-      <p>This app stores student data <b>on your device</b> (offline-first). You can optionally connect your own Google Sheet to sync.</p>
-      <ul style="padding-left:20px">
+      <p style="margin-top:0">This app stores student data <b>on your device</b> (offline-first). You can optionally connect your own Google Sheet to sync.</p>
+      <ul style="padding-left:20px;line-height:1.8">
         <li>Works fully offline — nothing required to start.</li>
         <li>Your data stays on this browser unless you set up a Sheet.</li>
         <li>Import and export Excel files anytime.</li>
       </ul>
-      <p class="muted small">Heads up: since data lives on this device, use <b>Export</b> regularly as a backup.</p>
+      <p class="muted small">Since data lives on this device, use <b>Export</b> regularly as a backup.</p>
     `,
     actions: [
-      { label:'Start using locally', class:'btn btn-primary', onClick: () => hideModal() },
-      { label:'Connect a Sheet', class:'btn', onClick: () => { hideModal(); go('/settings'); } }
+      { label:'Start using locally', class:'btn btn-primary', icon:I.check, onClick: () => hideModal() },
+      { label:'Connect a Sheet', class:'btn', icon:I.cloud, onClick: () => { hideModal(); go('/settings'); } }
     ]
   });
 }
@@ -1664,6 +1918,7 @@ async function maybeOnboard(){
   } catch(e){
     document.getElementById('view').innerHTML = `
       <div class="card fatal">
+        <svg class="ic-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
         <h2>Storage unavailable</h2>
         <p>This app needs IndexedDB to store your data. This can happen in private/incognito mode, or if browser storage is blocked.</p>
         <p class="muted small">Error: ${esc(e.message || e)}</p>
