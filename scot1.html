@@ -1,0 +1,2032 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#4f46e5">
+<title>Student Data Collector</title>
+<link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+<script>
+  (function(){
+    try {
+      var saved = localStorage.getItem('theme');
+      if (saved === 'dark' || (!saved && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.setAttribute('data-theme','dark');
+      }
+    } catch(e){}
+  })();
+</script>
+<style>
+  :root{
+    color-scheme:light;
+    --bg:#f4f6fb;
+    --bg-2:#eef2f8;
+    --card:#ffffff;
+    --hover:#f1f5fb;
+    --text:#0f172a;
+    --muted:#64748b;
+    --border:#e5e9f0;
+    --border-2:#d8dee9;
+    --primary:#4f46e5;
+    --primary-2:#4338ca;
+    --primary-soft:rgba(79,70,229,.10);
+    --danger:#e11d48;
+    --danger-2:#be123c;
+    --warn:#d97706;
+    --ok:#059669;
+    --zero:#cbd5e1;
+    --shadow-sm:0 1px 2px rgba(15,23,42,.04);
+    --shadow:0 1px 3px rgba(15,23,42,.06), 0 1px 2px rgba(15,23,42,.04);
+    --shadow-lg:0 10px 30px rgba(15,23,42,.08), 0 2px 8px rgba(15,23,42,.04);
+    --radius:14px;
+    --radius-sm:10px;
+  }
+  [data-theme="dark"]{
+    color-scheme:dark;
+    --bg:#0b1220;
+    --bg-2:#111a2e;
+    --card:#151f36;
+    --hover:#1c2740;
+    --text:#e6edf7;
+    --muted:#94a3b8;
+    --border:#25324c;
+    --border-2:#2f3d5a;
+    --primary:#7c7cf7;
+    --primary-2:#6565e8;
+    --primary-soft:rgba(124,124,247,.14);
+    --danger:#f87171;
+    --danger-2:#ef4444;
+    --warn:#fbbf24;
+    --ok:#34d399;
+    --zero:#475569;
+    --shadow-sm:0 1px 2px rgba(0,0,0,.35);
+    --shadow:0 1px 3px rgba(0,0,0,.4), 0 1px 2px rgba(0,0,0,.3);
+    --shadow-lg:0 20px 50px rgba(0,0,0,.5), 0 4px 12px rgba(0,0,0,.3);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
+    font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+    transition:background .25s ease, color .25s ease;}
+  button{font:inherit;cursor:pointer}
+  input,select{font:inherit;color:inherit}
+
+  /* ---------- Icon sizing (Boxicons is font-based) ---------- */
+  .ic{font-size:18px;display:inline-flex;align-items:center;justify-content:center;
+    line-height:1;flex-shrink:0;vertical-align:middle}
+  .ic-sm{font-size:15px}
+  .ic-lg{font-size:24px}
+
+  /* ---------- Select base (no background-image, wrapper draws arrow) ---------- */
+  select, form select{
+    padding:10px 36px 10px 13px;
+    border:1px solid var(--border);
+    border-radius:var(--radius-sm);
+    background-color:var(--card);
+    color:var(--text);
+    font-size:13.5px;
+    appearance:none;-webkit-appearance:none;-moz-appearance:none;
+    background-image:none;
+    cursor:pointer;
+    max-width:100%;
+    width:100%;
+    min-height:44px;
+    transition:border-color .15s ease, box-shadow .15s ease, background-color .25s ease;
+    text-overflow:ellipsis;
+  }
+  select:hover{border-color:var(--border-2)}
+  select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 4px var(--primary-soft)}
+  select::-ms-expand{display:none}
+  select:-moz-focusring{color:transparent;text-shadow:0 0 0 var(--text)}
+
+  .sel{position:relative;display:block;max-width:100%;width:100%}
+  .sel select{width:100%}
+  .sel::after{
+    content:"";position:absolute;right:13px;top:50%;
+    width:7px;height:7px;
+    border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);
+    transform:translateY(-70%) rotate(45deg);
+    pointer-events:none;transition:border-color .15s ease;
+  }
+  .sel:hover::after{border-color:var(--text)}
+  .sel:focus-within::after{border-color:var(--primary)}
+
+  /* ---------- APP BAR ---------- */
+  .app-bar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:10px;
+    padding:12px 18px;background:color-mix(in srgb, var(--card) 92%, transparent);
+    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    border-bottom:1px solid var(--border);}
+  .app-title{font-weight:700;font-size:16px;flex:1;display:flex;align-items:center;gap:10px;
+    letter-spacing:-.01em;min-width:0}
+  .app-title .t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .brand-mark{display:inline-flex;align-items:center;justify-content:center;
+    width:32px;height:32px;border-radius:9px;flex-shrink:0;font-size:20px;color:#fff;
+    background:linear-gradient(135deg,var(--primary),#8b5cf6)}
+  [data-theme="dark"] .brand-mark{background:linear-gradient(135deg,#6366f1,#a855f7)}
+  .app-actions{display:flex;gap:6px;align-items:center;flex-shrink:0}
+
+  /* ---------- BUTTONS ---------- */
+  .btn{background:var(--card);border:1px solid var(--border);color:var(--text);
+    padding:8px 14px;border-radius:10px;transition:all .15s ease;
+    white-space:nowrap;font-weight:500;font-size:13.5px;
+    display:inline-flex;align-items:center;gap:7px;line-height:1;
+    box-shadow:var(--shadow-sm);min-height:36px}
+  .btn:hover:not(:disabled){background:var(--hover);border-color:var(--border-2);transform:translateY(-1px)}
+  .btn:active:not(:disabled){transform:translateY(0)}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary-2));
+    border-color:transparent;color:#fff;box-shadow:0 4px 12px rgba(79,70,229,.25)}
+  .btn-primary:hover:not(:disabled){background:linear-gradient(135deg,var(--primary-2),var(--primary-2));
+    box-shadow:0 6px 18px rgba(79,70,229,.35)}
+  [data-theme="dark"] .btn-primary{box-shadow:0 4px 14px rgba(124,124,247,.3)}
+  .btn-danger{background:linear-gradient(135deg,var(--danger),var(--danger-2));
+    border-color:transparent;color:#fff;box-shadow:0 4px 12px rgba(225,29,72,.22)}
+  .btn-danger:hover:not(:disabled){box-shadow:0 6px 18px rgba(225,29,72,.32)}
+  .btn-icon{background:transparent;border:1px solid transparent;padding:8px;
+    border-radius:10px;color:var(--text);line-height:0;
+    display:inline-flex;align-items:center;justify-content:center;
+    transition:all .15s ease;box-shadow:none;min-width:38px;min-height:38px;
+    font-size:20px}
+  .btn-icon:hover{background:var(--hover);color:var(--primary)}
+
+  .badge{background:rgba(255,255,255,.22);color:#fff;border-radius:20px;
+    padding:2px 8px;font-size:11px;font-weight:600;margin-left:2px;line-height:1.4}
+
+  main{padding:20px;max-width:1140px;margin:0 auto}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+    padding:20px;box-shadow:var(--shadow);margin-bottom:16px;
+    transition:background .25s ease, border-color .25s ease}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .row.spread{justify-content:space-between}
+  .muted{color:var(--muted)}
+  .small{font-size:12px}
+  h2{margin:0 0 4px;font-size:17px;font-weight:700;letter-spacing:-.01em}
+  h3{margin:0 0 14px;font-size:11.5px;color:var(--muted);font-weight:700;
+    text-transform:uppercase;letter-spacing:.08em}
+
+  .banner{background:#fffbeb;border:1px solid #fde68a;color:#92400e;
+    padding:12px 16px;border-radius:var(--radius-sm);margin-bottom:16px;font-size:13.5px;
+    display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-weight:500}
+  .banner .ic{font-size:20px}
+  .banner.info{background:#eff6ff;border-color:#bfdbfe;color:#1e40af}
+  .banner.ok{background:#f0fdf4;border-color:#bbf7d0;color:#166534}
+  .banner a{color:inherit;font-weight:600}
+  [data-theme="dark"] .banner{background:rgba(217,119,6,.12);border-color:rgba(217,119,6,.4);color:#fcd34d}
+  [data-theme="dark"] .banner.info{background:rgba(59,130,246,.12);border-color:rgba(59,130,246,.4);color:#93c5fd}
+  [data-theme="dark"] .banner.ok{background:rgba(5,150,105,.12);border-color:rgba(5,150,105,.4);color:#6ee7b7}
+
+  /* ---------- TABLES ---------- */
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--border);white-space:nowrap}
+  th{background:var(--bg-2);font-weight:600;color:var(--muted);font-size:11px;
+    text-transform:uppercase;letter-spacing:.06em}
+  tbody tr:last-child td{border-bottom:none}
+  tr.clickable{cursor:pointer;transition:background .1s ease}
+  tr.clickable:hover{background:var(--hover)}
+  .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+
+  .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;
+    vertical-align:middle;box-shadow:0 0 0 3px transparent}
+  .dot.pending{background:#f59e0b;box-shadow:0 0 0 3px rgba(245,158,11,.18)}
+  .dot.synced{background:var(--ok);box-shadow:0 0 0 3px rgba(5,150,105,.18)}
+  .dot.error{background:var(--danger);box-shadow:0 0 0 3px rgba(225,29,72,.18)}
+
+  /* ---------- FORMS ---------- */
+  form .field{margin-bottom:14px;display:flex;flex-direction:column;gap:6px}
+  form label{font-size:11.5px;font-weight:600;color:var(--muted);
+    text-transform:uppercase;letter-spacing:.06em}
+  form input{
+    padding:10px 13px;border:1px solid var(--border);border-radius:var(--radius-sm);
+    background:var(--card);width:100%;max-width:100%;transition:all .15s ease;
+    font-size:13.5px;min-height:44px;
+  }
+  form input:focus{outline:none;border-color:var(--primary);
+    box-shadow:0 0 0 4px var(--primary-soft)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:560px){.grid2{grid-template-columns:1fr}}
+
+  /* ---------- MODAL ---------- */
+  .modal-back{position:fixed;inset:0;background:rgba(15,23,42,.55);
+    display:flex;align-items:center;justify-content:center;z-index:100;
+    backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+    animation:fadeIn .15s ease;
+    height:100vh;height:100dvh;
+    padding-top:max(16px, env(safe-area-inset-top));
+    padding-bottom:max(16px, env(safe-area-inset-bottom));
+    padding-left:max(16px, env(safe-area-inset-left));
+    padding-right:max(16px, env(safe-area-inset-right));
+  }
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  .modal{background:var(--card);color:var(--text);border-radius:16px;max-width:640px;width:100%;
+    max-height:calc(100vh - 32px);max-height:calc(100dvh - 32px);
+    display:flex;flex-direction:column;
+    box-shadow:var(--shadow-lg);overflow:hidden;
+    animation:popIn .18s cubic-bezier(.2,.9,.3,1.2)}
+  @keyframes popIn{from{transform:scale(.95);opacity:0}to{transform:scale(1);opacity:1}}
+  .modal.wide{max-width:960px}
+  .modal-head{padding:20px 24px 16px;border-bottom:1px solid var(--border);
+    font-weight:700;font-size:16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .modal-body{padding:20px 24px;overflow:auto;
+    -webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+  .modal-foot{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;
+    justify-content:flex-end;flex-wrap:wrap;
+    padding-bottom:max(16px, env(safe-area-inset-bottom))}
+
+  /* ---------- TOASTS ---------- */
+  #toast-root{position:fixed;left:50%;transform:translateX(-50%);
+    z-index:200;display:flex;flex-direction:column;gap:10px;align-items:center;pointer-events:none;
+    bottom:max(22px, env(safe-area-inset-bottom));
+    padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
+  .toast{background:#0f172a;color:#fff;padding:12px 16px;border-radius:12px;
+    font-size:13.5px;box-shadow:0 10px 40px rgba(0,0,0,.35);pointer-events:auto;
+    display:flex;align-items:center;gap:12px;max-width:90vw;font-weight:500;
+    animation:slideUp .2s ease}
+  @keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+  [data-theme="dark"] .toast{background:#1e293b;border:1px solid var(--border-2)}
+  .toast.warn{background:#b45309}
+  .toast.error{background:#b91c1c}
+  .toast.ok{background:#047857}
+  .toast button{background:transparent;border:1px solid rgba(255,255,255,.5);
+    color:#fff;border-radius:8px;padding:5px 10px;font-size:12px;font-weight:600}
+  .toast button:hover{background:rgba(255,255,255,.1)}
+
+  .kv{display:grid;grid-template-columns:150px 1fr;gap:8px 16px;font-size:13.5px}
+  .kv .k{color:var(--muted);font-weight:500}
+  code,pre{font-family:ui-monospace,Menlo,Consolas,monospace}
+  pre.snippet{background:#0b1220;color:#e2e8f0;padding:16px;border-radius:12px;
+    font-size:12px;overflow:auto;max-height:360px;line-height:1.6;white-space:pre;
+    border:1px solid var(--border)}
+
+  .stat{display:flex;flex-direction:column;padding:14px 16px;background:var(--bg-2);
+    border-radius:var(--radius-sm);border:1px solid var(--border);flex:1;min-width:110px;
+    transition:all .15s ease}
+  .stat:hover{transform:translateY(-1px);box-shadow:var(--shadow)}
+  .stat .v{font-size:22px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+  .stat .l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+
+  details{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-sm);
+    padding:14px 18px;margin-top:12px}
+  summary{cursor:pointer;font-weight:600;font-size:13.5px}
+  details[open] summary{margin-bottom:12px}
+
+  .empty{text-align:center;padding:56px 24px;color:var(--muted);font-size:14px}
+  .empty .empty-icon{font-size:48px;opacity:.4;display:block;margin:0 auto 12px;
+    color:var(--muted)}
+
+  /* ---------- TABS ---------- */
+  .tabs{display:flex;gap:6px;background:var(--card);border:1px solid var(--border);
+    border-radius:12px;padding:5px;margin-bottom:16px;box-shadow:var(--shadow);
+    max-width:420px}
+  .tab{flex:1;text-align:center;padding:9px 16px;border-radius:9px;text-decoration:none;
+    color:var(--muted);font-weight:600;font-size:13px;transition:all .15s ease;
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:36px}
+  .tab:hover{background:var(--hover);color:var(--text)}
+  .tab.active{background:linear-gradient(135deg,var(--primary),var(--primary-2));color:#fff;
+    box-shadow:0 4px 12px rgba(79,70,229,.25)}
+  [data-theme="dark"] .tab.active{box-shadow:0 4px 14px rgba(124,124,247,.3)}
+  .tab .ic{font-size:18px}
+
+  /* ---------- SUMMARY BARS ---------- */
+  .bar-row{display:grid;grid-template-columns:170px 1fr 120px;gap:12px;align-items:center;
+    padding:7px 0;font-size:13.5px}
+  .bar-label{color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}
+  .bar-track{background:var(--bg-2);border-radius:6px;height:20px;overflow:hidden;
+    position:relative}
+  .bar-fill{height:100%;background:linear-gradient(90deg,#818cf8,#4f46e5);
+    border-radius:6px;transition:width .35s cubic-bezier(.2,.9,.3,1);
+    box-shadow:inset 0 -8px 12px -8px rgba(0,0,0,.15)}
+  [data-theme="dark"] .bar-fill{background:linear-gradient(90deg,#818cf8,#6366f1)}
+  .bar-value{text-align:right;font-variant-numeric:tabular-nums;color:var(--text);
+    font-weight:600;font-size:13px}
+  .bar-value .muted{font-weight:400}
+  @media(max-width:560px){
+    .bar-row{grid-template-columns:110px 1fr 90px;font-size:12.5px;gap:8px}
+  }
+
+  /* ---------- CROSS-TABS ---------- */
+  .ct-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:6px;
+    border-radius:var(--radius-sm);border:1px solid var(--border)}
+  .ct-table{width:100%;border-collapse:collapse;font-size:13px}
+  .ct-table th,.ct-table td{padding:9px 12px;text-align:right;
+    border-bottom:1px solid var(--border);white-space:nowrap;
+    font-variant-numeric:tabular-nums}
+  .ct-table tr:last-child td{border-bottom:none}
+  .ct-table th:first-child,.ct-table td:first-child{text-align:left;font-weight:600;
+    position:sticky;left:0;background:var(--card);z-index:1;
+    box-shadow:1px 0 0 var(--border)}
+  .ct-table thead th{background:var(--bg-2);color:var(--muted);font-size:11px;
+    text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+  .ct-table thead th:first-child{background:var(--bg-2)}
+  .ct-table tbody tr:hover td{background:var(--hover)}
+  .ct-table tbody tr:hover td:first-child{background:var(--hover)}
+  .ct-table .total-col{background:var(--bg-2);font-weight:700}
+  .ct-table .total-row td{background:var(--bg-2);font-weight:700}
+  .ct-table .zero{color:var(--zero)}
+
+  [data-theme="dark"] .row-new{background:rgba(52,211,153,.08) !important}
+  [data-theme="dark"] .row-dup{background:rgba(251,191,36,.1) !important}
+  [data-theme="dark"] .row-bad{background:rgba(248,113,113,.1) !important}
+
+  /* ---------- FATAL ---------- */
+  .fatal{padding:56px 28px;text-align:center;max-width:540px;margin:80px auto}
+  .fatal .ic-lg{font-size:52px;color:var(--danger);margin-bottom:16px;
+    display:inline-flex}
+  .fatal h2{font-size:22px;margin-bottom:12px;letter-spacing:-.02em}
+  .fatal p{color:var(--muted);margin-bottom:20px;line-height:1.7}
+
+  /* ---------- SEARCH ---------- */
+  .search-wrap{position:relative;flex:1;min-width:160px}
+  .search-wrap .bx-search{position:absolute;left:12px;top:50%;transform:translateY(-50%);
+    font-size:17px;color:var(--muted);pointer-events:none;z-index:1;line-height:1}
+  .search-wrap input{
+    padding:8px 12px 8px 38px !important;
+    width:100% !important;
+    border:1px solid var(--border);
+    border-radius:10px;
+    background:var(--card);
+    color:var(--text);
+    font-size:13.5px;
+    min-height:38px;
+  }
+  .search-wrap input:focus{outline:none;border-color:var(--primary);
+    box-shadow:0 0 0 4px var(--primary-soft)}
+
+  @media(max-width:560px){
+    main{padding:14px}
+    .card{padding:16px}
+    .app-title span.t{display:none}
+    .btn{padding:8px 12px}
+    .bar-row{grid-template-columns:100px 1fr 80px}
+  }
+
+  @media print {
+    .app-bar, .tabs, #toast-root, .modal-back, .no-print { display: none !important; }
+    body, main { background: #fff !important; color: #000 !important; }
+    .card { box-shadow: none; border: 1px solid #ddd; break-inside: avoid; page-break-inside: avoid; }
+    .bar-fill { background: #4f46e5 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .stat, .ct-table thead th, .ct-table .total-col, .ct-table .total-row td { background: #f5f5f5 !important; }
+  }
+
+  /* ============ iOS / mobile hardening ============ */
+  button, a, .btn, .tab, .btn-icon, select, input {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  @media (max-width: 768px) {
+    input, select, textarea,
+    form input, form select,
+    .search-wrap input {
+      font-size: 16px !important;
+    }
+  }
+  @media (max-width: 768px) {
+    .modal-back {
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      background: rgba(15, 23, 42, .72);
+    }
+    [data-theme="dark"] .modal-back {
+      background: rgba(2, 6, 23, .82);
+    }
+  }
+  body.modal-open {
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+  }
+  .app-bar {
+    padding-top: max(12px, env(safe-area-inset-top));
+    padding-left: max(18px, env(safe-area-inset-left));
+    padding-right: max(18px, env(safe-area-inset-right));
+  }
+  .card, .table-wrap, .ct-wrap, .modal {
+    -webkit-mask-image: -webkit-radial-gradient(white, black);
+  }
+  select, form select {
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    background-image: none !important;
+    border-image: none !important;
+  }
+</style>
+</head>
+<body>
+
+<header class="app-bar">
+  <div class="app-title">
+    <span class="brand-mark"><i class='bx bxs-graduation'></i></span>
+    <span class="t">Student Data Collector</span>
+  </div>
+  <div class="app-actions">
+    <button id="btnPush" class="btn btn-primary" title="Push local changes">
+      <i class='bx bx-up-arrow-alt ic'></i>
+      <span>Push</span><span class="badge" id="pushBadge" hidden>0</span>
+    </button>
+    <button id="btnPull" class="btn" title="Pull from Google Sheet">
+      <i class='bx bx-down-arrow-alt ic'></i>
+      <span>Pull</span>
+    </button>
+    <button id="btnTheme" class="btn-icon" title="Toggle theme"><i class='bx bx-moon'></i></button>
+    <button id="btnSettings" class="btn-icon" title="Settings"><i class='bx bx-cog'></i></button>
+  </div>
+</header>
+
+<main id="view"></main>
+<div id="modal-root"></div>
+<div id="toast-root"></div>
+
+<script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+<script>
+/* ==================== CONSTANTS ==================== */
+const GRADES = ['Nursery','KG1','KG2','Grade 1','Grade 2','Grade 3','Grade 4','Grade 5','Grade 6','JHS1','JHS2','JHS3','SHS1','SHS2','SHS3'];
+const GENDERS = ['Male','Female'];
+const RESIDENCES = ['Day','Boarder'];
+const TRANSPORTS = ['Bus','Parents','Guardian','None'];
+const REFERRALS = ['Referral','TikTok','Facebook','Instagram','YouTube','WhatsApp','Banner Ad','Radio','TV','Flyer','Church/Mosque','Family','Friend','Walk-in','Other'];
+const HEADERS = ['StudentID','Grade','Gender','Residence','Transport','ReferralSource'];
+
+/* ==================== ICONS (Boxicons) ==================== */
+const I = {
+  moon: `<i class='bx bx-moon ic'></i>`,
+  sun: `<i class='bx bx-sun ic'></i>`,
+  list: `<i class='bx bx-list-ul'></i>`,
+  chart: `<i class='bx bx-bar-chart-alt-2'></i>`,
+  plus: `<i class='bx bx-plus ic'></i>`,
+  upload: `<i class='bx bx-upload ic'></i>`,
+  download: `<i class='bx bx-download ic'></i>`,
+  trash: `<i class='bx bx-trash ic'></i>`,
+  history: `<i class='bx bx-history ic'></i>`,
+  warning: `<i class='bx bx-error-circle ic'></i>`,
+  cloud: `<i class='bx bx-cloud ic'></i>`,
+  copy: `<i class='bx bx-copy ic'></i>`,
+  print: `<i class='bx bx-printer ic'></i>`,
+  check: `<i class='bx bx-check ic'></i>`,
+  save: `<i class='bx bx-save ic'></i>`,
+  x: `<i class='bx bx-x ic'></i>`,
+  back: `<i class='bx bx-arrow-back ic'></i>`,
+  inbox: `<i class='bx bx-inbox empty-icon'></i>`,
+  link: `<i class='bx bx-link-alt ic'></i>`,
+};
+
+/* ==================== THEME ==================== */
+function currentTheme(){ return document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light'; }
+function applyTheme(theme){
+  if(theme === 'dark') document.documentElement.setAttribute('data-theme','dark');
+  else document.documentElement.removeAttribute('data-theme');
+  try { localStorage.setItem('theme', theme); } catch(e){}
+  const btn = document.getElementById('btnTheme');
+  if(btn){
+    btn.innerHTML = theme === 'dark' ? I.sun : I.moon;
+    btn.title = theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme';
+  }
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if(meta) meta.setAttribute('content', theme === 'dark' ? '#0b1220' : '#4f46e5');
+}
+function toggleTheme(){ applyTheme(currentTheme() === 'dark' ? 'light' : 'dark'); }
+
+/* ==================== INDEXEDDB ==================== */
+const DB_NAME = 'studentapp', DB_VERSION = 1;
+let db;
+
+function openDB(){
+  return new Promise((res, rej) => {
+    if(!window.indexedDB){ rej(new Error('IndexedDB not available')); return; }
+    let r;
+    try { r = indexedDB.open(DB_NAME, DB_VERSION); }
+    catch(e){ rej(e); return; }
+    r.onupgradeneeded = e => {
+      const d = e.target.result;
+      if(!d.objectStoreNames.contains('students')){
+        const s = d.createObjectStore('students', { keyPath:'studentId' });
+        s.createIndex('by_syncStatus','syncStatus');
+        s.createIndex('by_deleted','deleted');
+        s.createIndex('by_grade','grade');
+        s.createIndex('by_referralSource','referralSource');
+      }
+      if(!d.objectStoreNames.contains('students_backup')){
+        d.createObjectStore('students_backup', { keyPath:'snapshotId', autoIncrement:true });
+      }
+      if(!d.objectStoreNames.contains('settings')){
+        d.createObjectStore('settings', { keyPath:'key' });
+      }
+    };
+    r.onsuccess = e => { db = e.target.result; res(db); };
+    r.onerror = e => rej(e.target.error || new Error('DB open failed'));
+    r.onblocked = () => rej(new Error('Database blocked — close other tabs'));
+  });
+}
+function store(name, mode='readonly'){ return db.transaction(name, mode).objectStore(name); }
+function req(r){ return new Promise((res, rej) => { r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); }
+
+async function getAllStudents(){ return req(store('students').getAll()); }
+async function getStudent(id){ return req(store('students').get(id)); }
+async function putStudent(s){ return req(store('students','readwrite').put(s)); }
+async function deleteStudent(id){ return req(store('students','readwrite').delete(id)); }
+async function clearStudents(){ return req(store('students','readwrite').clear()); }
+async function getAllSnapshots(){ return req(store('students_backup').getAll()); }
+async function getSnapshot(id){ return req(store('students_backup').get(id)); }
+async function addSnapshot(reason, records){
+  return req(store('students_backup','readwrite').add({ takenAt: Date.now(), reason, records }));
+}
+async function deleteSnapshot(id){ return req(store('students_backup','readwrite').delete(id)); }
+
+async function getSetting(key, def){
+  try {
+    const r = await req(store('settings').get(key));
+    return r ? r.value : def;
+  } catch(e){ return def; }
+}
+async function setSetting(key, value){
+  return req(store('settings','readwrite').put({ key, value }));
+}
+async function allSettings(){
+  const arr = await req(store('settings').getAll());
+  return Object.fromEntries(arr.map(r => [r.key, r.value]));
+}
+
+/* ==================== UTILITIES ==================== */
+function uuid(){
+  if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = Math.random()*16|0; return (c==='x'?r:(r&0x3|0x8)).toString(16);
+  });
+}
+function esc(s){ return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function pad4(n){ return String(n).padStart(4,'0'); }
+function fmtTime(ms){ return ms ? new Date(ms).toLocaleString() : '—'; }
+function chunk(arr, n){ const out=[]; for(let i=0;i<arr.length;i+=n) out.push(arr.slice(i,i+n)); return out; }
+function download(name, blob){ const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000); }
+function today(){ return new Date().toISOString().slice(0,10); }
+
+let idLock = Promise.resolve();
+function nextStudentId(){
+  idLock = idLock.then(async () => {
+    let counter = await getSetting('idCounter', 0);
+    let id;
+    let guard = 0;
+    do {
+      counter++;
+      id = 'STU-' + pad4(counter);
+      guard++;
+      if(guard > 100000) throw new Error('ID generation exhausted');
+      const exists = await getStudent(id);
+      if (!exists) break;
+    } while(true);
+    await setSetting('idCounter', counter);
+    return id;
+  });
+  return idLock;
+}
+async function syncCounterFromStudents(){
+  const all = await getAllStudents();
+  let max = 0;
+  for(const s of all){
+    const m = /^STU-(\d+)$/.exec(s.studentId || '');
+    if(m) max = Math.max(max, parseInt(m[1],10));
+  }
+  const cur = await getSetting('idCounter', 0);
+  if(max > cur) await setSetting('idCounter', max);
+}
+async function pruneSnapshots(keep=5){
+  const all = await getAllSnapshots();
+  all.sort((a,b)=>b.takenAt - a.takenAt);
+  for(let i=keep;i<all.length;i++) await deleteSnapshot(all[i].snapshotId);
+}
+
+/* ==================== TOAST / MODAL ==================== */
+function toast(msg, opts={}){
+  const { type='', duration=3500, action } = opts;
+  const root = document.getElementById('toast-root');
+  while(root.children.length >= 3) root.firstChild.remove();
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.innerHTML = `<span>${esc(msg)}</span>`;
+  if(action){
+    const b = document.createElement('button');
+    b.textContent = action.label;
+    b.onclick = () => { try { action.onClick(); } finally { el.remove(); } };
+    el.appendChild(b);
+  }
+  root.appendChild(el);
+  if(duration) setTimeout(() => el.remove(), duration);
+  return el;
+}
+
+function showModal({ title, body, actions = [], wide = false }){
+  hideModal();
+  document.body.classList.add('modal-open');
+  const root = document.getElementById('modal-root');
+  const back = document.createElement('div');
+  back.className = 'modal-back';
+  back.onclick = e => { if(e.target === back) hideModal(); };
+  const m = document.createElement('div');
+  m.className = 'modal' + (wide ? ' wide' : '');
+  m.innerHTML = `
+    <div class="modal-head">${esc(title)}</div>
+    <div class="modal-body">${body}</div>
+    <div class="modal-foot"></div>
+  `;
+  const foot = m.querySelector('.modal-foot');
+  actions.forEach(a => {
+    const b = document.createElement('button');
+    b.className = a.class || 'btn';
+    b.innerHTML = a.icon ? a.icon + '<span>' + esc(a.label) + '</span>' : esc(a.label);
+    b.onclick = () => a.onClick ? a.onClick() : hideModal();
+    foot.appendChild(b);
+  });
+  back.appendChild(m);
+  root.appendChild(back);
+  document.addEventListener('keydown', escClose);
+  return m;
+}
+function escClose(e){ if(e.key === 'Escape') hideModal(); }
+function hideModal(){
+  document.getElementById('modal-root').innerHTML = '';
+  document.body.classList.remove('modal-open');
+  document.removeEventListener('keydown', escClose);
+}
+
+/* ==================== STATE ==================== */
+const state = {
+  students: [],
+  settings: {},
+  filters: { grade:'', gender:'', residence:'', referral:'', q:'' },
+  busy: false,
+};
+
+async function loadState(){
+  state.students = (await getAllStudents()).filter(s => !s.deleted)
+    .sort((a,b) => (a.studentId < b.studentId ? -1 : 1));
+  state.settings = await allSettings();
+}
+
+function currentFiltered(){
+  const f = state.filters;
+  let list = state.students;
+  if(f.grade)    list = list.filter(s => s.grade === f.grade);
+  if(f.gender)   list = list.filter(s => s.gender === f.gender);
+  if(f.residence)list = list.filter(s => s.residence === f.residence);
+  if(f.referral) list = list.filter(s => s.referralSource === f.referral);
+  if(f.q){
+    const q = f.q.trim().toLowerCase();
+    if(q){
+      const qTokens = q.split(/\s+/).filter(Boolean);
+      list = list.filter(s => {
+        const fields = [s.studentId, s.grade, s.gender, s.residence, s.transport, s.referralSource]
+          .map(v => String(v ?? '').toLowerCase());
+        const allTokens = fields.join(' ').split(/[\s,\/-]+/).filter(Boolean);
+        return qTokens.every(qt => allTokens.some(t => t.startsWith(qt)));
+      });
+    }
+  }
+  return list;
+}
+
+/* ==================== ROUTER ==================== */
+function currentRoute(){
+  const h = (location.hash || '').replace(/^#/, '') || '/list';
+  const parts = h.split('/').filter(Boolean);
+  let param = parts[1] || '';
+  try { param = decodeURIComponent(param); } catch(e){}
+  return { name: parts[0] || 'list', param };
+}
+function go(hash){ if(location.hash === hash) render(); else location.hash = hash; }
+window.addEventListener('hashchange', () => { render().catch(handleFatal); });
+
+async function render(){
+  const r = currentRoute();
+  const view = document.getElementById('view');
+  if(r.name === 'add')      return renderAdd(view);
+  if(r.name === 'edit')     return renderEdit(view, r.param);
+  if(r.name === 'trash')    return renderTrash(view);
+  if(r.name === 'snapshots')return renderSnapshots(view);
+  if(r.name === 'settings') return renderSettings(view);
+  if(r.name === 'summary')  return renderSummary(view);
+  return renderList(view);
+}
+
+function handleFatal(e){
+  console.error(e);
+  document.getElementById('view').innerHTML = `
+    <div class="card fatal">
+      <i class='bx bx-error-circle ic-lg'></i>
+      <h2>Something went wrong</h2>
+      <p>${esc(e && e.message ? e.message : 'Unknown error')}</p>
+      <button class="btn btn-primary" onclick="location.reload()">Reload</button>
+    </div>
+  `;
+}
+
+/* ==================== HEADER ==================== */
+async function updateHeader(){
+  const pending = state.students.filter(s => s.syncStatus === 'pending').length;
+  const badge = document.getElementById('pushBadge');
+  if(pending > 0){ badge.textContent = pending; badge.hidden = false; }
+  else { badge.hidden = true; }
+
+  const cloud = !!(state.settings.sheetUrl || '').trim();
+  const pushBtn = document.getElementById('btnPush');
+  const pullBtn = document.getElementById('btnPull');
+  pushBtn.disabled = !cloud || state.busy;
+  pullBtn.disabled = !cloud || state.busy;
+  pushBtn.title = cloud ? 'Push local changes to your Google Sheet' : 'Connect a Google Sheet in Settings to enable sync';
+  pullBtn.title = cloud ? 'Pull from your Google Sheet' : 'Connect a Google Sheet in Settings to enable sync';
+}
+
+document.getElementById('btnSettings').onclick = () => go('/settings');
+document.getElementById('btnTheme').onclick = toggleTheme;
+document.getElementById('btnPush').onclick = push;
+document.getElementById('btnPull').onclick = pull;
+
+/* ==================== SHARED UI ==================== */
+function tabsHTML(active){
+  return `<div class="tabs no-print">
+    <a class="tab ${active==='list'?'active':''}" href="#/list">${I.list}<span>Students</span></a>
+    <a class="tab ${active==='summary'?'active':''}" href="#/summary">${I.chart}<span>Summary</span></a>
+  </div>`;
+}
+function filterBarHTML(){
+  const f = state.filters;
+  return `
+    <div class="row no-print" style="margin-top:14px">
+      <span class="sel" style="flex:0 1 150px;min-width:120px">
+        <select id="fGrade"><option value="">All grades</option>${GRADES.map(g=>`<option ${f.grade===g?'selected':''}>${g}</option>`).join('')}</select>
+      </span>
+      <span class="sel" style="flex:0 1 140px;min-width:110px">
+        <select id="fGender"><option value="">All genders</option>${GENDERS.map(g=>`<option ${f.gender===g?'selected':''}>${g}</option>`).join('')}</select>
+      </span>
+      <span class="sel" style="flex:0 1 140px;min-width:110px">
+        <select id="fResidence"><option value="">All residence</option>${RESIDENCES.map(g=>`<option ${f.residence===g?'selected':''}>${g}</option>`).join('')}</select>
+      </span>
+      <span class="sel" style="flex:0 1 160px;min-width:120px">
+        <select id="fReferral"><option value="">All referrals</option>${REFERRALS.map(g=>`<option ${f.referral===g?'selected':''}>${g}</option>`).join('')}</select>
+      </span>
+      <div class="search-wrap">
+        <i class='bx bx-search'></i>
+        <input id="fQ" placeholder="Search students…"
+               title="Searches from the start of each word: StudentID, Grade, Gender, Residence, Transport, Referral"
+               value="${esc(f.q)}"
+               autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
+      </div>
+      <button class="btn" id="fClear">Clear</button>
+    </div>
+  `;
+}
+function bindFilterBar(view, onChange){
+  const f = state.filters;
+  const fire = () => (onChange ? onChange() : render().catch(handleFatal));
+
+  view.querySelector('#fGrade').onchange    = e => { f.grade = e.target.value;    fire(); };
+  view.querySelector('#fGender').onchange   = e => { f.gender = e.target.value;   fire(); };
+  view.querySelector('#fResidence').onchange= e => { f.residence = e.target.value;fire(); };
+  view.querySelector('#fReferral').onchange = e => { f.referral = e.target.value; fire(); };
+
+  const input = view.querySelector('#fQ');
+  let timer;
+  input.oninput = e => {
+    const v = e.target.value;
+    clearTimeout(timer);
+    timer = setTimeout(() => { f.q = v; fire(); }, 180);
+  };
+  input.onkeydown = e => {
+    if(e.key === 'Enter'){ clearTimeout(timer); f.q = input.value; fire(); }
+  };
+
+  view.querySelector('#fClear').onclick = () => {
+    clearTimeout(timer);
+    state.filters = { grade:'',gender:'',residence:'',referral:'',q:'' };
+    view.querySelector('#fGrade').value = '';
+    view.querySelector('#fGender').value = '';
+    view.querySelector('#fResidence').value = '';
+    view.querySelector('#fReferral').value = '';
+    input.value = '';
+    fire();
+  };
+}
+
+/* ==================== LIST VIEW ==================== */
+async function renderList(view){
+  await loadState();
+  const cloud = !!(state.settings.sheetUrl || '').trim();
+  const banner = cloud
+    ? `<div class="banner ok no-print">${I.cloud}<span>Connected to your Google Sheet. Local data saves automatically; use Push to send changes, Pull to fetch.</span></div>`
+    : `<div class="banner no-print">${I.warning}<span>Running offline. Data is saved on this device only. <a href="#/settings">Connect a Sheet</a> to sync.</span></div>`;
+
+  view.innerHTML = `
+    ${tabsHTML('list')}
+    ${banner}
+    <div class="card">
+      <div class="row spread" style="margin-bottom:0">
+        <h2>Students <span class="muted small" id="listCount" style="font-weight:500"></span></h2>
+        <div class="row no-print">
+          <button class="btn btn-primary" id="btnAdd">${I.plus}<span>Add</span></button>
+          <button class="btn" id="btnImport">${I.upload}<span>Import</span></button>
+          <button class="btn" id="btnExport">${I.download}<span>Export</span></button>
+          <button class="btn" id="btnTrash">${I.trash}<span>Trash</span></button>
+          <button class="btn" id="btnSnapshots">${I.history}<span>Snapshots</span></button>
+        </div>
+      </div>
+      ${filterBarHTML()}
+    </div>
+    <div class="card" id="listTableCard" style="padding:0;overflow:hidden"></div>
+  `;
+
+  document.getElementById('btnAdd').onclick = () => go('/add');
+  document.getElementById('btnImport').onclick = doImportPick;
+  document.getElementById('btnExport').onclick = doExportMenu;
+  document.getElementById('btnTrash').onclick = () => go('/trash');
+  document.getElementById('btnSnapshots').onclick = () => go('/snapshots');
+
+  bindFilterBar(view, updateListTable);
+  updateListTable();
+  await updateHeader();
+}
+
+function updateListTable(){
+  const list = currentFiltered();
+  const count = document.getElementById('listCount');
+  if(count) count.textContent = `(${list.length})`;
+
+  const card = document.getElementById('listTableCard');
+  if(!card) return;
+
+  if(list.length === 0){
+    const msg = state.students.length === 0
+      ? 'No students yet. Tap <b>Add</b> to begin.'
+      : 'No students match the current filters.';
+    card.innerHTML = `<div class="empty">${I.inbox}<div>${msg}</div></div>`;
+    return;
+  }
+
+  card.innerHTML = `
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th></th><th>StudentID</th><th>Grade</th><th>Gender</th><th>Residence</th><th>Transport</th><th>Referral</th>
+        </tr></thead>
+        <tbody>
+          ${list.map(s => `
+            <tr class="clickable" data-id="${esc(s.studentId)}">
+              <td><span class="dot ${esc(s.syncStatus||'pending')}" title="${esc(s.syncStatus||'pending')}"></span></td>
+              <td><b>${esc(s.studentId)}</b></td>
+              <td>${esc(s.grade)}</td>
+              <td>${esc(s.gender)}</td>
+              <td>${esc(s.residence)}</td>
+              <td>${esc(s.transport)}</td>
+              <td>${esc(s.referralSource)}</td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+  card.querySelectorAll('tr.clickable').forEach(tr => tr.onclick = () => go('/edit/' + encodeURIComponent(tr.dataset.id)));
+}
+
+/* ==================== SUMMARY VIEW ==================== */
+function countBy(list, field, values){
+  const out = {};
+  for(const v of values) out[v] = 0;
+  for(const s of list){
+    if(out[s[field]] !== undefined) out[s[field]]++;
+  }
+  return out;
+}
+function crossTab(list, rowField, colField, rowValues, colValues){
+  const m = {};
+  for(const r of rowValues){
+    m[r] = { _total: 0 };
+    for(const c of colValues) m[r][c] = 0;
+  }
+  for(const s of list){
+    const r = s[rowField], c = s[colField];
+    if(m[r] && m[r][c] !== undefined){ m[r][c]++; m[r]._total++; }
+  }
+  return m;
+}
+function barCard(title, counts, total){
+  const max = Math.max(1, ...Object.values(counts));
+  const rows = Object.entries(counts).map(([k,v]) => {
+    const pct = total ? (v/total*100).toFixed(1) : '0.0';
+    const w = (v/max*100).toFixed(1);
+    return `<div class="bar-row">
+      <div class="bar-label" title="${esc(k)}">${esc(k)}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${w}%"></div></div>
+      <div class="bar-value">${v} <span class="muted small">(${pct}%)</span></div>
+    </div>`;
+  }).join('');
+  return `<div class="card"><h3>${esc(title)}</h3>${rows}</div>`;
+}
+function ctCard(title, matrix, rowKeys, colKeys, rowLabel){
+  const grandTotal = Object.values(matrix).reduce((a, r) => a + r._total, 0);
+  const colTotals = {};
+  for(const c of colKeys){
+    colTotals[c] = rowKeys.reduce((a, r) => a + (matrix[r][c] || 0), 0);
+  }
+  const header = `<tr><th>${esc(rowLabel)}</th>${colKeys.map(c=>`<th>${esc(c)}</th>`).join('')}<th>Total</th></tr>`;
+  const body = rowKeys.map(r => {
+    const row = matrix[r];
+    const cells = colKeys.map(c => {
+      const v = row[c];
+      return `<td class="${v===0?'zero':''}">${v}</td>`;
+    }).join('');
+    return `<tr><td>${esc(r)}</td>${cells}<td class="total-col">${row._total}</td></tr>`;
+  }).join('');
+  const footer = `<tr class="total-row"><td>Total</td>${colKeys.map(c=>`<td>${colTotals[c]}</td>`).join('')}<td>${grandTotal}</td></tr>`;
+
+  return `<div class="card">
+    <h3>${esc(title)}</h3>
+    <div class="ct-wrap">
+      <table class="ct-table">
+        <thead>${header}</thead>
+        <tbody>${body}${footer}</tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+async function renderSummary(view){
+  await loadState();
+
+  view.innerHTML = `
+    ${tabsHTML('summary')}
+    <div id="summaryBanner"></div>
+    <div class="card">
+      <div class="row spread">
+        <h2>Summary</h2>
+        <div class="row no-print">
+          <button class="btn" id="btnExportSummary">${I.download}<span>Export</span></button>
+          <button class="btn" id="btnPrint">${I.print}<span>Print</span></button>
+        </div>
+      </div>
+      <div class="row" id="summaryStats" style="margin-top:14px"></div>
+      ${filterBarHTML()}
+    </div>
+    <div id="summaryBody"></div>
+  `;
+
+  bindFilterBar(view, updateSummary);
+
+  document.getElementById('btnExportSummary').onclick = () => {
+    if(typeof XLSX === 'undefined'){ toast('Excel library not loaded — check internet', { type:'error' }); return; }
+    const list = currentFiltered();
+    if(list.length === 0){ toast('Nothing to export', { type:'warn' }); return; }
+    exportSummary(list, computeSummaryData(list));
+  };
+  document.getElementById('btnPrint').onclick = () => window.print();
+
+  updateSummary();
+  await updateHeader();
+}
+
+function computeSummaryData(list){
+  const gradeCounts     = countBy(list, 'grade', GRADES);
+  const genderCounts    = countBy(list, 'gender', GENDERS);
+  const residenceCounts = countBy(list, 'residence', RESIDENCES);
+  const transportCounts = countBy(list, 'transport', TRANSPORTS);
+  const referralCounts  = countBy(list, 'referralSource', REFERRALS);
+  const ctGradeGender    = crossTab(list, 'grade', 'gender', GRADES, GENDERS);
+  const ctReferralGender = crossTab(list, 'referralSource', 'gender', REFERRALS, GENDERS);
+  const ctGradeResidence = crossTab(list, 'grade', 'residence', GRADES, RESIDENCES);
+  const ctReferralResidence = crossTab(list, 'referralSource', 'residence', REFERRALS, RESIDENCES);
+  return {
+    gradeCounts, genderCounts, residenceCounts, transportCounts, referralCounts,
+    ctGradeGender, ctReferralGender, ctGradeResidence, ctReferralResidence,
+  };
+}
+
+function updateSummary(){
+  const list = currentFiltered();
+  const total = list.length;
+  const data = computeSummaryData(list);
+
+  const filtersActive = Object.values(state.filters).some(v => v);
+  const bannerHost = document.getElementById('summaryBanner');
+  if(bannerHost){
+    if(total === 0 && filtersActive){
+      bannerHost.innerHTML = `<div class="banner info no-print">${I.warning}<span>No students match the current filters.</span><button class="btn" id="sumClear" style="padding:5px 10px;font-size:12px">Clear filters</button></div>`;
+      const clr = document.getElementById('sumClear');
+      if(clr) clr.onclick = () => {
+        state.filters = { grade:'',gender:'',residence:'',referral:'',q:'' };
+        render().catch(handleFatal);
+      };
+    } else if(filtersActive){
+      bannerHost.innerHTML = `<div class="banner info no-print">${I.chart}<span>Showing summaries for <b>${total}</b> filtered student${total===1?'':'s'}.</span></div>`;
+    } else {
+      bannerHost.innerHTML = '';
+    }
+  }
+
+  const statsHost = document.getElementById('summaryStats');
+  if(statsHost){
+    const dayCount = data.residenceCounts['Day'] || 0;
+    const boarderCount = data.residenceCounts['Boarder'] || 0;
+    const maleCount = data.genderCounts['Male'] || 0;
+    const femaleCount = data.genderCounts['Female'] || 0;
+    statsHost.innerHTML = `
+      <div class="stat"><div class="v">${total}</div><div class="l">Total</div></div>
+      <div class="stat"><div class="v">${dayCount}</div><div class="l">Day</div></div>
+      <div class="stat"><div class="v">${boarderCount}</div><div class="l">Boarder</div></div>
+      <div class="stat"><div class="v">${maleCount}</div><div class="l">Male</div></div>
+      <div class="stat"><div class="v">${femaleCount}</div><div class="l">Female</div></div>
+    `;
+  }
+
+  const bodyHost = document.getElementById('summaryBody');
+  if(!bodyHost) return;
+  bodyHost.innerHTML = `
+    ${barCard('By Grade', data.gradeCounts, total)}
+    ${barCard('By Gender', data.genderCounts, total)}
+    ${barCard('By Residence', data.residenceCounts, total)}
+    ${barCard('By Transport', data.transportCounts, total)}
+    ${barCard('By Referral Source', data.referralCounts, total)}
+    ${ctCard('Grade × Gender', data.ctGradeGender, GRADES, GENDERS, 'Grade')}
+    ${ctCard('Referral Source × Gender', data.ctReferralGender, REFERRALS, GENDERS, 'Referral')}
+    ${ctCard('Grade × Residence', data.ctGradeResidence, GRADES, RESIDENCES, 'Grade')}
+    ${ctCard('Referral Source × Residence', data.ctReferralResidence, REFERRALS, RESIDENCES, 'Referral')}
+  `;
+}
+
+/* ==================== EXPORT SUMMARY ==================== */
+function exportSummary(list, data){
+  const wb = XLSX.utils.book_new();
+  const total = list.length;
+
+  const flat = [['Category','Value','Count','Percent']];
+  const addCat = (cat, counts) => {
+    for(const [k,v] of Object.entries(counts)){
+      flat.push([cat, k, v, total ? ((v/total)*100).toFixed(1) + '%' : '0%']);
+    }
+  };
+  addCat('Grade', data.gradeCounts);
+  addCat('Gender', data.genderCounts);
+  addCat('Residence', data.residenceCounts);
+  addCat('Transport', data.transportCounts);
+  addCat('Referral Source', data.referralCounts);
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(flat), 'Totals');
+
+  const addCTSheet = (name, matrix, rowKeys, colKeys, rowLabel) => {
+    const aoa = [[rowLabel, ...colKeys, 'Total']];
+    for(const r of rowKeys){
+      const row = [r];
+      for(const c of colKeys) row.push(matrix[r][c]);
+      row.push(matrix[r]._total);
+      aoa.push(row);
+    }
+    const totals = ['Total'];
+    let grand = 0;
+    for(const c of colKeys){
+      let ct = 0;
+      for(const r of rowKeys) ct += matrix[r][c];
+      totals.push(ct); grand += ct;
+    }
+    totals.push(grand);
+    aoa.push(totals);
+    const safe = name.replace(/[\\\/\?\*\[\]:]/g,'-').slice(0,31);
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aoa), safe);
+  };
+  addCTSheet('Grade x Gender', data.ctGradeGender, GRADES, GENDERS, 'Grade');
+  addCTSheet('Referral x Gender', data.ctReferralGender, REFERRALS, GENDERS, 'Referral');
+  addCTSheet('Grade x Residence', data.ctGradeResidence, GRADES, RESIDENCES, 'Grade');
+  addCTSheet('Referral x Residence', data.ctReferralResidence, REFERRALS, RESIDENCES, 'Referral');
+
+  const out = XLSX.write(wb, { bookType:'xlsx', type:'array' });
+  download('summary-' + today() + '.xlsx', new Blob([out], { type:'application/octet-stream' }));
+  toast('Summary exported', { type:'ok' });
+}
+
+/* ==================== ADD / EDIT ==================== */
+function formHTML(s = {}, isAdd){
+  const id = s.studentId || '';
+  return `
+    <form class="card" id="studentForm">
+      <h2>${isAdd ? 'New student' : 'Edit student'}</h2>
+      ${!isAdd
+        ? `<div class="field" style="margin-top:14px"><label>Student ID</label><input value="${esc(id)}" readonly style="background:var(--bg-2);color:var(--muted)"></div>`
+        : `<p class="muted small" style="margin:6px 0 14px">An ID will be auto-generated on save.</p>`}
+      <div class="grid2">
+        <div class="field"><label>Grade</label>
+          <span class="sel">
+            <select name="grade" required>
+              <option value="">— Select —</option>
+              ${GRADES.map(g => `<option ${s.grade===g?'selected':''}>${g}</option>`).join('')}
+            </select>
+          </span>
+        </div>
+        <div class="field"><label>Gender</label>
+          <span class="sel">
+            <select name="gender" required>
+              <option value="">— Select —</option>
+              ${GENDERS.map(g => `<option ${s.gender===g?'selected':''}>${g}</option>`).join('')}
+            </select>
+          </span>
+        </div>
+        <div class="field"><label>Residence</label>
+          <span class="sel">
+            <select name="residence" required>
+              <option value="">— Select —</option>
+              ${RESIDENCES.map(g => `<option ${s.residence===g?'selected':''}>${g}</option>`).join('')}
+            </select>
+          </span>
+        </div>
+        <div class="field"><label>Transport</label>
+          <span class="sel">
+            <select name="transport" required>
+              <option value="">— Select —</option>
+              ${TRANSPORTS.map(g => `<option ${s.transport===g?'selected':''}>${g}</option>`).join('')}
+            </select>
+          </span>
+        </div>
+      </div>
+      <div class="field"><label>How did they hear about the school?</label>
+        <span class="sel">
+          <select name="referralSource" required>
+            <option value="">— Select —</option>
+            ${REFERRALS.map(g => `<option ${s.referralSource===g?'selected':''}>${g}</option>`).join('')}
+          </select>
+        </span>
+      </div>
+      <div class="row" style="margin-top:14px">
+        <button type="submit" class="btn btn-primary">${I.save}<span>Save</span></button>
+        <button type="button" class="btn" data-act="cancel">${I.x}<span>Cancel</span></button>
+        ${!isAdd ? `<button type="button" class="btn btn-danger" id="btnDelete" style="margin-left:auto">${I.trash}<span>Delete</span></button>` : ''}
+      </div>
+    </form>
+  `;
+}
+
+async function renderAdd(view){
+  await loadState();
+  view.innerHTML = formHTML({}, true);
+  const f = view.querySelector('#studentForm');
+  let submitting = false;
+  f.addEventListener('submit', async e => {
+    e.preventDefault();
+    if(submitting) return;
+    submitting = true;
+    const submitBtn = f.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span>Saving…</span>';
+    try {
+      const data = Object.fromEntries(new FormData(f).entries());
+      const id = await nextStudentId();
+      const now = Date.now();
+      await putStudent({ studentId: id, ...data, deleted:false, syncStatus:'pending', remoteRow:null, createdAt:now, updatedAt:now });
+      toast('Added ' + id, { type:'ok' });
+      go('/list');
+    } catch(err){
+      submitting = false;
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = I.save + '<span>Save</span>';
+      toast('Save failed: ' + err.message, { type:'error' });
+    }
+  });
+  f.querySelector('[data-act="cancel"]').onclick = () => go('/list');
+  await updateHeader();
+}
+
+async function renderEdit(view, id){
+  await loadState();
+  const s = await getStudent(id);
+  if(!s){
+    view.innerHTML = `<div class="card fatal"><h2>Student not found</h2><p>${esc(id)} doesn't exist or was removed.</p>
+      <button class="btn btn-primary" onclick="location.hash='/list'">${I.back}<span>Back to list</span></button></div>`;
+    return;
+  }
+  view.innerHTML = formHTML(s, false);
+  const f = view.querySelector('#studentForm');
+  let submitting = false;
+  f.addEventListener('submit', async e => {
+    e.preventDefault();
+    if(submitting) return;
+    submitting = true;
+    try {
+      const data = Object.fromEntries(new FormData(f).entries());
+      const updated = { ...s, ...data, syncStatus:'pending', updatedAt: Date.now() };
+      await putStudent(updated);
+      toast('Saved', { type:'ok' });
+      go('/list');
+    } catch(err){
+      submitting = false;
+      toast('Save failed: ' + err.message, { type:'error' });
+    }
+  });
+  f.querySelector('[data-act="cancel"]').onclick = () => go('/list');
+  f.querySelector('#btnDelete').onclick = async () => {
+    showModal({
+      title: 'Delete student?',
+      body: `<p>${esc(s.studentId)} will be moved to Trash. On next Push, it will be removed from your Google Sheet.</p>`,
+      actions: [
+        { label:'Cancel', class:'btn' },
+        { label:'Delete', class:'btn-danger', icon:I.trash, onClick: async () => {
+          hideModal();
+          try {
+            s.deleted = true; s.syncStatus = 'pending'; s.updatedAt = Date.now();
+            await putStudent(s);
+            toast('Moved to Trash');
+            go('/list');
+          } catch(err){ toast('Delete failed: ' + err.message, { type:'error' }); }
+        }}
+      ]
+    });
+  };
+  await updateHeader();
+}
+
+/* ==================== TRASH ==================== */
+async function renderTrash(view){
+  const all = await getAllStudents();
+  const deleted = all.filter(s => s.deleted).sort((a,b)=>b.updatedAt - a.updatedAt);
+  view.innerHTML = `
+    <div class="card">
+      <div class="row spread">
+        <h2>Trash <span class="muted small" style="font-weight:500">(${deleted.length})</span></h2>
+        <button class="btn" onclick="location.hash='/list'">${I.back}<span>Back</span></button>
+      </div>
+      <p class="muted small" style="margin:8px 0 0">Items here will be removed from your Google Sheet on next Push. Restore to keep them.</p>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden">
+      ${deleted.length === 0 ? `<div class="empty">${I.inbox}<div>Trash is empty.</div></div>` : `
+      <div class="table-wrap"><table>
+        <thead><tr><th>StudentID</th><th>Grade</th><th>Gender</th><th>Residence</th><th>Transport</th><th>Referral</th><th>Actions</th></tr></thead>
+        <tbody>
+          ${deleted.map(s=>`
+            <tr>
+              <td><b>${esc(s.studentId)}</b></td>
+              <td>${esc(s.grade)}</td><td>${esc(s.gender)}</td><td>${esc(s.residence)}</td>
+              <td>${esc(s.transport)}</td><td>${esc(s.referralSource)}</td>
+              <td>
+                <button class="btn" data-restore="${esc(s.studentId)}" style="padding:6px 10px;font-size:12px">Restore</button>
+                ${s.remoteRow == null ? `<button class="btn btn-danger" data-purge="${esc(s.studentId)}" style="padding:6px 10px;font-size:12px">Purge</button>` : ''}
+              </td>
+            </tr>`).join('')}
+        </tbody>
+      </table></div>`}
+    </div>
+  `;
+  view.querySelectorAll('[data-restore]').forEach(b => b.onclick = async () => {
+    const id = b.dataset.restore;
+    try {
+      const s = await getStudent(id);
+      if(!s) return;
+      s.deleted = false; s.syncStatus = 'pending'; s.updatedAt = Date.now();
+      await putStudent(s);
+      toast('Restored ' + id, { type:'ok' });
+      render().catch(handleFatal);
+    } catch(err){ toast('Restore failed: ' + err.message, { type:'error' }); }
+  });
+  view.querySelectorAll('[data-purge]').forEach(b => b.onclick = async () => {
+    const id = b.dataset.purge;
+    showModal({
+      title: 'Purge permanently?',
+      body: `<p>${esc(id)} has never been pushed. It will be deleted from this device only.</p>`,
+      actions: [
+        { label:'Cancel', class:'btn' },
+        { label:'Purge', class:'btn-danger', icon:I.trash, onClick: async () => {
+          hideModal();
+          try { await deleteStudent(id); toast('Purged'); render().catch(handleFatal); }
+          catch(err){ toast('Purge failed: ' + err.message, { type:'error' }); }
+        }}
+      ]
+    });
+  });
+  await updateHeader();
+}
+
+/* ==================== SNAPSHOTS ==================== */
+async function renderSnapshots(view){
+  const snaps = (await getAllSnapshots()).sort((a,b)=>b.takenAt - a.takenAt);
+  view.innerHTML = `
+    <div class="card">
+      <div class="row spread">
+        <h2>Snapshots <span class="muted small" style="font-weight:500">(${snaps.length})</span></h2>
+        <div class="row">
+          <button class="btn btn-primary" id="btnManual">${I.plus}<span>Take snapshot</span></button>
+          <button class="btn" onclick="location.hash='/list'">${I.back}<span>Back</span></button>
+        </div>
+      </div>
+      <p class="muted small" style="margin:8px 0 0">Automatic backups are made before each Pull. Only the last 5 are kept.</p>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden">
+      ${snaps.length === 0 ? `<div class="empty">${I.history}<div style="font-size:48px;opacity:.4;margin:0 auto 12px"></div>No snapshots yet.</div>` : `
+      <div class="table-wrap"><table>
+        <thead><tr><th>When</th><th>Reason</th><th>Records</th><th>Actions</th></tr></thead>
+        <tbody>${snaps.map(s=>`
+          <tr>
+            <td>${fmtTime(s.takenAt)}</td>
+            <td>${esc(s.reason)}</td>
+            <td>${s.records.length}</td>
+            <td>
+              <button class="btn" data-restore="${s.snapshotId}" style="padding:6px 10px;font-size:12px">Restore</button>
+              <button class="btn" data-export="${s.snapshotId}" style="padding:6px 10px;font-size:12px">Export</button>
+              <button class="btn btn-danger" data-del="${s.snapshotId}" style="padding:6px 10px;font-size:12px">Delete</button>
+            </td>
+          </tr>`).join('')}
+        </tbody>
+      </table></div>`}
+    </div>
+  `;
+  view.querySelector('#btnManual').onclick = async () => {
+    const all = await getAllStudents();
+    await addSnapshot('manual', all);
+    await pruneSnapshots(5);
+    toast('Snapshot saved', { type:'ok' });
+    render().catch(handleFatal);
+  };
+  view.querySelectorAll('[data-restore]').forEach(b => b.onclick = async () => {
+    const id = Number(b.dataset.restore);
+    const snap = await getSnapshot(id);
+    if(!snap) return;
+    showModal({
+      title: 'Restore snapshot?',
+      body: `<p>This replaces all current local data with the snapshot from ${fmtTime(snap.takenAt)} (${snap.records.length} records).</p>`,
+      actions: [
+        { label:'Cancel', class:'btn' },
+        { label:'Restore', class:'btn-danger', onClick: async () => {
+          hideModal();
+          try {
+            await clearStudents();
+            for(const r of snap.records) await putStudent(r);
+            await syncCounterFromStudents();
+            toast('Restored ' + snap.records.length + ' records', { type:'ok' });
+            go('/list');
+          } catch(err){ toast('Restore failed: ' + err.message, { type:'error' }); }
+        }}
+      ]
+    });
+  });
+  view.querySelectorAll('[data-export]').forEach(b => b.onclick = async () => {
+    if(typeof XLSX === 'undefined'){ toast('Excel library not loaded — check internet', { type:'error' }); return; }
+    const snap = await getSnapshot(Number(b.dataset.export));
+    if(!snap) return;
+    const d = new Date(snap.takenAt);
+    const name = 'snapshot-' + d.toISOString().slice(0,10) + '-' + d.toISOString().slice(11,16).replace(':','');
+    exportRecords(snap.records.filter(r=>!r.deleted), name);
+  });
+  view.querySelectorAll('[data-del]').forEach(b => b.onclick = async () => {
+    await deleteSnapshot(Number(b.dataset.del));
+    toast('Deleted');
+    render().catch(handleFatal);
+  });
+  await updateHeader();
+}
+
+/* ==================== SETTINGS ==================== */
+async function renderSettings(view){
+  await loadState();
+  let secret = await getSetting('secret', '');
+  if(!secret){ secret = uuid(); await setSetting('secret', secret); }
+  let deviceId = await getSetting('deviceId', '');
+  if(!deviceId){ deviceId = uuid(); await setSetting('deviceId', deviceId); }
+  const url = await getSetting('sheetUrl', '');
+  const lastPush = await getSetting('lastPush', 0);
+  const lastPull = await getSetting('lastPull', 0);
+
+  const snippet = buildSnippet(secret);
+
+  view.innerHTML = `
+    <div class="card">
+      <div class="row spread">
+        <h2>Settings</h2>
+        <button class="btn" onclick="location.hash='/list'">${I.back}<span>Back</span></button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Cloud connection</h3>
+      <div class="field"><label>Apps Script Web App URL</label>
+        <input id="inpUrl" placeholder="https://script.google.com/macros/s/.../exec" value="${esc(url)}" autocomplete="off" spellcheck="false" autocapitalize="off">
+      </div>
+      <div class="row">
+        <button class="btn btn-primary" id="btnTest">${I.link}<span>Test connection</span></button>
+        <button class="btn" id="btnSaveUrl">${I.save}<span>Save URL</span></button>
+        ${url ? `<button class="btn btn-danger" id="btnDisconnect">${I.x}<span>Disconnect</span></button>` : ''}
+      </div>
+      <div class="kv" style="margin-top:16px">
+        <div class="k">Last push</div><div>${fmtTime(lastPush)}</div>
+        <div class="k">Last pull</div><div>${fmtTime(lastPull)}</div>
+        <div class="k">Device ID</div><div><code>${esc(deviceId)}</code></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Your secret token</h3>
+      <p class="muted small" style="margin:0 0 10px">This is baked into the Apps Script snippet below. Keep it private.</p>
+      <input readonly value="${esc(secret)}" onclick="this.select()">
+    </div>
+
+    <div class="card">
+      <h3>Setup guide</h3>
+      <details>
+        <summary>Step-by-step setup (click to expand)</summary>
+        <ol style="padding-left:20px;line-height:1.9">
+          <li>Create a Google Sheet (any name). Add a tab named <b>Students</b>, or leave it blank — the script will create it.</li>
+          <li>In the sheet: <b>Extensions → Apps Script</b>.</li>
+          <li>Delete the sample code, paste the snippet below, click Save.</li>
+          <li>Click <b>Deploy → New deployment</b>. Type: <b>Web app</b>. Execute as: <b>Me</b>. Who has access: <b>Anyone</b>. Click Deploy.</li>
+          <li>Authorize the script when prompted (it's your own script, so accept).</li>
+          <li>Copy the <b>Web app URL</b> and paste it above, then click <b>Save URL</b> → <b>Test connection</b>.</li>
+          <li>Done. Use <b>Push</b> to send changes to the sheet, <b>Pull</b> to fetch from it.</li>
+        </ol>
+        <p class="muted small">Your Web App URL is a secret. Anyone with the URL + your secret token can read/write that sheet. Keep both private. If leaked, redeploy or change the secret.</p>
+        <p class="muted small">If you edit the snippet later, use <b>Deploy → Manage deployments → Edit → New version</b> to keep the same URL.</p>
+      </details>
+    </div>
+
+    <div class="card">
+      <h3>Apps Script snippet</h3>
+      <button class="btn btn-primary" id="btnCopy">${I.copy}<span>Copy to clipboard</span></button>
+      <pre class="snippet" id="snippet">${esc(snippet)}</pre>
+    </div>
+
+    <div class="card">
+      <h3>Local data</h3>
+      <div class="row">
+        <button class="btn" id="btnExportAll">${I.download}<span>Export all data</span></button>
+        <button class="btn btn-danger" id="btnWipe">${I.trash}<span>Wipe local data</span></button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('btnSaveUrl').onclick = async () => {
+    const v = document.getElementById('inpUrl').value.trim();
+    if(v && !/^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec$/.test(v)){
+      toast('That doesn\'t look like a Google Apps Script Web App URL. It should end with /exec.', { type:'warn', duration: 6000 });
+    }
+    await setSetting('sheetUrl', v);
+    toast('URL saved', { type:'ok' });
+    render().catch(handleFatal);
+  };
+  document.getElementById('btnTest').onclick = async () => {
+    const v = document.getElementById('inpUrl').value.trim();
+    if(!v){ toast('Enter a URL first', { type:'warn' }); return; }
+    await setSetting('sheetUrl', v);
+    const btn = document.getElementById('btnTest');
+    btn.disabled = true; btn.innerHTML = '<span>Testing…</span>';
+    try {
+      const res = await cloudFetch('ping');
+      toast('Connected. ' + (res.rows ?? 0) + ' rows in sheet.', { type:'ok', duration:5000 });
+    } catch(e){
+      toast('Test failed: ' + (e.message || e), { type:'error', duration:6000 });
+    } finally {
+      btn.disabled = false; btn.innerHTML = I.link + '<span>Test connection</span>';
+    }
+  };
+  const dis = document.getElementById('btnDisconnect');
+  if(dis) dis.onclick = async () => {
+    showModal({
+      title:'Disconnect cloud?',
+      body:'<p>Local data is kept. You can reconnect anytime.</p>',
+      actions:[
+        { label:'Cancel', class:'btn' },
+        { label:'Disconnect', class:'btn-danger', onClick: async () => {
+          hideModal(); await setSetting('sheetUrl',''); toast('Disconnected'); render().catch(handleFatal);
+        }}
+      ]
+    });
+  };
+  document.getElementById('btnCopy').onclick = async () => {
+    try { await navigator.clipboard.writeText(snippet); toast('Copied', { type:'ok' }); }
+    catch(e){ toast('Copy failed — select and copy manually', { type:'warn' }); }
+  };
+  document.getElementById('btnExportAll').onclick = () => {
+    if(typeof XLSX === 'undefined'){ toast('Excel library not loaded — check internet', { type:'error' }); return; }
+    exportRecords(state.students, 'students-' + today());
+  };
+  document.getElementById('btnWipe').onclick = () => {
+    showModal({
+      title:'Wipe all local data?',
+      body:'<p>This permanently deletes all students from this device. Cloud sheet is not affected. Export first if you need a backup.</p>',
+      actions:[
+        { label:'Cancel', class:'btn' },
+        { label:'Wipe', class:'btn-danger', icon:I.trash, onClick: async () => {
+          hideModal();
+          try { await clearStudents(); toast('Local data wiped'); go('/list'); }
+          catch(err){ toast('Wipe failed: ' + err.message, { type:'error' }); }
+        }}
+      ]
+    });
+  };
+  await updateHeader();
+}
+
+/* ==================== CLOUD ADAPTER ==================== */
+async function cloudFetch(action, payload = {}){
+  const url = await getSetting('sheetUrl', '');
+  const secret = await getSetting('secret', '');
+  if(!url) throw new Error('Cloud not configured');
+  let res;
+  try {
+    res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action, secret, ...payload }),
+    });
+  } catch(e){
+    throw new Error('Network error — check your internet connection');
+  }
+  if(!res.ok) throw new Error('Server returned HTTP ' + res.status);
+  let data;
+  try { data = await res.json(); }
+  catch(e){ throw new Error('Server response was not valid JSON'); }
+  if(!data.ok) throw new Error(data.error || 'Unknown error from Apps Script');
+  return data;
+}
+async function cloudList(){ return cloudFetch('list'); }
+async function cloudBatch(ops){ return cloudFetch('batch', { ops }); }
+
+/* ==================== PUSH ==================== */
+async function push(){
+  if(state.busy){ toast('Please wait — operation in progress'); return; }
+  const url = await getSetting('sheetUrl','');
+  if(!url){ toast('Connect a Sheet first', { type:'warn' }); return; }
+
+  const all = await getAllStudents();
+  const pending = all.filter(s => s.syncStatus === 'pending' || s.deleted);
+  if(pending.length === 0){ toast('Nothing to push'); return; }
+
+  state.busy = true;
+  await updateHeader();
+  const ops = [];
+  for(const s of pending){
+    const data = toRow(s);
+    if(s.deleted && s.remoteRow) ops.push({ type:'delete', studentId: s.studentId });
+    else if(s.deleted) continue;
+    else if(s.remoteRow) ops.push({ type:'update', data });
+    else ops.push({ type:'append', data });
+  }
+
+  let added=0, updated=0, deleted=0, failed=0;
+  try {
+    const batches = chunk(ops, 100);
+    for(const b of batches){
+      try {
+        const res = await cloudBatch(b);
+        for(const r of res.results || []){
+          if(!r.ok){ failed++; continue; }
+          if(r.type === 'append' || r.type === 'update'){
+            const s = await getStudent(r.studentId);
+            if(s){ s.syncStatus='synced'; s.remoteRow=r.row; await putStudent(s); if(r.type==='append') added++; else updated++; }
+          } else if(r.type === 'delete'){
+            await deleteStudent(r.studentId); deleted++;
+          }
+        }
+      } catch(e){
+        failed += b.length;
+      }
+    }
+    for(const s of pending){
+      if(s.deleted && !s.remoteRow) await deleteStudent(s.studentId);
+    }
+    await setSetting('lastPush', Date.now());
+    const msg = `${added} added · ${updated} updated · ${deleted} deleted${failed ? ' · ' + failed + ' failed' : ''}`;
+    toast(msg, { type: failed ? 'warn' : 'ok', duration: 5000 });
+  } catch(e){
+    toast('Push failed: ' + (e.message || e), { type:'error', duration: 6000 });
+  } finally {
+    state.busy = false;
+    await loadState();
+    await render();
+  }
+}
+function toRow(s){
+  return { studentId: s.studentId, grade: s.grade, gender: s.gender,
+           residence: s.residence, transport: s.transport, referralSource: s.referralSource };
+}
+
+/* ==================== PULL ==================== */
+async function pull(){
+  if(state.busy){ toast('Please wait — operation in progress'); return; }
+  const url = await getSetting('sheetUrl','');
+  if(!url){ toast('Connect a Sheet first', { type:'warn' }); return; }
+
+  const all = await getAllStudents();
+  const pending = all.filter(s => s.syncStatus === 'pending');
+
+  const confirmAndPull = () => showModal({
+    title: 'Replace local data?',
+    body: `<p>This will replace all local data with the version from your Google Sheet. A backup will be saved and you can revert.</p>`,
+    actions: [
+      { label:'Cancel', class:'btn' },
+      { label:'Continue', class:'btn-danger', onClick: async () => { hideModal(); await doPull(all); } }
+    ]
+  });
+
+  if(pending.length > 0){
+    showModal({
+      title: 'Unsynced changes',
+      body: `<p>You have <strong>${pending.length}</strong> unsynced change(s). Pulling will discard them.</p>`,
+      actions: [
+        { label:'Cancel', class:'btn' },
+        { label:'Pull anyway', class:'btn-danger', onClick: () => { hideModal(); confirmAndPull(); } },
+        { label:'Push then Pull', class:'btn-primary', onClick: async () => {
+          hideModal(); await push();
+          if(state.busy) return;
+          await doPull(await getAllStudents());
+        } },
+      ]
+    });
+  } else {
+    confirmAndPull();
+  }
+}
+async function doPull(currentAll){
+  state.busy = true;
+  await updateHeader();
+  try {
+    await addSnapshot('pre-pull', currentAll);
+    await pruneSnapshots(5);
+    const res = await cloudList();
+    const rows = res.rows || [];
+    await clearStudents();
+    const now = Date.now();
+    for(const r of rows){
+      if(!r.studentId) continue;
+      await putStudent({
+        studentId: String(r.studentId),
+        grade: String(r.grade || ''),
+        gender: String(r.gender || ''),
+        residence: String(r.residence || ''),
+        transport: String(r.transport || ''),
+        referralSource: String(r.referralSource || ''),
+        deleted: false, syncStatus:'synced', remoteRow: r.row,
+        createdAt: now, updatedAt: now,
+      });
+    }
+    await syncCounterFromStudents();
+    await setSetting('lastPull', Date.now());
+    toast(`Pulled ${rows.length} students. Backup saved.`, {
+      type:'ok', duration:60000,
+      action: { label:'Revert', onClick: revertLastPull }
+    });
+  } catch(e){
+    toast('Pull failed: ' + (e.message || e), { type:'error', duration:6000 });
+  } finally {
+    state.busy = false;
+    await loadState();
+    await render();
+  }
+}
+async function revertLastPull(){
+  const snaps = (await getAllSnapshots()).sort((a,b)=>b.takenAt - a.takenAt);
+  const last = snaps[0];
+  if(!last){ toast('No backup found', { type:'warn' }); return; }
+  try {
+    await clearStudents();
+    for(const r of last.records) await putStudent(r);
+    await deleteSnapshot(last.snapshotId);
+    await syncCounterFromStudents();
+    toast('Reverted to previous data', { type:'ok' });
+    await loadState();
+    render().catch(handleFatal);
+  } catch(e){ toast('Revert failed: ' + e.message, { type:'error' }); }
+}
+
+/* ==================== IMPORT ==================== */
+function doImportPick(){
+  if(typeof XLSX === 'undefined'){
+    toast('Excel library not loaded — check your internet connection and reload.', { type:'error', duration: 6000 });
+    return;
+  }
+  const inp = document.createElement('input');
+  inp.type = 'file';
+  inp.accept = '.xlsx,.xls,.csv';
+  inp.onchange = () => { if(inp.files[0]) handleImportFile(inp.files[0]); };
+  inp.click();
+}
+async function handleImportFile(file){
+  try {
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf);
+    if(!wb.SheetNames || wb.SheetNames.length === 0){
+      toast('That file has no sheets.', { type:'warn' }); return;
+    }
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    if(!ws){ toast('First sheet is empty.', { type:'warn' }); return; }
+    const rows = XLSX.utils.sheet_to_json(ws, { defval:'' });
+    if(rows.length === 0){
+      toast('No data rows found in the first sheet.', { type:'warn' }); return;
+    }
+    const analyzed = await analyzeImport(rows);
+    if(analyzed.length === 0){
+      toast('Nothing to import.', { type:'warn' }); return;
+    }
+    showImportPreview(analyzed);
+  } catch(e){
+    toast('Could not read file: ' + (e.message || e), { type:'error', duration:6000 });
+  }
+}
+async function analyzeImport(rows){
+  const existing = new Map((await getAllStudents()).map(s => [s.studentId, s]));
+  const out = [];
+  for(const raw of rows){
+    const r = normalizeRow(raw);
+    const hasAny = Object.values(r).some(v => v !== '');
+    if(!hasAny) continue;
+    const errors = validateRow(r);
+    const dup = r.studentId && existing.has(r.studentId);
+    out.push({ ...r, _errors: errors, _dup: !!dup, _override: false });
+  }
+  return out;
+}
+function normalizeRow(raw){
+  const map = {};
+  for(const [k,v] of Object.entries(raw)){
+    const key = String(k).toLowerCase().replace(/\s+/g,'').replace(/[_-]/g,'');
+    if(key.startsWith('__empty')) continue;
+    map[key] = String(v ?? '').trim();
+  }
+  const get = (...keys) => { for(const k of keys){ if(map[k] !== undefined && map[k] !== '') return map[k]; } return ''; };
+  return {
+    studentId: get('studentid','id','student'),
+    grade: get('grade','gradelevel','class'),
+    gender: get('gender','sex'),
+    residence: get('residence','dayboarder','boarding'),
+    transport: get('transport','transportation'),
+    referralSource: get('referralsource','referral','source','howdidyouhear','heardabout'),
+  };
+}
+function validateRow(r){
+  const e = [];
+  if(r.grade && !GRADES.includes(r.grade)) e.push('invalid grade: ' + r.grade);
+  if(r.gender && !GENDERS.includes(r.gender)) e.push('invalid gender: ' + r.gender);
+  if(r.residence && !RESIDENCES.includes(r.residence)) e.push('invalid residence: ' + r.residence);
+  if(r.transport && !TRANSPORTS.includes(r.transport)) e.push('invalid transport: ' + r.transport);
+  if(r.referralSource && !REFERRALS.includes(r.referralSource)) e.push('invalid referral: ' + r.referralSource);
+  if(!r.grade) e.push('missing grade');
+  if(!r.gender) e.push('missing gender');
+  if(!r.residence) e.push('missing residence');
+  if(!r.transport) e.push('missing transport');
+  if(!r.referralSource) e.push('missing referral');
+  return e;
+}
+function showImportPreview(rows){
+  const newCount = rows.filter(r => !r._dup && r._errors.length === 0).length;
+  const dupCount = rows.filter(r => r._dup && r._errors.length === 0).length;
+  const badCount = rows.filter(r => r._errors.length > 0).length;
+
+  const rowsHTML = rows.map((r, i) => {
+    const cls = r._errors.length ? 'row-bad' : (r._dup ? 'row-dup' : 'row-new');
+    const bg = r._errors.length ? '#fef2f2' : (r._dup ? '#fffbeb' : '#f0fdf4');
+    const badge = r._errors.length ? 'Invalid' : (r._dup ? 'Duplicate' : 'New');
+    const badgeColor = r._errors.length ? '#dc2626' : (r._dup ? '#d97706' : '#059669');
+    return `<tr class="${cls}" style="background:${bg}">
+      <td>${i+1}</td>
+      <td><span style="color:${badgeColor};font-weight:600;font-size:12px">${badge}</span></td>
+      <td>${esc(r.studentId) || '<i class="muted">auto</i>'}</td>
+      <td>${esc(r.grade)}</td><td>${esc(r.gender)}</td><td>${esc(r.residence)}</td>
+      <td>${esc(r.transport)}</td><td>${esc(r.referralSource)}</td>
+      <td>${r._errors.length ? esc(r._errors.join('; ')) : (r._dup ? `<label style="cursor:pointer"><input type="checkbox" data-ovr="${i}" ${r._override?'checked':''}> override</label>` : '')}</td>
+    </tr>`;
+  }).join('');
+
+  const m = showModal({
+    title: 'Import preview',
+    wide: true,
+    body: `
+      <div class="row" style="margin-bottom:14px">
+        <div class="stat"><div class="v" style="color:var(--ok)">${newCount}</div><div class="l">New</div></div>
+        <div class="stat"><div class="v" style="color:var(--warn)">${dupCount}</div><div class="l">Duplicates</div></div>
+        <div class="stat"><div class="v" style="color:var(--danger)">${badCount}</div><div class="l">Invalid</div></div>
+      </div>
+      <div class="table-wrap" style="max-height:50vh;border-radius:10px;border:1px solid var(--border)">
+        <table><thead><tr><th>#</th><th>Status</th><th>ID</th><th>Grade</th><th>Gender</th><th>Residence</th><th>Transport</th><th>Referral</th><th>Notes</th></tr></thead>
+        <tbody>${rowsHTML}</tbody></table>
+      </div>
+      <p class="muted small" style="margin-top:12px">Tick "override" to replace existing records on duplicates. Invalid rows are skipped.</p>
+    `,
+    actions: [
+      { label:'Cancel', class:'btn' },
+      { label:'Import valid rows', class:'btn-primary', icon:I.upload, onClick: async () => {
+        const checks = m.querySelectorAll('[data-ovr]');
+        checks.forEach(c => { rows[Number(c.dataset.ovr)]._override = c.checked; });
+        hideModal();
+        await commitImport(rows);
+      }}
+    ]
+  });
+}
+async function commitImport(rows){
+  let added = 0, overridden = 0, skipped = 0;
+  const now = Date.now();
+  try {
+    for(const r of rows){
+      if(r._errors.length){ skipped++; continue; }
+      if(r._dup && !r._override){ skipped++; continue; }
+      let id = r.studentId;
+      if(!id) id = await nextStudentId();
+      const rec = {
+        studentId: id, grade: r.grade, gender: r.gender,
+        residence: r.residence, transport: r.transport, referralSource: r.referralSource,
+        deleted: false, syncStatus: 'pending', remoteRow: null,
+        createdAt: now, updatedAt: now,
+      };
+      const existed = await getStudent(id);
+      if(existed){ rec.createdAt = existed.createdAt; rec.remoteRow = existed.remoteRow; overridden++; }
+      else added++;
+      await putStudent(rec);
+    }
+    await syncCounterFromStudents();
+    toast(`${added} added · ${overridden} overridden · ${skipped} skipped`, { type: added||overridden ? 'ok' : 'warn', duration: 5000 });
+    await loadState();
+    await render();
+  } catch(e){
+    toast('Import failed: ' + (e.message || e), { type:'error', duration:6000 });
+  }
+}
+
+/* ==================== EXPORT ==================== */
+function doExportMenu(){
+  if(typeof XLSX === 'undefined'){
+    toast('Excel library not loaded — check your internet connection and reload.', { type:'error', duration: 6000 });
+    return;
+  }
+  showModal({
+    title: 'Export to Excel',
+    body: `
+      <p>Choose what to export as an <code>.xlsx</code> file.</p>
+      <div class="row" style="flex-direction:column;align-items:stretch;margin-top:14px">
+        <button class="btn" id="ex1">${I.download}<span>Students (current view)</span></button>
+        <button class="btn" id="ex2">${I.download}<span>All students</span></button>
+      </div>
+    `,
+    actions: [{ label:'Cancel', class:'btn' }]
+  });
+  setTimeout(() => {
+    const ex1 = document.getElementById('ex1');
+    const ex2 = document.getElementById('ex2');
+    if(ex1) ex1.onclick = () => { hideModal(); exportRecords(currentFiltered(), 'students-' + today()); };
+    if(ex2) ex2.onclick = () => { hideModal(); exportRecords(state.students, 'students-' + today()); };
+  }, 0);
+}
+function exportRecords(records, filename){
+  const aoa = [HEADERS];
+  for(const s of records){
+    aoa.push([s.studentId, s.grade, s.gender, s.residence, s.transport, s.referralSource]);
+  }
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Students');
+  const out = XLSX.write(wb, { bookType:'xlsx', type:'array' });
+  download(filename + '.xlsx', new Blob([out], { type:'application/octet-stream' }));
+  toast('Exported ' + records.length + ' records', { type:'ok' });
+}
+
+/* ==================== APPS SCRIPT SNIPPET ==================== */
+function buildSnippet(secret){
+  return `// === Student Data Collector — Apps Script backend ===
+// Paste into Extensions → Apps Script. Deploy as Web app (Execute as: Me, Access: Anyone).
+
+const SECRET = '${secret}';
+const TAB = 'Students';
+const HEADERS = ['StudentID','Grade','Gender','Residence','Transport','ReferralSource'];
+
+function doGet(e){ return handle(e.parameter); }
+function doPost(e){ return handle(JSON.parse(e.postData.contents)); }
+
+function handle(p){
+  try {
+    if (p.secret !== SECRET) return json({ok:false, error:'invalid secret'});
+    var sheet = getSheet();
+    switch(p.action){
+      case 'ping':   return json({ok:true, rows: Math.max(0, sheet.getLastRow()-1)});
+      case 'list':   return json({ok:true, rows: listAll(sheet)});
+      case 'append': return json({ok:true, row: appendRow(sheet, p.data)});
+      case 'update': return json({ok:true, row: updateRow(sheet, p.row, p.data)});
+      case 'delete': return json({ok:true, row: deleteRow(sheet, p.row)});
+      case 'batch':  return json({ok:true, results: batch(sheet, p.ops || [])});
+    }
+    return json({ok:false, error:'unknown action'});
+  } catch(err){ return json({ok:false, error:String(err)}); }
+}
+
+function json(o){
+  return ContentService.createTextOutput(JSON.stringify(o))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function getSheet(){
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sh = ss.getSheetByName(TAB);
+  if (!sh){ sh = ss.insertSheet(TAB); sh.appendRow(HEADERS); }
+  else if (sh.getLastRow() === 0){ sh.appendRow(HEADERS); }
+  return sh;
+}
+
+function recordToRow(d){
+  return [d.studentId, d.grade, d.gender, d.residence, d.transport, d.referralSource];
+}
+
+function listAll(sh){
+  var last = sh.getLastRow();
+  if (last < 2) return [];
+  var vals = sh.getRange(2, 1, last - 1, HEADERS.length).getValues();
+  var out = [];
+  for (var i = 0; i < vals.length; i++){
+    var r = vals[i];
+    if (!r[0]) continue;
+    out.push({
+      row: i + 2,
+      studentId: String(r[0]), grade: String(r[1]), gender: String(r[2]),
+      residence: String(r[3]), transport: String(r[4]), referralSource: String(r[5])
+    });
+  }
+  return out;
+}
+
+function findRow(sh, studentId){
+  var last = sh.getLastRow();
+  if (last < 2) return -1;
+  var vals = sh.getRange(2, 1, last - 1, 1).getValues();
+  for (var i = 0; i < vals.length; i++){
+    if (String(vals[i][0]) === String(studentId)) return i + 2;
+  }
+  return -1;
+}
+
+function appendRow(sh, d){ sh.appendRow(recordToRow(d)); return sh.getLastRow(); }
+function updateRow(sh, row, d){ sh.getRange(row, 1, 1, HEADERS.length).setValues([recordToRow(d)]); return row; }
+function deleteRow(sh, row){ sh.deleteRow(row); return row; }
+
+function batch(sh, ops){
+  var out = [];
+  var updates = ops.filter(function(o){return o.type==='update';});
+  var appends = ops.filter(function(o){return o.type==='append';});
+  var deletes = ops.filter(function(o){return o.type==='delete';});
+
+  updates.forEach(function(op){
+    try {
+      var row = findRow(sh, op.data.studentId);
+      if (row < 0){ var r = appendRow(sh, op.data); out.push({ok:true, type:'append', studentId: op.data.studentId, row: r}); }
+      else { updateRow(sh, row, op.data); out.push({ok:true, type:'update', studentId: op.data.studentId, row: row}); }
+    } catch(err){ out.push({ok:false, error:String(err), studentId: op.data.studentId}); }
+  });
+  appends.forEach(function(op){
+    try { var r = appendRow(sh, op.data); out.push({ok:true, type:'append', studentId: op.data.studentId, row: r}); }
+    catch(err){ out.push({ok:false, error:String(err), studentId: op.data.studentId}); }
+  });
+  deletes.forEach(function(op){
+    try {
+      var row = findRow(sh, op.studentId);
+      if (row > 0) deleteRow(sh, row);
+      out.push({ok:true, type:'delete', studentId: op.studentId});
+    } catch(err){ out.push({ok:false, error:String(err), studentId: op.studentId}); }
+  });
+  return out;
+}
+`;
+}
+
+/* ==================== ONBOARDING ==================== */
+async function maybeOnboard(){
+  const done = await getSetting('onboarded', false);
+  if(done) return;
+  await setSetting('onboarded', true);
+  showModal({
+    title: 'Welcome',
+    body: `
+      <p style="margin-top:0">This app stores student data <b>on your device</b> (offline-first). You can optionally connect your own Google Sheet to sync.</p>
+      <ul style="padding-left:20px;line-height:1.8">
+        <li>Works fully offline — nothing required to start.</li>
+        <li>Your data stays on this browser unless you set up a Sheet.</li>
+        <li>Import and export Excel files anytime.</li>
+      </ul>
+      <p class="muted small">Since data lives on this device, use <b>Export</b> regularly as a backup.</p>
+    `,
+    actions: [
+      { label:'Start using locally', class:'btn btn-primary', icon:I.check, onClick: () => hideModal() },
+      { label:'Connect a Sheet', class:'btn', icon:I.cloud, onClick: () => { hideModal(); go('/settings'); } }
+    ]
+  });
+}
+
+/* ==================== BOOTSTRAP ==================== */
+(async function init(){
+  applyTheme(currentTheme());
+  try {
+    await openDB();
+  } catch(e){
+    document.getElementById('view').innerHTML = `
+      <div class="card fatal">
+        <i class='bx bx-error-circle ic-lg'></i>
+        <h2>Storage unavailable</h2>
+        <p>This app needs IndexedDB to store your data. This can happen in private/incognito mode, or if browser storage is blocked.</p>
+        <p class="muted small">Error: ${esc(e.message || e)}</p>
+        <button class="btn btn-primary" onclick="location.reload()">Try again</button>
+      </div>
+    `;
+    return;
+  }
+  try {
+    if(!await getSetting('deviceId','')) await setSetting('deviceId', uuid());
+    if(!await getSetting('secret',''))   await setSetting('secret', uuid());
+    await loadState();
+    if(!location.hash) location.hash = '/list';
+    await render();
+    await maybeOnboard();
+  } catch(e){
+    handleFatal(e);
+  }
+})();
+</script>
+</body>
+</html>
