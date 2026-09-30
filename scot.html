@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#4f46e5">
 <title>Student Data Collector</title>
 <script>
   (function(){
@@ -69,27 +70,51 @@
   button{font:inherit;cursor:pointer}
   input,select{font:inherit;color:inherit}
 
-  /* Generic select styling (applies outside forms too) */
-  select{
-    padding:8px 34px 8px 12px;
+  /* ---------- Global select base (no background-image, wrapper draws arrow) ---------- */
+  select, form select{
+    padding:10px 36px 10px 13px;
     border:1px solid var(--border);
-    border-radius:10px;
+    border-radius:var(--radius-sm);
     background-color:var(--card);
     color:var(--text);
     font-size:13.5px;
-    appearance:none;-webkit-appearance:none;
-    background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
-    background-repeat:no-repeat;
-    background-position:right 12px center;
+    appearance:none;-webkit-appearance:none;-moz-appearance:none;
+    background-image:none;
     cursor:pointer;
     max-width:100%;
+    width:100%;
+    min-height:44px;
     transition:border-color .15s ease, box-shadow .15s ease, background-color .25s ease;
+    text-overflow:ellipsis;
   }
   select:hover{border-color:var(--border-2)}
   select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 4px var(--primary-soft)}
-  [data-theme="dark"] select{
-    background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  select::-ms-expand{display:none}
+  select:-moz-focusring{color:transparent;text-shadow:0 0 0 var(--text)}
+
+  /* ---------- Select wrapper (iOS-proof arrow) ---------- */
+  .sel{
+    position:relative;
+    display:block;
+    max-width:100%;
+    width:100%;
   }
+  .sel select{width:100%}
+  .sel::after{
+    content:"";
+    position:absolute;
+    right:13px;
+    top:50%;
+    width:7px;
+    height:7px;
+    border-right:2px solid var(--muted);
+    border-bottom:2px solid var(--muted);
+    transform:translateY(-70%) rotate(45deg);
+    pointer-events:none;
+    transition:border-color .15s ease;
+  }
+  .sel:hover::after{border-color:var(--text)}
+  .sel:focus-within::after{border-color:var(--primary)}
 
   /* ---------- ICONS ---------- */
   .ic{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.75;
@@ -103,20 +128,21 @@
     backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
     border-bottom:1px solid var(--border);}
   .app-title{font-weight:700;font-size:16px;flex:1;display:flex;align-items:center;gap:10px;
-    letter-spacing:-.01em}
+    letter-spacing:-.01em;min-width:0}
+  .app-title .t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .brand-mark{display:inline-flex;align-items:center;justify-content:center;
-    width:30px;height:30px;border-radius:9px;
+    width:30px;height:30px;border-radius:9px;flex-shrink:0;
     background:linear-gradient(135deg,var(--primary),#8b5cf6);color:#fff}
   [data-theme="dark"] .brand-mark{background:linear-gradient(135deg,#6366f1,#a855f7)}
   .brand-mark svg{width:18px;height:18px;stroke:#fff}
-  .app-actions{display:flex;gap:6px;align-items:center}
+  .app-actions{display:flex;gap:6px;align-items:center;flex-shrink:0}
 
   /* ---------- BUTTONS ---------- */
   .btn{background:var(--card);border:1px solid var(--border);color:var(--text);
     padding:8px 14px;border-radius:10px;transition:all .15s ease;
     white-space:nowrap;font-weight:500;font-size:13.5px;
     display:inline-flex;align-items:center;gap:7px;line-height:1;
-    box-shadow:var(--shadow-sm);}
+    box-shadow:var(--shadow-sm);min-height:36px}
   .btn:hover:not(:disabled){background:var(--hover);border-color:var(--border-2);transform:translateY(-1px)}
   .btn:active:not(:disabled){transform:translateY(0)}
   .btn:disabled{opacity:.45;cursor:not-allowed}
@@ -131,7 +157,7 @@
   .btn-icon{background:transparent;border:1px solid transparent;padding:8px;
     border-radius:10px;color:var(--text);line-height:0;
     display:inline-flex;align-items:center;justify-content:center;
-    transition:all .15s ease;box-shadow:none}
+    transition:all .15s ease;box-shadow:none;min-width:38px;min-height:38px}
   .btn-icon:hover{background:var(--hover);color:var(--primary)}
 
   .badge{background:rgba(255,255,255,.22);color:#fff;border-radius:20px;
@@ -180,11 +206,12 @@
   form .field{margin-bottom:14px;display:flex;flex-direction:column;gap:6px}
   form label{font-size:11.5px;font-weight:600;color:var(--muted);
     text-transform:uppercase;letter-spacing:.06em}
-  form select,form input{padding:10px 13px;border:1px solid var(--border);border-radius:var(--radius-sm);
+  form input{
+    padding:10px 13px;border:1px solid var(--border);border-radius:var(--radius-sm);
     background:var(--card);width:100%;max-width:100%;transition:all .15s ease;
-    font-size:13.5px;appearance:none;-webkit-appearance:none}
-  form select{padding-right:36px}
-  form select:focus,form input:focus{outline:none;border-color:var(--primary);
+    font-size:13.5px;min-height:44px;
+  }
+  form input:focus{outline:none;border-color:var(--primary);
     box-shadow:0 0 0 4px var(--primary-soft)}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
   @media(max-width:560px){.grid2{grid-template-columns:1fr}}
@@ -193,23 +220,34 @@
   .modal-back{position:fixed;inset:0;background:rgba(15,23,42,.55);
     display:flex;align-items:center;justify-content:center;padding:16px;z-index:100;
     backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
-    animation:fadeIn .15s ease}
+    animation:fadeIn .15s ease;
+    height:100vh;height:100dvh;
+    padding-top:max(16px, env(safe-area-inset-top));
+    padding-bottom:max(16px, env(safe-area-inset-bottom));
+    padding-left:max(16px, env(safe-area-inset-left));
+    padding-right:max(16px, env(safe-area-inset-right));
+  }
   @keyframes fadeIn{from{opacity:0}to{opacity:1}}
   .modal{background:var(--card);color:var(--text);border-radius:16px;max-width:640px;width:100%;
-    max-height:90vh;display:flex;flex-direction:column;
+    max-height:calc(100vh - 32px);max-height:calc(100dvh - 32px);
+    display:flex;flex-direction:column;
     box-shadow:var(--shadow-lg);overflow:hidden;
     animation:popIn .18s cubic-bezier(.2,.9,.3,1.2)}
   @keyframes popIn{from{transform:scale(.95);opacity:0}to{transform:scale(1);opacity:1}}
   .modal.wide{max-width:960px}
   .modal-head{padding:20px 24px 16px;border-bottom:1px solid var(--border);
     font-weight:700;font-size:16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
-  .modal-body{padding:20px 24px;overflow:auto}
+  .modal-body{padding:20px 24px;overflow:auto;
+    -webkit-overflow-scrolling:touch;overscroll-behavior:contain}
   .modal-foot{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;
-    justify-content:flex-end;flex-wrap:wrap}
+    justify-content:flex-end;flex-wrap:wrap;
+    padding-bottom:max(16px, env(safe-area-inset-bottom))}
 
   /* ---------- TOASTS ---------- */
-  #toast-root{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);
-    z-index:200;display:flex;flex-direction:column;gap:10px;align-items:center;pointer-events:none}
+  #toast-root{position:fixed;left:50%;transform:translateX(-50%);
+    z-index:200;display:flex;flex-direction:column;gap:10px;align-items:center;pointer-events:none;
+    bottom:max(22px, env(safe-area-inset-bottom));
+    padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
   .toast{background:#0f172a;color:#fff;padding:12px 16px;border-radius:12px;
     font-size:13.5px;box-shadow:0 10px 40px rgba(0,0,0,.35);pointer-events:auto;
     display:flex;align-items:center;gap:12px;max-width:90vw;font-weight:500;
@@ -252,7 +290,7 @@
     max-width:420px}
   .tab{flex:1;text-align:center;padding:9px 16px;border-radius:9px;text-decoration:none;
     color:var(--muted);font-weight:600;font-size:13px;transition:all .15s ease;
-    display:inline-flex;align-items:center;justify-content:center;gap:8px}
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:36px}
   .tab:hover{background:var(--hover);color:var(--text)}
   .tab.active{background:linear-gradient(135deg,var(--primary),var(--primary-2));color:#fff;
     box-shadow:0 4px 12px rgba(79,70,229,.25)}
@@ -307,11 +345,22 @@
   .fatal h2{font-size:22px;margin-bottom:12px;letter-spacing:-.02em}
   .fatal p{color:var(--muted);margin-bottom:20px;line-height:1.7}
 
-  /* ---------- TWEAKS ---------- */
+  /* ---------- SEARCH ---------- */
   .search-wrap{position:relative;flex:1;min-width:160px}
   .search-wrap svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);
-    width:15px;height:15px;stroke:var(--muted);pointer-events:none}
-  .search-wrap input{padding-left:36px !important;width:100% !important}
+    width:15px;height:15px;stroke:var(--muted);pointer-events:none;z-index:1}
+  .search-wrap input{
+    padding:8px 12px 8px 36px !important;
+    width:100% !important;
+    border:1px solid var(--border);
+    border-radius:10px;
+    background:var(--card);
+    color:var(--text);
+    font-size:13.5px;
+    min-height:38px;
+  }
+  .search-wrap input:focus{outline:none;border-color:var(--primary);
+    box-shadow:0 0 0 4px var(--primary-soft)}
 
   @media(max-width:560px){
     main{padding:14px}
@@ -327,6 +376,61 @@
     .card { box-shadow: none; border: 1px solid #ddd; break-inside: avoid; page-break-inside: avoid; }
     .bar-fill { background: #4f46e5 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .stat, .ct-table thead th, .ct-table .total-col, .ct-table .total-row td { background: #f5f5f5 !important; }
+  }
+
+  /* ============ iOS / mobile hardening ============ */
+
+  button, a, .btn, .tab, .btn-icon, select, input {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  /* 16px inputs on mobile so iOS Safari doesn't zoom on focus */
+  @media (max-width: 768px) {
+    input, select, textarea,
+    form input, form select,
+    .search-wrap input {
+      font-size: 16px !important;
+    }
+  }
+
+  /* Solid overlay on small screens — smoother than a full-screen blur */
+  @media (max-width: 768px) {
+    .modal-back {
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      background: rgba(15, 23, 42, .72);
+    }
+    [data-theme="dark"] .modal-back {
+      background: rgba(2, 6, 23, .82);
+    }
+  }
+
+  /* Prevent the page behind a modal from scrolling */
+  body.modal-open {
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+  }
+
+  /* App bar respects the notch in landscape and portrait */
+  .app-bar {
+    padding-top: max(12px, env(safe-area-inset-top));
+    padding-left: max(18px, env(safe-area-inset-left));
+    padding-right: max(18px, env(safe-area-inset-right));
+  }
+
+  /* Rounded corners in cards/tables don't get clipped on iOS */
+  .card, .table-wrap, .ct-wrap, .modal {
+    -webkit-mask-image: -webkit-radial-gradient(white, black);
+  }
+
+  /* Kill any lingering native decoration iOS might add */
+  select, form select {
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    background-image: none !important;
+    border-image: none !important;
   }
 </style>
 </head>
@@ -379,7 +483,7 @@ const TRANSPORTS = ['Bus','Parents','Guardian','None'];
 const REFERRALS = ['Referral','TikTok','Facebook','Instagram','YouTube','WhatsApp','Banner Ad','Radio','TV','Flyer','Church/Mosque','Family','Friend','Walk-in','Other'];
 const HEADERS = ['StudentID','Grade','Gender','Residence','Transport','ReferralSource'];
 
-/* ==================== ICONS (SVG strings) ==================== */
+/* ==================== ICONS ==================== */
 const I = {
   moon: `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`,
   sun: `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>`,
@@ -414,6 +518,8 @@ function applyTheme(theme){
     btn.innerHTML = theme === 'dark' ? I.sun : I.moon;
     btn.title = theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme';
   }
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if(meta) meta.setAttribute('content', theme === 'dark' ? '#0b1220' : '#4f46e5');
 }
 function toggleTheme(){ applyTheme(currentTheme() === 'dark' ? 'light' : 'dark'); }
 
@@ -547,6 +653,7 @@ function toast(msg, opts={}){
 
 function showModal({ title, body, actions = [], wide = false }){
   hideModal();
+  document.body.classList.add('modal-open');
   const root = document.getElementById('modal-root');
   const back = document.createElement('div');
   back.className = 'modal-back';
@@ -574,6 +681,7 @@ function showModal({ title, body, actions = [], wide = false }){
 function escClose(e){ if(e.key === 'Escape') hideModal(); }
 function hideModal(){
   document.getElementById('modal-root').innerHTML = '';
+  document.body.classList.remove('modal-open');
   document.removeEventListener('keydown', escClose);
 }
 
@@ -599,17 +707,17 @@ function currentFiltered(){
   if(f.residence)list = list.filter(s => s.residence === f.residence);
   if(f.referral) list = list.filter(s => s.referralSource === f.referral);
   if(f.q){
-  const q = f.q.trim().toLowerCase();
-  if(q){
-    const qTokens = q.split(/\s+/).filter(Boolean);
-    list = list.filter(s => {
-      const fields = [s.studentId, s.grade, s.gender, s.residence, s.transport, s.referralSource]
-        .map(v => String(v ?? '').toLowerCase());
-      const allTokens = fields.join(' ').split(/[\s,\/-]+/).filter(Boolean);
-      return qTokens.every(qt => allTokens.some(t => t.startsWith(qt)));
-    });
+    const q = f.q.trim().toLowerCase();
+    if(q){
+      const qTokens = q.split(/\s+/).filter(Boolean);
+      list = list.filter(s => {
+        const fields = [s.studentId, s.grade, s.gender, s.residence, s.transport, s.referralSource]
+          .map(v => String(v ?? '').toLowerCase());
+        const allTokens = fields.join(' ').split(/[\s,\/-]+/).filter(Boolean);
+        return qTokens.every(qt => allTokens.some(t => t.startsWith(qt)));
+      });
+    }
   }
-}
   return list;
 }
 
@@ -680,16 +788,24 @@ function filterBarHTML(){
   const f = state.filters;
   return `
     <div class="row no-print" style="margin-top:14px">
-      <select id="fGrade"><option value="">All grades</option>${GRADES.map(g=>`<option ${f.grade===g?'selected':''}>${g}</option>`).join('')}</select>
-      <select id="fGender"><option value="">All genders</option>${GENDERS.map(g=>`<option ${f.gender===g?'selected':''}>${g}</option>`).join('')}</select>
-      <select id="fResidence"><option value="">All residence</option>${RESIDENCES.map(g=>`<option ${f.residence===g?'selected':''}>${g}</option>`).join('')}</select>
-      <select id="fReferral"><option value="">All referrals</option>${REFERRALS.map(g=>`<option ${f.referral===g?'selected':''}>${g}</option>`).join('')}</select>
+      <span class="sel" style="flex:0 1 150px;min-width:120px">
+        <select id="fGrade"><option value="">All grades</option>${GRADES.map(g=>`<option ${f.grade===g?'selected':''}>${g}</option>`).join('')}</select>
+      </span>
+      <span class="sel" style="flex:0 1 140px;min-width:110px">
+        <select id="fGender"><option value="">All genders</option>${GENDERS.map(g=>`<option ${f.gender===g?'selected':''}>${g}</option>`).join('')}</select>
+      </span>
+      <span class="sel" style="flex:0 1 140px;min-width:110px">
+        <select id="fResidence"><option value="">All residence</option>${RESIDENCES.map(g=>`<option ${f.residence===g?'selected':''}>${g}</option>`).join('')}</select>
+      </span>
+      <span class="sel" style="flex:0 1 160px;min-width:120px">
+        <select id="fReferral"><option value="">All referrals</option>${REFERRALS.map(g=>`<option ${f.referral===g?'selected':''}>${g}</option>`).join('')}</select>
+      </span>
       <div class="search-wrap">
         ${I.search}
         <input id="fQ" placeholder="Search students…"
-               title="Searches StudentID, Grade, Gender, Residence, Transport, and Referral"
+               title="Searches from the start of each word: StudentID, Grade, Gender, Residence, Transport, Referral"
                value="${esc(f.q)}"
-               style="padding:8px 12px 8px 36px;border:1px solid var(--border);border-radius:10px;background:var(--card);color:var(--text);font-size:13.5px">
+               autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
       </div>
       <button class="btn" id="fClear">Clear</button>
     </div>
@@ -1023,38 +1139,50 @@ function formHTML(s = {}, isAdd){
   return `
     <form class="card" id="studentForm">
       <h2>${isAdd ? 'New student' : 'Edit student'}</h2>
-      ${!isAdd ? `<div class="field" style="margin-top:14px"><label>Student ID</label><input value="${esc(id)}" readonly style="background:var(--bg-2);color:var(--muted)"></div>` : `<p class="muted small" style="margin:6px 0 14px">An ID will be auto-generated on save.</p>`}
+      ${!isAdd
+        ? `<div class="field" style="margin-top:14px"><label>Student ID</label><input value="${esc(id)}" readonly style="background:var(--bg-2);color:var(--muted)"></div>`
+        : `<p class="muted small" style="margin:6px 0 14px">An ID will be auto-generated on save.</p>`}
       <div class="grid2">
         <div class="field"><label>Grade</label>
-          <select name="grade" required>
-            <option value="">— Select —</option>
-            ${GRADES.map(g => `<option ${s.grade===g?'selected':''}>${g}</option>`).join('')}
-          </select>
+          <span class="sel">
+            <select name="grade" required>
+              <option value="">— Select —</option>
+              ${GRADES.map(g => `<option ${s.grade===g?'selected':''}>${g}</option>`).join('')}
+            </select>
+          </span>
         </div>
         <div class="field"><label>Gender</label>
-          <select name="gender" required>
-            <option value="">— Select —</option>
-            ${GENDERS.map(g => `<option ${s.gender===g?'selected':''}>${g}</option>`).join('')}
-          </select>
+          <span class="sel">
+            <select name="gender" required>
+              <option value="">— Select —</option>
+              ${GENDERS.map(g => `<option ${s.gender===g?'selected':''}>${g}</option>`).join('')}
+            </select>
+          </span>
         </div>
         <div class="field"><label>Residence</label>
-          <select name="residence" required>
-            <option value="">— Select —</option>
-            ${RESIDENCES.map(g => `<option ${s.residence===g?'selected':''}>${g}</option>`).join('')}
-          </select>
+          <span class="sel">
+            <select name="residence" required>
+              <option value="">— Select —</option>
+              ${RESIDENCES.map(g => `<option ${s.residence===g?'selected':''}>${g}</option>`).join('')}
+            </select>
+          </span>
         </div>
         <div class="field"><label>Transport</label>
-          <select name="transport" required>
-            <option value="">— Select —</option>
-            ${TRANSPORTS.map(g => `<option ${s.transport===g?'selected':''}>${g}</option>`).join('')}
-          </select>
+          <span class="sel">
+            <select name="transport" required>
+              <option value="">— Select —</option>
+              ${TRANSPORTS.map(g => `<option ${s.transport===g?'selected':''}>${g}</option>`).join('')}
+            </select>
+          </span>
         </div>
       </div>
       <div class="field"><label>How did they hear about the school?</label>
-        <select name="referralSource" required>
-          <option value="">— Select —</option>
-          ${REFERRALS.map(g => `<option ${s.referralSource===g?'selected':''}>${g}</option>`).join('')}
-        </select>
+        <span class="sel">
+          <select name="referralSource" required>
+            <option value="">— Select —</option>
+            ${REFERRALS.map(g => `<option ${s.referralSource===g?'selected':''}>${g}</option>`).join('')}
+          </select>
+        </span>
       </div>
       <div class="row" style="margin-top:14px">
         <button type="submit" class="btn btn-primary">${I.save}<span>Save</span></button>
@@ -1305,7 +1433,7 @@ async function renderSettings(view){
     <div class="card">
       <h3>Cloud connection</h3>
       <div class="field"><label>Apps Script Web App URL</label>
-        <input id="inpUrl" placeholder="https://script.google.com/macros/s/.../exec" value="${esc(url)}" autocomplete="off" spellcheck="false">
+        <input id="inpUrl" placeholder="https://script.google.com/macros/s/.../exec" value="${esc(url)}" autocomplete="off" spellcheck="false" autocapitalize="off">
       </div>
       <div class="row">
         <button class="btn btn-primary" id="btnTest">${I.link}<span>Test connection</span></button>
