@@ -786,8 +786,8 @@ function parseMarkInput(input,maxMark){
   return Math.min(Math.max(Math.round(raw),0),maxMark);
 }
 function getRemarks(score,maxScore=100){
-  const p=maxScore>0?(score/maxScore)*100:0;
-  for(const g of GRADING_SCALE)if(p>=g.min)return{text:g.text,cls:g.cls};
+  const p=(score/maxScore)*100;
+  for(const g of GRADING_SCALE)if(p>=g.min&&p<=g.max)return{text:g.text,cls:g.cls};
   return{text:'Fail',cls:'remarks-fail'};
 }
 function sanitizeTabName(name){
@@ -980,13 +980,11 @@ function tableToRows(tbl){
   return rows;
 }
 function buildTabsFromDatasets(datasets){
-  const tabs=[]; const seenTabs=new Map();
+  const tabs=[];
   for(const ds of datasets){
     for(const tbl of ds.tables){
       const displayName=sanitizeTabName(`${ds.name} - ${tbl.name}`);
-      const dkey=displayName+'|'+tbl.id;
-      const dn=(seenTabs.get(dkey)||0)+1; seenTabs.set(dkey,dn);
-      const tabName=(dn>1?displayName+' ('+dn+')':displayName)+' — '+tbl.id;
+      const tabName=displayName+' — '+tbl.id;
       tabs.push({ name:tabName, rows:tableToRows(tbl) });
     }
   }
@@ -1074,7 +1072,7 @@ function buildDatasetsFromRaw(meta,tabs){
   const datasetDefs=parseMetaDatasets(meta);
   const tableLookup=new Map();
   for(const ds of datasetDefs){
-    for(const t of ds.tables){ if(!tableLookup.has(t.id)) tableLookup.set(t.id,[]); tableLookup.get(t.id).push({datasetId:ds.id,tableDef:t,display:sanitizeTabName(ds.name+' - '+t.name)}); }
+    for(const t of ds.tables) tableLookup.set(t.id,{ datasetId:ds.id, tableDef:t });
   }
   const datasetMap=new Map();
   for(const ds of datasetDefs){
@@ -1086,12 +1084,9 @@ function buildDatasetsFromRaw(meta,tabs){
     let targetDataset=null;
     let tableDef=null;
     if(tableId&&tableLookup.has(tableId)){
-      const cands=tableLookup.get(tableId);
-      let info=null;
-      const mo=String(parsedName.displayPart).match(/^(.*) \((\d+)\)$/);
-      if(mo){ const grp=cands.filter(x=>x.display===mo[1]); const pick=grp[parseInt(mo[2],10)-1]; if(pick&&!pick.used) info=pick; }
-      if(!info) info=cands.find(x=>!x.used&&x.display.startsWith(parsedName.displayPart))||cands.find(x=>!x.used);
-      if(info){ info.used=true; targetDataset=datasetMap.get(info.datasetId); tableDef=info.tableDef; }
+      const info=tableLookup.get(tableId);
+      targetDataset=datasetMap.get(info.datasetId);
+      tableDef=info.tableDef;
     }
     if(!targetDataset){
       const parts=(parsedName.displayPart||tab.name).split(' - ');
@@ -1253,7 +1248,6 @@ const App={
       document.getElementById('mainApp').innerHTML='<div class="container"><div class="empty-state">'+IC['alert-triangle']+'<h2>Storage unavailable</h2><p>'+esc(e.message||'Unknown error')+'</p><button class="btn btn-primary" onclick="location.reload()">Reload</button></div></div>';
       return;
     }
-    try{ if(navigator.storage&&navigator.storage.persist) navigator.storage.persist(); }catch(e){}
     if(!await DB.getSetting('secret','')) await DB.setSetting('secret',uuid());
     if(!await DB.getSetting('deviceId','')) await DB.setSetting('deviceId',uuid());
     this.settings=await DB.allSettings();
@@ -1337,8 +1331,8 @@ const App={
     if(save) this.saveState();
   },
   getCurrentDataset(){ return this.datasets.find(d=>d.id===this.currentDatasetId); },
-  findTable(tid){ const cur=this.getCurrentDataset(); if(cur){ const c=cur.tables.find(x=>x.id===tid); if(c) return c; } for(const d of this.datasets){ const t=d.tables.find(x=>x.id===tid); if(t) return t; } return null; },
-  findDatasetByTable(tid){ const cur=this.getCurrentDataset(); if(cur&&cur.tables.some(t=>t.id===tid)) return cur; return this.datasets.find(d=>d.tables.some(t=>t.id===tid)); },
+  findTable(tid){ for(const d of this.datasets){ const t=d.tables.find(x=>x.id===tid); if(t) return t; } return null; },
+  findDatasetByTable(tid){ return this.datasets.find(d=>d.tables.some(t=>t.id===tid)); },
 
   validateAll(){
     this.datasets.forEach(ds=>{
@@ -1951,13 +1945,9 @@ const App={
     for(const ds of datasets){
       for(const tbl of ds.tables){
         const displayName=sanitizeTabName(ds.name+' - '+tbl.name);
-        const idPart=' — '+tbl.id;
-        let unique=(displayName.slice(0,Math.max(1,31-idPart.length))+idPart).slice(0,31);
-        let n=2;
-        while(usedNames.has(unique)){
-          const sfx=n+idPart;
-          unique=(displayName.slice(0,Math.max(1,31-sfx.length))+sfx).slice(0,31); n++;
-        }
+        const tabName=(displayName+' — '+tbl.id).slice(0,31);
+        let unique=tabName; let n=2;
+        while(usedNames.has(unique)){ unique=(displayName.slice(0,25)+' ('+n+')').slice(0,31); n++; }
         usedNames.add(unique);
         XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(tableToRows(tbl)), unique);
       }
@@ -2184,7 +2174,7 @@ const App={
   async push(){
     const url=this.settings.sheetUrl||'';
     if(!url){ showToast('warning','Connect a Sheet first'); return; }
-    const ok=confirm('Push to Google Sheet?\n\nThis will REPLACE the entire sheet contents with your local data:\n• '+this.datasets.length+' dataset(s)\n• '+this.datasets.reduce((s,d)=>s+d.tables.length,0)+' table(s)\n• '+this.datasets.reduce((s,d)=>s+d.tables.reduce((x,t)=>x+t.students.length,0),0)+' student(s)\n\nAny manual edits, and ANY other tabs in that spreadsheet, will be lost.\n\nContinue?');
+    const ok=confirm('Push to Google Sheet?\n\nThis will REPLACE the entire sheet contents with your local data:\n• '+this.datasets.length+' dataset(s)\n• '+this.datasets.reduce((s,d)=>s+d.tables.length,0)+' table(s)\n• '+this.datasets.reduce((s,d)=>s+d.tables.reduce((x,t)=>x+t.students.length,0),0)+' student(s)\n\nAny manual edits made directly in the sheet since the last Push will be lost.\n\nContinue?');
     if(!ok) return;
     showLoading('Pushing to Sheet...');
     try{

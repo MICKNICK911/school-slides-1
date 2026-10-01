@@ -302,6 +302,61 @@
   [data-theme="dark"] .remarks-pass{color:#fbbf24}
   [data-theme="dark"] .remarks-fail{color:#f87171}
 
+  .view-tabs{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap}
+  .view-tab{background:var(--card);border:1px solid var(--border);color:var(--muted);
+    padding:10px 18px;border-radius:12px;font-weight:600;font-size:.9rem;cursor:pointer;
+    display:inline-flex;align-items:center;gap:8px;transition:var(--transition);font-family:inherit}
+  .view-tab:hover{background:var(--hover);color:var(--primary);border-color:var(--primary)}
+  .view-tab.active{background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+    color:#fff;border-color:transparent;box-shadow:var(--shadow)}
+  .view-tab .ic{width:16px;height:16px}
+
+  .att-toolbar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px}
+  .att-title{font-size:1.15rem;font-weight:700;color:var(--primary)}
+  .att-grid-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;background:var(--card);
+    border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow)}
+  .att-table{width:100%;border-collapse:collapse;font-size:.88rem;min-width:600px}
+  .att-table th{background:var(--card-2);color:var(--muted);font-weight:700;padding:10px 8px;
+    text-align:center;font-size:.72rem;text-transform:uppercase;letter-spacing:.4px;
+    border-bottom:2px solid var(--border);position:sticky;top:0;white-space:nowrap}
+  .att-table th.att-name,.att-table td.att-name{text-align:left;min-width:120px;position:sticky;left:0;
+    background:var(--card);z-index:2;padding-left:14px}
+  .att-table th.att-name{background:var(--card-2);z-index:3}
+  .att-table td{padding:6px 4px;text-align:center;border-bottom:1px solid var(--border)}
+  .att-cell{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;
+    border-radius:8px;cursor:pointer;font-weight:700;font-size:.9rem;transition:var(--transition);
+    user-select:none;border:1px solid transparent}
+  .att-cell:hover{transform:scale(1.08)}
+  .att-cell.present{background:rgba(34,197,94,.15);color:var(--success);border-color:rgba(34,197,94,.3)}
+  .att-cell.absent{background:rgba(239,68,68,.12);color:var(--danger);border-color:rgba(239,68,68,.25)}
+  .att-cell.unmarked{background:var(--surface);color:var(--muted)}
+  .att-date-head{cursor:pointer;position:relative}
+  .att-date-head .att-del{opacity:0;position:absolute;top:2px;right:2px;font-size:10px;
+    background:var(--danger);color:#fff;border:none;border-radius:50%;width:16px;height:16px;
+    line-height:16px;cursor:pointer;padding:0}
+  .att-date-head:hover .att-del{opacity:1}
+  .att-summary-row td{font-weight:600;background:var(--card-2);font-size:.82rem}
+  .att-pct{font-weight:600;color:var(--primary);white-space:nowrap}
+
+  .stats-tabs{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap;border-bottom:1px solid var(--border);padding-bottom:12px}
+  .stats-tab{background:transparent;border:none;color:var(--muted);padding:8px 14px;border-radius:10px;
+    font-weight:600;font-size:.88rem;cursor:pointer;font-family:inherit;transition:var(--transition)}
+  .stats-tab:hover{background:var(--hover);color:var(--primary)}
+  .stats-tab.active{background:var(--primary-soft);color:var(--primary)}
+  .progress-subtabs{display:flex;gap:4px;margin-bottom:14px;flex-wrap:wrap}
+  .progress-subtab{background:var(--card-2);border:1px solid var(--border);color:var(--muted);
+    padding:6px 12px;border-radius:8px;font-weight:600;font-size:.82rem;cursor:pointer;font-family:inherit}
+  .progress-subtab.active{background:var(--primary);color:#fff;border-color:transparent}
+  .trend-up{color:var(--success);font-weight:700}
+  .trend-down{color:var(--danger);font-weight:700}
+  .trend-same{color:var(--muted)}
+  .flag-panel{background:var(--card-2);border:1px solid var(--border);border-radius:12px;padding:12px 16px;margin-bottom:14px;font-size:.88rem}
+  .flag-warn{color:var(--warning-dark)}
+  .flag-good{color:var(--success)}
+  .bar-cell{position:relative}
+  .bar-fill{position:absolute;left:0;top:0;bottom:0;background:var(--primary-soft);border-radius:4px;z-index:0}
+  .bar-text{position:relative;z-index:1}
+
   .footer{margin-top:26px;text-align:center;color:var(--muted);font-size:.88rem}
   .footer p{margin-bottom:6px}
   .input-hint{color:var(--primary);font-weight:500}
@@ -424,6 +479,9 @@
           <span id="currentDatasetIndicator" class="current-dataset" style="display:none;">
             <span data-ic="database"></span> <span id="currentDatasetName">Default</span>
           </span>
+          <span id="currentTermIndicator" class="current-dataset" style="display:none;cursor:pointer;" title="Click to edit term">
+            <span id="currentTermText">Term</span>
+          </span>
         </div>
         <div class="header-right">
           <div class="sheet-status" id="sheetStatusPill" title="Cloud connection status">
@@ -483,6 +541,15 @@
         </div>
       </div>
 
+      <div id="viewTabs" class="view-tabs" style="display:none;">
+        <button class="view-tab active" data-view="students" id="tabStudents">
+          <span data-ic="list"></span> Students
+        </button>
+        <button class="view-tab" data-view="attendance" id="tabAttendance">
+          <span data-ic="book"></span> Attendance
+        </button>
+      </div>
+
       <main id="tablesContainer">
         <div class="empty-state" id="emptyState">
           <span data-ic="database" class="ic-xl"></span>
@@ -492,6 +559,7 @@
           </button>
         </div>
       </main>
+      <main id="attendanceContainer" style="display:none;"></main>
 
       <footer class="footer">
         <p><span data-ic="copyright" class="ic-sm"></span> 2025 Student Results Manager | Developed by Sir Mick | Contact: 0545800158</p>
@@ -574,6 +642,36 @@
           <button class="btn btn-secondary" id="btnExportAllQuick"><span data-ic="download"></span> Export all (xlsx)</button>
           <button class="btn btn-danger" id="btnWipeLocal"><span data-ic="trash"></span> Wipe local data</button>
         </div>
+      </div>
+
+      <div class="settings-section">
+        <h3><span data-ic="book"></span> Attendance tracking</h3>
+        <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:10px;">
+          <label style="display:flex;align-items:center;gap:8px;font-weight:600;cursor:pointer;">
+            <input type="checkbox" id="chkAttendance" style="width:18px;height:18px;accent-color:var(--primary);">
+            Enable attendance tab
+          </label>
+          <button class="btn btn-danger" id="btnWipeAttendance" style="display:none;"><span data-ic="trash"></span> Wipe attendance data</button>
+        </div>
+        <p style="font-size:.85rem;color:var(--muted);">When off, the Attendance tab is hidden. Existing data is kept.</p>
+      </div>
+
+      <div class="settings-section">
+        <h3><span data-ic="bar-chart"></span> Analysis thresholds</h3>
+        <div class="settings-form" style="max-width:320px;">
+          <label>Attendance warning below %</label>
+          <input type="number" id="inpAttThreshold" min="0" max="100" value="80">
+          <label>Academic drop flag (points)</label>
+          <input type="number" id="inpAcadDrop" min="1" max="50" value="10">
+          <label>Academic improve flag (points)</label>
+          <input type="number" id="inpAcadImprove" min="1" max="50" value="10">
+          <button class="btn btn-primary" id="btnSaveThresholds" style="margin-top:8px;"><span data-ic="save"></span> Save thresholds</button>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h3><span data-ic="alert-triangle"></span> Data health</h3>
+        <button class="btn btn-secondary" id="btnDupScan"><span data-ic="alert-triangle"></span> Check for duplicate IDs</button>
       </div>
 
       <div class="settings-section">
@@ -754,7 +852,7 @@ function applyTheme(theme){
 }
 function toggleTheme(){ applyTheme(currentTheme()==='dark'?'light':'dark'); }
 
-const APP_VERSION='3.3.0';
+const APP_VERSION='4.0.0';
 const DEFAULT_CAT_COLUMNS=[
   {id:'cat1',name:'CAT1',maxScore:15},
   {id:'cat2',name:'CAT2',maxScore:20},
@@ -776,6 +874,36 @@ function deepClone(o){ return JSON.parse(JSON.stringify(o)); }
 function esc(s){ return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function fmtTime(ms){ return ms?new Date(ms).toLocaleString():'—'; }
 function today(){ return new Date().toISOString().slice(0,10); }
+
+// --- v4 helpers ---
+function formatStudentId(n){
+  if(n<=9999) return 'STU-'+String(n).padStart(4,'0');
+  return 'STU-'+n;
+}
+function parseStudentIdNum(id){
+  if(!id||typeof id!=='string') return 0;
+  const m=String(id).match(/^STU-(\d+)$/i);
+  return m?parseInt(m[1],10):0;
+}
+function normalizeGender(v){
+  if(v===null||v===undefined) return '';
+  const s=String(v).trim().toLowerCase();
+  if(s==='m'||s==='male'||s==='boy') return 'M';
+  if(s==='f'||s==='female'||s==='girl') return 'F';
+  if(s==='') return '';
+  return '';
+}
+function cycleGender(g){
+  if(g==='M') return 'F';
+  if(g==='F') return '';
+  return 'M';
+}
+function suggestNextTerm(term){
+  if(!term) return '';
+  const m=String(term).match(/^Term\s*(\d+)$/i);
+  if(m) return 'Term '+(parseInt(m[1],10)+1);
+  return term;
+}
 function parseMarkInput(input,maxMark){
   if(input===null||input===undefined||input==='')return 0;
   const str=String(input).trim();let raw;
@@ -786,8 +914,8 @@ function parseMarkInput(input,maxMark){
   return Math.min(Math.max(Math.round(raw),0),maxMark);
 }
 function getRemarks(score,maxScore=100){
-  const p=maxScore>0?(score/maxScore)*100:0;
-  for(const g of GRADING_SCALE)if(p>=g.min)return{text:g.text,cls:g.cls};
+  const p=(score/maxScore)*100;
+  for(const g of GRADING_SCALE)if(p>=g.min&&p<=g.max)return{text:g.text,cls:g.cls};
   return{text:'Fail',cls:'remarks-fail'};
 }
 function sanitizeTabName(name){
@@ -802,6 +930,21 @@ function showToast(type,title,msg,duration=4000){
   c.appendChild(t);
   const to=setTimeout(()=>t.remove(),duration);
   t.querySelector('.toast-close').addEventListener('click',()=>{clearTimeout(to);t.remove()});
+  return t;
+}
+function showUndoToast(message, onUndo, duration=5000){
+  const c=document.getElementById('toastContainer');if(!c)return null;
+  const t=document.createElement('div');t.className='toast success undo-toast';
+  t.innerHTML=IC['check-circle']+'<div class="toast-content"><div class="toast-title">'+esc(message)+'</div></div><button class="btn btn-secondary undo-btn" style="padding:6px 12px;font-size:.82rem;">Undo</button><button class="toast-close" aria-label="Close">'+IC.x+'</button>';
+  c.appendChild(t);
+  let undone=false;
+  const to=setTimeout(()=>{ if(!undone){ t.remove(); if(typeof onUndo._commit==='function') onUndo._commit(); } }, duration);
+  t.querySelector('.undo-btn').addEventListener('click',()=>{
+    undone=true; clearTimeout(to); t.remove();
+    if(typeof onUndo==='function') onUndo();
+  });
+  t.querySelector('.toast-close').addEventListener('click',()=>{ clearTimeout(to); t.remove(); if(!undone&&typeof onUndo._commit==='function') onUndo._commit(); });
+  return t;
 }
 function showLoading(msg='Loading...'){const o=document.getElementById('loadingOverlay');if(o){o.querySelector('p').textContent=msg;o.style.display='flex'}}
 function hideLoading(){const o=document.getElementById('loadingOverlay');if(o)o.style.display='none'}
@@ -967,12 +1110,19 @@ async function cloudFetch(action,payload){
 }
 
 function tableToRows(tbl){
-  const headers=['NAMES'];
+  const term=tbl.term||'';
+  const headers=['NAMES','ID','GENDER'];
   for(const c of tbl.catColumns) headers.push(`${c.name} (${c.maxScore})`);
   headers.push('CAT TOTAL','EXAM (50)','TOTAL','POSITION');
-  const rows=[headers];
+  const rows=[
+    ['Term: '+(term||'')],
+    ['Subject: '+(tbl.name||'')],
+    [],
+    headers
+  ];
   for(const s of tbl.students){
-    const row=[s.name];
+    if(s._pendingDelete) continue;
+    const row=[s.name, s.id||'', s.gender||''];
     for(const c of tbl.catColumns) row.push(s.catMarks[c.id]||0);
     row.push(s.catTotal,s.exam,s.total,s.position);
     rows.push(row);
@@ -980,13 +1130,11 @@ function tableToRows(tbl){
   return rows;
 }
 function buildTabsFromDatasets(datasets){
-  const tabs=[]; const seenTabs=new Map();
+  const tabs=[];
   for(const ds of datasets){
     for(const tbl of ds.tables){
       const displayName=sanitizeTabName(`${ds.name} - ${tbl.name}`);
-      const dkey=displayName+'|'+tbl.id;
-      const dn=(seenTabs.get(dkey)||0)+1; seenTabs.set(dkey,dn);
-      const tabName=(dn>1?displayName+' ('+dn+')':displayName)+' — '+tbl.id;
+      const tabName=displayName+' — '+tbl.id;
       tabs.push({ name:tabName, rows:tableToRows(tbl) });
     }
   }
@@ -994,10 +1142,12 @@ function buildTabsFromDatasets(datasets){
 }
 function buildMetaFromDatasets(datasets,currentDatasetId){
   const meta={ version:APP_VERSION, currentDatasetId:currentDatasetId||'', generatedAt:new Date().toISOString() };
+  const cur=datasets.find(d=>d.id===currentDatasetId);
+  if(cur) meta.currentTerm=cur.term||'';
   for(const ds of datasets){
     const slim={
-      id:ds.id, name:ds.name, tableCounter:ds.tableCounter,
-      tables:ds.tables.map(t=>({ id:t.id, name:t.name, catColumns:t.catColumns.map(c=>({id:c.id,name:c.name,maxScore:c.maxScore})) }))
+      id:ds.id, name:ds.name, term:ds.term||'', tableCounter:ds.tableCounter,
+      tables:ds.tables.map(t=>({ id:t.id, name:t.name, term:t.term||'', termOverridden:!!t.termOverridden, catColumns:t.catColumns.map(c=>({id:c.id,name:c.name,maxScore:c.maxScore})) }))
     };
     meta['dataset:'+ds.id]=JSON.stringify(slim);
   }
@@ -1038,9 +1188,19 @@ function matchCatColumns(incoming,metaCats){
 }
 function parseTabRows(rows,metaTableDef){
   if(!rows||rows.length<1) return null;
-  const header=(rows[0]||[]).map(v=>String(v||'').trim());
+  // Find header row containing NAMES (skip Term/Subject header rows)
+  let headerRowIdx=0;
+  for(let i=0;i<Math.min(rows.length,6);i++){
+    const cells=(rows[i]||[]).map(v=>String(v||'').trim().toUpperCase());
+    if(cells.includes('NAMES')||cells[0]==='NAMES'){ headerRowIdx=i; break; }
+  }
+  const header=(rows[headerRowIdx]||[]).map(v=>String(v||'').trim());
+  const nameIdx=header.findIndex(h=>h.toUpperCase()==='NAMES');
+  const idIdx=header.findIndex(h=>h.toUpperCase()==='ID');
+  const genderIdx=header.findIndex(h=>h.toUpperCase()==='GENDER');
   const catIncoming=[];let examIdx=-1;
-  for(let i=1;i<header.length;i++){
+  for(let i=0;i<header.length;i++){
+    if(i===nameIdx||i===idIdx||i===genderIdx) continue;
     const h=header[i];
     if(h==='CAT TOTAL'){ continue; }
     if(h.startsWith('EXAM')){ examIdx=i; continue; }
@@ -1050,10 +1210,12 @@ function parseTabRows(rows,metaTableDef){
   }
   const catColumns=matchCatColumns(catIncoming, metaTableDef&&metaTableDef.catColumns);
   const students=[];
-  for(let r=1;r<rows.length;r++){
+  for(let r=headerRowIdx+1;r<rows.length;r++){
     const row=rows[r]||[];
-    const name=String(row[0]||'').trim();
+    const name=String(row[nameIdx>=0?nameIdx:0]||'').trim();
     if(!name) continue;
+    const sid=idIdx>=0?String(row[idIdx]||'').trim():'';
+    const gender=genderIdx>=0?normalizeGender(row[genderIdx]):'';
     const catMarks={};
     for(const c of catColumns){
       const v=row[c._colIdx];
@@ -1066,7 +1228,7 @@ function parseTabRows(rows,metaTableDef){
       const v=row[examIdx];
       examRaw=typeof v==='number'?v:(parseFloat(v)||0);
     }
-    students.push({ name, catMarks, exam:Math.min(Math.max(Math.round(examRaw),0),50), catTotal:0,total:0,position:0 });
+    students.push({ id:sid, name, gender, catMarks, exam:Math.min(Math.max(Math.round(examRaw),0),50), catTotal:0,total:0,position:0 });
   }
   return { catColumns, students };
 }
@@ -1074,11 +1236,11 @@ function buildDatasetsFromRaw(meta,tabs){
   const datasetDefs=parseMetaDatasets(meta);
   const tableLookup=new Map();
   for(const ds of datasetDefs){
-    for(const t of ds.tables){ if(!tableLookup.has(t.id)) tableLookup.set(t.id,[]); tableLookup.get(t.id).push({datasetId:ds.id,tableDef:t,display:sanitizeTabName(ds.name+' - '+t.name)}); }
+    for(const t of ds.tables) tableLookup.set(t.id,{ datasetId:ds.id, tableDef:t });
   }
   const datasetMap=new Map();
   for(const ds of datasetDefs){
-    datasetMap.set(ds.id,{ id:ds.id, name:ds.name, tableCounter:ds.tableCounter||1, tables:[] });
+    datasetMap.set(ds.id,{ id:ds.id, name:ds.name, term:ds.term||'', tableCounter:ds.tableCounter||1, tables:[], comments:{}, attendance:{enabled:false,dates:[],records:{},comments:{}} });
   }
   for(const tab of tabs){
     const parsedName=parseTabName(tab.name);
@@ -1086,12 +1248,9 @@ function buildDatasetsFromRaw(meta,tabs){
     let targetDataset=null;
     let tableDef=null;
     if(tableId&&tableLookup.has(tableId)){
-      const cands=tableLookup.get(tableId);
-      let info=null;
-      const mo=String(parsedName.displayPart).match(/^(.*) \((\d+)\)$/);
-      if(mo){ const grp=cands.filter(x=>x.display===mo[1]); const pick=grp[parseInt(mo[2],10)-1]; if(pick&&!pick.used) info=pick; }
-      if(!info) info=cands.find(x=>!x.used&&x.display.startsWith(parsedName.displayPart))||cands.find(x=>!x.used);
-      if(info){ info.used=true; targetDataset=datasetMap.get(info.datasetId); tableDef=info.tableDef; }
+      const info=tableLookup.get(tableId);
+      targetDataset=datasetMap.get(info.datasetId);
+      tableDef=info.tableDef;
     }
     if(!targetDataset){
       const parts=(parsedName.displayPart||tab.name).split(' - ');
@@ -1115,13 +1274,14 @@ function buildDatasetsFromRaw(meta,tabs){
     targetDataset.tables.push({
       id:tableId,
       name:tableDef.name||parsedName.displayPart||'Table',
+      term:(tableDef&&tableDef.term)||targetDataset.term||'',
+      termOverridden:!!(tableDef&&tableDef.termOverridden),
       catColumns,
       students:parsed.students
     });
   }
   const datasets=Array.from(datasetMap.values());
   for(const ds of datasets){
-    // FIX #2: ensure tableCounter > any existing numeric table ID
     let maxId=0;
     for(const t of ds.tables){
       const m=String(t.id).match(/^table-(\d+)$/);
@@ -1245,7 +1405,59 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeAllModals(); 
 })();
 
 const App={
-  datasets:[], currentDatasetId:null, settings:{}, onboarded:false, _dirty:false,
+  datasets:[], currentDatasetId:null, settings:{}, onboarded:false, _dirty:false, _idCounter:1,
+  _pendingUndos:[], currentView:'students',
+  thresholds:{ attendancePct:80, academicDrop:10, academicImprove:10 },
+
+  async nextStudentId(){
+    let n=this._idCounter||1;
+    const existing=new Set();
+    this.datasets.forEach(ds=>ds.tables.forEach(t=>t.students.forEach(s=>{ if(s.id) existing.add(s.id); })));
+    let id;
+    do{ id=formatStudentId(n); n++; }while(existing.has(id));
+    this._idCounter=n;
+    await DB.setSetting('idCounter', this._idCounter);
+    return id;
+  },
+
+  async migrateToV4(){
+    const ver=await DB.getSetting('version','');
+    if(ver==='4.0.0') return false;
+    // Scan max existing ID
+    let maxN=0;
+    this.datasets.forEach(ds=>{
+      (ds.tables||[]).forEach(t=>{
+        (t.students||[]).forEach(s=>{
+          const n=parseStudentIdNum(s.id);
+          if(n>maxN) maxN=n;
+        });
+      });
+    });
+    this._idCounter=Math.max(await DB.getSetting('idCounter',1), maxN+1);
+    await DB.setSetting('idCounter', this._idCounter);
+
+    let assigned=0;
+    for(const ds of this.datasets){
+      if(!ds.term) ds.term='';
+      if(!ds.comments) ds.comments={};
+      if(!ds.attendance) ds.attendance={ enabled:false, dates:[], records:{}, comments:{} };
+      for(const t of (ds.tables||[])){
+        if(!t.term) t.term=ds.term||'';
+        if(typeof t.termOverridden!=='boolean') t.termOverridden=false;
+        for(const s of (t.students||[])){
+          if(!s.id){ s.id=await this.nextStudentId(); assigned++; }
+          if(s.gender===undefined||s.gender===null) s.gender='';
+          else s.gender=normalizeGender(s.gender);
+        }
+      }
+    }
+    await DB.setSetting('version','4.0.0');
+    this.settings.version='4.0.0';
+    if(assigned>0||ver!=='4.0.0'){
+      showToast('success','Updated','Migration complete — students now have IDs.');
+    }
+    return true;
+  },
 
   async init(){
     try{ await openDB(); }
@@ -1253,11 +1465,17 @@ const App={
       document.getElementById('mainApp').innerHTML='<div class="container"><div class="empty-state">'+IC['alert-triangle']+'<h2>Storage unavailable</h2><p>'+esc(e.message||'Unknown error')+'</p><button class="btn btn-primary" onclick="location.reload()">Reload</button></div></div>';
       return;
     }
-    try{ if(navigator.storage&&navigator.storage.persist) navigator.storage.persist(); }catch(e){}
     if(!await DB.getSetting('secret','')) await DB.setSetting('secret',uuid());
     if(!await DB.getSetting('deviceId','')) await DB.setSetting('deviceId',uuid());
     this.settings=await DB.allSettings();
     this.onboarded=await DB.getSetting('onboarded',false);
+    this._idCounter=await DB.getSetting('idCounter',1)||1;
+    if(this.settings.attendanceEnabled===undefined){
+      await DB.setSetting('attendanceEnabled', true);
+      this.settings.attendanceEnabled=true;
+    }
+    const th=await DB.getSetting('thresholds', null);
+    if(th) this.thresholds=Object.assign(this.thresholds, th);
 
     const stored=await DB.getState();
     if(stored&&stored.data&&stored.data.datasets&&stored.data.datasets.length){
@@ -1268,10 +1486,12 @@ const App={
       this.createDefaultDataset(false);
       this._dirty=false;
     }
+    await this.migrateToV4();
     this.validateAll();
     this.renderAll();
     this.bindEvents();
     this.refreshStatus();
+    this.updateViewTabs();
 
     if(!this.onboarded) document.getElementById('onboardingModal').style.display='flex';
   },
@@ -1316,6 +1536,10 @@ const App={
     document.getElementById('btnCopySnippet').addEventListener('click',()=>this.copySnippet());
     document.getElementById('btnExportAllQuick').addEventListener('click',()=>this.exportAllXlsx());
     document.getElementById('btnWipeLocal').addEventListener('click',()=>this.wipeLocal());
+    document.getElementById('chkAttendance').addEventListener('change',e=>this.toggleAttendance(e.target.checked));
+    document.getElementById('btnWipeAttendance').addEventListener('click',()=>this.wipeAttendanceData());
+    document.getElementById('btnSaveThresholds').addEventListener('click',()=>this.saveThresholds());
+    document.getElementById('btnDupScan').addEventListener('click',()=>this.runDuplicateScan());
 
     document.getElementById('onboardingLocalBtn').addEventListener('click',async()=>{
       await DB.setSetting('onboarded',true); this.onboarded=true;
@@ -1328,21 +1552,231 @@ const App={
     });
 
     document.getElementById('createNewDatasetBtn').addEventListener('click',()=>this.createNewDataset());
+
+    document.getElementById('tabStudents').addEventListener('click',()=>this.switchView('students'));
+    document.getElementById('tabAttendance').addEventListener('click',()=>this.switchView('attendance'));
+  },
+
+  updateViewTabs(){
+    const tabs=document.getElementById('viewTabs');
+    const attOn=!!this.settings.attendanceEnabled;
+    if(tabs) tabs.style.display=attOn?'flex':'none';
+    if(!attOn && this.currentView==='attendance') this.switchView('students');
+  },
+  switchView(view){
+    this.currentView=view;
+    document.querySelectorAll('.view-tab').forEach(b=>b.classList.toggle('active', b.dataset.view===view));
+    const tables=document.getElementById('tablesContainer');
+    const att=document.getElementById('attendanceContainer');
+    if(view==='attendance'){
+      tables.style.display='none';
+      att.style.display='block';
+      this.renderAttendance();
+    }else{
+      tables.style.display='block';
+      att.style.display='none';
+    }
+  },
+
+  // --- Attendance helpers ---
+  getRoster(ds){
+    const map=new Map();
+    (ds.tables||[]).forEach(t=>{
+      (t.students||[]).forEach(s=>{
+        if(s.id && !map.has(s.id)) map.set(s.id, {id:s.id, name:s.name, gender:s.gender||''});
+        else if(s.id && map.has(s.id) && s.name) map.get(s.id).name=s.name;
+      });
+    });
+    return Array.from(map.values()).sort((a,b)=>a.name.localeCompare(b.name)||a.id.localeCompare(b.id));
+  },
+  ensureAttendance(ds){
+    if(!ds.attendance) ds.attendance={enabled:false,dates:[],records:{},comments:{}};
+    if(!ds.attendance.dates) ds.attendance.dates=[];
+    if(!ds.attendance.records) ds.attendance.records={};
+    if(!ds.attendance.comments) ds.attendance.comments={};
+    return ds.attendance;
+  },
+  syncAttendanceRoster(ds){
+    const att=this.ensureAttendance(ds);
+    const roster=this.getRoster(ds);
+    const ids=new Set(roster.map(r=>r.id));
+    // remove orphans
+    Object.keys(att.records).forEach(sid=>{ if(!ids.has(sid)) delete att.records[sid]; });
+    // ensure each roster student has a records entry
+    roster.forEach(r=>{ if(!att.records[r.id]) att.records[r.id]={}; });
+  },
+  renderAttendance(){
+    const c=document.getElementById('attendanceContainer');
+    const ds=this.getCurrentDataset();
+    if(!ds){ c.innerHTML='<div class="empty-state"><p>No dataset.</p></div>'; return; }
+    this.syncAttendanceRoster(ds);
+    const att=this.ensureAttendance(ds);
+    const roster=this.getRoster(ds);
+    const dates=att.dates||[];
+
+    let html='<div class="att-toolbar"><div class="att-title">Attendance — '+esc(ds.name)+(ds.term?' · '+esc(ds.term):'')+'</div><div style="display:flex;gap:8px;flex-wrap:wrap;">'+
+      '<button class="btn btn-primary" id="attAddDate">'+IC['plus-circle']+' Add Date</button>'+
+      '<button class="btn btn-secondary" id="attExport">'+IC.download+' Export</button>'+
+      '</div></div>';
+
+    if(!roster.length){
+      html+='<div class="empty-state"><p>No students in this dataset. Add students in the Students view first.</p></div>';
+      c.innerHTML=html;
+      document.getElementById('attAddDate').addEventListener('click',()=>this.addAttendanceDate());
+      return;
+    }
+
+    html+='<div class="att-grid-wrap"><table class="att-table"><thead><tr><th class="att-name">STUDENT</th><th>ID</th>';
+    dates.forEach((d,di)=>{
+      const label=d.slice(5).replace('-','/'); // MM/DD
+      html+='<th class="att-date-head" data-di="'+di+'" title="'+esc(d)+'">'+esc(label)+'<button class="att-del" data-di="'+di+'" title="Delete date">×</button></th>';
+    });
+    html+='<th>PRESENT</th><th>%</th></tr></thead><tbody>';
+
+    roster.forEach(r=>{
+      const rec=att.records[r.id]||{};
+      let present=0, marked=0;
+      dates.forEach(d=>{
+        if(rec[d]===true){ present++; marked++; }
+        else if(rec[d]===false){ marked++; }
+      });
+      // percent = present / total dates (blank counts against)
+      const pct=dates.length?Math.round((present/dates.length)*100):0;
+      html+='<tr><td class="att-name">'+esc(r.name)+'</td><td style="font-size:.8rem;color:var(--muted)">'+esc(r.id)+'</td>';
+      dates.forEach(d=>{
+        const v=rec[d];
+        const cls=v===true?'present':v===false?'absent':'unmarked';
+        const sym=v===true?'✓':v===false?'✗':'·';
+        html+='<td><span class="att-cell '+cls+'" data-sid="'+esc(r.id)+'" data-date="'+esc(d)+'">'+sym+'</span></td>';
+      });
+      html+='<td class="att-pct">'+present+'/'+dates.length+'</td><td class="att-pct">'+pct+'%</td></tr>';
+    });
+
+    // summary rows
+    html+='<tr class="att-summary-row"><td class="att-name" colspan="2">Present</td>';
+    dates.forEach(d=>{
+      let cnt=0;
+      roster.forEach(r=>{ if((att.records[r.id]||{})[d]===true) cnt++; });
+      html+='<td>'+cnt+'</td>';
+    });
+    html+='<td></td><td></td></tr>';
+    html+='<tr class="att-summary-row"><td class="att-name" colspan="2">Percent</td>';
+    dates.forEach(d=>{
+      let cnt=0;
+      roster.forEach(r=>{ if((att.records[r.id]||{})[d]===true) cnt++; });
+      const p=roster.length?Math.round((cnt/roster.length)*100):0;
+      html+='<td>'+p+'%</td>';
+    });
+    html+='<td></td><td></td></tr>';
+    html+='</tbody></table></div>';
+    c.innerHTML=html;
+
+    document.getElementById('attAddDate').addEventListener('click',()=>this.addAttendanceDate());
+    document.getElementById('attExport').addEventListener('click',()=>this.exportAttendanceXlsx());
+    c.querySelectorAll('.att-cell').forEach(el=>{
+      el.addEventListener('click',()=>this.cycleAttendance(el.dataset.sid, el.dataset.date));
+    });
+    c.querySelectorAll('.att-del').forEach(btn=>{
+      btn.addEventListener('click',e=>{ e.stopPropagation(); this.deleteAttendanceDate(parseInt(btn.dataset.di,10)); });
+    });
+  },
+  async addAttendanceDate(){
+    const ds=this.getCurrentDataset(); if(!ds) return;
+    const att=this.ensureAttendance(ds);
+    const d=prompt('Date (YYYY-MM-DD):', today());
+    if(!d) return;
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(d)){ showToast('warning','Invalid date','Use YYYY-MM-DD'); return; }
+    if(att.dates.includes(d)){ showToast('warning','Duplicate','That date already exists'); return; }
+    att.dates.push(d);
+    this.syncAttendanceRoster(ds);
+    this.markDirty(); await this.saveState();
+    this.renderAttendance();
+    showToast('success','Date added',d);
+  },
+  async deleteAttendanceDate(di){
+    const ds=this.getCurrentDataset(); if(!ds) return;
+    const att=this.ensureAttendance(ds);
+    if(di<0||di>=att.dates.length) return;
+    const date=att.dates[di];
+    const snapshot={ date, records:{} };
+    Object.keys(att.records).forEach(sid=>{
+      if(att.records[sid]&&att.records[sid][date]!==undefined) snapshot.records[sid]=att.records[sid][date];
+    });
+    att.dates.splice(di,1);
+    Object.keys(att.records).forEach(sid=>{ if(att.records[sid]) delete att.records[sid][date]; });
+    this.markDirty(); await this.saveState();
+    this.renderAttendance();
+    const undo=async()=>{
+      att.dates.splice(di,0,date);
+      Object.keys(snapshot.records).forEach(sid=>{
+        if(!att.records[sid]) att.records[sid]={};
+        att.records[sid][date]=snapshot.records[sid];
+      });
+      this.markDirty(); await this.saveState();
+      this.renderAttendance();
+      showToast('info','Restored','Date '+date+' restored');
+    };
+    undo._commit=()=>{};
+    showUndoToast('Date '+date+' deleted', undo, 5000);
+  },
+  async cycleAttendance(sid, date){
+    const ds=this.getCurrentDataset(); if(!ds) return;
+    const att=this.ensureAttendance(ds);
+    if(!att.records[sid]) att.records[sid]={};
+    const cur=att.records[sid][date];
+    // unmarked → present → absent → unmarked
+    if(cur===undefined||cur===null) att.records[sid][date]=true;
+    else if(cur===true) att.records[sid][date]=false;
+    else delete att.records[sid][date];
+    this.markDirty(); await this.saveState();
+    this.renderAttendance();
+  },
+  exportAttendanceXlsx(){
+    if(typeof XLSX==='undefined'){ showToast('error','Library missing'); return; }
+    const ds=this.getCurrentDataset(); if(!ds) return;
+    const att=this.ensureAttendance(ds);
+    const roster=this.getRoster(ds);
+    const dates=att.dates||[];
+    const rows=[
+      ['Term: '+(ds.term||'')],
+      ['Class: '+ds.name],
+      [],
+      ['STUDENT','ID',...dates.map(d=>d.slice(5).replace('-','/')),'PRESENT','%']
+    ];
+    roster.forEach(r=>{
+      const rec=att.records[r.id]||{};
+      let present=0;
+      const cells=dates.map(d=>{
+        if(rec[d]===true){ present++; return 'P'; }
+        if(rec[d]===false) return 'A';
+        return '';
+      });
+      const pct=dates.length?Math.round((present/dates.length)*100):0;
+      rows.push([r.name, r.id, ...cells, present, pct+'%']);
+    });
+    const wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), sanitizeTabName('Attendance - '+ds.name).slice(0,31));
+    const out=XLSX.write(wb,{bookType:'xlsx',type:'array'});
+    this.downloadBlob('attendance-'+sanitizeTabName(ds.name)+'-'+today()+'.xlsx', new Blob([out],{type:'application/octet-stream'}));
+    showToast('success','Exported','Attendance sheet');
   },
 
   createDefaultDataset(save=true){
     const id=generateId();
-    this.datasets=[{ id, name:'My Dataset', tables:[], tableCounter:1 }];
+    this.datasets=[{ id, name:'My Dataset', term:'', tables:[], tableCounter:1, comments:{}, attendance:{enabled:false,dates:[],records:{},comments:{}} }];
     this.currentDatasetId=id;
     if(save) this.saveState();
   },
   getCurrentDataset(){ return this.datasets.find(d=>d.id===this.currentDatasetId); },
-  findTable(tid){ const cur=this.getCurrentDataset(); if(cur){ const c=cur.tables.find(x=>x.id===tid); if(c) return c; } for(const d of this.datasets){ const t=d.tables.find(x=>x.id===tid); if(t) return t; } return null; },
-  findDatasetByTable(tid){ const cur=this.getCurrentDataset(); if(cur&&cur.tables.some(t=>t.id===tid)) return cur; return this.datasets.find(d=>d.tables.some(t=>t.id===tid)); },
+  findTable(tid){ for(const d of this.datasets){ const t=d.tables.find(x=>x.id===tid); if(t) return t; } return null; },
+  findDatasetByTable(tid){ return this.datasets.find(d=>d.tables.some(t=>t.id===tid)); },
 
   validateAll(){
     this.datasets.forEach(ds=>{
       if(!ds.tables) ds.tables=[];
+      if(!ds.term) ds.term='';
+      if(!ds.comments) ds.comments={};
+      if(!ds.attendance) ds.attendance={enabled:false,dates:[],records:{},comments:{}};
       if(!ds.tableCounter||ds.tableCounter<1) ds.tableCounter=1;
       let maxId=0;
       for(const t of ds.tables){
@@ -1353,8 +1787,13 @@ const App={
       ds.tables.forEach(t=>{
         if(!t.catColumns||!t.catColumns.length) t.catColumns=deepClone(DEFAULT_CAT_COLUMNS);
         if(!t.students) t.students=[];
+        if(t.term===undefined||t.term===null) t.term=ds.term||'';
+        if(typeof t.termOverridden!=='boolean') t.termOverridden=false;
         t.students.forEach(s=>{
           if(!s.catMarks) s.catMarks={};
+          if(!s.id) s.id=''; // will be assigned in migration/next
+          if(s.gender===undefined||s.gender===null) s.gender='';
+          else s.gender=normalizeGender(s.gender);
           t.catColumns.forEach(c=>{
             let v=s.catMarks[c.id];
             if(typeof v!=='number') v=0;
@@ -1400,35 +1839,72 @@ const App={
     if(!container) return;
     const rows=container.querySelectorAll('tbody tr');
     const nCats=t.catColumns.length;
+    const base=3; // NAMES, ID, GENDER
     t.students.forEach((s,i)=>{
       const row=rows[i]; if(!row) return;
       const cells=row.children;
       t.catColumns.forEach((c,ci)=>{
-        const cell=cells[1+ci];
+        const cell=cells[base+ci];
         if(cell && cell.firstChild && cell.firstChild.classList && cell.firstChild.classList.contains('editable')){
           const expected=String(s.catMarks[c.id]||0);
           if(cell.firstChild.textContent!==expected) cell.firstChild.textContent=expected;
         }
       });
-      const ct=cells[1+nCats];
+      const ct=cells[base+nCats];
       if(ct && ct.textContent!==String(s.catTotal)) ct.textContent=s.catTotal;
-      const ex=cells[2+nCats];
+      const ex=cells[base+1+nCats];
       if(ex && ex.firstChild && ex.firstChild.classList && ex.firstChild.classList.contains('editable')){
         const expected=String(s.exam);
         if(ex.firstChild.textContent!==expected) ex.firstChild.textContent=expected;
       }
-      const tot=cells[3+nCats];
+      const tot=cells[base+2+nCats];
       if(tot && tot.textContent!==String(s.total)) tot.textContent=s.total;
-      const pos=cells[4+nCats];
+      const pos=cells[base+3+nCats];
       if(pos && pos.textContent!==String(s.position)) pos.textContent=s.position;
     });
   },
 
+  async ensureStudentIds(){
+    let assigned=0;
+    for(const ds of this.datasets){
+      for(const t of (ds.tables||[])){
+        for(const s of (t.students||[])){
+          if(!s.id){ s.id=await this.nextStudentId(); assigned++; }
+        }
+      }
+    }
+    return assigned;
+  },
   renderAll(){
     const ds=this.getCurrentDataset();
     document.getElementById('currentDatasetName').textContent=ds?ds.name:'';
     document.getElementById('currentDatasetIndicator').style.display=ds?'inline-flex':'none';
+    const termEl=document.getElementById('currentTermIndicator');
+    const termTxt=document.getElementById('currentTermText');
+    if(ds){
+      termEl.style.display='inline-flex';
+      termTxt.textContent=ds.term?ds.term:'Set term';
+      termEl.onclick=()=>{
+        const nt=prompt('Dataset term:', ds.term||'');
+        if(nt===null) return;
+        this.updateDatasetTerm(nt.trim());
+      };
+    }else{
+      termEl.style.display='none';
+    }
+    this.updateViewTabs();
     this.renderTables(ds);
+    // Preserve view: if on attendance, keep showing it
+    if(this.currentView==='attendance' && this.settings.attendanceEnabled){
+      document.getElementById('tablesContainer').style.display='none';
+      document.getElementById('attendanceContainer').style.display='block';
+      this.renderAttendance();
+    }else{
+      document.getElementById('tablesContainer').style.display='block';
+      document.getElementById('attendanceContainer').style.display='none';
+      this.currentView='students';
+      document.querySelectorAll('.view-tab').forEach(b=>b.classList.toggle('active', b.dataset.view==='students'));
+    }
   },
   renderTables(ds){
     const c=document.getElementById('tablesContainer');
@@ -1454,6 +1930,7 @@ const App={
   },
   createTableHeader(t){
     const h=document.createElement('div');h.className='table-header';
+    const left=document.createElement('div');left.style.display='flex';left.style.alignItems='center';left.style.gap='10px';left.style.flexWrap='wrap';
     const title=document.createElement('div');title.className='table-title';
     title.setAttribute('contenteditable','true');title.textContent=t.name;
     title.addEventListener('focus',()=>{
@@ -1469,16 +1946,43 @@ const App={
     title.addEventListener('blur',e=>{ this.updateTableName(t.id,e.target.textContent); });
     title.addEventListener('keydown',e=>{
       if(e.key==='Enter'){ e.preventDefault(); e.target.blur(); }
-      // FIX #3: Escape reverts to last saved name
       if(e.key==='Escape'){ e.preventDefault(); e.target.textContent=t.name; e.target.blur(); }
     });
+    left.appendChild(title);
+
+    // Term badge (editable)
+    const termBadge=document.createElement('span');
+    termBadge.className='current-dataset';
+    termBadge.style.fontSize='.8rem';termBadge.style.padding='4px 12px';
+    termBadge.style.cursor='pointer';
+    termBadge.title='Click to edit table term';
+    termBadge.innerHTML=(t.term?esc(t.term):'No term');
+    termBadge.addEventListener('click',()=>{
+      const nt=prompt('Table term:', t.term||'');
+      if(nt===null) return;
+      this.updateTableTerm(t.id, nt.trim());
+    });
+    left.appendChild(termBadge);
+
+    // Gender count chip
+    const mCount=t.students.filter(s=>s.gender==='M').length;
+    const fCount=t.students.filter(s=>s.gender==='F').length;
+    const total=t.students.length;
+    const chip=document.createElement('span');
+    chip.className='badge';
+    chip.style.background='rgba(255,255,255,.2)';chip.style.color='#fff';
+    chip.style.fontSize='.78rem';chip.style.padding='3px 10px';
+    chip.textContent=mCount+'M · '+fCount+'F · '+total+' total';
+    left.appendChild(chip);
+
     const acts=document.createElement('div');acts.className='table-actions';
     acts.appendChild(this.mkTableBtn('refresh','Reset',()=>this.resetTable(t.id)));
     acts.appendChild(this.mkTableBtn('printer','Print',()=>this.printTable(t.id)));
     acts.appendChild(this.mkTableBtn('copy','Clone',()=>this.cloneTable(t.id)));
+    acts.appendChild(this.mkTableBtn('download','Import into table',()=>this.openTableImport(t.id)));
     acts.appendChild(this.mkTableBtn('edit','Edit',()=>title.focus()));
     acts.appendChild(this.mkTableBtn('trash','Delete',()=>this.deleteTable(t.id)));
-    h.appendChild(title);h.appendChild(acts);
+    h.appendChild(left);h.appendChild(acts);
     return h;
   },
   mkTableBtn(iconName,tip,onClick){
@@ -1522,6 +2026,8 @@ const App={
     const thead=document.createElement('thead');
     const hr=document.createElement('tr');
     hr.appendChild(this.mkTh('NAMES'));
+    hr.appendChild(this.mkTh('ID'));
+    hr.appendChild(this.mkTh('GENDER'));
     t.catColumns.forEach(c=>hr.appendChild(this.mkTh(c.name+' ('+c.maxScore+')')));
     hr.appendChild(this.mkTh('CAT TOTAL (50)'));
     hr.appendChild(this.mkTh('EXAM (50)'));
@@ -1537,7 +2043,26 @@ const App={
   mkTh(txt){ const th=document.createElement('th'); th.textContent=txt; return th; },
   createStudentRow(t,s,idx){
     const row=document.createElement('tr');
+    if(s._pendingDelete) row.style.opacity='0.4';
     row.appendChild(this.editableCell(s.name,v=>this.updateStudentName(t.id,idx,v)));
+    // ID cell
+    row.appendChild(this.editableCell(s.id||'',v=>this.updateStudentId(t.id,idx,v)));
+    // Gender cell (cycle on click)
+    const gTd=document.createElement('td');
+    const gSpan=document.createElement('span');
+    gSpan.className='editable';
+    gSpan.style.cursor='pointer';gSpan.style.minWidth='36px';gSpan.style.textAlign='center';
+    gSpan.textContent=s.gender||'—';
+    gSpan.title='Click to cycle: blank → M → F';
+    gSpan.addEventListener('click',()=>{
+      this.updateStudentGender(t.id,idx,cycleGender(s.gender||''));
+    });
+    gSpan.addEventListener('keydown',e=>{
+      if(e.key==='Enter'||e.key===' '){ e.preventDefault(); this.updateStudentGender(t.id,idx,cycleGender(s.gender||'')); }
+    });
+    gSpan.setAttribute('tabindex','0');
+    gTd.appendChild(gSpan);row.appendChild(gTd);
+
     t.catColumns.forEach(c=>{
       row.appendChild(this.editableCell(s.catMarks[c.id]||0,v=>{
         const table=this.findTable(t.id);if(!table)return;
@@ -1622,6 +2147,57 @@ const App={
     this.markDirty();
     await this.saveState();
   },
+  async updateStudentId(tid,idx,newId){
+    const t=this.findTable(tid); if(!t||!t.students[idx]) return;
+    const id=(newId||'').trim().toUpperCase();
+    if(!id){ showToast('warning','Invalid','ID cannot be empty'); this.renderAll(); return; }
+    // collision check across all datasets
+    for(const ds of this.datasets){
+      for(const tbl of ds.tables){
+        for(const st of tbl.students){
+          if(st!==t.students[idx] && st.id===id){
+            showToast('warning','ID in use',id+' is already assigned to another student');
+            this.renderAll();
+            return;
+          }
+        }
+      }
+    }
+    t.students[idx].id=id;
+    this.markDirty();
+    await this.saveState();
+    this.renderAll();
+  },
+  async updateStudentGender(tid,idx,g){
+    const t=this.findTable(tid); if(!t||!t.students[idx]) return;
+    t.students[idx].gender=normalizeGender(g);
+    this.markDirty();
+    await this.saveState();
+    this.renderAll();
+  },
+  async updateTableTerm(tid,term){
+    const t=this.findTable(tid); if(!t) return;
+    const ds=this.findDatasetByTable(tid);
+    t.term=term||'';
+    t.termOverridden=true;
+    this.markDirty();
+    await this.saveState();
+    this.renderAll();
+  },
+  async updateDatasetTerm(term){
+    const ds=this.getCurrentDataset(); if(!ds) return;
+    const old=ds.term||'';
+    ds.term=term||'';
+    // cascade to tables that matched old term
+    ds.tables.forEach(t=>{
+      if(!t.termOverridden && (t.term===old || !t.term)){
+        t.term=ds.term;
+      }
+    });
+    this.markDirty();
+    await this.saveState();
+    this.renderAll();
+  },
   async updateStudentCatMark(tid,idx,cid,val){
     const t=this.findTable(tid);
     if(!t||!t.students[idx]) return;
@@ -1642,22 +2218,139 @@ const App={
     this.patchTableDOM(t);
     await this.saveState();
   },
-  async addStudent(tid){ const t=this.findTable(tid); if(!t) return; const marks={}; t.catColumns.forEach(c=>marks[c.id]=0); t.students.push({name:'New Student',catMarks:marks,exam:0,catTotal:0,total:0,position:0}); updateTablePositions(t); this.markDirty(); this.renderAll(); this.saveState(); },
-  async deleteStudent(tid,idx){ if(!confirm('Delete this student?')) return; const t=this.findTable(tid); if(t&&t.students[idx]){ t.students.splice(idx,1); updateTablePositions(t); this.markDirty(); this.renderAll(); this.saveState(); } },
-  async deleteTable(tid){ if(!confirm('Delete this table?')) return; const ds=this.findDatasetByTable(tid); if(ds){ ds.tables=ds.tables.filter(t=>t.id!==tid); this.markDirty(); this.renderAll(); this.saveState(); } },
-  async resetTable(tid){ if(!confirm('Reset all marks to 0? Names are kept.')) return; const t=this.findTable(tid); if(!t) return; t.students.forEach(s=>{ t.catColumns.forEach(c=>s.catMarks[c.id]=0); s.exam=0; recalcStudent(t,s); }); updateTablePositions(t); this.markDirty(); this.renderAll(); this.saveState(); showToast('info','Reset','All marks cleared'); },
+  async addStudent(tid){
+    const t=this.findTable(tid); if(!t) return;
+    const marks={}; t.catColumns.forEach(c=>marks[c.id]=0);
+    const id=await this.nextStudentId();
+    t.students.push({id, name:'New Student', gender:'', catMarks:marks, exam:0, catTotal:0, total:0, position:0});
+    updateTablePositions(t);
+    this.markDirty(); this.renderAll(); this.saveState();
+  },
+  async deleteStudent(tid,idx){
+    const t=this.findTable(tid); if(!t||!t.students[idx]) return;
+    const snapshot=deepClone(t.students[idx]);
+    const name=snapshot.name;
+    t.students.splice(idx,1);
+    updateTablePositions(t);
+    this.markDirty(); this.renderAll(); await this.saveState();
+    const commit=()=>{}; // already deleted
+    const undo=async()=>{
+      t.students.splice(idx,0,snapshot);
+      updateTablePositions(t);
+      this.markDirty(); this.renderAll(); await this.saveState();
+      showToast('info','Restored',name+' restored');
+    };
+    undo._commit=commit;
+    showUndoToast(name+' removed', undo, 5000);
+  },
+  async deleteTable(tid){
+    const ds=this.findDatasetByTable(tid); if(!ds) return;
+    const t=this.findTable(tid); if(!t) return;
+    const snapshot=deepClone(t);
+    const idx=ds.tables.findIndex(x=>x.id===tid);
+    ds.tables=ds.tables.filter(x=>x.id!==tid);
+    this.markDirty(); this.renderAll(); await this.saveState();
+    const undo=async()=>{
+      ds.tables.splice(idx,0,snapshot);
+      this.markDirty(); this.renderAll(); await this.saveState();
+      showToast('info','Restored','Table "'+snapshot.name+'" restored');
+    };
+    undo._commit=()=>{};
+    showUndoToast('Table "'+snapshot.name+'" deleted', undo, 5000);
+  },
+  async resetTable(tid){ if(!confirm('Reset all marks to 0? Names and IDs are kept.')) return; const t=this.findTable(tid); if(!t) return; t.students.forEach(s=>{ t.catColumns.forEach(c=>s.catMarks[c.id]=0); s.exam=0; recalcStudent(t,s); }); updateTablePositions(t); this.markDirty(); this.renderAll(); this.saveState(); showToast('info','Reset','All marks cleared'); },
   async addCatColumn(tid,name,max){ const t=this.findTable(tid); if(!t) return; const id='cat-'+generateId(); t.catColumns.push({id,name,maxScore:max}); t.students.forEach(s=>{ s.catMarks[id]=0; recalcStudent(t,s); }); updateTablePositions(t); this.markDirty(); this.renderAll(); this.saveState(); showToast('success','Added',name+' (max '+max+')'); },
   async editCatColumn(tid,idx){ const t=this.findTable(tid); if(!t||!t.catColumns[idx]) return; const c=t.catColumns[idx]; const nn=prompt('New name:',c.name); if(!nn) return; const nm=parseInt(prompt('New max:',c.maxScore),10); if(isNaN(nm)||nm<=0){ showToast('warning','Invalid','Max must be > 0'); return; } c.name=nn; c.maxScore=nm; t.students.forEach(s=>{ if((s.catMarks[c.id]||0)>nm) s.catMarks[c.id]=nm; recalcStudent(t,s); }); updateTablePositions(t); this.markDirty(); this.renderAll(); this.saveState(); },
-  async deleteCatColumn(tid,idx){ const t=this.findTable(tid); if(!t||!t.catColumns[idx]) return; const c=t.catColumns[idx]; if(!confirm('Delete column "'+c.name+'"?')) return; t.catColumns.splice(idx,1); t.students.forEach(s=>{ delete s.catMarks[c.id]; recalcStudent(t,s); }); updateTablePositions(t); this.markDirty(); this.renderAll(); this.saveState(); },
+  async deleteCatColumn(tid,idx){
+    const t=this.findTable(tid); if(!t||!t.catColumns[idx]) return;
+    const c=t.catColumns[idx];
+    if(!confirm('Delete column "'+c.name+'"?')) return;
+    const snapshot={ col:deepClone(c), idx, marks:t.students.map(s=>s.catMarks[c.id]) };
+    t.catColumns.splice(idx,1);
+    t.students.forEach(s=>{ delete s.catMarks[c.id]; recalcStudent(t,s); });
+    updateTablePositions(t);
+    this.markDirty(); this.renderAll(); await this.saveState();
+    const undo=async()=>{
+      t.catColumns.splice(snapshot.idx,0,snapshot.col);
+      t.students.forEach((s,i)=>{ s.catMarks[snapshot.col.id]=snapshot.marks[i]||0; recalcStudent(t,s); });
+      updateTablePositions(t);
+      this.markDirty(); this.renderAll(); await this.saveState();
+      showToast('info','Restored','Column "'+snapshot.col.name+'" restored');
+    };
+    undo._commit=()=>{};
+    showUndoToast('Column "'+c.name+'" deleted', undo, 5000);
+  },
+  async openTableImport(tid){
+    const target=this.findTable(tid); if(!target) return;
+    const dsList=this.datasets.map((d,i)=>(i+1)+'. '+d.name+(d.term?' ('+d.term+')':'')).join('\n');
+    const pickDs=prompt('Import into "'+target.name+'"\n\nSource dataset:\n'+dsList+'\n\nEnter number:','1');
+    const srcDs=this.datasets[parseInt(pickDs,10)-1];
+    if(!srcDs){ showToast('warning','Invalid dataset'); return; }
+    const tblList=srcDs.tables.map((t,i)=>(i+1)+'. '+t.name).join('\n');
+    if(!tblList){ showToast('warning','Source has no tables'); return; }
+    const pickT=prompt('Source table:\n'+tblList+'\n\nEnter number:','1');
+    const srcTbl=srcDs.tables[parseInt(pickT,10)-1];
+    if(!srcTbl){ showToast('warning','Invalid table'); return; }
+    const doRoster=confirm('Import roster (names + IDs + gender)?\nOK=Yes  Cancel=No');
+    const doMarks=confirm('Import marks (matched by ID)?\nOK=Yes  Cancel=No');
+    if(!doRoster&&!doMarks) return;
+
+    const before=deepClone(target);
+    let added=0, updated=0, skipped=0;
+    const byId=new Map(target.students.map(s=>[s.id,s]));
+
+    if(doRoster){
+      for(const ss of srcTbl.students){
+        if(!ss.id||byId.has(ss.id)){ skipped++; continue; }
+        const marks={}; target.catColumns.forEach(c=>marks[c.id]=0);
+        const ns={ id:ss.id, name:ss.name, gender:ss.gender||'', catMarks:marks, exam:0, catTotal:0, total:0, position:0 };
+        target.students.push(ns);
+        byId.set(ss.id,ns);
+        added++;
+      }
+    }
+    if(doMarks){
+      // match CAT columns by name
+      const colMap=new Map();
+      for(const sc of srcTbl.catColumns){
+        const match=target.catColumns.find(tc=>tc.name===sc.name);
+        if(match) colMap.set(sc.id, match.id);
+      }
+      for(const ss of srcTbl.students){
+        if(!ss.id||!byId.has(ss.id)){ skipped++; continue; }
+        const ts=byId.get(ss.id);
+        colMap.forEach((tid,sid)=>{ ts.catMarks[tid]=ss.catMarks[sid]||0; });
+        ts.exam=ss.exam||0;
+        recalcStudent(target,ts);
+        updated++;
+      }
+    }
+    updateTablePositions(target);
+    this.markDirty(); this.renderAll(); await this.saveState();
+    showToast('success','Import done',added+' added, '+updated+' marks updated, '+skipped+' skipped');
+
+    const undo=async()=>{
+      Object.assign(target, before);
+      // restore students array reference carefully
+      target.students=before.students;
+      target.catColumns=before.catColumns;
+      this.markDirty(); this.renderAll(); await this.saveState();
+      showToast('info','Import undone');
+    };
+    undo._commit=()=>{};
+    showUndoToast('Import applied — Undo available', undo, 10000);
+  },
   async addNewTable(){
     const ds=this.getCurrentDataset(); if(!ds) return;
     const id='table-'+ds.tableCounter++;
     const catColumns=deepClone(DEFAULT_CAT_COLUMNS);
-    const students=INITIAL_STUDENTS.map(name=>{
+    const students=[];
+    for(const name of INITIAL_STUDENTS){
       const marks={}; catColumns.forEach(c=>marks[c.id]=0);
-      return { name, catMarks:marks, exam:0, catTotal:0, total:0, position:0 };
-    });
-    ds.tables.push({ id, name:'Class '+(ds.tableCounter-1), catColumns, students });
+      const sid=await this.nextStudentId();
+      students.push({ id:sid, name, gender:'', catMarks:marks, exam:0, catTotal:0, total:0, position:0 });
+    }
+    ds.tables.push({ id, name:'Class '+(ds.tableCounter-1), term:ds.term||'', termOverridden:false, catColumns, students });
     this.markDirty(); this.renderAll(); this.saveState();
   },
   async cloneTable(tid){
@@ -1669,9 +2362,9 @@ const App={
     const newStudents=src.students.map(s=>{
       const marks={};
       idMap.forEach((nid,oid)=>{ marks[nid]=(typeof s.catMarks[oid]==='number')?s.catMarks[oid]:0; });
-      return { name:s.name, exam:s.exam, catMarks:marks, catTotal:0, total:0, position:0 };
+      return { id:s.id, name:s.name, gender:s.gender||'', exam:s.exam, catMarks:marks, catTotal:0, total:0, position:0 };
     });
-    const nt={ id:newId, name:src.name+' (Copy)', catColumns:newCats, students:newStudents };
+    const nt={ id:newId, name:src.name+' (Copy)', term:src.term||ds.term||'', termOverridden:src.termOverridden||false, catColumns:newCats, students:newStudents };
     newStudents.forEach(s=>recalcStudent(nt,s));
     updateTablePositions(nt);
     ds.tables.push(nt);
@@ -1679,54 +2372,585 @@ const App={
     showToast('success','Cloned','Independent copy created');
   },
   async createNewDataset(){
+    // Enhanced dialog via prompts for Stage 1
     const name=prompt('Dataset name:', 'Dataset '+(this.datasets.length+1));
     if(!name) return;
-    const id=generateId();
-    this.datasets.push({ id, name, tables:[], tableCounter:1 });
-    this.currentDatasetId=id;
+    const term=prompt('Term (e.g. Term 1):', '');
+    const cloneChoice=confirm('Clone from an existing dataset?\n\nOK = Clone structure + roster\nCancel = Blank dataset');
+    let newDs;
+    if(cloneChoice && this.datasets.length){
+      const names=this.datasets.map((d,i)=>(i+1)+'. '+d.name+(d.term?' ('+d.term+')':'')).join('\n');
+      const pick=prompt('Clone from which dataset?\n'+names+'\n\nEnter number:', '1');
+      const srcIdx=parseInt(pick,10)-1;
+      const src=this.datasets[srcIdx];
+      if(!src){ showToast('warning','Invalid selection'); return; }
+      const resetMarks=confirm('Reset all marks to 0? (students & structure kept)');
+      const autoTerm=suggestNextTerm(src.term||'');
+      const finalTerm=(term!==null&&term!=='')?term:(autoTerm||src.term||'');
+      const id=generateId();
+      const tables=[];
+      for(const st of src.tables){
+        const idMap=new Map();
+        const newCats=st.catColumns.map(c=>{ const nid='cat-'+generateId(); idMap.set(c.id,nid); return {id:nid,name:c.name,maxScore:c.maxScore}; });
+        const newStudents=st.students.map(s=>{
+          const marks={};
+          idMap.forEach((nid,oid)=>{ marks[nid]=resetMarks?0:((typeof s.catMarks[oid]==='number')?s.catMarks[oid]:0); });
+          return { id:s.id, name:s.name, gender:s.gender||'', exam:resetMarks?0:s.exam, catMarks:marks, catTotal:0, total:0, position:0 };
+        });
+        const nt={ id:'table-'+(tables.length+1), name:st.name, term:finalTerm, termOverridden:false, catColumns:newCats, students:newStudents };
+        newStudents.forEach(s=>recalcStudent(nt,s));
+        updateTablePositions(nt);
+        tables.push(nt);
+      }
+      newDs={ id, name, term:finalTerm, tableCounter:tables.length+1, tables, comments:{}, attendance:{enabled:false,dates:[],records:{},comments:{}} };
+    }else{
+      const id=generateId();
+      newDs={ id, name, term:term||'', tables:[], tableCounter:1, comments:{}, attendance:{enabled:false,dates:[],records:{},comments:{}} };
+    }
+    this.datasets.push(newDs);
+    this.currentDatasetId=newDs.id;
     this.markDirty(); this.renderAll(); this.saveState();
     document.getElementById('bulkListModal').style.display='none';
+    showToast('success','Created',newDs.name+(newDs.term?' — '+newDs.term:''));
   },
   async switchDataset(id){ this.currentDatasetId=id; this.renderAll(); this.saveState(); document.getElementById('bulkListModal').style.display='none'; },
   async deleteDataset(id){
     if(this.datasets.length<=1){ showToast('warning','Cannot delete','Keep at least one dataset'); return; }
     const ds=this.datasets.find(d=>d.id===id); if(!ds) return;
-    if(!confirm('Delete dataset "'+ds.name+'" and all its tables?')) return;
+    const snapshot=deepClone(ds);
+    const idx=this.datasets.findIndex(d=>d.id===id);
     this.datasets=this.datasets.filter(d=>d.id!==id);
     if(this.currentDatasetId===id) this.currentDatasetId=this.datasets[0].id;
-    this.markDirty(); this.renderAll(); this.saveState();
+    this.markDirty(); this.renderAll(); await this.saveState();
     this.renderDatasetList();
+    const undo=async()=>{
+      this.datasets.splice(idx,0,snapshot);
+      this.currentDatasetId=snapshot.id;
+      this.markDirty(); this.renderAll(); await this.saveState();
+      this.renderDatasetList();
+      showToast('info','Restored','Dataset "'+snapshot.name+'" restored');
+    };
+    undo._commit=()=>{};
+    showUndoToast('Dataset "'+snapshot.name+'" deleted', undo, 8000);
   },
 
   showStatistics(){
     const ds=this.getCurrentDataset();
     if(!ds||!ds.tables.length){ showToast('info','No data','Add tables first'); return; }
-    this.renderStatistics(ds);
+    this._statsTab='dataset';
+    this._progressSub='student';
+    this.renderStatsModal();
     document.getElementById('statisticsModal').style.display='flex';
   },
-  renderStatistics(ds){
+  renderStatsModal(){
     const c=document.getElementById('statisticsContainer');
-    const allNames=[...new Set(ds.tables.flatMap(t=>t.students.map(s=>s.name)))].sort();
-    const stats=allNames.map(n=>{
-      const totals=ds.tables.map(t=>{ const s=t.students.find(x=>x.name===n); return s?s.total:0; });
-      return { name:n, totals, overall:totals.reduce((a,b)=>a+b,0) };
+    const attOn=!!this.settings.attendanceEnabled;
+    let tabs='<div class="stats-tabs">'+
+      '<button class="stats-tab'+(this._statsTab==='dataset'?' active':'')+'" data-st="dataset">This Dataset</button>'+
+      '<button class="stats-tab'+(this._statsTab==='progress'?' active':'')+'" data-st="progress">Progress</button>'+
+      (attOn?'<button class="stats-tab'+(this._statsTab==='attendance'?' active':'')+'" data-st="attendance">Attendance Stats</button>':'')+
+      '<button class="stats-tab'+(this._statsTab==='class'?' active':'')+'" data-st="class">Class Report</button>'+
+      '</div><div id="statsBody"></div>';
+    c.innerHTML=tabs;
+    c.querySelectorAll('.stats-tab').forEach(b=>{
+      b.addEventListener('click',()=>{ this._statsTab=b.dataset.st; this.renderStatsModal(); });
+    });
+    const body=document.getElementById('statsBody');
+    if(this._statsTab==='dataset') this.renderStatsDataset(body);
+    else if(this._statsTab==='progress') this.renderProgress(body);
+    else if(this._statsTab==='attendance') this.renderAttStats(body);
+    else if(this._statsTab==='class') this.renderClassReport(body);
+  },
+  renderStatsDataset(body){
+    const ds=this.getCurrentDataset();
+    // Match by ID primarily
+    const byId=new Map();
+    ds.tables.forEach(t=>{
+      t.students.forEach(s=>{
+        const key=s.id||s.name;
+        if(!byId.has(key)) byId.set(key,{id:s.id,name:s.name,totals:[]});
+        const e=byId.get(key);
+        e.name=s.name;
+        e.totals.push({table:t.name,total:s.total});
+      });
+    });
+    // align totals to table order
+    const stats=Array.from(byId.values()).map(e=>{
+      const totals=ds.tables.map(t=>{
+        const hit=e.totals.find(x=>x.table===t.name);
+        return hit?hit.total:0;
+      });
+      return { id:e.id, name:e.name, totals, overall:totals.reduce((a,b)=>a+b,0) };
     }).sort((a,b)=>b.overall-a.overall);
     let pos=1,prev=null;
     stats.forEach((s,i)=>{ if(prev!==null&&s.overall===prev) s.position=pos; else{ pos=i+1; s.position=pos; } prev=s.overall; });
-    let html='<table class="stats-table"><thead><tr><th>NAMES</th>';
+    let html='<table class="stats-table"><thead><tr><th>NAMES</th><th>ID</th>';
     ds.tables.forEach(t=>{ html+='<th>'+esc(t.name)+'</th>'; });
     html+='<th>TOTAL</th><th>POSITION</th></tr></thead><tbody>';
     stats.forEach(s=>{
-      html+='<tr><td><span class="clickable-name" data-name="'+esc(s.name)+'">'+esc(s.name)+'</span></td>';
+      html+='<tr><td><span class="clickable-name" data-name="'+esc(s.name)+'">'+esc(s.name)+'</span></td><td style="font-size:.8rem;color:var(--muted)">'+esc(s.id||'')+'</td>';
       s.totals.forEach(tot=>{ html+='<td>'+tot+'</td>'; });
       html+='<td><b>'+s.overall+'</b></td><td>'+s.position+'</td></tr>';
     });
     html+='</tbody></table>';
-    c.innerHTML=html;
-    c.querySelectorAll('.clickable-name').forEach(el=>{
+    body.innerHTML=html;
+    body.querySelectorAll('.clickable-name').forEach(el=>{
       el.addEventListener('click',()=>{
         document.getElementById('statisticsModal').style.display='none';
         this.showTerminalReport(el.dataset.name);
+      });
+    });
+  },
+  renderProgress(body){
+    // Dataset multi-select
+    const current=this.getCurrentDataset();
+    if(!this._progSelected){
+      // auto-select datasets sharing first word
+      const first=(current.name||'').split(/\s+/)[0].toLowerCase();
+      this._progSelected=new Set(this.datasets.filter(d=>{
+        const f=(d.name||'').split(/\s+/)[0].toLowerCase();
+        return f===first || d.id===current.id;
+      }).map(d=>d.id));
+    }
+    let html='<div style="margin-bottom:12px;"><b>Datasets:</b> ';
+    this.datasets.forEach(d=>{
+      const chk=this._progSelected.has(d.id)?'checked':'';
+      html+='<label style="margin-right:12px;cursor:pointer;font-size:.88rem;"><input type="checkbox" data-dsid="'+d.id+'" '+chk+'> '+esc(d.name)+(d.term?' ('+esc(d.term)+')':'')+'</label>';
+    });
+    html+='</div>';
+    html+='<div class="progress-subtabs">'+
+      ['student','class','subject','attendance','report'].map(k=>{
+        const labels={student:'Student',class:'Class',subject:'Subject',attendance:'Attendance',report:'Report Card'};
+        if(k==='attendance'&&!this.settings.attendanceEnabled) return '';
+        return '<button class="progress-subtab'+(this._progressSub===k?' active':'')+'" data-ps="'+k+'">'+labels[k]+'</button>';
+      }).join('')+'</div><div id="progBody"></div>';
+    body.innerHTML=html;
+    body.querySelectorAll('input[data-dsid]').forEach(inp=>{
+      inp.addEventListener('change',()=>{
+        if(inp.checked) this._progSelected.add(inp.dataset.dsid);
+        else this._progSelected.delete(inp.dataset.dsid);
+        this.renderProgress(body);
+      });
+    });
+    body.querySelectorAll('.progress-subtab').forEach(b=>{
+      b.addEventListener('click',()=>{ this._progressSub=b.dataset.ps; this.renderProgress(body); });
+    });
+    const pb=document.getElementById('progBody');
+    const selected=this.datasets.filter(d=>this._progSelected.has(d.id))
+      .sort((a,b)=>{
+        const ta=a.term||'', tb=b.term||'';
+        if(ta&&tb) return ta.localeCompare(tb);
+        if(ta) return -1; if(tb) return 1;
+        return (a.name||'').localeCompare(b.name||'');
+      });
+    if(this._progressSub==='student') this.renderProgStudent(pb, selected);
+    else if(this._progressSub==='class') this.renderProgClass(pb, selected);
+    else if(this._progressSub==='subject') this.renderProgSubject(pb, selected);
+    else if(this._progressSub==='attendance') this.renderProgAttendance(pb, selected);
+    else if(this._progressSub==='report') this.renderProgReportCard(pb, selected);
+  },
+  _trend(curr, prev, threshold){
+    if(prev===null||prev===undefined||curr===null||curr===undefined) return '';
+    if(curr-prev>=threshold) return '<span class="trend-up">↑</span>';
+    if(prev-curr>=threshold) return '<span class="trend-down">↓</span>';
+    return '<span class="trend-same">=</span>';
+  },
+  renderProgStudent(body, selected){
+    // Collect all students by ID
+    const students=new Map();
+    selected.forEach(ds=>{
+      ds.tables.forEach(t=>t.students.forEach(s=>{
+        if(!s.id) return;
+        if(!students.has(s.id)) students.set(s.id, s.name);
+      }));
+    });
+    const list=Array.from(students.entries()).sort((a,b)=>a[1].localeCompare(b[1]));
+    if(!list.length){ body.innerHTML='<p style="color:var(--muted)">No students with IDs in selected datasets.</p>'; return; }
+    if(!this._progStudentId || !students.has(this._progStudentId)) this._progStudentId=list[0][0];
+    let html='<select id="progStudentSelect" style="margin-bottom:12px;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--input-bg);color:var(--text);">';
+    list.forEach(([id,name])=>{ html+='<option value="'+esc(id)+'"'+(id===this._progStudentId?' selected':'')+'>'+esc(name)+' — '+esc(id)+'</option>'; });
+    html+='</select>';
+    // Subject columns = union of table names
+    const subjects=[...new Set(selected.flatMap(ds=>ds.tables.map(t=>t.name)))];
+    html+='<table class="stats-table"><thead><tr><th>TERM</th>';
+    subjects.forEach(s=>html+='<th>'+esc(s)+'</th>');
+    html+='<th>TOTAL</th><th>POS</th>';
+    if(this.settings.attendanceEnabled) html+='<th>ATTENDANCE</th>';
+    html+='</tr></thead><tbody>';
+    let prevTotals={};
+    selected.forEach((ds,di)=>{
+      const term=ds.term||ds.name;
+      html+='<tr><td>'+esc(term)+'</td>';
+      let grand=0, count=0;
+      subjects.forEach(sub=>{
+        const t=ds.tables.find(x=>x.name===sub);
+        const s=t?t.students.find(x=>x.id===this._progStudentId):null;
+        const val=s?s.total:null;
+        if(val!==null){ grand+=val; count++; }
+        const prev=prevTotals[sub];
+        const tr=di>0?this._trend(val, prev, 3):'';
+        html+='<td>'+(val!==null?val+tr:'—')+'</td>';
+        prevTotals[sub]=val;
+      });
+      // position in this dataset
+      let posStr='—';
+      if(count){
+        const ranks=[];
+        const byId=new Map();
+        ds.tables.forEach(t=>t.students.forEach(s=>{
+          if(!s.id) return;
+          byId.set(s.id,(byId.get(s.id)||0)+s.total);
+        }));
+        const sorted=Array.from(byId.entries()).sort((a,b)=>b[1]-a[1]);
+        let pos=1,prev=null;
+        sorted.forEach((e,i)=>{ if(prev!==null&&e[1]===prev) {} else pos=i+1; if(e[0]===this._progStudentId) posStr=pos+'/'+sorted.length; prev=e[1]; });
+      }
+      html+='<td><b>'+(count?grand:'—')+'</b></td><td>'+posStr+'</td>';
+      if(this.settings.attendanceEnabled){
+        const att=ds.attendance;
+        if(att&&att.dates&&att.dates.length){
+          const rec=(att.records||{})[this._progStudentId]||{};
+          let p=0; att.dates.forEach(d=>{ if(rec[d]===true) p++; });
+          const pct=Math.round((p/att.dates.length)*100);
+          html+='<td>'+pct+'% ('+p+'/'+att.dates.length+')</td>';
+        } else html+='<td>—</td>';
+      }
+      html+='</tr>';
+    });
+    html+='</tbody></table>';
+    body.innerHTML=html;
+    document.getElementById('progStudentSelect').addEventListener('change',e=>{
+      this._progStudentId=e.target.value;
+      this.renderProgStudent(body, selected);
+    });
+  },
+  renderProgClass(body, selected){
+    // Flags + table of averages
+    const students=new Map();
+    selected.forEach(ds=>{
+      ds.tables.forEach(t=>t.students.forEach(s=>{
+        if(!s.id) return;
+        if(!students.has(s.id)) students.set(s.id,{id:s.id,name:s.name,terms:{}});
+        const e=students.get(s.id);
+        e.name=s.name;
+        if(!e.terms[ds.id]) e.terms[ds.id]={totals:[], att:null};
+        e.terms[ds.id].totals.push(s.total);
+      }));
+      if(this.settings.attendanceEnabled && ds.attendance && ds.attendance.dates){
+        const dates=ds.attendance.dates;
+        students.forEach((e,sid)=>{
+          if(!e.terms[ds.id]) e.terms[ds.id]={totals:[],att:null};
+          const rec=(ds.attendance.records||{})[sid]||{};
+          let p=0; dates.forEach(d=>{ if(rec[d]===true) p++; });
+          e.terms[ds.id].att=dates.length?Math.round((p/dates.length)*100):null;
+        });
+      }
+    });
+    // flags
+    const flags=[];
+    students.forEach(e=>{
+      const termIds=selected.map(d=>d.id).filter(id=>e.terms[id]);
+      for(let i=1;i<termIds.length;i++){
+        const prev=e.terms[termIds[i-1]], cur=e.terms[termIds[i]];
+        const prevAvg=prev.totals.length?prev.totals.reduce((a,b)=>a+b,0)/prev.totals.length:null;
+        const curAvg=cur.totals.length?cur.totals.reduce((a,b)=>a+b,0)/cur.totals.length:null;
+        if(prevAvg!==null&&curAvg!==null&&prevAvg-curAvg>=this.thresholds.academicDrop){
+          flags.push({type:'warn', text:e.name+': academic average dropped '+(prevAvg-curAvg).toFixed(0)+' pts'});
+        }
+        if(prev.att!==null&&cur.att!==null&&prev.att-cur.att>=15){
+          flags.push({type:'warn', text:e.name+': attendance dropped from '+prev.att+'% to '+cur.att+'%'});
+        }
+        if(cur.att!==null&&cur.att<this.thresholds.attendancePct){
+          flags.push({type:'warn', text:e.name+': attendance '+cur.att+'% below threshold'});
+        }
+      }
+    });
+    let html='';
+    if(flags.length){
+      html+='<div class="flag-panel">';
+      flags.slice(0,12).forEach(f=>{ html+='<div class="flag-warn">⚠ '+esc(f.text)+'</div>'; });
+      html+='</div>';
+    }
+    html+='<table class="stats-table"><thead><tr><th>STUDENT</th>';
+    selected.forEach(ds=>{ html+='<th>'+esc(ds.term||ds.name)+' Avg</th>'; if(this.settings.attendanceEnabled) html+='<th>Att</th>'; });
+    html+='</tr></thead><tbody>';
+    Array.from(students.values()).sort((a,b)=>a.name.localeCompare(b.name)).forEach(e=>{
+      html+='<tr><td><span class="clickable-name" data-sid="'+esc(e.id)+'">'+esc(e.name)+'</span></td>';
+      selected.forEach(ds=>{
+        const t=e.terms[ds.id];
+        if(t&&t.totals.length){
+          const avg=Math.round(t.totals.reduce((a,b)=>a+b,0)/t.totals.length);
+          html+='<td>'+avg+'</td>';
+        } else html+='<td>—</td>';
+        if(this.settings.attendanceEnabled) html+='<td>'+(t&&t.att!==null?t.att+'%':'—')+'</td>';
+      });
+      html+='</tr>';
+    });
+    html+='</tbody></table>';
+    body.innerHTML=html;
+    body.querySelectorAll('.clickable-name').forEach(el=>{
+      el.addEventListener('click',()=>{ this._progressSub='student'; this._progStudentId=el.dataset.sid; this.renderStatsModal(); });
+    });
+  },
+  renderProgSubject(body, selected){
+    const subjects=[...new Set(selected.flatMap(ds=>ds.tables.map(t=>t.name)))].sort();
+    if(!subjects.length){ body.innerHTML='<p style="color:var(--muted)">No subjects.</p>'; return; }
+    if(!this._progSubject || !subjects.includes(this._progSubject)) this._progSubject=subjects[0];
+    let html='<select id="progSubSelect" style="margin-bottom:12px;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--input-bg);color:var(--text);">';
+    subjects.forEach(s=>{ html+='<option'+(s===this._progSubject?' selected':'')+'>'+esc(s)+'</option>'; });
+    html+='</select>';
+    html+='<table class="stats-table"><thead><tr><th>TERM</th><th>AVG</th><th>HIGH</th><th>LOW</th><th>STUDENTS</th></tr></thead><tbody>';
+    let prevAvg=null;
+    selected.forEach(ds=>{
+      const t=ds.tables.find(x=>x.name===this._progSubject);
+      if(!t||!t.students.length){ html+='<tr><td>'+esc(ds.term||ds.name)+'</td><td colspan="4">—</td></tr>'; return; }
+      const scores=t.students.map(s=>s.total);
+      const avg=Math.round(scores.reduce((a,b)=>a+b,0)/scores.length);
+      const high=Math.max(...scores), low=Math.min(...scores);
+      const tr=prevAvg!==null?this._trend(avg,prevAvg,3):'';
+      html+='<tr><td>'+esc(ds.term||ds.name)+'</td><td>'+avg+tr+'</td><td>'+high+'</td><td>'+low+'</td><td>'+scores.length+'</td></tr>';
+      prevAvg=avg;
+    });
+    html+='</tbody></table>';
+    body.innerHTML=html;
+    document.getElementById('progSubSelect').addEventListener('change',e=>{
+      this._progSubject=e.target.value;
+      this.renderProgSubject(body, selected);
+    });
+  },
+  renderProgAttendance(body, selected){
+    if(!this.settings.attendanceEnabled){ body.innerHTML='<p>Attendance disabled.</p>'; return; }
+    let html='<table class="stats-table"><thead><tr><th>TERM</th><th>AVG %</th><th>PERFECT</th><th>BELOW '+this.thresholds.attendancePct+'%</th><th>ABSENCES</th></tr></thead><tbody>';
+    selected.forEach(ds=>{
+      const att=ds.attendance;
+      if(!att||!att.dates||!att.dates.length){ html+='<tr><td>'+esc(ds.term||ds.name)+'</td><td colspan="4">—</td></tr>'; return; }
+      const roster=this.getRoster(ds);
+      let totalPct=0, perfect=0, below=0, absences=0;
+      roster.forEach(r=>{
+        const rec=att.records[r.id]||{};
+        let p=0,a=0;
+        att.dates.forEach(d=>{ if(rec[d]===true) p++; else if(rec[d]===false) a++; else a++; });
+        const pct=Math.round((p/att.dates.length)*100);
+        totalPct+=pct;
+        if(pct===100) perfect++;
+        if(pct<this.thresholds.attendancePct) below++;
+        absences+=a;
+      });
+      const avg=roster.length?Math.round(totalPct/roster.length):0;
+      html+='<tr><td>'+esc(ds.term||ds.name)+'</td><td>'+avg+'%</td><td>'+perfect+'/'+roster.length+'</td><td>'+below+'/'+roster.length+'</td><td>'+absences+'</td></tr>';
+    });
+    html+='</tbody></table>';
+    body.innerHTML=html;
+  },
+  renderProgReportCard(body, selected){
+    const students=new Map();
+    selected.forEach(ds=>ds.tables.forEach(t=>t.students.forEach(s=>{
+      if(s.id&&!students.has(s.id)) students.set(s.id,s.name);
+    })));
+    const list=Array.from(students.entries()).sort((a,b)=>a[1].localeCompare(b[1]));
+    if(!list.length){ body.innerHTML='<p style="color:var(--muted)">No students.</p>'; return; }
+    if(!this._progStudentId||!students.has(this._progStudentId)) this._progStudentId=list[0][0];
+    let html='<select id="rcSelect" style="margin-bottom:12px;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--input-bg);color:var(--text);">';
+    list.forEach(([id,name])=>{ html+='<option value="'+esc(id)+'"'+(id===this._progStudentId?' selected':'')+'>'+esc(name)+' — '+esc(id)+'</option>'; });
+    html+='</select>';
+    const name=students.get(this._progStudentId);
+    const subjects=[...new Set(selected.flatMap(ds=>ds.tables.map(t=>t.name)))];
+    html+='<div style="text-align:center;margin-bottom:12px;"><h2 style="color:var(--primary)">Terminal Report Card</h2>';
+    html+='<p><b>'+esc(name)+'</b> · '+esc(this._progStudentId)+'</p>';
+    html+='<p style="color:var(--muted);font-size:.88rem;">'+selected.map(d=>d.term||d.name).join(', ')+'</p></div>';
+    html+='<table class="stats-table"><thead><tr><th>SUBJECT</th>';
+    selected.forEach(ds=>html+='<th>'+esc(ds.term||ds.name)+'</th>');
+    html+='<th>AVG</th></tr></thead><tbody>';
+    subjects.forEach(sub=>{
+      html+='<tr><td>'+esc(sub)+'</td>';
+      let sum=0,cnt=0;
+      selected.forEach(ds=>{
+        const t=ds.tables.find(x=>x.name===sub);
+        const s=t?t.students.find(x=>x.id===this._progStudentId):null;
+        if(s){ html+='<td>'+s.total+'</td>'; sum+=s.total; cnt++; }
+        else html+='<td>—</td>';
+      });
+      html+='<td><b>'+(cnt?Math.round(sum/cnt):'—')+'</b></td></tr>';
+    });
+    html+='</tbody></table>';
+    // comments
+    const curDs=this.getCurrentDataset();
+    if(!curDs.comments) curDs.comments={};
+    const existing=curDs.comments[this._progStudentId]||'';
+    html+='<div style="margin-top:16px;"><h3 style="color:var(--primary);font-size:.95rem;">Teacher Comments</h3>';
+    html+='<textarea class="comments-textarea" id="rcComments" placeholder="Comments for this student...">'+esc(existing)+'</textarea>';
+    html+='<button class="btn btn-primary" id="rcSaveComments" style="margin-top:8px;">'+IC.save+' Save comments</button>';
+    html+=' <button class="btn btn-info" id="rcPrint">'+IC.printer+' Print</button></div>';
+    body.innerHTML=html;
+    document.getElementById('rcSelect').addEventListener('change',e=>{
+      this._progStudentId=e.target.value;
+      this.renderProgReportCard(body, selected);
+    });
+    document.getElementById('rcSaveComments').addEventListener('click',async()=>{
+      const ds=this.getCurrentDataset();
+      if(!ds.comments) ds.comments={};
+      ds.comments[this._progStudentId]=document.getElementById('rcComments').value;
+      this.markDirty(); await this.saveState();
+      showToast('success','Saved','Comments stored');
+    });
+    document.getElementById('rcPrint').addEventListener('click',()=>{
+      const w=window.open('','_blank');
+      w.document.write('<!DOCTYPE html><html><head><title>Report Card</title><style>body{font-family:Arial;padding:24px;max-width:800px;margin:0 auto}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ccc;padding:8px;text-align:center}th{background:#eff6ff}</style></head><body>'+
+        document.getElementById('progBody').innerHTML.replace(/<select[\s\S]*?<\/select>/,'').replace(/<button[\s\S]*?<\/button>/g,'').replace(/<textarea[\s\S]*?<\/textarea>/,'')+
+        '<p><b>Comments:</b> '+esc(document.getElementById('rcComments').value||'None')+'</p></body></html>');
+      w.document.close(); w.onload=()=>w.print();
+    });
+  },
+  renderAttStats(body){
+    const ds=this.getCurrentDataset();
+    const att=this.ensureAttendance(ds);
+    const roster=this.getRoster(ds);
+    if(!att.dates.length){ body.innerHTML='<p style="color:var(--muted)">No attendance dates yet. Add dates in the Attendance tab.</p>'; return; }
+    let html='<p><b>Overall:</b> ';
+    let sumPct=0;
+    const rows=[];
+    roster.forEach(r=>{
+      const rec=att.records[r.id]||{};
+      let p=0; att.dates.forEach(d=>{ if(rec[d]===true) p++; });
+      const pct=Math.round((p/att.dates.length)*100);
+      sumPct+=pct;
+      rows.push({name:r.name,id:r.id,p,pct});
+    });
+    const overall=roster.length?Math.round(sumPct/roster.length):0;
+    html+=overall+'% average across '+roster.length+' students · '+att.dates.length+' days</p>';
+    html+='<table class="stats-table"><thead><tr><th>STUDENT</th><th>ID</th><th>PRESENT</th><th>%</th></tr></thead><tbody>';
+    rows.sort((a,b)=>b.pct-a.pct).forEach(r=>{
+      const warn=r.pct<this.thresholds.attendancePct?' ⚠':'';
+      html+='<tr><td>'+esc(r.name)+'</td><td>'+esc(r.id)+'</td><td>'+r.p+'/'+att.dates.length+'</td><td>'+r.pct+'%'+warn+'</td></tr>';
+    });
+    html+='</tbody></table>';
+    body.innerHTML=html;
+  },
+  renderClassReport(body){
+    const ds=this.getCurrentDataset();
+    const byId=new Map();
+    ds.tables.forEach(t=>t.students.forEach(s=>{
+      const k=s.id||s.name;
+      if(!byId.has(k)) byId.set(k,{id:s.id,name:s.name,scores:{}});
+      byId.get(k).scores[t.name]=s.total;
+      byId.get(k).name=s.name;
+    }));
+    let html='<div style="text-align:center;margin-bottom:12px;"><h3 style="color:var(--primary)">'+esc(ds.name)+(ds.term?' — '+esc(ds.term):'')+'</h3></div>';
+    html+='<table class="stats-table"><thead><tr><th>NAME</th><th>ID</th>';
+    ds.tables.forEach(t=>html+='<th>'+esc(t.name)+'</th>');
+    html+='<th>TOTAL</th></tr></thead><tbody>';
+    Array.from(byId.values()).sort((a,b)=>a.name.localeCompare(b.name)).forEach(e=>{
+      let tot=0;
+      html+='<tr><td>'+esc(e.name)+'</td><td>'+esc(e.id||'')+'</td>';
+      ds.tables.forEach(t=>{ const v=e.scores[t.name]; if(v!==undefined){ tot+=v; html+='<td>'+v+'</td>'; } else html+='<td>—</td>'; });
+      html+='<td><b>'+tot+'</b></td></tr>';
+    });
+    html+='</tbody></table>';
+    html+='<div style="text-align:center;margin-top:14px;"><button class="btn btn-info" id="classReportPrint">'+IC.printer+' Print</button></div>';
+    body.innerHTML=html;
+    document.getElementById('classReportPrint').addEventListener('click',()=>{
+      const w=window.open('','_blank');
+      w.document.write('<!DOCTYPE html><html><head><title>Class Report</title><style>body{font-family:Arial;padding:24px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ccc;padding:6px;text-align:center}th{background:#eff6ff}</style></head><body>'+body.innerHTML.replace(/<button[\s\S]*?<\/button>/,'')+'</body></html>');
+      w.document.close(); w.onload=()=>w.print();
+    });
+  },
+  runDuplicateScan(){
+    closeAllModals();
+    // Build index
+    const byId=new Map(); // id -> [{name, ds, table}]
+    const byName=new Map(); // name -> [{id, ds, table}]
+    const noId=[];
+    this.datasets.forEach(ds=>{
+      ds.tables.forEach(t=>{
+        t.students.forEach(s=>{
+          if(!s.id){ noId.push({name:s.name, ds:ds.name, table:t.name, ref:s}); return; }
+          if(!byId.has(s.id)) byId.set(s.id,[]);
+          byId.get(s.id).push({name:s.name, ds:ds.name, table:t.name, student:s});
+          const nk=s.name.trim().toLowerCase();
+          if(!byName.has(nk)) byName.set(nk,[]);
+          byName.get(nk).push({id:s.id, name:s.name, ds:ds.name, table:t.name, student:s});
+        });
+      });
+    });
+    const sameIdDiffName=[];
+    byId.forEach((arr,id)=>{
+      const names=new Set(arr.map(x=>x.name));
+      if(names.size>1) sameIdDiffName.push({id, arr});
+    });
+    const sameNameDiffId=[];
+    byName.forEach((arr,nk)=>{
+      const ids=new Set(arr.map(x=>x.id));
+      if(ids.size>1) sameNameDiffId.push({name:arr[0].name, arr});
+    });
+
+    let html='<div class="diff-summary"><b>Data Health Check</b><br>Scanned all datasets.</div>';
+    if(!sameIdDiffName.length && !sameNameDiffId.length && !noId.length){
+      html+='<p style="color:var(--success);font-weight:600;">✓ No issues found. All IDs look healthy.</p>';
+    }
+    sameIdDiffName.forEach((item,i)=>{
+      html+='<div class="diff-dataset matched"><h4>Same ID, different names — '+esc(item.id)+'</h4>';
+      item.arr.forEach(x=>{ html+='<div class="diff-table">"'+esc(x.name)+'" in '+esc(x.ds)+' / '+esc(x.table)+'</div>'; });
+      html+='<p style="font-size:.85rem;color:var(--muted);margin-top:6px;">Use Settings → edit the student ID manually to resolve.</p></div>';
+    });
+    sameNameDiffId.forEach(item=>{
+      html+='<div class="diff-dataset new"><h4>Same name, different IDs — "'+esc(item.name)+'"</h4>';
+      item.arr.forEach(x=>{ html+='<div class="diff-table">'+esc(x.id)+' in '+esc(x.ds)+' / '+esc(x.table)+'</div>'; });
+      html+='<button class="btn btn-primary btn-merge-ids" data-name="'+esc(item.name)+'" style="margin-top:8px;">Merge to oldest ID</button></div>';
+    });
+    if(noId.length){
+      html+='<div class="diff-dataset local-only"><h4>Students with no ID ('+noId.length+')</h4>';
+      html+='<button class="btn btn-success" id="btnAssignIds">Assign new IDs</button></div>';
+    }
+    document.getElementById('diffTitle').textContent='Data Health Check';
+    document.getElementById('diffBody').innerHTML=html;
+    const applyBtn=document.getElementById('diffApplyBtn');
+    applyBtn.style.display='none';
+    document.getElementById('diffModal').style.display='flex';
+    // Restore Apply button when modal closes
+    const obs=new MutationObserver(()=>{
+      if(document.getElementById('diffModal').style.display==='none'){
+        applyBtn.style.display='';
+        obs.disconnect();
+      }
+    });
+    obs.observe(document.getElementById('diffModal'),{attributes:true,attributeFilter:['style']});
+
+    const assignBtn=document.getElementById('btnAssignIds');
+    if(assignBtn) assignBtn.addEventListener('click',async()=>{
+      for(const item of noId){
+        if(!item.ref.id) item.ref.id=await this.nextStudentId();
+      }
+      this.markDirty(); await this.saveState();
+      showToast('success','Assigned',noId.length+' IDs');
+      document.getElementById('diffModal').style.display='none';
+      applyBtn.style.display='';
+      this.runDuplicateScan();
+    });
+    document.querySelectorAll('.btn-merge-ids').forEach(btn=>{
+      btn.addEventListener('click',async()=>{
+        const name=btn.dataset.name;
+        const arr=sameNameDiffId.find(x=>x.name===name);
+        if(!arr) return;
+        let best=arr.arr[0].id;
+        arr.arr.forEach(x=>{
+          if(parseStudentIdNum(x.id)<parseStudentIdNum(best)) best=x.id;
+        });
+        arr.arr.forEach(x=>{ x.student.id=best; });
+        this.datasets.forEach(ds=>{
+          if(!ds.attendance||!ds.attendance.records) return;
+          arr.arr.forEach(x=>{
+            if(x.id!==best && ds.attendance.records[x.id]){
+              if(!ds.attendance.records[best]) ds.attendance.records[best]={};
+              Object.assign(ds.attendance.records[best], ds.attendance.records[x.id]);
+              delete ds.attendance.records[x.id];
+            }
+          });
+        });
+        this.markDirty(); await this.saveState();
+        showToast('success','Merged','All "'+name+'" → '+best);
+        document.getElementById('diffModal').style.display='none';
+        applyBtn.style.display='';
+        this.runDuplicateScan();
       });
     });
   },
@@ -1834,8 +3058,39 @@ const App={
     document.getElementById('kvDatasetCount').textContent=this.datasets.length;
     document.getElementById('btnDisconnect').style.display=s.sheetUrl?'inline-flex':'none';
     document.getElementById('snippetBox').textContent=buildAppsScriptSnippet(s.secret||'');
+    const chk=document.getElementById('chkAttendance');
+    if(chk) chk.checked=!!s.attendanceEnabled;
+    const wipeAtt=document.getElementById('btnWipeAttendance');
+    if(wipeAtt) wipeAtt.style.display=s.attendanceEnabled?'inline-flex':'none';
+    document.getElementById('inpAttThreshold').value=this.thresholds.attendancePct;
+    document.getElementById('inpAcadDrop').value=this.thresholds.academicDrop;
+    document.getElementById('inpAcadImprove').value=this.thresholds.academicImprove;
     await this.renderBackupsList();
     document.getElementById('settingsModal').style.display='flex';
+  },
+  async toggleAttendance(on){
+    await DB.setSetting('attendanceEnabled', !!on);
+    this.settings.attendanceEnabled=!!on;
+    this.updateViewTabs();
+    const wipeAtt=document.getElementById('btnWipeAttendance');
+    if(wipeAtt) wipeAtt.style.display=on?'inline-flex':'none';
+    showToast('info', on?'Attendance on':'Attendance off', on?'Tab visible':'Tab hidden');
+  },
+  async wipeAttendanceData(){
+    if(!confirm('Clear all attendance dates and marks for ALL datasets?\nTables and students are kept.')) return;
+    this.datasets.forEach(ds=>{
+      if(ds.attendance){ ds.attendance.dates=[]; ds.attendance.records={}; }
+    });
+    this.markDirty(); await this.saveState();
+    if(this.currentView==='attendance') this.renderAttendance();
+    showToast('info','Attendance wiped');
+  },
+  async saveThresholds(){
+    this.thresholds.attendancePct=parseInt(document.getElementById('inpAttThreshold').value,10)||80;
+    this.thresholds.academicDrop=parseInt(document.getElementById('inpAcadDrop').value,10)||10;
+    this.thresholds.academicImprove=parseInt(document.getElementById('inpAcadImprove').value,10)||10;
+    await DB.setSetting('thresholds', this.thresholds);
+    showToast('success','Saved','Thresholds updated');
   },
   async renderBackupsList(){
     const list=await DB.listBackups();
@@ -1951,15 +3206,31 @@ const App={
     for(const ds of datasets){
       for(const tbl of ds.tables){
         const displayName=sanitizeTabName(ds.name+' - '+tbl.name);
-        const idPart=' — '+tbl.id;
-        let unique=(displayName.slice(0,Math.max(1,31-idPart.length))+idPart).slice(0,31);
-        let n=2;
-        while(usedNames.has(unique)){
-          const sfx=n+idPart;
-          unique=(displayName.slice(0,Math.max(1,31-sfx.length))+sfx).slice(0,31); n++;
-        }
+        const tabName=(displayName+' — '+tbl.id).slice(0,31);
+        let unique=tabName; let n=2;
+        while(usedNames.has(unique)){ unique=(displayName.slice(0,25)+' ('+n+')').slice(0,31); n++; }
         usedNames.add(unique);
         XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(tableToRows(tbl)), unique);
+      }
+      // Attendance sheet if enabled and has dates
+      if(this.settings.attendanceEnabled && ds.attendance && ds.attendance.dates && ds.attendance.dates.length){
+        const att=ds.attendance;
+        const rosterMap=new Map();
+        (ds.tables||[]).forEach(t=>(t.students||[]).forEach(s=>{ if(s.id&&!rosterMap.has(s.id)) rosterMap.set(s.id,{id:s.id,name:s.name}); }));
+        const roster=Array.from(rosterMap.values()).sort((a,b)=>a.name.localeCompare(b.name));
+        const dates=att.dates;
+        const arows=[['Term: '+(ds.term||'')],['Class: '+ds.name],[],['STUDENT','ID',...dates.map(d=>d.slice(5).replace('-','/')),'PRESENT','%']];
+        roster.forEach(r=>{
+          const rec=att.records[r.id]||{};
+          let present=0;
+          const cells=dates.map(d=>{ if(rec[d]===true){present++;return 'P';} if(rec[d]===false) return 'A'; return ''; });
+          const pct=dates.length?Math.round((present/dates.length)*100):0;
+          arows.push([r.name,r.id,...cells,present,pct+'%']);
+        });
+        let aname=sanitizeTabName('Attendance - '+ds.name).slice(0,31);
+        let n=2; while(usedNames.has(aname)){ aname=('Att - '+ds.name.slice(0,20)+' ('+n+')').slice(0,31); n++; }
+        usedNames.add(aname);
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(arows), aname);
       }
     }
     const out=XLSX.write(wb,{bookType:'xlsx',type:'array'});
@@ -2053,7 +3324,7 @@ const App={
     throw new Error('Unrecognized JSON structure');
   },
   normalizeJsonDataset(ds){
-    const out={ id:ds.id||('ds-'+generateId()), name:ds.name||'Imported', tableCounter:ds.tableCounter||1, tables:[] };
+    const out={ id:ds.id||('ds-'+generateId()), name:ds.name||'Imported', term:ds.term||'', tableCounter:ds.tableCounter||1, tables:[], comments:ds.comments||{}, attendance:ds.attendance||{enabled:false,dates:[],records:{},comments:{}} };
     (ds.tables||[]).forEach(t=>{
       const tId=t.id||('t-'+generateId());
       const catColumns=(t.catColumns||deepClone(DEFAULT_CAT_COLUMNS)).map(c=>({
@@ -2066,14 +3337,13 @@ const App={
           marks[c.id]=Math.min(Math.max(Math.round(typeof v==='number'?v:parseFloat(v)||0),0),c.maxScore);
         });
         const exam=Math.min(Math.max(Math.round(typeof s.exam==='number'?s.exam:parseFloat(s.exam)||0),0),50);
-        return { name:s.name||'Unnamed', catMarks:marks, exam, catTotal:0,total:0,position:0 };
+        return { id:s.id||'', name:s.name||'Unnamed', gender:normalizeGender(s.gender), catMarks:marks, exam, catTotal:0,total:0,position:0 };
       });
-      const tbl={ id:tId, name:t.name||'Table', catColumns, students };
+      const tbl={ id:tId, name:t.name||'Table', term:t.term||ds.term||'', termOverridden:!!t.termOverridden, catColumns, students };
       students.forEach(s=>recalcStudent(tbl,s));
       updateTablePositions(tbl);
       out.tables.push(tbl);
     });
-    // FIX #2 also applies here: keep counter safe
     let maxId=0;
     for(const t of out.tables){
       const m=String(t.id).match(/^table-(\d+)$/);
@@ -2170,13 +3440,14 @@ const App={
       if(!this.datasets.find(d=>d.id===this.currentDatasetId)) this.currentDatasetId=(this.datasets[0] && this.datasets[0].id) || null;
       if(this.currentDatasetId==null && this.datasets.length) this.currentDatasetId=this.datasets[0].id;
       this.validateAll();
+      const assigned=await this.ensureStudentIds();
       // FIX #1: pull + replace → clean. pull + merge → still dirty (kept local-only).
       // import always → dirty.
       if(source==='pull' && mode!=='merge') this._dirty=false;
       else this._dirty=true;
       await this.saveState();
       this.renderAll();
-      showToast('success','Applied',incomingDatasets.length+' dataset(s)');
+      showToast('success','Applied',incomingDatasets.length+' dataset(s)'+(assigned?' · '+assigned+' IDs assigned':''));
     }catch(e){ showToast('error','Apply failed', e.message||String(e), 6000); }
     finally{ hideLoading(); }
   },
@@ -2184,7 +3455,7 @@ const App={
   async push(){
     const url=this.settings.sheetUrl||'';
     if(!url){ showToast('warning','Connect a Sheet first'); return; }
-    const ok=confirm('Push to Google Sheet?\n\nThis will REPLACE the entire sheet contents with your local data:\n• '+this.datasets.length+' dataset(s)\n• '+this.datasets.reduce((s,d)=>s+d.tables.length,0)+' table(s)\n• '+this.datasets.reduce((s,d)=>s+d.tables.reduce((x,t)=>x+t.students.length,0),0)+' student(s)\n\nAny manual edits, and ANY other tabs in that spreadsheet, will be lost.\n\nContinue?');
+    const ok=confirm('Push to Google Sheet?\n\nThis will REPLACE the entire sheet contents with your local data:\n• '+this.datasets.length+' dataset(s)\n• '+this.datasets.reduce((s,d)=>s+d.tables.length,0)+' table(s)\n• '+this.datasets.reduce((s,d)=>s+d.tables.reduce((x,t)=>x+t.students.length,0),0)+' student(s)\n\nAny manual edits made directly in the sheet since the last Push will be lost.\n\nContinue?');
     if(!ok) return;
     showLoading('Pushing to Sheet...');
     try{
