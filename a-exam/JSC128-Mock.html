@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>JSC 128 Exam Practice: Units 1–3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F1F4F0; --surface:#FFFFFF; --ink:#16211C; --muted:#55645C; --line:#CFD9D2;
+  --ok:#14764A; --okbg:#E1F2E8; --bad:#B0321E; --badbg:#FBE6E1;
+  --u1:#B26A00; --u2:#2457A6; --u3:#2A7A4B; --accent:var(--u1);
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F1613; --surface:#17211C; --ink:#E8EFEA; --muted:#9BAAA1; --line:#2C3B33;
+    --ok:#5AD08F; --okbg:#143222; --bad:#FF8F78; --badbg:#3A1B1B;
+    --u1:#F0A94A; --u2:#86AEF2; --u3:#6CCB92;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F1613; --surface:#17211C; --ink:#E8EFEA; --muted:#9BAAA1; --line:#2C3B33;
+  --ok:#5AD08F; --okbg:#143222; --bad:#FF8F78; --badbg:#3A1B1B;
+  --u1:#F0A94A; --u2:#86AEF2; --u3:#6CCB92;
+}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 96px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:17px;line-height:1.5;-webkit-text-size-adjust:100%}
+.wrap{max-width:720px;margin:0 auto;padding:0 16px}
+header.hero{padding:22px 0 10px}
+h1{font-family:"Bricolage Grotesque","Atkinson Hyperlegible",system-ui,sans-serif;font-size:clamp(1.7rem,6.5vw,2.3rem);line-height:1.1;margin:0 0 6px;letter-spacing:-.01em}
+.sub{margin:0;color:var(--muted)}
+.mode{display:inline-flex;margin-top:14px;border:1.5px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface)}
+.mode button{font:inherit;font-size:.95rem;padding:8px 16px;border:0;background:transparent;color:var(--muted);cursor:pointer}
+.mode button[aria-pressed="true"]{background:var(--ink);color:var(--bg);font-weight:700}
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1.5px solid var(--line);padding-top:8px}
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+.tabs button{font:inherit;font-size:.9rem;font-weight:700;padding:9px 2px 8px;border:0;border-bottom:4px solid transparent;background:transparent;color:var(--muted);cursor:pointer;min-height:44px}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.score{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:6px 0 8px;font-size:.9rem;color:var(--muted)}
+.score b{color:var(--ink)}
+.score button{font:inherit;font-size:.85rem;color:var(--muted);background:none;border:1.5px solid var(--line);border-radius:8px;padding:4px 10px;cursor:pointer}
+.prog{height:4px;background:var(--line)}
+.prog i{display:block;height:100%;width:0;background:var(--accent);transition:width .25s}
+main{padding:8px 0 56px}
+.intro{margin:14px 0 4px;color:var(--muted);font-size:.95rem}
+.mockbar{margin:14px 0 0}
+.mockbar button{font:inherit;font-weight:700;padding:10px 16px;border-radius:10px;border:1.5px solid var(--ink);background:var(--ink);color:var(--bg);cursor:pointer}
+h2{font-family:"Bricolage Grotesque","Atkinson Hyperlegible",system-ui,sans-serif;font-size:1.25rem;margin:34px 0 4px;color:var(--accent)}
+h2 small{font-family:"Atkinson Hyperlegible",system-ui,sans-serif;font-weight:400;font-size:.85rem;color:var(--muted);margin-left:6px}
+.q{padding:20px 0;border-bottom:1.5px solid var(--line)}
+.stem{display:grid;grid-template-columns:2.1rem 1fr;margin:0 0 12px;font-weight:700}
+.n{color:var(--accent);font-variant-numeric:tabular-nums}
+.chip{display:inline-block;font-size:.78rem;font-weight:700;color:var(--accent);margin-bottom:2px}
+.opts{display:grid;gap:8px;margin-left:2.1rem}
+.opt{display:grid;grid-template-columns:1.6rem 1fr 1.4rem;align-items:start;gap:6px;text-align:left;font:inherit;font-size:1rem;padding:11px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);cursor:pointer;min-height:48px}
+.opt .l{font-weight:700;color:var(--muted)}
+.opt .m{font-weight:700}
+.opt:not(:disabled):hover{border-color:var(--accent)}
+.opt:disabled{cursor:default}
+.opt.ok{border-color:var(--ok);background:var(--okbg)}
+.opt.ok .m{color:var(--ok)}
+.opt.bad{border-color:var(--bad);background:var(--badbg)}
+.opt.bad .m{color:var(--bad)}
+.opt.dim{opacity:.6}
+.fb{margin:12px 0 0 2.1rem;font-size:.97rem}
+.fb .v{font-weight:700}
+.fb .v.ok{color:var(--ok)} .fb .v.bad{color:var(--bad)}
+.fb p{margin:2px 0 0}
+.fb .ans{margin-top:2px}
+button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.done{margin:28px 0 0;padding:16px;border:1.5px solid var(--line);border-radius:10px;background:var(--surface)}
+.done b{font-family:"Bricolage Grotesque","Atkinson Hyperlegible",sans-serif;font-size:1.2rem}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <h1>JSC 128 exam practice</h1>
+    <p class="sub">Introduction to Integrated Science II · Units 1–3 · <span id="total"></span> objective questions</p>
+    <div class="mode" role="group" aria-label="Mode">
+      <button id="mQuiz" aria-pressed="true">Quiz me</button>
+      <button id="mStudy" aria-pressed="false">Study mode</button>
+    </div>
+  </header>
+</div>
+<div class="bar">
+  <div class="wrap">
+    <div class="tabs" role="tablist" id="tabs"></div>
+    <div class="score"><span id="scoreTxt"></span><button id="reset">Reset</button></div>
+  </div>
+  <div class="prog"><i id="progFill"></i></div>
+</div>
+<div class="wrap"><main id="main"></main></div>
+
+<script>
+/* Entry: [question, correct answer, wrong1, wrong2, wrong3, explanation] */
+var UNITS = [
+{id:1,name:"Energy",color:"var(--u1)",sessions:[
+{t:"Potential energy",qs:[
+["Energy is best defined as","the ability to do work","the rate at which work is done","a push or a pull on an object","the force acting per unit area","Energy is the ability to do work. We use energy by changing it from one form to another."],
+["Which of the following is a form of energy?","Chemical energy","Mass","Height","Distance","Forms listed in the module: mechanical, thermal, chemical, nuclear, electrical, light, heat and sound."],
+["Potential energy is","stored energy due to an object's position or change in shape","the energy of a body in motion","energy released when a fuel burns","energy that has been destroyed","Potential energy (PE) is energy stored in an object because of its position or a change in its shape."],
+["Which object has potential energy?","A mango hanging on its tree","A car moving along a road","Water running down a stream","A glass falling to the floor","The mango is high above the ground and not moving, so its energy is stored. The other three involve motion (kinetic energy)."],
+["Which of these stores potential energy because of a change in shape?","A stretched rubber band","A book lying on the floor","A rolling ball","A running athlete","A stretched or compressed spring, a stretched rubber band or a bent bow stores energy because its shape has changed."],
+["The potential energy of an elevated object is called","gravitational potential energy","kinetic energy","thermal energy","chemical energy","It equals the work done against gravity in lifting the object to that height."],
+["The formula for gravitational potential energy is","PE = mgh","PE = ½mv²","PE = mg/h","PE = mv","m is mass (kg), g is acceleration due to gravity (9.8, about 10 m/s²) and h is height (m)."],
+["The SI unit of energy is the","joule","watt","newton","kilogram","Energy is measured in joules (J). The watt is the unit of power and the newton is the unit of force."],
+["A body of mass 500 kg is lifted through a vertical height of 20 m. Its potential energy is (g = 10 m/s²)","100,000 J","10,000 J","1,000,000 J","25 J","PE = mgh = 500 × 10 × 20 = 100,000 J."],
+["What work is done when a mass of 200 kg is lifted through a vertical height of 70 cm? (g = 10 m/s²)","1,400 J","140,000 J","14,000 J","140 J","Convert first: 70 cm = 0.7 m. PE = 200 × 10 × 0.7 = 1,400 J. Forgetting to convert gives the trap answer of 140,000 J."],
+["An object of mass 400 g is raised vertically to a height of 40 cm. Its potential energy is (g = 10 m/s²)","1.6 J","160,000 J","16 J","0.16 J","Convert both: m = 0.4 kg and h = 0.4 m. PE = 0.4 × 10 × 0.4 = 1.6 J."],
+["A mango of mass 20 kg has potential energy of 2,000 J. How high is it above the ground? (g = 10 m/s²)","10 m","100 m","1 m","40 m","PE = mgh, so 2000 = 20 × 10 × h = 200h. Therefore h = 2000 ÷ 200 = 10 m."],
+["A 60 kg boy sits on a wall 2 m high. His potential energy is (g = 10 m/s²)","1,200 J","120 J","12,000 J","30 J","PE = mgh = 60 × 10 × 2 = 1,200 J."],
+["If the height of an object is doubled and its mass stays the same, its potential energy","doubles","halves","stays the same","becomes four times larger","PE = mgh, so PE is directly proportional to h. Double h gives double PE."]
+]},
+{t:"Kinetic energy",qs:[
+["Kinetic energy is","the energy a body has because of its motion","energy stored in a stretched spring","the ability to resist motion","energy stored in food","Kinetic energy (KE) is the energy present in an object because it is moving."],
+["Which of these has kinetic energy?","A car moving along the road","A book on a table","A compressed spring","A mango on a tree","A moving car has energy of motion. The other three store energy (potential)."],
+["The kinetic energy of an object depends on its","mass and speed","height and mass","colour and size","temperature and volume","KE = ½mv². It depends on mass (m) and velocity (v)."],
+["The formula for kinetic energy is","KE = ½mv²","KE = mgh","KE = mv","KE = ½mv","Remember: half × mass × velocity squared."],
+["An object gains kinetic energy whilst it","accelerates","is at rest","is held motionless at a height","is being cooled","Kinetic energy is gained while an object accelerates. Unless its speed changes, the KE it has is maintained."],
+["What is the kinetic energy of a body of mass 12 kg moving with a velocity of 200 m/s?","240,000 J","480,000 J","2,400 J","24,000 J","KE = ½ × 12 × 200² = 6 × 40,000 = 240,000 J. (480,000 J comes from forgetting the ½.)"],
+["A body of mass 10 kg moves with a speed of 5 m/s. Its kinetic energy is","125 J","250 J","50 J","25 J","KE = ½ × 10 × 5² = 5 × 25 = 125 J."],
+["How much work is done by a catapult to fire a 0.2 g pebble at a velocity of 40 m/s?","0.16 J","160 J","0.32 J","16 J","Convert: 0.2 g = 0.0002 kg. KE = ½ × 0.0002 × 40² = 0.0001 × 1600 = 0.16 J."],
+["A moving body has kinetic energy of 2,000 J and a velocity of 10 m/s. Its mass is","40 kg","400 kg","4 kg","20 kg","2000 = ½ × m × 10² = 50m, so m = 2000 ÷ 50 = 40 kg."],
+["An athlete of mass 70 kg runs a 100 m race in 10 s. Her kinetic energy is","3,500 J","7,000 J","35,000 J","350 J","First find speed: v = 100 ÷ 10 = 10 m/s. KE = ½ × 70 × 10² = 35 × 100 = 3,500 J."],
+["A 4 kg ball moves at 6 m/s. Its kinetic energy is","72 J","144 J","12 J","24 J","KE = ½ × 4 × 6² = 2 × 36 = 72 J."],
+["If the speed of a moving object is doubled, its kinetic energy","becomes four times larger","doubles","halves","stays the same","KE depends on v², so doubling v multiplies KE by 2² = 4."],
+["Which of these is an example of kinetic energy?","Movement of muscles while running","A ball on top of a slope","A bent bow before release","A man sitting on a wall","Muscles moving while running or walking is energy of motion. The others are stored (potential) energy."]
+]},
+{t:"Energy as fuel",qs:[
+["A fuel is","any substance that provides heat and produces energy when it is burned","a substance that cannot burn","a machine that turns heat into motion","energy stored in a stretched spring","The energy released is generally chemical energy or heat energy."],
+["Heat energy released from fuel can be converted into mechanical energy by a","heat engine","transformer","capacitor","thermometer","This is how a car engine or steam engine works."],
+["Which of these is a solid fuel?","Coal","Kerosene","Butane","Biodiesel","Solid fuels: wood, coal, charcoal, cow dung cake, paraffin wax."],
+["Which of these is a liquid fuel?","Diesel","Charcoal","Propane","Firewood","Liquid fuels: petroleum products (gasoline, diesel, kerosene), coal tar, biodiesel."],
+["Which of these is a gaseous fuel?","Propane","Coal tar","Paraffin wax","Cow dung cake","Gaseous fuels: natural gas, butane and propane."],
+["On the basis of physical state, fuels are classified as","solid, liquid and gaseous","natural and artificial","renewable and non-renewable","hot and cold","The module groups fuels two ways: by physical state, and by occurrence (natural or artificial)."],
+["On the basis of occurrence, fuels are classified as","natural and artificial (synthetic)","solid and liquid","organic and inorganic","clean and dirty","Natural fuels are found in nature. Artificial fuels are made by humans."],
+["Artificial (synthetic) fuels are those obtained when","a natural fuel is modified to increase its energy output","a fuel is burned completely","wood is left to dry in the sun","water is heated","Examples: gasoline, diesel, kerosene and butane gas."],
+["Which of these is an artificial fuel?","Gasoline","Firewood","Coal","Agricultural residues","Gasoline is made by refining a natural fuel. Firewood, coal and agricultural residues are natural."],
+["Which of these is a natural fuel?","Petroleum","Diesel","Kerosene","Butane gas","Natural fuels in the module: firewood, coal, agricultural residues, petroleum and wood."]
+]},
+{t:"Energy changes and transformation",qs:[
+["Energy transformation is","the change of energy from one form to another","the creation of new energy","the loss of energy from the universe","the storage of energy in a fuel","When energy changes form it is used to do work, such as making something move or making a living thing grow."],
+["The law of conservation of energy states that energy","can neither be created nor destroyed, but can be transformed","can be created but not destroyed","can be destroyed but not created","is always lost as heat","Energy only changes from one form to another or moves from one place to another."],
+["A toaster changes electrical energy into","thermal (heat) energy","chemical energy","nuclear energy","potential energy","Electrical → thermal."],
+["A blender changes electrical energy into","mechanical (motion) energy","chemical energy","nuclear energy","light energy","Electrical → mechanical."],
+["A gas stove changes chemical energy from burning gas into","heat energy","electrical energy","nuclear energy","potential energy","Chemical → thermal."],
+["The energy changes in a torchlight are","chemical → electrical → light + heat","electrical → chemical → light","light → electrical → chemical","mechanical → electrical → light","The dry cell stores chemical energy, which becomes electrical energy, which the bulb gives out as light and heat."],
+["A ball is dropped from a height. The energy change is","potential → kinetic","kinetic → potential","chemical → electrical","thermal → chemical","As it falls, stored (potential) energy becomes energy of motion (kinetic)."],
+["A mango is falling from a tree. Just before it hits the ground, its energy is mostly","kinetic energy","potential energy","chemical energy","nuclear energy","Before it falls: potential. Midway: both. Just before landing: kinetic."],
+["Midway through its fall, the mango has","both potential and kinetic energy","only potential energy","only kinetic energy","no energy","Potential energy is decreasing while kinetic energy is increasing."],
+["When the falling mango hits the ground, its energy becomes mainly","sound and heat","electrical and nuclear","chemical only","light only","On impact the kinetic energy is changed into sound and heat."],
+["When food is broken down and used to move the muscles, the energy change is","chemical → mechanical","mechanical → chemical","electrical → light","nuclear → chemical","Food stores chemical energy. Muscles change it into movement (and heat to keep the body warm)."],
+["The Sun transforms nuclear energy into","electromagnetic radiation (ultraviolet, infrared, gamma)","chemical energy only","mechanical energy","sound energy","Nuclear → electromagnetic."],
+["A burning candle changes chemical energy into","light and heat energy","electrical energy","mechanical energy","nuclear energy","Chemical → light + heat."],
+["A television that is switched on changes electrical energy into","light, sound and heat","chemical energy only","nuclear energy only","kinetic energy only","Electrical → light + sound + heat."]
+]}
+]},
+{id:2,name:"Electronics",color:"var(--u2)",sessions:[
+{t:"Meaning of electronics",qs:[
+["Electronics is the branch of science that deals with","the flow and control of electrons and their effects in vacuums, gases and semiconductors","stationary electric charges only","the movement of heavy objects","the transfer of heat in solids","Electronics also deals with the devices that use such electrons."],
+["Which component stores electrical charge?","Capacitor","Resistor","Diode","Inductor","Capacitors store charge."],
+["Which component stores energy in a magnetic field?","Inductor","Capacitor","Resistor","Thermistor","Inductors store energy in a magnetic field."],
+["Which component resists the flow of current?","Resistor","Capacitor","Transistor","Diode","The name tells you: a resistor resists current."],
+["Which component allows current to flow in one direction only?","Diode","Resistor","Inductor","Capacitor","Diodes are one-way valves for current."],
+["Which of these is an active component?","Transistor","Capacitor","Resistor","Inductor","In the module, active components are transistors and thermistors. Passive ones are capacitors, inductors, resistors and diodes. (Some textbooks also treat diodes as active, so follow your lecturer's wording.)"],
+["A thermistor is a component that","changes its resistance with temperature","stores charge","allows current in one direction only","stores magnetic energy","Thermistor = thermal + resistor."],
+["Transistors are used to","amplify or switch electronic signals","store electrical charge","resist current","produce sound waves","This is the key job of a transistor."],
+["Electronic components are usually connected to form circuits by soldering them onto a","printed circuit board (PCB)","wooden board","metal rod","glass plate","PCB stands for printed circuit board."],
+["Electronic devices are components for controlling the flow of electrical current for","information processing and system control","cooking food","building roads","measuring weight","The module's prominent examples are transistors and diodes."],
+["Prominent examples of electronic devices are","transistors and diodes","hammers and chisels","bricks and cement","pipes and taps","Transistors and diodes control the flow of current."],
+["Electronic devices are mostly found in","television sets, computers and cell phones","hand tools and farm tools","wooden furniture","bicycles and carts","Also stereo systems, digital cameras and portable media players."]
+]},
+{t:"Household electronic appliances",qs:[
+["An appliance is","any device designed to perform a specific task","only a machine that uses electricity","a type of electronic component","a source of electrical power","An appliance may or may not depend on electricity."],
+["A device is called an electronic appliance when","its electron flow is controlled by electronic components","it uses fuel only","it never needs electricity","it is a hand-operated tool","Electricity-powered devices become electronic appliances when electron flow control is involved."],
+["Household electronic appliances are also known as","domestic appliances","industrial machines","electronic components","power stations","They are electronic machines that help in household functions."],
+["Which of these is a household electronic appliance?","Microwave","Cutlass","Broom","Clay pot","Others in the module: toaster, kettle, dishwasher, vacuum cleaner, freezer, washing machine, water heater."],
+["Which of these is usually found in the living room?","Television","Refrigerator","Microwave","Blender","Living room: television, radio/stereo, air conditioner."],
+["An air conditioner is used to","control room temperature","produce audio entertainment","wash clothes","blend food","Air conditioner: controls room temperature."],
+["A radio or stereo is used to produce","audio entertainment","visual entertainment only","heat","cold air","Radio/stereo: audio entertainment. Television: visual and audio."],
+["A refrigerator is used to","preserve food by keeping it cold","heat food quickly","wash dishes","crush ice only","Refrigerator: keeps food cold and preserves it."],
+["A microwave oven","heats food quickly using microwave radiation","keeps food cold","mixes and purées food","dries clothes","Microwave: heats food quickly."],
+["A blender is used to","mix, crush and purée food","preserve food","heat water","wash clothes","Blender: mixes, crushes, purées or emulsifies food."]
+]},
+{t:"Uses and care of appliances",qs:[
+["Which appliance answers telephone calls and records messages?","Answering machine","Scanner","Amplifier","Trackball","This is the answering machine."],
+["A device that takes a signal and increases its power is a(n)","amplifier","generator","trackball","scanner","Amplifier: increases the power of a signal."],
+["A digital (image) scanner is used to","generate a digital representation of an image for data input","position the cursor","produce electrical power","record phone messages","Scanner: image → digital data."],
+["A trackball is used to","position the cursor and move images on a computer screen","scan documents","amplify signals","wash clothes","Trackball is a pointing device."],
+["A generator","produces a signal voltage or electrical power","amplifies a signal","scans images","moves the cursor","Generator: produces a signal voltage or electrical power."],
+["A freezer allows a person to","buy perishable food in bulk and keep it fresh","wash clothes","heat food","amplify sound","Freezers keep perishable food fresh for long periods."],
+["The power consumption of an appliance is rated in","watts","metres","kilograms","newtons","Check that the rating matches your power source."],
+["A common cause of domestic fires is","overloading electrical sockets","unplugging appliances","reading the user manual","keeping cords tidy","Avoid overloading outlets and avoid extension cords or multi-outlet converters for appliances."],
+["Appliances not in use should be unplugged in order to","reduce risk and save power (phantom drain)","make them heavier","clean the sockets","make them last forever","Unplugging cuts the small power drawn even when switched off."],
+["Appliances and outlets should be kept away from water in order to","prevent electric shock","prevent loud noise","increase power","save space","Water conducts electricity."],
+["Appliances must have good ventilation to avoid","overheating","freezing","noise","dust","Keep exhaust fans clean too, since clogged fans become a fire hazard."],
+["Electrical cords should be checked regularly for","fraying, cracking or other damage","colour","price","length only","Damaged cords cause shocks and fires. Keep cords tidy and away from children and pets."],
+["The best practice with every new appliance is to","read and follow the instructions in the user manual","ignore the manual","plug it into an extension with other appliances","switch it on without checking its power rating","The module lists reading and observing the user manual as a key handling rule."]
+]},
+{t:"First aid and basic recovery skills",qs:[
+["First aid is","medical assistance given to a person who has suffered a medical emergency","a long course of hospital treatment","surgery performed by a doctor","a type of medicine","It is given to preserve life, prevent the condition from worsening, and promote recovery."],
+["The main aim of first aid is to","preserve life","cure all diseases","replace the doctor","diagnose illness","Saving lives is the main aim."],
+["Which of these is an aim of first aid?","To prevent the condition from worsening","To replace hospital treatment","To prescribe drugs","To punish careless people","The three aims: preserve life, prevent further harm, promote recovery."],
+["Before touching a wound you should","wash your hands thoroughly with soap and water","apply a bandage","pour oil on it","cover it with soil","Clean hands prevent infection of the wound."],
+["A bandage is applied to a wound because it","helps reduce bleeding and acts as a barrier to germs","makes the wound bigger","stops the person breathing","removes the need for cleaning","Bandage = reduces bleeding + barrier to germs."],
+["Arterial bleeding can be recognised because the blood is","bright red and pulsates","dark and slow","clear","yellow","Arterial bleeding is bright red and spurts with each heartbeat."],
+["To slow down severe bleeding from a limb, you should apply pressure with a clean cloth and","raise the limb above the heart","lower the limb","remove the cloth often","tie it loosely with string and leave it","Raising the wounded limb over the heart slows the bleeding."],
+["A person in shock should be laid on the back with","the feet raised higher than the head","the head raised higher than the feet","the person sitting upright","the person standing","Also loosen tight clothing and cover with a blanket to keep warm."],
+["A person has received an electric shock. The first action is to","switch off the current from the mains","pour water on the person","pull the person with bare hands","give the person food","Cut the current first so that you do not get shocked yourself."],
+["For a heat burn or scald, the first thing to do is","cool the burn with water and cover with dry sterile gauze","rub it with cooking oil","burst the blisters","cover it with soil","Cooling with water reduces pain. Then cover with dry sterile gauze and bandage."],
+["A chemical burn should be washed with water for","at least 20 minutes","about 1 minute","about 5 minutes","no time at all, use cooking oil instead","Also cut away contaminated clothing."]
+]},
+{t:"Cardio-pulmonary resuscitation (CPR)",qs:[
+["CPR is an emergency procedure used after","cardiac arrest","a mild headache","a cut finger","a sprained ankle","It maintains circulation of oxygenated blood to the brain."],
+["CPR keeps","blood and oxygen flowing when the heart and breathing have stopped","a wound clean","a fever down","a broken bone straight","Done within the first few minutes, it can keep a person alive until help arrives."],
+["For mouth-to-mouth resuscitation, the casualty should be placed","flat on the floor on their back","sitting upright","standing against a wall","on their side only","Kneel by the side of the upper body."],
+["Before blowing air into the casualty's mouth you should","tilt the head backwards until the chin points straight up","bend the head forward","turn the head to one side","raise the knees","This opens the airway."],
+["While giving mouth-to-mouth, the nostrils are pinched so that","air does not escape through the nose","the person cannot cough","the person cannot swallow","the nose stays clean","Pinch the nostrils, cover the mouth, and blow until the chest rises."],
+["When giving mouth-to-mouth, you know the breath has gone in when","the casualty's chest rises","the casualty opens their eyes","the casualty's hands move","the casualty's legs move","Then remove your mouth, watch the chest fall, and repeat."],
+["Before mouth-to-mouth, the casualty's mouth should be checked with a finger to ensure","there is no obstruction","there is no bleeding","the teeth are clean","the tongue is dry","An obstruction would block the air."],
+["For external chest compression, the heel of your hand is placed","over the centre of the casualty's breastbone","over the stomach","on the shoulder","on the neck","Place your other hand on top, elbows straight, shoulders directly above your hands."],
+["For an average adult, the chest is compressed by about","4–5 cm","1 cm","10 cm","15 cm","Push straight down about 4–5 cm, then relax the pressure."],
+["In the module, one cycle of CPR is __ chest compressions followed by 2 mouth-to-mouth ventilations.","15","5","10","30","Module answer: 15 compressions (at 80 per minute) then 2 breaths. Note: current international guidelines use 30 compressions to 2 breaths at 100–120 per minute. If your exam gives 30, go with what your lecturer taught."],
+["According to the module, the casualty's heartbeat should be checked after every","3 minutes","30 seconds","10 minutes","1 hour","Check for a heartbeat after every 3 minutes of CPR."]
+]}
+]},
+{id:3,name:"Environment",color:"var(--u3)",sessions:[
+{t:"Health and hygiene",qs:[
+["Health is a state of","complete physical and mental well-being","being free from cuts only","having plenty of money","being tall and strong","A healthy person is one whose mind and body are completely fit."],
+["Hygiene refers to","practices and conditions that uphold health and prevent the spread of illness","medicines used to cure illness","a type of disease","the study of plants","Hygiene is habits or practices that ensure good health and a clean environment."],
+["Personal hygiene is","practices by an individual to care for their bodily health through cleanliness","cleaning of public places only","taking medicine daily","keeping pets","It includes bathing, handwashing, brushing teeth and wearing clean clothes."],
+["Which of these is NOT a good personal hygiene practice?","Leaving soiled tissues lying around","Washing hands before handling food","Brushing teeth","Trimming fingernails","Soiled tissues should be disposed of properly."],
+["When is handwashing especially important?","Before handling food","After sleeping only","Only on Sundays","Only when your hands are wet","Washing hands regularly keeps illnesses at bay."],
+["Which of these is a motivation for personal hygiene?","Social acceptance","Making money","Avoiding school","Getting taller","Others: reducing and healing illness, optimal health and well-being, preventing the spread of illness."],
+["Good hygiene reduces health care costs because","there are fewer occurrences of sickness","hospitals become free","doctors work harder","medicines become cheaper","Fewer sicknesses means fewer hospital bills."],
+["Hygiene is vital for children because it supports","optimum growth and development","faster running","louder voices","bigger clothes","It also sets an example for children."],
+["Good oral hygiene reduces the risk of","gum diseases and bad breath","malaria","broken bones","poor eyesight","Brushing teeth prevents gum diseases and bad breath."],
+["Employers often prefer well-groomed employees. This shows hygiene gives","professional acceptance","free transport","higher pay automatically","longer holidays","Other benefits: good body image, confidence, social acceptance, energy at work."]
+]},
+{t:"Infections and diseases",qs:[
+["Infection is","the attack and growth of microorganisms (pathogens) inside the body, causing harm","a sudden fall in temperature","a normal body function","the healing of a wound","A pathogen enters a host, multiplies and causes harm."],
+["Which of these is a pathogen?","A virus","A vitamin","A mineral","Water","Pathogens include viruses, bacteria, fungi and parasites."],
+["A disease is a condition in which the body","changes from a normal, functional state to an abnormal, dysfunctional one with signs and symptoms","becomes stronger","grows taller","stays at rest","Disease is altered body function associated with signs and symptoms."],
+["Communicable diseases are those that","can be transferred from one organism to another","are inherited from parents","cannot spread","only affect plants","They are caused by bacteria, viruses, fungi and parasites."],
+["Which of these is a communicable disease?","Cholera","Cancer","Diabetes mellitus","Asthma","Cholera spreads through contaminated water or food."],
+["Which of these is NOT a communicable disease?","Diabetes mellitus","Tuberculosis","Measles","Ebola","Diabetes is a non-communicable (chronic) disease."],
+["Communicable diseases may spread through all of these EXCEPT","a genetic abnormality present from birth","contact with body fluids","insect bites","contaminated food or water","Genetic abnormalities cause non-communicable diseases and cannot be passed on by contact."],
+["Non-communicable diseases are also called","chronic diseases","infectious diseases","seasonal diseases","germ diseases","They progress slowly and last a long time."],
+["The main cause of non-communicable diseases is","genetic or environmental conditions","mosquito bites","sharing food","handshakes","Also abnormalities present since birth."],
+["Which of these is a non-communicable disease?","Cardiovascular disease (heart attack, stroke)","Malaria","Cholera","Smallpox","Others: cancer, chronic respiratory disease (asthma), diabetes mellitus."],
+["Down syndrome and cystic fibrosis are examples of","genetic abnormalities","bacterial infections","viral infections","parasitic infections","They are non-communicable genetic conditions."],
+["HIV/AIDS is classified as a","communicable disease","non-communicable disease","genetic abnormality","nutritional deficiency","It is spread through contact with infected body fluids."]
+]},
+{t:"Environmental hygiene",qs:[
+["Environmental hygiene is","a group of activities aimed at protecting people from dangerous conditions","cleaning the body only","a type of medicine","a school subject","It covers practical prevention and control measures that improve environmental conditions affecting human health."],
+["Cleaning, as part of environmental hygiene, is","a mechanical process using detergent and water to remove dirt and grease","using chemicals to kill all germs","burning waste","spraying perfume","Scrubbing with detergent and water removes food residues, dirt, debris and grease."],
+["Disinfection is","using chemicals or heat to reduce bacteria to a safe level","only scrubbing with water","painting walls","using air fresheners","Disinfectants or heat reduce the number of bacteria to a safe level."],
+["Which of these is a disinfectant?","Household bleach","Plain water","Sand","Salt water only","Bleach and dishwashers (heat) are the module's examples."],
+["Clean air is air that","has no harmful levels of pollutants","has no oxygen","is always cold","is full of dust","Clean air is a basic human need and essential to good health."],
+["The three major things needed to maintain environmental hygiene are","cleaning, disinfecting and sustaining clean air","cooking, eating and sleeping","farming, mining and fishing","reading, writing and counting","Clean regularly, disinfect where necessary, sustain clean air."],
+["Which of these is an environmental condition necessary for good health?","Clean water supply","Loud music","Fashionable clothes","Fast cars","Others: waste disposal, food protection, healthy housing."],
+["Which of these helps maintain environmental hygiene?","Proper disposal of human and animal waste","Dumping rubbish in gutters","Open defecation","Leaving food uncovered","Also: protecting food from contamination and providing healthy housing."]
+]},
+{t:"Natural resources and their uses",qs:[
+["Natural resources are","materials that exist on Earth independent of human action and can meet human needs","only things made in factories","only minerals","only things bought in shops","Examples: oil, coal, gas, metals, air, sunlight, soil, water, animals and vegetation."],
+["Which of these is a renewable resource?","Sunlight","Coal","Natural gas","Iron ore","Renewable: water, air, sunlight, wind."],
+["Which of these is a non-renewable resource?","Coal","Wind","Sunlight","Air","Fossil fuels (oil, coal, natural gas) and minerals are non-renewable."],
+["Non-renewable resources are those that","cannot be replenished once depleted","are always available","grow back quickly","fall from the sky","They are available in nature but limited."],
+["Renewable resources are those that","are always available or can be replaced in a reasonable time","are used only once","are found only underground","cannot be used for energy","Examples: water, air, sunlight and wind."],
+["The three R's of conservation are","reduce, reuse and recycle","read, write and recite","repair, remove and rebuild","rest, relax and recover","Use them to conserve natural resources."],
+["Soil is used mainly for","agriculture","jewellery","making wires","making steel","Soil: agriculture."],
+["Iron ore is used to make","steel products","jewellery","clothing","paper","Iron ore → steel."],
+["Copper is used to make","wires, coins and electrical products","clothing","paper","timber","Copper conducts electricity well."],
+["Gold, platinum and diamonds are used for","jewellery","wires","clothing","fuel","Precious resources used in jewellery."],
+["Cotton is used for","clothing","fuel","steel","paper only","Cotton → clothing."],
+["Using plastics should be avoided because they are","non-biodegradable and increase pollution","too cheap","too light","too colourful","Plastics do not rot, so they stay in the environment."],
+["Composting fruit and vegetable scraps helps to","enrich the soil","increase pollution","waste water","produce plastic","Compost is a way of conserving natural resources."]
+]},
+{t:"Effects of human activities on the environment",qs:[
+["The environment is","everything that surrounds us, living and non-living, natural and artificial","only the forests","only the oceans","only the weather","It includes the interaction of all living things with natural resources and other components."],
+["Which of these is an effect of human activities on the environment?","Loss of biodiversity","Growth of the Sun","Movement of the planets","Rotation of the Earth","Others: pollution, erosion, climate change, misuse of natural resources."],
+["Pollution caused by human activities leads to","global warming and climate change","more rainfall everywhere","better soil","cleaner air","Pollution is caused by human activities."],
+["Environmental degradation is","a decline in the quality of the environment","an improvement in air quality","growth of forests","planting of trees","It can result from pollutants, over-extraction of resources and habitat destruction."],
+["Which of these is a type of environmental degradation?","Pollution of air, water and soil","Planting trees","Recycling","Composting","Others: destruction of habitats, depletion of resources, extinction of wildlife."],
+["Deforestation is","the clearing of forests to make way for human activities","planting trees where there were none","planting trees where they were cut","protecting forest reserves","It is a major threat to species' survival."],
+["Which of these is NOT a cause of deforestation?","Reforestation","Farming","Mining and drilling","Urbanization","Causes: farming, livestock grazing, mining and drilling, forestry, wildfires, urbanization."],
+["Which of these is an effect of deforestation?","Loss of biodiversity","More wildlife habitats","Cooler climate everywhere","More fertile soil","Effects: habitat damage, biodiversity loss, aridity, extinction, climate change, desertification, displacement of people."],
+["Reforestation is","planting new trees where trees have been cut down","planting trees where there were none","cutting down trees","burning bush","Re- means again."],
+["Afforestation is","planting trees where there were none","planting trees where trees were cut","clearing forests","protecting wild animals","Compare: reforestation = replant, afforestation = plant in a new place."],
+["Which of these helps to minimise deforestation?","Establishing forest reserves","Bush burning","Old farming practices","Cutting trees for sale without replanting","Bush burning and old farming practices should be discouraged."],
+["Environmental degradation affects women's livelihoods by","forcing longer journeys to get primary necessities","providing free fuel","shortening distances to water","increasing rainfall","The module also notes greater exposure to risks of trafficking and sexual violence."],
+["Overpopulation contributes to environmental problems. World population is now more than","seven billion","one billion","two billion","three billion","Population growth increases the need for food, which increases farming pressure."]
+]}
+]}
+];
+
+/* Build question objects */
+var Q = [], mockSet = [], view = "1", mode = "quiz", ans = {};
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+var uid = 0;
+UNITS.forEach(function(u){
+  u.sessions.forEach(function(s){
+    s.items = s.qs.map(function(e){
+      var q = {id:uid++, unit:u, stem:e[0], correct:e[1], exp:e[5], opts:shuffle([e[1],e[2],e[3],e[4]])};
+      Q.push(q); return q;
+    });
+  });
+});
+document.getElementById("total").textContent = Q.length;
+function newMock(){ mockSet = shuffle(Q).slice(0,40); mockSet.forEach(function(q){delete ans[q.id];}); }
+newMock();
+
+var $main = document.getElementById("main");
+var L = ["A","B","C","D"];
+
+function qHtml(q, num, showChip){
+  var chosen = ans[q.id], study = mode==="study", revealed = study || chosen!==undefined;
+  var h = '<article class="q" id="q'+q.id+'" data-id="'+q.id+'" style="--accent:'+q.unit.color+'">';
+  if(showChip) h += '<div class="chip" style="margin-left:2.1rem">'+q.unit.name+'</div>';
+  h += '<p class="stem"><span class="n">'+num+'.</span><span>'+q.stem+'</span></p><div class="opts">';
+  q.opts.forEach(function(o,i){
+    var cls = "opt", mark = "";
+    if(revealed){
+      if(o===q.correct){cls+=" ok";mark="✓";}
+      else if(chosen===i){cls+=" bad";mark="✗";}
+      else cls+=" dim";
+    }
+    h += '<button class="'+cls+'" data-i="'+i+'"'+(revealed?' disabled':'')+'><span class="l">'+L[i]+'</span><span>'+o+'</span><span class="m" aria-hidden="true">'+mark+'</span></button>';
+  });
+  h += '</div>';
+  if(revealed){
+    h += '<div class="fb" aria-live="polite">';
+    if(chosen!==undefined){
+      var right = q.opts[chosen]===q.correct;
+      h += right ? '<span class="v ok">✓ Correct.</span>' : '<span class="v bad">✗ Not quite.</span> <span class="ans">The answer is <b>'+q.correct+'</b>.</span>';
+    } else {
+      h += '<span class="v ok">Answer: '+q.correct+'</span>';
+    }
+    h += '<p>'+q.exp+'</p></div>';
+  }
+  return h+'</article>';
+}
+
+function currentQs(){
+  if(view==="mock") return mockSet;
+  var u = UNITS[parseInt(view,10)-1], out=[];
+  u.sessions.forEach(function(s){out=out.concat(s.items);});
+  return out;
+}
+
+function render(){
+  var accent = view==="mock" ? "var(--ink)" : UNITS[parseInt(view,10)-1].color;
+  document.documentElement.style.setProperty("--accent", accent);
+  // tabs
+  var th = "";
+  UNITS.forEach(function(u){th += '<button role="tab" data-v="'+u.id+'" aria-selected="'+(view==String(u.id))+'" style="--accent:'+u.color+'">'+u.name+'</button>';});
+  th += '<button role="tab" data-v="mock" aria-selected="'+(view==="mock")+'" style="--accent:var(--ink)">Mock test</button>';
+  document.getElementById("tabs").innerHTML = th;
+  var h = "";
+  if(view==="mock"){
+    h += '<p class="intro">40 random questions from all three units, like a real objective paper. Tap an answer to see if you are right.</p><div class="mockbar"><button id="newMock">New random set</button></div>';
+    mockSet.forEach(function(q,i){h += qHtml(q,i+1,true);});
+  } else {
+    var u = UNITS[parseInt(view,10)-1], n = 0;
+    u.sessions.forEach(function(s){
+      h += '<h2>'+s.t+'<small>'+s.items.length+' questions</small></h2>';
+      s.items.forEach(function(q){ n++; h += qHtml(q,n,false); });
+    });
+  }
+  h += '<div class="done" id="done" hidden></div>';
+  $main.innerHTML = h;
+  updateScore();
+}
+
+function updateScore(){
+  var qs = currentQs(), answered=0, right=0;
+  qs.forEach(function(q){
+    var c = ans[q.id];
+    if(c!==undefined){answered++; if(q.opts[c]===q.correct) right++;}
+  });
+  var txt = mode==="study" ? 'Study mode: answers are shown. '+qs.length+' questions' : '<b>'+right+'</b> correct of <b>'+answered+'</b> answered · '+qs.length+' total';
+  document.getElementById("scoreTxt").innerHTML = txt;
+  document.getElementById("progFill").style.width = (qs.length? (answered/qs.length*100):0)+"%";
+  var d = document.getElementById("done");
+  if(d){
+    if(mode==="quiz" && answered===qs.length && qs.length){
+      var pct = Math.round(right/qs.length*100);
+      d.hidden=false;
+      d.innerHTML = '<b>You scored '+right+' / '+qs.length+' ('+pct+'%)</b><p style="margin:6px 0 0">'+(pct>=80?'Strong. Try the mock test next.':pct>=50?'Good start. Reset and go through the ones you missed with Study mode on.':'Read the explanations, then reset and try again. Repeating is how it sticks.')+'</p>';
+    } else d.hidden=true;
+  }
+}
+
+document.addEventListener("click", function(e){
+  var t = e.target.closest("button"); if(!t) return;
+  if(t.hasAttribute("data-v")){ view=t.getAttribute("data-v"); render(); window.scrollTo(0,0); return; }
+  if(t.id==="newMock"){ newMock(); render(); window.scrollTo(0,0); return; }
+  if(t.id==="reset"){ currentQs().forEach(function(q){delete ans[q.id];}); render(); window.scrollTo(0,0); return; }
+  if(t.id==="mQuiz"||t.id==="mStudy"){
+    mode = t.id==="mQuiz" ? "quiz":"study";
+    document.getElementById("mQuiz").setAttribute("aria-pressed", mode==="quiz");
+    document.getElementById("mStudy").setAttribute("aria-pressed", mode==="study");
+    var y = window.scrollY; render(); window.scrollTo(0,y); return;
+  }
+  if(t.classList.contains("opt") && !t.disabled){
+    var art = t.closest(".q"), id = parseInt(art.getAttribute("data-id"),10);
+    var q = Q[id];
+    ans[id] = parseInt(t.getAttribute("data-i"),10);
+    var num = art.querySelector(".n").textContent.replace(".","");
+    var chip = !!art.querySelector(".chip");
+    var tmp = document.createElement("div"); tmp.innerHTML = qHtml(q, num, chip);
+    art.replaceWith(tmp.firstChild);
+    updateScore();
+  }
+});
+render();
+</script>
+</body>
+</html>
