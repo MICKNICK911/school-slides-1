@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>JCT 129 Practice Quiz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#F2F5F8; --surface:#FFFFFF; --ink:#14202B; --muted:#556574; --line:#D5DEE6;
+  --good:#0B7A4B; --good-bg:#E1F4EA; --bad:#B3261E; --bad-bg:#FBE6E4;
+  --flag-bg:#FFF1CC; --flag-ink:#5E4300; --on-accent:#FFFFFF;
+  --c-u1:#0A8576; --c-u2:#2B62D1; --c-u3:#BE3459; --c-mock:#6A47C4;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E141A; --surface:#17202A; --ink:#E8EEF3; --muted:#9AAAB8; --line:#2B3744;
+    --good:#5FD39A; --good-bg:#123226; --bad:#FF8F86; --bad-bg:#3A1B1B;
+    --flag-bg:#3A2F10; --flag-ink:#F4D58A; --on-accent:#0E141A;
+    --c-u1:#3ECDB8; --c-u2:#86A8FF; --c-u3:#FF86A4; --c-mock:#B9A3FF;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E141A; --surface:#17202A; --ink:#E8EEF3; --muted:#9AAAB8; --line:#2B3744;
+  --good:#5FD39A; --good-bg:#123226; --bad:#FF8F86; --bad-bg:#3A1B1B;
+  --flag-bg:#3A2F10; --flag-ink:#F4D58A; --on-accent:#0E141A;
+  --c-u1:#3ECDB8; --c-u2:#86A8FF; --c-u3:#FF86A4; --c-mock:#B9A3FF;
+}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 110px);-webkit-text-size-adjust:100%}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;font-size:16px;line-height:1.5}
+button{font:inherit;color:inherit}
+button:focus-visible,a:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+#app{--accent:var(--c-u1);max-width:720px;margin:0 auto;padding:0 12px 48px}
+#app[data-tab="u2"]{--accent:var(--c-u2)}
+#app[data-tab="u3"]{--accent:var(--c-u3)}
+#app[data-tab="mock"]{--accent:var(--c-mock)}
+
+.masthead{padding:16px 4px 10px}
+.masthead h1{margin:0;font-size:24px;line-height:1.2;letter-spacing:-0.01em}
+.masthead p{margin:2px 0 0;color:var(--muted);font-size:15px}
+
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding:6px 0 0;border-bottom:1px solid var(--line)}
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.tab{appearance:none;border:1.5px solid var(--line);background:var(--surface);border-radius:9px;padding:7px 4px 6px;cursor:pointer;text-align:center;line-height:1.2;min-height:52px}
+.tab b{display:block;font-size:15px}
+.tab span{display:block;font-size:12px;color:var(--muted)}
+.tab[aria-selected="true"]{background:var(--tabc);border-color:var(--tabc);color:var(--on-accent)}
+.tab[aria-selected="true"] span{color:var(--on-accent);opacity:.85}
+.tab:not([aria-selected="true"]){border-bottom:4px solid var(--tabc)}
+.score{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:8px 2px 4px;font-size:14px;flex-wrap:wrap}
+.score b{font-size:17px}
+.score a{color:var(--accent);font-weight:700}
+.bar{height:6px;border-radius:3px;background:var(--line);overflow:hidden;margin-bottom:0}
+.bar i{display:block;height:100%;background:var(--accent);width:0;transition:width .25s ease}
+
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin:14px 0 6px}
+.seg{display:inline-flex;border:1.5px solid var(--line);border-radius:9px;overflow:hidden;background:var(--surface)}
+.seg button{appearance:none;border:0;background:transparent;padding:9px 14px;cursor:pointer;min-height:44px;font-weight:700;font-size:14px}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent)}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+.btn{appearance:none;border:1.5px solid var(--accent);background:transparent;color:var(--accent);border-radius:9px;padding:9px 14px;min-height:44px;font-weight:700;font-size:14px;cursor:pointer}
+.btn.solid{background:var(--accent);color:var(--on-accent)}
+
+.unit-title{margin:18px 2px 0;font-size:20px;line-height:1.25}
+.sess{margin:26px 2px 10px;padding-bottom:6px;border-bottom:2px solid var(--accent);font-size:17px;line-height:1.3;color:var(--accent)}
+.sess small{display:block;font-weight:400;color:var(--muted);font-size:13px}
+
+.card{background:var(--surface);border:1px solid var(--line);border-left:5px solid var(--accent);border-radius:10px;padding:14px 12px 12px;margin:0 0 14px}
+.qhead{display:flex;gap:10px;align-items:flex-start}
+.qn{flex:none;min-width:28px;height:28px;border-radius:14px;background:var(--accent);color:var(--on-accent);font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;margin-top:1px;padding:0 6px}
+.qtext{margin:0;font-size:17px;line-height:1.45;font-weight:700}
+.tag{margin:8px 0 0 38px;font-size:12.5px;color:var(--muted)}
+.opts{display:grid;gap:8px;margin-top:12px}
+.opt{appearance:none;display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:var(--bg);border:1.5px solid var(--line);border-radius:8px;padding:11px 12px;min-height:52px;cursor:pointer;line-height:1.35}
+.opt .ltr{flex:none;width:28px;height:28px;border:1.5px solid var(--line);border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;background:var(--surface)}
+.opt .otext{flex:1;font-size:16px;overflow-wrap:anywhere}
+.opt .mark{flex:none;width:22px;text-align:center;font-weight:700;font-size:20px}
+.opt[aria-disabled="true"]{cursor:default}
+.opt.right{background:var(--good-bg);border-color:var(--good)}
+.opt.right .mark{color:var(--good)}
+.opt.wrong{background:var(--bad-bg);border-color:var(--bad)}
+.opt.wrong .mark{color:var(--bad)}
+.opt.dim{opacity:.62}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.exp{margin-top:12px;padding:10px 12px;border-radius:8px;background:var(--bg);border:1px solid var(--line);font-size:15px}
+.exp strong{display:block;margin-bottom:2px}
+.exp.ok strong{color:var(--good)}
+.exp.no strong{color:var(--bad)}
+.flag{margin-top:8px;padding:10px 12px;border-radius:8px;background:var(--flag-bg);color:var(--flag-ink);font-size:14.5px}
+.flag strong{display:block}
+
+.summary{background:var(--surface);border:1px solid var(--line);border-top:5px solid var(--accent);border-radius:10px;padding:16px 14px;margin:26px 0 0}
+.summary h2{margin:0 0 4px;font-size:22px}
+.summary p{margin:6px 0}
+.summary ul{list-style:none;margin:10px 0 14px;padding:0}
+.summary li{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-top:1px solid var(--line);font-size:15px}
+.summary li span:last-child{font-weight:700;white-space:nowrap}
+.summary li.weak span:last-child{color:var(--bad)}
+
+@media (min-width:560px){
+  .tab b{font-size:16px}
+  .masthead h1{font-size:28px}
+}
+@media (prefers-reduced-motion: reduce){.bar i{transition:none}}
+</style>
+</head>
+<body>
+<div id="app" data-tab="u1">
+  <header class="masthead">
+    <h1>JCT 129 Practice Quiz</h1>
+    <p>Introduction to ICT, Units 1 to 3, objective questions from your module</p>
+  </header>
+  <div class="top">
+    <div class="tabs" id="tabs" role="tablist" aria-label="Units"></div>
+    <div id="score"></div>
+    <div class="bar" aria-hidden="true"><i id="barfill"></i></div>
+  </div>
+  <div id="controls" class="controls"></div>
+  <main id="content"></main>
+</div>
+
+<script>
+/* ---------- Question data (module wording only) ---------- */
+function Q(q,a,w,e,f){return {q:q,a:a,w:w,e:e,f:f||""};}
+
+var UNITS=[
+{id:"u1",tab:"Unit 1",title:"Unit 1: The Information Society",sessions:[
+{t:"The Advent of the Information Society",qs:[
+Q("According to the module, an information society is best described as...","a growing high-technology, materially affluent service society where information, rather than raw materials or energy, is the dominant technology",["a society organised around energy as the main source of mass production of goods","a society where power rests on the ownership of land and the cultivation of crops","a society where information is stored only in books and archives"],"That is the module's definition: information replaces raw materials and energy as the dominant technology."),
+Q("Which of these is NOT a characteristic of an information society?","Most members work in extraction activities such as farming, fishing and mining",["Members engage in knowledge-intensive, knowledge-generating and knowledge-based pursuits","A communication network freely circulates information so it can be acted upon effectively","Conflict is managed by reason, knowledge-based understanding and enlightened creative wisdom"],"Extraction activities belong to the pre-industrial agrarian society, not the information society."),
+Q("The module says an information society manages the conflict between conservative pressures and pressures for adaptive change by...","reason, knowledge-based understanding and enlightened creative wisdom",["force, strict laws and punishment","tradition and the authority of elders","economic production and competition"],"This is the third characteristic of an information society."),
+Q("For thousands of years, society's dependence on information was not apparent because...","the quantity of information was small enough to be remembered and passed on by word of mouth",["society did not need any information to survive","all information was already stored on computers","information was always printed in newspapers"],"The module says society has always depended on information, but small quantities were simply remembered and spoken."),
+Q("The earliest written records were mainly...","inventories, laws and histories",["novels, poems and plays","newspapers and magazines","databases and spreadsheets"],"They were the basic mnemonic tools to preserve society. Writing began when the quantity of information became too great for memory."),
+Q("In earlier times, information was usually seen as...","passive, ancillary to the activity it recorded",["a dynamic resource","the dominant technology of society","the main source of power and prestige"],"Seeing information as a dynamic resource, rather than a passive record, is what changed."),
+Q("In the pre-industrial agrarian society, the power base was...","ownership of land",["energy and machines","theoretical knowledge","control of data and platforms"],"Life centred on cultivating land for food, so land ownership gave power."),
+Q("Which main source did the industrial society use to produce goods and services on a mass scale?","Energy",["Information","Land","Theoretical knowledge"],"Industrial society was organised around energy. Information is the main resource only in the post-industrial (information) society."),
+Q("In industrial society, power and prestige passed from...","landowners to the industrial class",["the industrial class to landowners","chiefs to farmers","knowledge workers to factory owners"],"The workforce moved into manufacturing and distribution, and the industrial class replaced landowners as the power holders."),
+Q("Which is named as the chief agent of transformation into the post-industrial society?","Information Technology",["The steam engine","Land reform","Mass manufacturing"],"The speed of change it brings is amazingly fast, causing disorientation and stress."),
+Q("Which is an attribute of the post-industrial society?","A change from a commodity-producing economy to a service economy",["A workforce mainly engaged in extraction activities","Power based on ownership of land","A workforce mainly engaged in factory manufacturing"],"Other attributes: centrality of theoretical knowledge, and the pre-eminence of a managerial, professional and technocratic class."),
+Q("Data is defined in the module as...","an observed fact obtained from a systematic survey or study",["an organised set of statements presenting a reasoned judgement","the greatest value on the scale of human intellectual assets","the processed result of airline and railway reservations"],"Data are observed facts such as census figures, government statistics and experimental findings. Processing data gives information."),
+Q("On the ascending scale of values, which has the least value and which has the greatest?","Data has the least value, wisdom the greatest",["Wisdom has the least value, data the greatest","Information has the least value, knowledge the greatest","Knowledge has the least value, information the greatest"],"Data is the building block of information, and information is the building block of knowledge."),
+Q("Which is an example of knowledge rather than information?","Critical explanations and interpretation of facts",["News and statistics","Tax codes","Judicial decisions"],"Information: news, facts, statistics, reports, legislation, tax codes, judicial decisions. Knowledge adds interpretation, critical explanation and conceptual argument.")
+]},
+{t:"The Role of the Computer as the Transforming Agent in Information Society",qs:[
+Q("Which of these is a use of computers in the medical field, according to the module?","Monitoring blood pressure, body temperature and ECG and sounding a warning if something unusual happens",["Preparing weekly and monthly reports with a word processor","Detecting the direction of traffic to manage its flow","Arranging the order of dance and music"],"The module also lists patient records, scheduling staff, medicine inventory, research and diagnosis.","The module writes 'psychological variables' for blood pressure, body temperature and ECG. Those are physiological measures. Use the module's wording in the exam, but know the standard term."),
+Q("What does the module say Computer-Aided Demography (CAT) helps to culture and analyse?","Bacteria, viruses and other infectious agents",["Patient payments and insurance records","Traffic flow at road junctions","Long-term weather patterns"],"This is how the module describes CAT.","In standard usage CAT means computed (axial) tomography, a body-scanning technique. The module's name and description are non-standard. Answer with the module's version in the exam."),
+Q("Microprocessor-based voice systems in medicine mainly help...","people with disabilities",["lawyers retrieve case law","banks transfer funds","pilots navigate by satellite"],"The module adds that computers have helped the blind to see and the deaf to communicate."),
+Q("Which is NOT a role of computers in the legal field?","Controlling a production process",["Preparing documents with a word processor","Keeping records of payments and a diary of attorney information","Retrieving law journals, important cases and decisions"],"Controlling production is an industrial use. Lawyers use computers for documents, records and finding relevant data without wasting time."),
+Q("Which achievement does the module say was made possible by computers?","Neil Armstrong's landing on the moon",["The invention of the printing press","The first assembly line","The discovery of electricity"],"It is listed under government, along with long-term weather forecasting and simpler tax collection."),
+Q("In the military, the module says computers are used to...","store inventory, run war simulations on screen and follow enemy movements in border areas",["calculate salaries and print invoices","play music and draw cartoon films","teach children with disabilities"],"These are the military uses listed under the role of computers in government."),
+Q("Inventory control in business and industry means...","keeping the latest information on remaining raw materials and finished goods",["recording electronic transfers between bank accounts","scheduling doctors and nurses","retrieving law journals for lawyers"],"Related uses: calculating salary, identifying goods sold and still in stock, and controlling the production process."),
+Q("EFT in banking stands for...","Electronic Fund Transfer",["Electronic Finance Terminal","Effective Fund Tracking","Electric Funds Transaction"],"EFT is a safe, quick way to move money. It helps reduce fraud and helps eliminate cash transactions to create a cashless society."),
+Q("Which is a role of computers in entertainment?","Producing cartoon films and playing music",["Storing patient records","Collecting income tax","Managing inventory of raw materials"],"The module also says computers can arrange the order of dance and music and depict high-quality images."),
+Q("Learning at a distance rather than in a classroom is called...","distance learning",["collaborative learning","anytime learning","the multimedia approach"],"Anytime learning means studying whenever one wills, and collaborative learning means studying and teaching in groups."),
+Q("Studying and teaching in groups or clusters through IT is called...","collaborative learning",["distance learning","anytime learning","immediacy of information"],"Immediacy of information is about how fast knowledge is imparted."),
+Q("Which skill covers critical thinking, problem-solving, creativity, originality and strategizing?","Thinking skills",["Communication skills","Digital skills","Teamwork and flexibility"],"The module calls these some of the most important skills in a knowledge-based society."),
+Q("'Taking responsibility for working out what you need to know and where to find that knowledge' describes...","the ability to learn independently",["knowledge management","ethics and responsibility","teamwork and flexibility"],"Knowledge management is different: it is how to find, evaluate, analyse, apply and disseminate information in a context."),
+Q("What must IT educational policy ensure, according to the module?","Up-to-date qualifications and a high general level of education, so Ghana stays competitive",["That IT skills are taught only to specialists","That education stays unchanged from the industrial era","That all learning happens in classrooms"],"IT skills and IT understanding are central prerequisites for the individual, now and especially in the future.")
+]},
+{t:"PowerPoint Slides: Overview of the Information Society",qs:[
+Q("Which is NOT one of the five parts of a society in the slides?","Currency",["Territory","Institutions","Culture"],"The five parts are people, territory, interaction, culture and institutions."),
+Q("The slides define a 'Creator society' as...","all user-generated-content creators, marketers and influencers who share the same work and rules",["everyone living in Ghana","how people in Accra live and do business","all factory workers in Tema"],"A society can be huge (Ghanaian society), smaller (Accra society) or a group (creators). It just needs shared rules."),
+Q("Ghana moving from an Industrial to an Information Society is an example of...","structural change",["cultural change","technological change","seasonal change"],"Structural change means the whole system changes, so jobs, schools and businesses must adapt."),
+Q("Mobile Money making people stop carrying cash is an example of...","technological change",["structural change","cultural change","political change"],"Technological change is when new tech forces new behaviour. Cultural change covers beliefs and habits, such as remote work becoming normal."),
+Q("Which is a key feature of an information society, according to the slides?","Speed matters: information updates instantly",["Land is the main resource","Most jobs are in manufacturing","Knowledge workers have little power"],"The five features: information is the main resource, most jobs are services, tech is everywhere, knowledge workers are powerful, and speed matters."),
+Q("Which stage had the problem 'if the elder died, the info died'?","Oral society",["Print society","Broadcast society","Digital/network society"],"In oral society, information moved by speaking, storytelling, elders and songs, and travelled only as far as a person could walk."),
+Q("The big jump in the Print society came from the...","printing press (1440)",["steam engine","radio","smartphone"],"Information became stored and copied, so one book could reach many people. It was still slow and mostly for educated people."),
+Q("Which stage is described as 'instant and one-to-many', where you could watch but not talk back?","Broadcast society",["Oral society","Print society","Digital/network society"],"Radio, TV and telephone spread news across the country at once, but a few people controlled the stations."),
+Q("The main problem of the Digital/Network stage is...","too much information, so attention becomes scarce",["information travels only as far as a person can walk","only a few people control the stations","information takes weeks to print and deliver"],"In this stage information is instant, infinite and two-way, so anyone can create and share it."),
+Q("Daniel Bell published 'The Coming of Post-Industrial Society' in...","1973",["1950","1990","2010"],"Bell predicted a shift from making things to processing information."),
+Q("Which is NOT one of Bell's three axial principles?","Dominance of manufacturing and energy",["Centrality of theoretical knowledge","Shift to a service economy","Knowledge as the new strategic resource"],"In Bell's table, energy and manufacturing mark the industrial society. Post-industrial society runs on information and knowledge, and services."),
+Q("'The scores of five learners in a mathematics test were 45%, 50%, 38%, 62% and 55%' is an example of...","information",["data","knowledge","wisdom"],"The bare numbers 45, 50, 38, 62, 55 are data. Giving them context makes them information."),
+Q("In the DIKW pyramid, which level answers the question 'What should we do?'","Wisdom",["Data","Information","Knowledge"],"Data: what do we have? Information: what does the data tell us? Knowledge: what does it mean? Wisdom: what should we do?"),
+Q("In the school example where 30 of 100 learners scored below 50%, 'a significant group may have gaps in foundational skills' is...","knowledge",["data","information","wisdom"],"Data: 30 learners scored below 50%. Information: 30% did not reach the expected level. Knowledge: the understanding of the gaps. Wisdom: targeted remediation.")
+]}
+]},
+
+{id:"u2",tab:"Unit 2",title:"Unit 2: The Conceptual Computer",sessions:[
+{t:"Definition of Computer",qs:[
+Q("Which definition of a computer matches the module?","An electronic device, operating under the control of instructions stored in its memory, that accepts data, processes it, produces results and stores them for future use",["A mechanical machine that only performs arithmetic","A device used only to store data permanently","A machine that cannot be programmed"],"The module also calls it a programmable multi-use machine that turns raw data into useful information."),
+Q("Why is the computer called an 'electronic device' in the definition?","It uses electrical currents, which have two states: off and on",["It uses only batteries as a power supply","It must be connected to the Internet","It is made of electronic parts with no software"],"The absence or presence of an electrical pulse gives the 0s and 1s the computer uses to represent data."),
+Q("Data, in the module's definition, is...","raw facts and figures such as text, numbers, images, audio and video",["data converted into a meaningful form","the instructions stored in memory","the physical parts of the computer"],"Data that has been processed into a meaningful form is information."),
+Q("'Processing' data means...","changing the data into meaningful information based on the instructions given",["entering data into the computer","printing results on paper","storing results on a CD"],"Entering data is input, and displaying or printing results is output."),
+Q("Output is...","conveying, displaying or printing the results of processing",["entering or capturing data for processing","the instructions stored in memory","the raw facts fed into the computer"],"Output refers to the expected result or information."),
+Q("Which is the module's definition of information?","Data that has been refined into a meaningful and more useful form",["A stream of raw facts and figures","A collection of unprocessed items","A set of electrical pulses"],"Information is data that has been processed and organised so that people can understand and use it."),
+Q("The basic number system used by the computer is...","binary",["decimal","octal","alphabetic"],"'Bi' means two. The system uses just two digits, 0 and 1."),
+Q("A 'bit' is short for...","binary digit",["basic digital item","binary data input","base integer type"],"Each 0 or 1 is called a bit. A group of 8 bits is a byte."),
+Q("If one character takes 1 byte, how many bits are needed to store the word 'ICT'?","24",["3","8","16"],"A byte is 8 bits and ICT has 3 characters, so 3 x 8 = 24 bits. The usual trap is stopping at 8."),
+Q("In the module's example, the letter H is represented as...","01001000",["01001001","01000001","00110001"],"The module gives this as the translation of the electronic signal for H, stored in one byte of 8 bits."),
+Q("The module calls software 'the intellectual interface'. It calls hardware...","the physical parts of the computer",["the programs that run the computer","the data stored in memory","the instructions for the processor"],"Software is the intellectual interface; hardware is the physical part.")
+]},
+{t:"Software (Intellectual Interface)",qs:[
+Q("Software is divided into which two types?","System software and application software",["Input software and output software","Primary software and secondary software","Hardware software and firmware"],"System software handles technical details of computer operations. Application software is end-user software for specific tasks."),
+Q("Which is NOT a category of system software?","Spreadsheet",["Language translators","Device drivers","Utility programs"],"The categories are language translators, device drivers, utility programs and the operating system. A spreadsheet is productivity application software."),
+Q("Which language translator converts a whole source program into object code, as with COBOL and FORTRAN?","Compiler",["Interpreter","Assembler","Device driver"],"An interpreter works one statement at a time (e.g., BASIC), and an assembler handles assembly language."),
+Q("Which translator converts one statement at a time just before execution and saves no object code?","Interpreter",["Compiler","Assembler","Utility program"],"BASIC is the module's example of an interpreted language."),
+Q("A device driver...","allows a particular input or output device to communicate with the rest of the computer system",["reduces the size of files","loads the operating system into memory","converts source code to object code"],"Drivers help the computer control peripherals such as printers."),
+Q("Which utility program reduces the size of files?","File compression program",["Backup program","Uninstall program","Antivirus program"],"Backup makes copies, uninstall removes programs safely, and antivirus guards against viruses."),
+Q("Which is NOT a function of the operating system?","Writing application programs for the user",["Managing resources such as the keyboard, printer and memory","Providing a user interface","Running applications, including several at once (multitasking)"],"The three functions are managing resources, providing a user interface and running applications."),
+Q("During booting, which program checks the CPU, memory, disk drives and ports?","POST (Power-On Self-Test)",["The bootstrap program","The device driver","The antivirus utility"],"BIOS in ROM runs POST, then the bootstrap program loads the OS from the hard disk into memory and passes control to it."),
+Q("Windows CE and Palm OS are examples of which category of operating system?","Embedded operating systems",["Network operating systems","Standalone/desktop operating systems","Language translators"],"Embedded OSs run handheld computers and smaller devices. Network examples are Windows NT and Windows Server."),
+Q("In a GUI, WIMP stands for...","Windows, Icons, Menu, Pointer",["Windows, Input, Mouse, Program","Words, Images, Music, Pictures","Windows, Interface, Memory, Printer"],"A GUI combines text, graphics and icons arranged inside windows."),
+Q("Copyrighted software distributed at no cost for a trial period is called...","shareware",["freeware","public-domain software","custom software"],"Freeware is copyrighted but free. Public-domain software is donated with no copyright restrictions."),
+Q("Which graphic format was created for web page images as a public-domain alternative to .gif?","PNG",["BMP","TIFF","JPEG"],"BMP is native to Windows, TIFF is for high-resolution printed files, and JPEG is for websites and high-resolution images."),
+Q("Which open-source audio format is faster than MP3?","OggVorbis",["WMA","WAV","MIDI"],"WAV is the default Windows sound format, WMA is Microsoft's proprietary compression format, and MIDI creates electronic instrument sounds."),
+Q("Drill and practice educational software aims to...","perfect skills through constant practising",["help students use strategy to solve a task","give a tutorial that creates a new concept","build dynamic visual presentations"],"Problem solving, tutorials and demonstration/presentation software are the other types listed.")
+]},
+{t:"Hardware (Physical Part)",qs:[
+Q("Which is NOT one of the hardware groups in the module?","Software",["Input hardware","Output hardware","Storage hardware"],"The groups are input, output, system unit (processing) and storage."),
+Q("Which is the most popular keyboard key arrangement?","QWERTY",["DVORAK","Ergonomic","Alphanumeric"],"It is named after the first letters of the top row. DVORAK is not popular because the letters are configured differently."),
+Q("An ergonomic keyboard is designed to...","reduce the chance of wrist and hand injuries (repetitive strain injuries)",["increase typing speed by rearranging letters","enter numbers like a calculator","issue commands such as F1 and F2"],"Function keys issue commands; numeric keys are grouped like a calculator."),
+Q("CTRL, ALT, ESC and Print Screen belong to which group of keys?","Special purpose/modifier keys",["Function keys","Numeric keys","Cursor movement keys"],"Cursor movement keys are the arrow keys, and function keys are F1, F2, F3 and so on."),
+Q("Which pointing device is pressure-sensitive and shaped like a pencil eraser?","Pointing stick",["Trackball","Joystick","Touchpad"],"A trackball has a ball on top or side, a joystick has a vertical handle, and a touchpad is a small flat rectangle."),
+Q("Software that converts spoken words into text is called...","voice (speech) recognition",["optical character recognition","biometric verification","video input"],"Voice input means speaking into a microphone. Audio input requires a sound card."),
+Q("Which scanner is used by the publishing industry to capture extremely detailed images?","Drum scanner",["Flatbed scanner","Sheet-fed scanner","Handheld scanner"],"A flatbed works like a photocopier, a sheet-fed is smaller, and a handheld is dragged across a document."),
+Q("Which device reads hand-drawn marks, such as test answer sheets?","OMR (Optical Mark Recognition)",["OCR (Optical Character Recognition)","MICR (Magnetic Ink Character Recognition)","Bar code reader"],"OCR reads typewritten, computer-printed or hand-printed characters."),
+Q("Which technology reads text printed with magnetised ink for cheque processing in banks?","MICR",["OMR","OCR","RFID"],"RFID uses radio signals to communicate with a tag placed on an object, animal or person."),
+Q("Which is NOT a biometric device?","Magnetic stripe card reader",["Fingerprint reader","Iris recognition system","Voice verification system"],"Biometrics authenticates a person by a personal characteristic. A magstripe reader only reads the stripe on a card."),
+Q("Which of these is softcopy output?","Text displayed on a monitor",["A receipt from a thermal printer","A blueprint from a plotter","A page from a laser printer"],"Softcopy exists only electronically (screen or audio). Printed output is hardcopy."),
+Q("Which monitor feature is the distance in millimetres between pixels, where lower means clearer?","Dot pitch",["Resolution","Refresh rate","Contrast ratio"],"Resolution is the number of pixels, refresh rate is how often pixels are recharged per second, and contrast ratio is the light difference between white and black."),
+Q("Which printer strikes an inked ribbon and is ideal for multipart forms?","Dot-matrix printer",["Laser printer","Ink-jet printer","Thermal printer"],"Impact printers are noisy. Laser, ink-jet and thermal printers are non-impact printers."),
+Q("Primary storage, where data and programs are held temporarily before the CPU processes them, is mainly...","RAM",["a hard disk","a CD-ROM","a pen drive"],"Secondary storage (hard disk, CD-ROM, pen drive) holds data permanently.")
+]},
+{t:"Communication and Networks I",qs:[
+Q("Data communication is...","the process of sending data from one point to another through a communication channel",["converting digital signals to analogue","storing data on a network server","the amount of data a channel can carry"],"The last option describes bandwidth."),
+Q("Which application is a real-time meeting between two or more geographically separated people?","Video conferencing",["Instant messaging","Newsgroups","Voice mail"],"Instant messaging is real-time one-on-one. Newsgroups are written discussions about a subject, and voice mail works like an answering machine."),
+Q("Which communication system element is the set of rules that coordinates sending and receiving devices?","Network standard (protocol)",["Communication channel","Connecting device","Sending device"],"The other elements: sending/receiving devices, the channel (cable or wireless) and connecting devices such as a modem."),
+Q("Bandwidth is...","the amount of data, instructions and information that can travel over a communications channel",["the speed of the sending computer","the number of computers on a network","a wireless transmission standard"],"Transmission media are the materials or substances capable of carrying signals."),
+Q("Which wired channel has over 26,000 times the transmission capacity of twisted pair?","Fibre-optic cable",["Coaxial cable","Microwave","Infrared"],"Coaxial cable has over 80 times. Fibre-optic cable uses light through thin strands of glass or plastic."),
+Q("Twisted-pair cable consists of...","two separate insulated copper wires twisted together",["strands of glass using light","a space station amplifying microwaves","a ball on top of a stationary device"],"It is the standard transmission medium for voice and data."),
+Q("Which cellular generation was digital at 9.6 to 19.2 Kbps?","2G",["1G","3G","4G"],"1G was analogue, 3G was 144 Kbps to 2.4 Mbps, and 4G was up to 15 Mbps."),
+Q("Infrared communication is...","short-distance and needs line of sight",["used for long-distance relay by stations","carried by towers across a city","carried through glass strands"],"Microwaves, not infrared, are relayed by stations over longer distances."),
+Q("A modem 'modulates' by...","converting digital signals to analogue",["converting analogue signals to digital","amplifying a weak signal","sending data to every connected node"],"Demodulation converts analogue to digital. Modem is short for modulator-demodulator."),
+Q("Which device ensures each client attached to it sees only the data meant for it?","Switch",["Hub","Modem","Repeater"],"A hub rebroadcasts data signals across all the nodes connected to it."),
+Q("Which mode carries information in both directions at the same time?","Full-duplex",["Simplex","Half-duplex","Serial"],"Simplex is one direction only (radio, TV). Half-duplex is two-way but one direction at a time."),
+Q("Which describes serial data transmission in the module?","Data is sent intermittently, one character at a time (asynchronous)",["Information is sent in blocks of bits at equal time intervals","Data flows in both directions at once","Data flows only from sender to receiver"],"The block-by-block description belongs to parallel transmission, which is limited to short distances.","The module pairs serial with asynchronous and parallel with synchronous. In standard textbooks these are separate ideas: serial/parallel is about how bits travel, and synchronous/asynchronous is about timing. Use the module's pairing in the exam.")
+]},
+{t:"Communications Standards and Network",qs:[
+Q("Which standard divides messages into packets, addresses each packet and sequences them?","TCP/IP",["SMTP","FTP","Ethernet"],"It also checks for errors and regulates the flow of messages. All hosts on the Internet follow it."),
+Q("SMTP is the protocol used on the Internet to...","route e-mail from one computer to another",["download files from remote computers","log on to another computer","pass a token between computers"],"FTP uploads and downloads files, and Telnet lets a user log on to another computer."),
+Q("Which network standard says no central device controls when data can be transmitted, and is the most popular for LANs?","Ethernet",["Token ring","Bluetooth","IrDA"],"Each node transmits when it determines the network is available."),
+Q("In a token ring network, only one computer transmits at a time because...","only one token exists and it is passed in one direction in a preset order",["a central server decides when each node transmits","each node transmits whenever the network is free","packets are sent through satellites"],"The second-to-last option describes Ethernet."),
+Q("Wi-Fi is the name for any network based on which standards?","IEEE 802.11",["TCP/IP","Token ring","IrDA"],"It is sometimes called wireless Ethernet."),
+Q("Bluetooth devices usually must be within about...","10 metres (about 33 feet)",["100 metres","1 kilometre","50 metres"],"Bluetooth transfers up to 3 Mbps using short-range radio waves."),
+Q("Which short-range standard can pass through doors and is best for large video, graphics and audio files?","UWB (Ultra-Wide Band)",["Bluetooth","IrDA","Telnet"],"UWB gives 110 Mbps at 10 metres and at least 480 Mbps at 2 metres."),
+Q("Which device connects networks that use different communications protocols?","Gateway",["Bridge","Repeater","Hub"],"A bridge connects networks using the same protocols. A repeater amplifies or regenerates a signal. A router forwards messages by the most efficient route."),
+Q("Which network covers a city or suburb, and many cellphone systems are examples?","MAN",["LAN","PAN","WAN"],"A PAN is around an individual's devices, a LAN is a limited area such as a lab, and a WAN covers a country or the world."),
+Q("An extranet is...","a private intranet that also connects selected suppliers and other strategic parties",["a network among an individual's own devices","a network covering a country or the world","an organisation's internal-only network"],"An intranet is the organisation's internal private network using Internet standards."),
+Q("Which is a disadvantage of a peer-to-peer network?","Security is not as good as in client/server",["It needs a special operating system","It is more expensive to implement","It makes it easier to back up data"],"Peer-to-peer is cheaper, easier to maintain and needs no special OS, but it is harder to back up and performance may suffer."),
+Q("Which is a disadvantage of networking, according to the module?","Lack of privacy, because administrators can access your files and monitor your activities",["Reduced hardware costs","Application sharing","Centralised data management"],"Other disadvantages: loss of autonomy, security threats and loss of productivity when networks fail.")
+]},
+{t:"Concept of Internet and Uses",qs:[
+Q("The Internet is described in the module as...","the universal network that lets computers talk to each other anywhere in the world in words, text, graphics and sound",["a service made of a worldwide collection of electronic documents","software that converts HTML into graphical pages","a private network inside one organisation"],"The second option describes the World Wide Web, which is a service of the Internet."),
+Q("According to the module, the Internet began as...","a United States Defence Department project",["a United Nations education project","a university library project","a telephone company service"],"The module links it to protecting Americans during the Cuban Missile Crisis.","Most textbooks trace the Internet to ARPANET, a US Defense project of the Cold War era, and do not name the Cuban Missile Crisis. Use the module's wording in the exam."),
+Q("An ISP is...","a regional or national access provider",["an access provider with member-only features such as instant messaging","software that displays web pages","a protocol for sending e-mail"],"The second option describes an OSP (Online Service Provider)."),
+Q("Which Internet connection is the slowest?","Dial-up",["DSL","Cable modem","Satellite"],"Dial-up uses a modem over a standard telephone line. Broadband is always on."),
+Q("A DSL connection is different from dial-up in that...","incoming data is significantly faster than outgoing data",["it uses a dial-up modem","it needs no phone line","it runs only through a cable television system"],"DSL uses regular phone lines with a DSL modem: 1.5 to 10 Mbps incoming versus 128 Kbps to 1.5 Mbps outgoing."),
+Q("Web pages are written in...","HTML",["SMTP","URL","TCP/IP"],"Computers that store HTML files are called Web servers."),
+Q("The software that converts incoming HTML information to graphical pages is the...","web browser",["web server","search engine","modem"],"A web server is the computer that delivers requested web pages to your computer."),
+Q("In http://www.statecapitol.gov, the part 'http://' specifies...","the protocol to be used",["the name of the server","the path to a resource","the owner of the site"],"A URL gives the protocol, the server name and the path to the resource."),
+Q("A Web site is...","a collection of interlinked web pages created and maintained by organisations, institutions, businesses and individuals",["a computer that delivers requested pages","software that reads HTML","an address for a resource on the Internet"],"The last option is a URL."),
+Q("In e-mail, 'Bcc' stands for...","Blind Carbon Copies",["Basic Carbon Copy","Bulk Content Copy","Backup Carbon Copies"],"Cc copies your message to someone else. With Bcc the message is copied but the receiving person is not aware."),
+Q("Which of these is a search engine?","Google",["Gmail","Firefox","Chrome"],"Gmail is a free e-mail service. Firefox and Chrome are web browsers.")
+]}
+]},
+
+{id:"u3",tab:"Unit 3",title:"Unit 3: Computer Security",sessions:[
+{t:"Concept of Computer Security and Safeguard",qs:[
+Q("Which group forms the largest proportion of computer criminals?","Employees",["Hackers","Crackers","Outside users"],"Employees have the easiest access to computers and may steal hardware, software, electronic funds and proprietary information."),
+Q("Which computer criminals gain unauthorised access for fun and the challenge of it?","Hackers",["Crackers","Employees","Organised groups"],"Crackers enter systems to steal technical information or introduce destructive programs ('bombs')."),
+Q("Which virus infects executable (.exe) files?","Parasitic (file) virus",["Bootstrap-sector virus","Macro virus","Script virus"],"Bootstrap-sector viruses live in the boot sector, macro viruses infect programs with macro languages such as Word and Excel, and multi-partite viruses combine parasitic and bootstrap abilities."),
+Q("The 'ILOVEYOU' virus is an example of a...","script virus",["macro virus","bootstrap-sector virus","multi-partite virus"],"Script viruses are written in script languages such as VBScript or JavaScript."),
+Q("Which malware does NOT attach itself to any program and fills the system with self-replicating information, clogging it?","Worm",["Virus","Trojan horse","Parasitic virus"],"A Trojan horse comes in disguised as something else, such as a free screen saver."),
+Q("Which is NOT a recommended way to protect your computer from viruses?","Opening attachments from unknown senders to see what they contain",["Using a virus protection program","Creating regular backups of software and data files","Obtaining software from legitimate sources"],"The module advises you not to open suspicious e-mails or e-mails from unknown senders."),
+Q("Which Anti-Virus Toolkit module 'fingerprints' files and detects changes in program files and boot/partition sectors?","Viverify",["Find Virus","Virusguard","Memory Check"],"Find Virus scans for byte patterns, Virusguard is a memory-resident scanner, and Memory Check scans memory for resident viruses."),
+Q("Which safeguard is a security buffer between the network computers and the network, filtering, examining and reporting on all information?","Firewall",["Data encryption","Intrusion detection system","Checksumming"],"An intrusion detection system detects unusual and suspicious activities."),
+Q("Data encryption is...","converting data into something incomprehensible using a key, so only the holder of the matching key can reconvert it",["summing file contents before and after use","software that detects suspicious activity","a copy of files kept off-site"],"The second option describes checksumming and the third a backup."),
+Q("Checksumming shows that a file has been altered when...","the sums of its coded word contents before and after use are different",["the file is larger than before","the sum of the file equals zero","the file has been compressed"],"It is listed under application safeguards."),
+Q("Software piracy is...","the unauthorised duplication, distribution or use of computer software",["destroying computer hardware in a fire","stealing credit card numbers from a database","creating a new software licence"],"It is copyright infringement, with civil and criminal penalties. A software licence sets the conditions for use."),
+Q("To qualify for copyright, a work must be...","both fixed and original",["only fixed","only original","registered and sold"],"Fixed means recorded in a permanent format; original means not copied from existing material."),
+Q("'Sakawa' is the module's example of an...","Internet scam",["antivirus program","hardware theft","firewall"],"A scam is a fraudulent act designed to trick people into spending money for little or no return."),
+Q("Which main area of computer security means ensuring information is available only to the intended audience?","Confidentiality",["Integrity","Availability","Firmware"],"Integrity protects information from being modified by unauthorised parties.","The module repeats the integrity definition under availability, which looks like a typing error. In standard practice, availability means information and systems are accessible when needed. Know the module's text, but give the standard meaning if asked.")
+]},
+{t:"System Failures and Backup Procedures",qs:[
+Q("A power surge occurs when incoming electrical power rises significantly above the normal...","120 volts",["12 volts","60 volts","1,200 volts"],"Under-voltage is when the power supply drops.","The module's 120 V matches the US standard. Mains power in Ghana is 230 V. Use the module's figure for the exam."),
+Q("What does a surge protector do?","Keeps an over-voltage from damaging computer equipment",["Restores backed-up files to their original location","Makes a copy of all files on the computer","Raises the supply when it drops"],"System failure can come from electrical power problems, hardware component failure or software error."),
+Q("Which backup copies only files changed since the last full or last incremental backup?","Incremental backup",["Full backup","Differential backup","Restore"],"Differential copies only files changed since the last full backup. Full copies all files."),
+Q("In the three-generation backup procedure, which is the oldest copy?","Grandparent",["Parent","Child","Sibling"],"Parent is the second oldest and child is the most recent."),
+Q("To 'restore' means...","copying the backed-up files to their original location on the computer",["making a duplicate of a file, program or disk","copying only files changed since the last backup","storing backups off-site"],"The second option describes a backup."),
+Q("Why should backups be done at night?","Files that are in use ('open' files) are not backed up if you back up during the day",["Electricity costs less at night","Computers run faster at night","Backups cannot run while a surge protector is on"],"The module also says backups should be stored off-site to prevent theft or fire damage."),
+Q("Which is NOT one of the seven areas of computer ethics in the module?","Hardware warranties",["Green computing","Information accuracy","Intellectual property rights"],"The seven: unauthorised use, software theft, information accuracy, intellectual property rights, codes of conduct, information privacy and green computing."),
+Q("Green computing means...","reducing electricity and environmental waste while using a computer",["copying software without a licence","restricting the collection of information about you","ensuring collected data is correct"],"The second option is about privacy and the third is about accuracy."),
+Q("Information privacy is...","the right of individuals and companies to deny or restrict the collection and use of information about them",["the responsibility of data collectors to ensure data is correct","using a computer for unapproved activities","a written guideline on ethical computer actions"],"The others: information accuracy, unauthorised use, and the IT code of conduct."),
+Q("Which action breaks the IT code of conduct?","Using someone else's intellectual property as your own",["Considering the social impact of programs you design","Not meddling in others' computer files","Using computers with consideration and respect for others"],"The code also says computers may not be used to harm people, steal or bear false witness."),
+Q("After switching a computer off to connect or disconnect equipment, you should wait at least how long before turning it back on?","15 seconds",["1 second","5 seconds","15 minutes"],"This is one of the module's tips for ensuring the long life of your computer."),
+Q("Information accuracy is...","the responsibility of those who collect data to ensure it is correct",["the right to restrict the use of information about you","the use of a computer for unapproved activities","reducing electricity and environmental waste"],"Information privacy is the right to restrict collection and use of information about you.")
+]}
+]}
+];
+
+/* ---------- Setup ---------- */
+var ALL=[];
+UNITS.forEach(function(u,ui){u.sessions.forEach(function(s,si){s.qs.forEach(function(q,qi){
+  q.id=u.id+"-"+si+"-"+qi;q.ui=ui;q.si=si;ALL.push(q);
+});});});
+
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+function prep(q){q.opts=shuffle([{t:q.a,c:true}].concat(q.w.map(function(t){return {t:t,c:false};})));}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+
+ALL.forEach(prep);
+
+var TABS=[{id:"u1",label:"Unit 1"},{id:"u2",label:"Unit 2"},{id:"u3",label:"Unit 3"},{id:"mock",label:"Mock test"}];
+var MOCK_SIZE=40;
+var tab="u1",mode="quiz";
+var answers={u1:{},u2:{},u3:{},mock:{}};
+var mockSet=[];
+function newMock(){
+  mockSet=shuffle(ALL).slice(0,MOCK_SIZE).map(function(q){var c={};for(var k in q){c[k]=q[k];}prep(c);return c;});
+  answers.mock={};
+}
+newMock();
+
+var app=document.getElementById("app");
+var tabsEl=document.getElementById("tabs");
+var scoreEl=document.getElementById("score");
+var barEl=document.getElementById("barfill");
+var controlsEl=document.getElementById("controls");
+var contentEl=document.getElementById("content");
+
+function unitOf(id){for(var i=0;i<UNITS.length;i++){if(UNITS[i].id===id)return UNITS[i];}return null;}
+function scopeQs(){
+  if(tab==="mock")return mockSet;
+  return unitOf(tab).sessions.reduce(function(acc,s){return acc.concat(s.qs);},[]);
+}
+function findQ(id){
+  if(tab==="mock"){for(var i=0;i<mockSet.length;i++){if(mockSet[i].id===id)return mockSet[i];}return null;}
+  for(var j=0;j<ALL.length;j++){if(ALL[j].id===id)return ALL[j];}return null;
+}
+function stats(){
+  var qs=scopeQs(),a=answers[tab],answered=0,correct=0;
+  qs.forEach(function(q){if(a[q.id]!==undefined){answered++;if(a[q.id]===q.a)correct++;}});
+  return {total:qs.length,answered:answered,correct:correct};
+}
+
+/* ---------- Rendering ---------- */
+function renderTabs(){
+  tabsEl.innerHTML=TABS.map(function(t){
+    var n=t.id==="mock"?MOCK_SIZE:unitOf(t.id).sessions.reduce(function(s,x){return s+x.qs.length;},0);
+    return '<button class="tab" role="tab" data-tab="'+t.id+'" style="--tabc:var(--c-'+t.id+')" aria-selected="'+(t.id===tab)+'"><b>'+t.label+'</b><span>'+n+' questions</span></button>';
+  }).join("");
+}
+
+function renderScore(){
+  var s=stats();
+  var pct=s.total?Math.round(100*s.answered/s.total):0;
+  if(mode==="study"){
+    scoreEl.innerHTML='<div class="score"><span><b>Study mode</b></span><span>'+s.total+' questions with answers shown</span></div>';
+    barEl.style.width="100%";
+    return;
+  }
+  var right=s.answered===s.total?'<a href="#summary" id="jump">All answered, see summary</a>':'<span>'+s.answered+' of '+s.total+' answered</span>';
+  scoreEl.innerHTML='<div class="score"><span><b>'+s.correct+'</b> correct</span>'+right+'</div>';
+  barEl.style.width=pct+"%";
+}
+
+function renderControls(){
+  var h='<div class="seg" role="group" aria-label="Mode">'+
+    '<button data-mode="quiz" aria-pressed="'+(mode==="quiz")+'">Quiz me</button>'+
+    '<button data-mode="study" aria-pressed="'+(mode==="study")+'">Study mode</button></div>';
+  h+='<div class="btns">';
+  if(tab==="mock")h+='<button class="btn solid" data-act="newset">New random set</button>';
+  h+='<button class="btn" data-act="reset">Reset</button></div>';
+  controlsEl.innerHTML=h;
+}
+
+function cardHTML(q,n){
+  var chosen=answers[tab][q.id];
+  var done=chosen!==undefined;
+  var study=mode==="study";
+  var h='<article class="card" id="c-'+q.id+'" data-id="'+q.id+'">';
+  h+='<div class="qhead"><span class="qn">'+n+'</span><p class="qtext">'+esc(q.q)+'</p></div>';
+  if(tab==="mock"){h+='<p class="tag">'+esc(UNITS[q.ui].tab)+': '+esc(UNITS[q.ui].sessions[q.si].t)+'</p>';}
+  h+='<div class="opts" role="group" aria-label="Options for question '+n+'">';
+  q.opts.forEach(function(o,i){
+    var cls="opt",mark="",sr="";
+    if(study){if(o.c){cls+=" right";mark="\u2713";sr="Correct answer. ";}}
+    else if(done){
+      if(o.c){cls+=" right";mark="\u2713";sr="Correct answer. ";}
+      else if(o.t===chosen){cls+=" wrong";mark="\u2717";sr="Your answer, incorrect. ";}
+      else cls+=" dim";
+    }
+    h+='<button class="'+cls+'" data-i="'+i+'"'+((study||done)?' aria-disabled="true"':'')+'>'+
+       '<span class="ltr" aria-hidden="true">'+"ABCD".charAt(i)+'</span>'+
+       '<span class="otext"><span class="sr">'+sr+'</span>'+esc(o.t)+'</span>'+
+       '<span class="mark" aria-hidden="true">'+mark+'</span></button>';
+  });
+  h+='</div>';
+  if(study||done){
+    var ok=done&&chosen===q.a;
+    var head=study?"Answer":(ok?"\u2713 Correct":"\u2717 Not quite");
+    h+='<div class="exp'+(study?'':(ok?' ok':' no'))+'"><strong>'+head+'</strong>'+esc(q.e)+'</div>';
+    if(q.f){h+='<div class="flag"><strong>Module vs standard practice</strong>'+esc(q.f)+'</div>';}
+  }
+  h+='</article>';
+  return h;
+}
+
+function summaryHTML(){
+  var s=stats();
+  var pct=Math.round(100*s.correct/s.total);
+  var msg=pct>=80?"Strong result. Re-read the explanations for the ones you missed.":
+          pct>=50?"Getting there. Review the groups below with the most misses, then try again.":
+          "More revision needed. Switch to Study mode, read each explanation, then retry.";
+  var rows=[];
+  var qs=scopeQs(),a=answers[tab];
+  if(tab==="mock"){
+    UNITS.forEach(function(u,ui){
+      var g=qs.filter(function(q){return q.ui===ui;});
+      if(!g.length)return;
+      var c=g.filter(function(q){return a[q.id]===q.a;}).length;
+      rows.push({n:u.tab,c:c,t:g.length});
+    });
+  }else{
+    unitOf(tab).sessions.forEach(function(se,si){
+      var g=qs.filter(function(q){return q.si===si;});
+      var c=g.filter(function(q){return a[q.id]===q.a;}).length;
+      rows.push({n:"Session "+(si+1)+": "+se.t,c:c,t:g.length});
+    });
+  }
+  var h='<section class="summary" id="summary" tabindex="-1"><h2>You scored '+s.correct+' of '+s.total+' ('+pct+'%)</h2><p>'+msg+'</p><ul>';
+  rows.forEach(function(r){
+    var weak=r.t&&(r.c/r.t)<0.6;
+    h+='<li'+(weak?' class="weak"':'')+'><span>'+esc(r.n)+'</span><span>'+r.c+'/'+r.t+'</span></li>';
+  });
+  h+='</ul><div class="btns"><button class="btn solid" data-act="'+(tab==="mock"?"newset":"reset")+'">'+(tab==="mock"?"New random set":"Try again")+'</button>';
+  if(tab==="mock")h+='<button class="btn" data-act="reset">Retry this set</button>';
+  h+='</div></section>';
+  return h;
+}
+
+function renderContent(){
+  var h="",n=0;
+  if(tab==="mock"){
+    h+='<h2 class="unit-title">Mock test: '+MOCK_SIZE+' random questions from Units 1 to 3</h2>';
+    mockSet.forEach(function(q){n++;h+=cardHTML(q,n);});
+  }else{
+    var u=unitOf(tab);
+    h+='<h2 class="unit-title">'+esc(u.title)+'</h2>';
+    u.sessions.forEach(function(s,si){
+      h+='<h3 class="sess">Session '+(si+1)+': '+esc(s.t)+'<small>'+s.qs.length+' questions</small></h3>';
+      s.qs.forEach(function(q){n++;h+=cardHTML(q,n);});
+    });
+  }
+  var st=stats();
+  if(mode==="quiz"&&st.answered===st.total&&st.total>0)h+=summaryHTML();
+  contentEl.innerHTML=h;
+}
+
+function renderAll(){
+  app.setAttribute("data-tab",tab);
+  renderTabs();renderScore();renderControls();renderContent();
+}
+
+/* ---------- Events ---------- */
+document.addEventListener("click",function(e){
+  var t=e.target.closest("button,a");
+  if(!t)return;
+
+  if(t.classList.contains("tab")){
+    tab=t.getAttribute("data-tab");renderAll();window.scrollTo(0,0);return;
+  }
+  if(t.hasAttribute("data-mode")){
+    mode=t.getAttribute("data-mode");renderAll();return;
+  }
+  var act=t.getAttribute("data-act");
+  if(act==="newset"){newMock();renderAll();window.scrollTo(0,0);return;}
+  if(act==="reset"){
+    answers[tab]={};
+    scopeQs().forEach(prep);
+    renderAll();window.scrollTo(0,0);return;
+  }
+  if(t.id==="jump"){
+    e.preventDefault();
+    var sm=document.getElementById("summary");
+    if(sm){sm.scrollIntoView({behavior:"smooth",block:"start"});sm.focus({preventScroll:true});}
+    return;
+  }
+  if(t.classList.contains("opt")){
+    if(mode==="study")return;
+    var card=t.closest(".card");if(!card)return;
+    var q=findQ(card.getAttribute("data-id"));if(!q)return;
+    if(answers[tab][q.id]!==undefined)return;
+    var o=q.opts[parseInt(t.getAttribute("data-i"),10)];
+    answers[tab][q.id]=o.t;
+    var all=scopeQs(),idx=all.indexOf(q)+1;
+    card.outerHTML=cardHTML(q,idx);
+    renderScore();
+    var st=stats();
+    if(st.answered===st.total){
+      var old=document.getElementById("summary");
+      if(!old)contentEl.insertAdjacentHTML("beforeend",summaryHTML());
+    }
+  }
+});
+
+renderAll();
+</script>
+</body>
+</html>
