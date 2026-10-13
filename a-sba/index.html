@@ -1543,8 +1543,19 @@ const App={
       this.createDefaultDataset(false);
       this._dirty=false;
     }
+    let inferredTerms=false;
+    for(const ds of this.datasets){
+      const datasetName=String(ds.name||'').trim();
+      if(!ds.term&&/^term\s*\d+$/i.test(datasetName)){
+        ds.term=datasetName;
+        (ds.tables||[]).forEach(t=>{ if(!t.term) t.term=ds.term; });
+        inferredTerms=true;
+      }
+    }
+    if(inferredTerms) this._dirty=true;
     await this.migrateToV4();
     this.validateAll();
+    if(inferredTerms) await this.saveState();
     this.renderAll();
     this.bindEvents();
     this.refreshStatus();
@@ -3015,6 +3026,7 @@ const App={
   },
   showTerminalReport(name){
     const ds=this.getCurrentDataset();
+    const term=ds.term||'';
     const c=document.getElementById('terminalReportContainer');
     let rows='';let grand=0,cnt=0;
     ds.tables.forEach(t=>{
@@ -3030,6 +3042,7 @@ const App={
       '<div style="text-align:center;margin-bottom:20px;">'+
         '<h2 style="color:var(--primary);">'+IC['file-text']+' Terminal Report</h2>'+
         '<h3 style="color:var(--primary-dark);">'+esc(name)+'</h3>'+
+        (term?'<p><b>Term:</b> '+esc(term)+'</p>':'')+
         '<p style="color:var(--muted);font-size:0.9rem;">Generated: '+new Date().toLocaleString()+'</p>'+
       '</div>'+
       '<table><thead><tr><th>SUBJECT</th><th>CAT TOTAL</th><th>EXAM</th><th>SUBJECT TOTAL</th><th>REMARKS</th></tr></thead>'+
@@ -3045,17 +3058,19 @@ const App={
     document.getElementById('terminalReportModal').style.display='flex';
     document.getElementById('reportPrintBtn').addEventListener('click',()=>{
       const comments=document.getElementById('reportComments').value;
-      this.printTerminalReport(name, comments, rows, grand, overall);
+      this.printTerminalReport(name, term, comments, rows, grand, overall);
     });
   },
-  printTerminalReport(name,comments,rows,grand,overall){
+  printTerminalReport(name,term,comments,rows,grand,overall){
     const w=window.open('','_blank');
-    w.document.write('<!DOCTYPE html><html><head><title>Terminal Report — '+esc(name)+'</title><style>body{font-family:Arial;padding:24px;max-width:800px;margin:0 auto}.header{text-align:center;border-bottom:3px solid #2563eb;padding-bottom:16px;margin-bottom:20px}table{width:100%;border-collapse:collapse;margin-top:16px}th,td{border:1px solid #ccc;padding:8px;text-align:center}th{background:#eff6ff;color:#1d4ed8}.remarks-excellent{color:#16a34a;font-weight:700}.remarks-very-good{color:#0d9488;font-weight:700}.remarks-good{color:#0891b2;font-weight:700}.remarks-pass{color:#ca8a04;font-weight:700}.remarks-fail{color:#dc2626;font-weight:700}.comments{margin-top:20px;padding:16px;background:#f8fafc;border-radius:8px}.sig{margin-top:40px;display:flex;justify-content:space-between}</style></head><body><div class="header"><h1>Terminal Report</h1><h2>'+esc(name)+'</h2><p>'+new Date().toLocaleString()+'</p></div><table><thead><tr><th>SUBJECT</th><th>CAT TOTAL</th><th>EXAM</th><th>SUBJECT TOTAL</th><th>REMARKS</th></tr></thead><tbody>'+rows+'<tr style="font-weight:bold;background:#f5f5f5"><td colspan="3">GRAND TOTAL</td><td>'+grand+'</td><td>'+overall.text+'</td></tr></tbody></table><div class="comments"><h3>Teacher Comments:</h3><p>'+esc(comments||'No comments.')+'</p></div><div class="sig"><div>School Stamp: _______________</div><div>Signature: _______________</div></div></body></html>');
+    w.document.write('<!DOCTYPE html><html><head><title>Terminal Report — '+esc(name)+'</title><style>body{font-family:Arial;padding:24px;max-width:800px;margin:0 auto}.header{text-align:center;border-bottom:3px solid #2563eb;padding-bottom:16px;margin-bottom:20px}table{width:100%;border-collapse:collapse;margin-top:16px}th,td{border:1px solid #ccc;padding:8px;text-align:center}th{background:#eff6ff;color:#1d4ed8}.remarks-excellent{color:#16a34a;font-weight:700}.remarks-very-good{color:#0d9488;font-weight:700}.remarks-good{color:#0891b2;font-weight:700}.remarks-pass{color:#ca8a04;font-weight:700}.remarks-fail{color:#dc2626;font-weight:700}.comments{margin-top:20px;padding:16px;background:#f8fafc;border-radius:8px}.sig{margin-top:40px;display:flex;justify-content:space-between}</style></head><body><div class="header"><h1>Terminal Report</h1><h2>'+esc(name)+'</h2>'+(term?'<p><b>Term:</b> '+esc(term)+'</p>':'')+'<p>'+new Date().toLocaleString()+'</p></div><table><thead><tr><th>SUBJECT</th><th>CAT TOTAL</th><th>EXAM</th><th>SUBJECT TOTAL</th><th>REMARKS</th></tr></thead><tbody>'+rows+'<tr style="font-weight:bold;background:#f5f5f5"><td colspan="3">GRAND TOTAL</td><td>'+grand+'</td><td>'+overall.text+'</td></tr></tbody></table><div class="comments"><h3>Teacher Comments:</h3><p>'+esc(comments||'No comments.')+'</p></div><div class="sig"><div>School Stamp: _______________</div><div>Signature: _______________</div></div></body></html>');
     w.document.close();
     w.onload=()=>w.print();
   },
   printTable(tid){
     const t=this.findTable(tid); if(!t) return;
+    const ds=this.getCurrentDataset();
+    const term=t.term||(ds&&ds.term)||'';
     const w=window.open('','_blank');
     let ch='';t.catColumns.forEach(c=>{ch+='<th>'+esc(c.name)+' ('+c.maxScore+')</th>'});
     let rows='';
@@ -3063,7 +3078,7 @@ const App={
       let cc='';t.catColumns.forEach(c=>{cc+='<td>'+(s.catMarks[c.id]||0)+'</td>'});
       rows+='<tr><td>'+esc(s.name)+'</td>'+cc+'<td>'+s.catTotal+'</td><td>'+s.exam+'</td><td>'+s.total+'</td><td>'+s.position+'</td></tr>';
     });
-    w.document.write('<!DOCTYPE html><html><head><title>'+esc(t.name)+'</title><style>body{font-family:Arial;padding:24px}table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border:1px solid #ccc;padding:8px;text-align:center}th{background:#eff6ff;color:#1d4ed8}.header{text-align:center;border-bottom:3px solid #2563eb;padding-bottom:12px}</style></head><body><div class="header"><h1>'+esc(t.name)+'</h1><p>Student Results</p></div><table><thead><tr><th>NAMES</th>'+ch+'<th>CAT TOTAL</th><th>EXAM</th><th>TOTAL</th><th>POS</th></tr></thead><tbody>'+rows+'</tbody></table><p>Generated: '+new Date().toLocaleString()+'</p></body></html>');
+    w.document.write('<!DOCTYPE html><html><head><title>'+esc(t.name)+'</title><style>body{font-family:Arial;padding:24px}table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border:1px solid #ccc;padding:8px;text-align:center}th{background:#eff6ff;color:#1d4ed8}.header{text-align:center;border-bottom:3px solid #2563eb;padding-bottom:12px}</style></head><body><div class="header"><h1>'+esc(t.name)+'</h1><p>'+(term?'Term: '+esc(term)+'<br>':'')+'Student Results</p></div><table><thead><tr><th>NAMES</th>'+ch+'<th>CAT TOTAL</th><th>EXAM</th><th>TOTAL</th><th>POS</th></tr></thead><tbody>'+rows+'</tbody></table><p>Generated: '+new Date().toLocaleString()+'</p></body></html>');
     w.document.close();
     w.onload=()=>w.print();
   },
@@ -3376,7 +3391,9 @@ const App={
     throw new Error('Unrecognized JSON structure');
   },
   normalizeJsonDataset(ds){
-    const out={ id:ds.id||('ds-'+generateId()), name:ds.name||'Imported', term:ds.term||'', tableCounter:ds.tableCounter||1, tables:[], comments:ds.comments||{}, attendance:ds.attendance||{enabled:false,dates:[],records:{},comments:{}} };
+    const datasetName=String(ds.name||'Imported').trim();
+    const inferredTerm=/^term\s*\d+$/i.test(datasetName)?datasetName:'';
+    const out={ id:ds.id||('ds-'+generateId()), name:datasetName, term:ds.term||inferredTerm, tableCounter:ds.tableCounter||1, tables:[], comments:ds.comments||{}, attendance:ds.attendance||{enabled:false,dates:[],records:{},comments:{}} };
     // FIX 2: if attendance is disabled, strip attendance from imported dataset
     if(!this.settings.attendanceEnabled){
       out.attendance = {enabled:false,dates:[],records:{},comments:{}};
@@ -3395,7 +3412,7 @@ const App={
         const exam=Math.min(Math.max(Math.round(typeof s.exam==='number'?s.exam:parseFloat(s.exam)||0),0),50);
         return { id:s.id||'', name:s.name||'Unnamed', gender:normalizeGender(s.gender), catMarks:marks, exam, catTotal:0,total:0,position:0 };
       });
-      const tbl={ id:tId, name:t.name||'Table', term:t.term||ds.term||'', termOverridden:!!t.termOverridden, catColumns, students };
+      const tbl={ id:tId, name:t.name||'Table', term:t.term||out.term||'', termOverridden:!!t.termOverridden, catColumns, students };
       students.forEach(s=>recalcStudent(tbl,s));
       updateTablePositions(tbl);
       out.tables.push(tbl);
