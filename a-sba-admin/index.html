@@ -88,13 +88,13 @@
     color:#fff;padding:8px 22px;border-radius:40px;font-weight:600;font-size:.92rem;
     display:inline-flex;align-items:center;gap:10px;box-shadow:var(--shadow)}
   .header-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-  .sheet-status{display:flex;align-items:center;gap:10px;background:var(--card);
+  .sync-status{display:flex;align-items:center;gap:10px;background:var(--card);
     padding:8px 18px;border-radius:40px;box-shadow:var(--shadow);
     border:1px solid var(--border);font-weight:500;font-size:.88rem;color:var(--muted)}
-  .sheet-status .dot{width:10px;height:10px;border-radius:50%;background:#94a3b8;flex-shrink:0;
+  .sync-status .dot{width:10px;height:10px;border-radius:50%;background:#94a3b8;flex-shrink:0;
     box-shadow:0 0 0 3px transparent;transition:background .2s ease,box-shadow .2s ease}
-  .sheet-status.connected .dot{background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.2)}
-  .sheet-status.pending .dot{background:#f59e0b;box-shadow:0 0 0 3px rgba(245,158,11,.2)}
+  .sync-status.connected .dot{background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.2)}
+  .sync-status.pending .dot{background:#f59e0b;box-shadow:0 0 0 3px rgba(245,158,11,.2)}
   .icon-btn{background:var(--card);border:1px solid var(--border);color:var(--text);
     width:42px;height:42px;border-radius:12px;cursor:pointer;font-size:1.05rem;
     transition:var(--transition);display:inline-flex;align-items:center;justify-content:center}
@@ -364,7 +364,7 @@
     .modal-header{border-radius:18px 18px 0 0}
     .kv-grid{grid-template-columns:1fr}
     .kv-grid .k{font-weight:600}
-    .sheet-status{font-size:.8rem;padding:6px 14px}
+    .sync-status{font-size:.8rem;padding:6px 14px}
   }
   @media print{
     :root{color-scheme:light;
@@ -446,8 +446,8 @@
             <span id="firebaseUserEmail"></span>
             <button id="logoutBtn" class="btn btn-secondary" style="padding:7px 10px;">Sign out</button>
           </div>
-          <div class="sheet-status" id="sheetStatusPill" title="Cloud connection status">
-            <span class="dot"></span><span id="sheetStatusText">Offline — no Sheet connected</span>
+          <div class="sync-status" id="firebaseSyncStatusPill" title="Firebase database sync status">
+            <span class="dot"></span><span id="firebaseSyncStatusText">Waiting for Firebase</span>
           </div>
           <button id="themeBtn" class="icon-btn" title="Toggle theme" aria-label="Toggle theme">
             <span data-ic="moon"></span>
@@ -460,17 +460,21 @@
       <div class="controls-wrapper">
         <div class="button-group">
           <button id="addTableBtn" class="btn btn-primary">
-            <span data-ic="plus-circle"></span> Add Table
+            <span data-ic="plus-circle"></span> Add class
+          </button>
+          <button class="btn btn-secondary" id="importXlsxBtn">
+            <span data-ic="file-excel"></span> Import dataset (Excel)
+          </button>
+          <button class="btn btn-secondary" id="exportCurrentXlsxBtn">
+            <span data-ic="download"></span> Export current dataset
           </button>
           <div class="dropdown" id="fileDropdown">
             <button class="dropdown-toggle" id="fileDropdownToggle">
-              <span data-ic="file"></span> File <span data-ic="chevron-down" class="ic-sm"></span>
+              <span data-ic="wrench"></span> More <span data-ic="chevron-down" class="ic-sm"></span>
             </button>
             <div class="dropdown-menu" id="fileDropdownMenu">
-              <button id="importXlsxBtn"><span data-ic="file-excel"></span> Import Excel (.xlsx)</button>
               <button id="importJsonBtn"><span data-ic="file-code"></span> Import JSON (backup)</button>
               <hr>
-              <button id="exportCurrentXlsxBtn"><span data-ic="file-excel"></span> Export current dataset (xlsx)</button>
               <button id="exportAllXlsxBtn"><span data-ic="file-excel"></span> Export all datasets (xlsx)</button>
               <button id="exportCurrentJsonBtn"><span data-ic="download"></span> Export current dataset (json)</button>
               <button id="exportAllJsonBtn"><span data-ic="download"></span> Export all datasets (json)</button>
@@ -490,12 +494,6 @@
               <button id="setupGuideBtn"><span data-ic="book"></span> Setup guide</button>
             </div>
           </div>
-          <button id="pushBtn" class="btn btn-info" title="Push local data to Google Sheet">
-            <span data-ic="cloud-up"></span> Push <span class="badge" id="pushBadge" style="display:none;">!</span>
-          </button>
-          <button id="pullBtn" class="btn btn-secondary" title="Pull from Google Sheet">
-            <span data-ic="cloud-down"></span> Pull
-          </button>
         </div>
       </div>
       <div id="viewTabs" class="view-tabs" style="display:none;">
@@ -509,9 +507,9 @@
       <main id="tablesContainer">
         <div class="empty-state" id="emptyState">
           <span data-ic="database" class="ic-xl"></span>
-          <p>No tables yet. Click "Add Table" to begin.</p>
+          <p>No classes yet. Add a class or import an Excel file to get started.</p>
           <button id="initialAddTable" class="btn btn-primary">
-            <span data-ic="plus-circle"></span> Create First Table
+            <span data-ic="plus-circle"></span> Create first class
           </button>
         </div>
       </main>
@@ -536,11 +534,10 @@
       <h2 class="modal-title"><span data-ic="sparkles"></span> Welcome</h2>
     </div>
     <div class="modal-body">
-      <p style="margin-bottom:14px;">This app stores your results <b>on this device</b> (offline-first). You can optionally connect your own Google Sheet to back up and sync.</p>
+      <p style="margin-bottom:14px;">Your results are saved in your Firebase account and synced across your signed-in devices. The app also keeps a local copy for offline use.</p>
       <ul style="padding-left:22px;line-height:1.9;font-size:.92rem;">
-        <li>Works fully offline — nothing required to start.</li>
+        <li>Works offline and syncs changes to Firebase when connected.</li>
         <li>Import / export Excel files anytime.</li>
-        <li>Connect a Google Sheet in Settings to push/pull.</li>
       </ul>
       <div style="margin-top:18px;">
         <p style="font-weight:700;margin-bottom:8px;color:var(--primary);">Do you track attendance?</p>
@@ -553,11 +550,10 @@
           <span>No — hide attendance (can be enabled later in Settings)</span>
         </label>
       </div>
-      <p style="margin-top:14px;font-size:.85rem;color:var(--muted);">Since data lives on this device, use <b>Export</b> regularly as a backup.</p>
+      <p style="margin-top:14px;font-size:.85rem;color:var(--muted);">Use <b>Export</b> to create an additional backup file.</p>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-primary" id="onboardingLocalBtn"><span data-ic="check"></span> Start using locally</button>
-      <button class="btn btn-secondary" id="onboardingConnectBtn"><span data-ic="cloud-up"></span> Connect a Sheet</button>
+      <button class="btn btn-primary" id="onboardingLocalBtn"><span data-ic="check"></span> Continue</button>
     </div>
   </div>
 </div>
@@ -569,36 +565,6 @@
       <button class="close-modal" data-close><span data-ic="x"></span></button>
     </div>
     <div class="modal-body">
-      <div class="settings-section">
-        <h3><span data-ic="cloud-up"></span> Cloud connection</h3>
-        <div class="settings-form">
-          <div>
-            <label>Apps Script Web App URL</label>
-            <input id="inpUrl" placeholder="https://script.google.com/macros/s/.../exec" autocomplete="off" spellcheck="false">
-          </div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;">
-            <button class="btn btn-primary" id="btnTest"><span data-ic="link"></span> Test connection</button>
-            <button class="btn btn-success" id="btnSaveUrl"><span data-ic="save"></span> Save URL</button>
-            <button class="btn btn-danger" id="btnDisconnect" style="display:none;"><span data-ic="x"></span> Disconnect</button>
-          </div>
-        </div>
-        <div class="kv-grid" style="margin-top:20px;">
-          <div class="k">Last push</div><div id="kvLastPush">—</div>
-          <div class="k">Last pull</div><div id="kvLastPull">—</div>
-          <div class="k">Device ID</div><div><code id="kvDeviceId"></code></div>
-          <div class="k">Local datasets</div><div id="kvDatasetCount">0</div>
-        </div>
-      </div>
-      <div class="settings-section">
-        <h3><span data-ic="key"></span> Your secret token</h3>
-        <p style="font-size:.88rem;color:var(--muted);margin-bottom:10px;">Baked into the Apps Script snippet. Keep it private.</p>
-        <input id="inpSecret" readonly onclick="this.select()" style="width:100%;padding:11px 14px;border:1px solid var(--border);border-radius:12px;font-family:ui-monospace,monospace;font-size:.82rem;background:var(--input-bg);color:var(--text);">
-      </div>
-      <div class="settings-section">
-        <h3><span data-ic="code"></span> Apps Script snippet</h3>
-        <button class="btn btn-primary" id="btnCopySnippet"><span data-ic="copy"></span> Copy to clipboard</button>
-        <pre class="snippet" id="snippetBox"></pre>
-      </div>
       <div class="settings-section">
         <h3><span data-ic="database"></span> Local data</h3>
         <div style="display:flex;gap:10px;flex-wrap:wrap;">
@@ -615,7 +581,7 @@
           </label>
           <button class="btn btn-danger" id="btnWipeAttendance" style="display:none;"><span data-ic="trash"></span> Wipe attendance data</button>
         </div>
-        <p style="font-size:.85rem;color:var(--muted);">When off, the Attendance tab is hidden and attendance is not synced to the Google Sheet. Existing local data is kept.</p>
+        <p style="font-size:.85rem;color:var(--muted);">When off, the Attendance tab is hidden. Existing attendance data is kept.</p>
       </div>
       <div class="settings-section">
         <h3><span data-ic="bar-chart"></span> Analysis thresholds</h3>
@@ -635,7 +601,7 @@
       </div>
       <div class="settings-section">
         <h3><span data-ic="history"></span> Backups</h3>
-        <p style="font-size:.88rem;color:var(--muted);margin-bottom:10px;">Automatic backups are created before each Pull, Import, Restore, or Clear. Last 5 are kept.</p>
+        <p style="font-size:.88rem;color:var(--muted);margin-bottom:10px;">Automatic backups are created before each Import, Restore, or Clear. Last 5 are kept.</p>
         <div id="backupsList"></div>
       </div>
     </div>
@@ -650,16 +616,12 @@
     </div>
     <div class="modal-body">
       <ol style="padding-left:22px;line-height:1.9;font-size:.92rem;">
-        <li>Create a new Google Sheet (any name).</li>
-        <li>In the sheet, click <b>Extensions → Apps Script</b>.</li>
-        <li>Delete the sample code and paste the snippet from <b>Settings</b>. Click Save.</li>
-        <li>Click <b>Deploy → New deployment</b>. Type: <b>Web app</b>. Execute as: <b>Me</b>. Who has access: <b>Anyone</b>. Click Deploy.</li>
-        <li>Authorize when prompted (it's your own script, so accept).</li>
-        <li>Copy the <b>Web app URL</b> (ends in <code>/exec</code>) and paste it into Settings → Save URL → Test connection.</li>
-        <li>Done. Use <b>Push</b> to send your local data to the sheet, <b>Pull</b> to fetch from it.</li>
+        <li>Sign in with your Firebase account to load your saved results.</li>
+        <li>Changes save automatically to the database when you are online.</li>
+        <li>The header shows “Changes pending” while saving and “Synced with Firebase” after a successful save.</li>
+        <li>Sign in with the same account on another device to load the same data.</li>
+        <li>Use Excel or JSON export for a separate backup file.</li>
       </ol>
-      <p style="margin-top:16px;font-size:.85rem;color:var(--muted);">Your Web App URL is a secret. Anyone with it plus your secret token can read/write your sheet. Keep both private.</p>
-      <p style="margin-top:8px;font-size:.85rem;color:var(--muted);">If you edit the snippet later, use <b>Deploy → Manage deployments → Edit → New version</b> to keep the same URL.</p>
     </div>
     <div class="modal-footer">
       <button class="btn btn-primary" data-close>Got it</button>
@@ -882,7 +844,11 @@ firebaseStore.enablePersistence({synchronizeTabs:true}).catch(()=>{});
 let authMode='signin';
 function setFirebaseStatus(message){
   const status=document.getElementById('firebaseStatusText');
+  const visible=document.getElementById('firebaseSyncStatusText');
+  const pill=document.getElementById('firebaseSyncStatusPill');
   if(status) status.textContent=message;
+  if(visible) visible.textContent=message;
+  if(pill) pill.className='sync-status'+(message==='Synced with Firebase'?' connected':/pending|queued|retrying/i.test(message)?' pending':'');
 }
 const DEFAULT_CAT_COLUMNS=[
   {id:'cat1',name:'CAT1',maxScore:15},
@@ -1088,130 +1054,6 @@ const DB={
   async clearAll(){ await req(tx('state','readwrite').clear()); await req(tx('backups','readwrite').clear()); }
 };
 
-function buildAppsScriptSnippet(secret){
-  return `// === Student Results Pro — Apps Script backend ===
-// Paste into Extensions → Apps Script, then Deploy as Web app.
-// Execute as: Me. Who has access: Anyone. Copy the /exec URL back into the app.
-
-const SECRET = '${secret}';
-const META_TAB = '_meta';
-const LOG_TAB = '_log';
-const MAX_LOG_ROWS = 500;
-
-function doGet(e){ return handle(e.parameter); }
-function doPost(e){
-  try { return handle(JSON.parse(e.postData.contents)); }
-  catch(err){ return json({ok:false, error:'invalid json: '+err}); }
-}
-
-function handle(p){
-  try {
-    if (p.secret !== SECRET) return json({ok:false, error:'invalid secret'});
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    switch(p.action){
-      case 'ping': return json({ok:true, tabs: ss.getSheets().length});
-      case 'read': return json(Object.assign({ok:true}, readAll(ss)));
-      case 'write': return json(Object.assign({ok:true}, writeAll(ss, p.payload)));
-    }
-    return json({ok:false, error:'unknown action'});
-  } catch(err){ return json({ok:false, error:String(err)}); }
-}
-
-function json(o){
-  return ContentService.createTextOutput(JSON.stringify(o))
-    .setMimeType(ContentService.MimeType.JSON);
-}
-
-function ensureTab(ss, name){
-  var sh = ss.getSheetByName(name);
-  if (!sh) sh = ss.insertSheet(name);
-  return sh;
-}
-
-function readAll(ss){
-  var out = { meta: {}, tabs: [] };
-  var metaSheet = ss.getSheetByName(META_TAB);
-  if (metaSheet && metaSheet.getLastRow() >= 1){
-    var metaData = metaSheet.getRange(1, 1, metaSheet.getLastRow(), 2).getValues();
-    metaData.forEach(function(row){
-      if (row[0]) out.meta[String(row[0])] = String(row[1]);
-    });
-  }
-  ss.getSheets().forEach(function(sh){
-    var name = sh.getName();
-    if (name === META_TAB || name === LOG_TAB) return;
-    var last = sh.getLastRow();
-    if (last < 1) return;
-    var maxCols = Math.max(1, sh.getLastColumn());
-    var values = sh.getRange(1, 1, last, maxCols).getValues();
-    out.tabs.push({ name: name, rows: values });
-  });
-  return out;
-}
-
-function writeAll(ss, payload){
-  if (!payload) return { written: 0 };
-  var meta = payload.meta || {};
-  var tabs = payload.tabs || [];
-  var logEntries = payload.logEntries || [];
-
-  var metaSheet = ensureTab(ss, META_TAB);
-  metaSheet.clear();
-  var metaRows = Object.keys(meta).map(function(k){ return [k, meta[k]]; });
-  if (metaRows.length === 0) metaRows = [['version', '4.1.2']];
-  metaSheet.getRange(1, 1, metaRows.length, 2).setValues(metaRows);
-
-  var expected = {};
-  tabs.forEach(function(t){ expected[t.name] = true; });
-  ss.getSheets().forEach(function(sh){
-    var name = sh.getName();
-    if (name === META_TAB || name === LOG_TAB) return;
-    if (!expected[name]) ss.deleteSheet(sh);
-  });
-
-  tabs.forEach(function(t){
-    var sh = ensureTab(ss, t.name);
-    sh.clear();
-    if (t.rows && t.rows.length > 0){
-      var maxCols = Math.max.apply(null, t.rows.map(function(r){ return r.length; }));
-      var normalized = t.rows.map(function(r){
-        var row = r.slice();
-        while (row.length < maxCols) row.push('');
-        return row;
-      });
-      sh.getRange(1, 1, normalized.length, maxCols).setNumberFormat('@');
-      sh.getRange(1, 1, normalized.length, maxCols).setValues(normalized);
-    }
-  });
-
-  if (logEntries.length > 0){
-    var logSheet = ensureTab(ss, LOG_TAB);
-    if (logSheet.getLastRow() === 0) logSheet.appendRow(['Timestamp','Device','Action','Detail']);
-    logEntries.forEach(function(e){ logSheet.appendRow(e); });
-    var total = logSheet.getLastRow();
-    if (total > MAX_LOG_ROWS + 1) logSheet.deleteRows(2, total - MAX_LOG_ROWS - 1);
-  }
-
-  return { written: tabs.length };
-}
-`;
-}
-
-async function cloudFetch(action,payload){
-  const url=await DB.getSetting('sheetUrl','');
-  const secret=await DB.getSetting('secret','');
-  if(!url) throw new Error('Cloud not configured');
-  let res;
-  try{
-    res=await fetch(url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action,secret,...payload})});
-  }catch(e){throw new Error('Network error — check your internet connection')}
-  if(!res.ok) throw new Error('Server returned HTTP '+res.status);
-  let data;
-  try{ data=await res.json(); }catch(e){ throw new Error('Server response was not valid JSON') }
-  if(!data.ok) throw new Error(data.error||'Unknown error from Apps Script');
-  return data;
-}
-
 function tableToRows(tbl){
   const term=tbl.term||'';
   const headers=['NAMES','ID','GENDER'];
@@ -1230,25 +1072,6 @@ function tableToRows(tbl){
     rows.push(row);
   }
   return rows;
-}
-function buildTabsFromDatasets(datasets, attendanceEnabled){
-  const tabs=[]; const seenTabs=new Map();
-  for(const ds of datasets){
-    for(const tbl of ds.tables){
-      const displayName=sanitizeTabName(`${ds.name} - ${tbl.name}`);
-      const dkey=displayName+'|'+tbl.id;
-      const dn=(seenTabs.get(dkey)||0)+1; seenTabs.set(dkey,dn);
-      const tabName=(dn>1?displayName+' ('+dn+')':displayName)+' — '+tbl.id;
-      tabs.push({ name:tabName, rows:tableToRows(tbl) });
-    }
-    if(attendanceEnabled && ds.attendance && ds.attendance.dates && ds.attendance.dates.length > 0){
-      const hasRoster = (ds.tables||[]).some(t=>(t.students||[]).some(s=>s.id));
-      if(hasRoster){
-        tabs.push({ name: buildAttendanceTabName(ds), rows: attendanceToRows(ds) });
-      }
-    }
-  }
-  return tabs;
 }
 function buildMetaFromDatasets(datasets,currentDatasetId){
   const meta={ version:APP_VERSION, currentDatasetId:currentDatasetId||'', generatedAt:new Date().toISOString() };
@@ -1632,8 +1455,6 @@ const App={
       return;
     }
     try{ if(navigator.storage&&navigator.storage.persist) navigator.storage.persist(); }catch(e){}
-    if(!await DB.getSetting('secret','')) await DB.setSetting('secret',uuid());
-    if(!await DB.getSetting('deviceId','')) await DB.setSetting('deviceId',uuid());
     this.settings=await DB.allSettings();
     this.onboarded=await DB.getSetting('onboarded',false);
     this._idCounter=await DB.getSetting('idCounter',1)||1;
@@ -1687,7 +1508,6 @@ const App={
     this._loadedUid=this.firebaseUser.uid;
     this._cloudLoading=false;
     this._cloudReady=true;
-    this.refreshStatus();
     this.updateViewTabs();
     await this.saveState();
     this.startFirebaseSync();
@@ -1697,8 +1517,6 @@ const App={
   bindEvents(){
     document.getElementById('settingsBtn').addEventListener('click',()=>this.openSettings());
     document.getElementById('themeBtn').addEventListener('click',()=>toggleTheme());
-    document.getElementById('pushBtn').addEventListener('click',()=>this.push());
-    document.getElementById('pullBtn').addEventListener('click',()=>this.pull());
     document.getElementById('addTableBtn').addEventListener('click',()=>this.addNewTable());
     const fdt=document.getElementById('fileDropdownToggle');
     const tdt=document.getElementById('toolsDropdownToggle');
@@ -1730,24 +1548,19 @@ const App={
     document.getElementById('tableImportApplyBtn').addEventListener('click',()=>this.applyTableImport());
     document.getElementById('tableExportXlsxBtn').addEventListener('click',()=>this.exportTableXlsx(this._tableExportId));
     document.getElementById('tableExportJsonBtn').addEventListener('click',()=>this.exportTableJson(this._tableExportId));
-    document.getElementById('btnTest').addEventListener('click',()=>this.testConnection());
-    document.getElementById('btnSaveUrl').addEventListener('click',()=>this.saveSheetUrl());
-    document.getElementById('btnDisconnect').addEventListener('click',()=>this.disconnectSheet());
-    document.getElementById('btnCopySnippet').addEventListener('click',()=>this.copySnippet());
     document.getElementById('btnExportAllQuick').addEventListener('click',()=>this.exportAllXlsx());
     document.getElementById('btnWipeLocal').addEventListener('click',()=>this.wipeLocal());
     document.getElementById('chkAttendance').addEventListener('change',e=>this.toggleAttendance(e.target.checked));
     document.getElementById('btnWipeAttendance').addEventListener('click',()=>this.wipeAttendanceData());
     document.getElementById('btnSaveThresholds').addEventListener('click',()=>this.saveThresholds());
     document.getElementById('btnDupScan').addEventListener('click',()=>this.runDuplicateScan());
-    document.getElementById('onboardingLocalBtn').addEventListener('click',()=>this.finishOnboarding(false));
-    document.getElementById('onboardingConnectBtn').addEventListener('click',()=>this.finishOnboarding(true));
+    document.getElementById('onboardingLocalBtn').addEventListener('click',()=>this.finishOnboarding());
     document.getElementById('createNewDatasetBtn').addEventListener('click',()=>this.createNewDataset());
     document.getElementById('tabStudents').addEventListener('click',()=>this.switchView('students'));
     document.getElementById('tabAttendance').addEventListener('click',()=>this.switchView('attendance'));
   },
 
-  async finishOnboarding(openSettings){
+  async finishOnboarding(){
     const sel=document.querySelector('input[name="attOnb"]:checked');
     const attOn = sel ? sel.value==='yes' : true;
     await DB.setSetting('attendanceEnabled', attOn);
@@ -1756,7 +1569,6 @@ const App={
     this.onboarded=true;
     document.getElementById('onboardingModal').style.display='none';
     this.updateViewTabs();
-    if(openSettings) this.openSettings();
   },
 
   updateViewTabs(){
@@ -2011,7 +1823,12 @@ const App={
     this._cloudTimer=setTimeout(()=>this.pushFirebaseData(payload),700);
   },
   async pushFirebaseData(payload=this.firebasePayload()){
-    if(!this.firebaseUser||!navigator.onLine){ setFirebaseStatus('Offline — changes queued'); return false; }
+    if(!this.firebaseUser) return false;
+    if(!navigator.onLine){
+      this._cloudPending=true;
+      setFirebaseStatus('Offline — changes queued');
+      return false;
+    }
     try{
       const uid=this.firebaseUser.uid;
       await firebaseStore.collection('users').doc(uid).set({
@@ -2141,21 +1958,7 @@ const App={
       datasets:this.datasets, currentDatasetId:this.currentDatasetId,
       lastUpdated:Date.now(), dirty:this._dirty
     });
-    this.refreshStatus();
     if(this._cloudReady&&!this._cloudLoading){ this._cloudPending=true; this.scheduleFirebaseSave(); }
-  },
-  refreshStatus(){
-    const pill=document.getElementById('sheetStatusPill');
-    const text=document.getElementById('sheetStatusText');
-    const cloud=!!(this.settings.sheetUrl||'');
-    if(!cloud){ pill.className='sheet-status'; text.textContent='Offline — no Sheet connected'; }
-    else if(this._dirty){ pill.className='sheet-status pending'; text.textContent='Unsynced changes'; }
-    else{ pill.className='sheet-status connected'; text.textContent='Sheet connected'; }
-    const badge=document.getElementById('pushBadge');
-    if(this._dirty) badge.style.display='inline-block';
-    else badge.style.display='none';
-    document.getElementById('pushBtn').disabled=!cloud;
-    document.getElementById('pullBtn').disabled=!cloud;
   },
   markDirty(){
     if(this._dirty) return;
@@ -2215,7 +2018,7 @@ const App={
   renderTables(ds){
     const c=document.getElementById('tablesContainer');
     if(!ds||!ds.tables.length){
-      c.innerHTML='<div class="empty-state" id="emptyState">'+IC.database.replace('class="ic"','class="ic ic-xl"')+'<p>No tables yet. Click "Add Table" to begin.</p><button id="initialAddTable" class="btn btn-primary">'+IC['plus-circle']+' Create First Table</button></div>';
+      c.innerHTML='<div class="empty-state" id="emptyState">'+IC.database.replace('class="ic"','class="ic ic-xl"')+'<p>No classes yet. Add a class or import an Excel file to get started.</p><button id="initialAddTable" class="btn btn-primary">'+IC['plus-circle']+' Create first class</button></div>';
       document.getElementById('initialAddTable').addEventListener('click',()=>this.addNewTable());
       return;
     }
@@ -3496,24 +3299,15 @@ const App={
         '<li>Marks: <code>45/50</code>, <code>90%</code>, or plain numbers — all auto-rounded.</li>'+
         '<li>CAT columns are fully customizable — add, rename, change max.</li>'+
         '<li>Statistics and terminal reports on demand.</li>'+
-        '<li>Push/Pull sync to your own Google Sheet.</li>'+
-        '<li>Export/import via Excel or JSON backup anytime.</li>'+
+                '<li>Export/import via Excel or JSON backup anytime.</li>'+
       '</ul>'+
       '<h3 style="color:var(--primary);margin:20px 0 10px;">'+IC.edit+' Manual Excel Edits</h3>'+
-      '<p>You can open the exported xlsx (or your Google Sheet) in Excel, edit marks, add students, rename columns — then re-import or Pull. A diff preview will show exactly what changed before anything is applied.</p>';
+      '<p>You can open the exported xlsx in Excel, edit marks, add students, or rename columns, then re-import it. A diff preview shows what changed before anything is applied.</p>';
     document.getElementById('helpModal').style.display='flex';
   },
   async openSettings(){
     const s=await DB.allSettings();
     this.settings=s;
-    document.getElementById('inpUrl').value=s.sheetUrl||'';
-    document.getElementById('inpSecret').value=s.secret||'';
-    document.getElementById('kvLastPush').textContent=fmtTime(s.lastPush);
-    document.getElementById('kvLastPull').textContent=fmtTime(s.lastPull);
-    document.getElementById('kvDeviceId').textContent=s.deviceId||'—';
-    document.getElementById('kvDatasetCount').textContent=this.datasets.length;
-    document.getElementById('btnDisconnect').style.display=s.sheetUrl?'inline-flex':'none';
-    document.getElementById('snippetBox').textContent=buildAppsScriptSnippet(s.secret||'');
     const chk=document.getElementById('chkAttendance');
     if(chk) chk.checked=!!s.attendanceEnabled;
     const wipeAtt=document.getElementById('btnWipeAttendance');
@@ -3591,43 +3385,6 @@ const App={
       this.openSettings();
     }catch(e){ showToast('error','Restore failed', e.message||String(e), 6000); }
     finally{ hideLoading(); }
-  },
-  async saveSheetUrl(){
-    const v=document.getElementById('inpUrl').value.trim();
-    if(v && !/^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec$/.test(v)) showToast('warning','Check URL','It should end with /exec');
-    await DB.setSetting('sheetUrl', v);
-    this.settings.sheetUrl=v;
-    this.refreshStatus();
-    showToast('success','Saved','URL updated');
-    this.openSettings();
-  },
-  async testConnection(){
-    const v=document.getElementById('inpUrl').value.trim();
-    if(!v){ showToast('warning','Enter URL first'); return; }
-    await DB.setSetting('sheetUrl', v);
-    this.settings.sheetUrl=v;
-    const btn=document.getElementById('btnTest');
-    btn.disabled=true; btn.innerHTML='Testing...';
-    try{
-      const res=await cloudFetch('ping');
-      showToast('success','Connected',(res.tabs||0)+' tab(s) in sheet');
-      this.refreshStatus();
-      this.openSettings();
-    }catch(e){ showToast('error','Failed',e.message||String(e),6000); }
-    finally{ btn.disabled=false; btn.innerHTML=IC.link+' Test connection'; }
-  },
-  async disconnectSheet(){
-    if(!confirm('Disconnect cloud? Local data is kept.')) return;
-    await DB.setSetting('sheetUrl','');
-    this.settings.sheetUrl='';
-    this.refreshStatus();
-    this.openSettings();
-    showToast('info','Disconnected');
-  },
-  async copySnippet(){
-    const txt=document.getElementById('snippetBox').textContent;
-    try{ await navigator.clipboard.writeText(txt); showToast('success','Copied'); }
-    catch(e){ showToast('warning','Select and copy manually'); }
   },
   async wipeLocal(){
     if(!confirm('Permanently delete ALL local data? Cloud Sheet is unaffected.')) return;
@@ -3917,8 +3674,7 @@ const App={
       if(!this.datasets.find(d=>d.id===this.currentDatasetId)) this.currentDatasetId=(this.datasets[0] && this.datasets[0].id) || null;
       if(this.currentDatasetId==null && this.datasets.length) this.currentDatasetId=this.datasets[0].id;
       this.validateAll();
-      if(source==='pull' && mode!=='merge') this._dirty=false;
-      else this._dirty=true;
+      this._dirty=true;
       await this.saveState();
       this.renderAll();
       if(this.currentView==='attendance') this.renderAttendance();
@@ -3926,40 +3682,8 @@ const App={
     }catch(e){ showToast('error','Apply failed', e.message||String(e), 6000); }
     finally{ hideLoading(); }
   },
-  async push(){
-    const url=this.settings.sheetUrl||'';
-    if(!url){ showToast('warning','Connect a Sheet first'); return; }
-    const ok=confirm('Push to Google Sheet?\n\nThis will REPLACE the entire sheet contents with your local data:\n• '+this.datasets.length+' dataset(s)\n• '+this.datasets.reduce((s,d)=>s+d.tables.length,0)+' table(s)\n• '+this.datasets.reduce((s,d)=>s+d.tables.reduce((x,t)=>x+t.students.length,0),0)+' student(s)\n'+(this.settings.attendanceEnabled?'• Attendance data where present\n':'')+'\nAny manual edits, and ANY other tabs in that spreadsheet, will be lost.\n\nContinue?');
-    if(!ok) return;
-    showLoading('Pushing to Sheet...');
-    try{
-      const meta=buildMetaFromDatasets(this.datasets, this.currentDatasetId);
-      const tabs=buildTabsFromDatasets(this.datasets, this.settings.attendanceEnabled);
-      const logEntries=[[ new Date().toISOString(), this.settings.deviceId||'unknown', 'Push', this.datasets.length+' datasets, '+tabs.length+' tabs' ]];
-      const res=await cloudFetch('write', { payload:{ meta, tabs, logEntries } });
-      await DB.setSetting('lastPush', Date.now());
-      this.settings.lastPush=Date.now();
-      this._dirty=false;
-      await this.saveState();
-      showToast('success','Pushed',(res.written||tabs.length)+' tab(s) written');
-    }catch(e){ showToast('error','Push failed', e.message||String(e), 6000); }
-    finally{ hideLoading(); }
-  },
-  async pull(){
-    const url=this.settings.sheetUrl||'';
-    if(!url){ showToast('warning','Connect a Sheet first'); return; }
-    showLoading('Reading from Sheet...');
-    try{
-      const res=await cloudFetch('read');
-      hideLoading();
-      // FIX 2: skip attendance parsing when the feature is disabled
-      const incoming=buildDatasetsFromRaw(res.meta||{}, res.tabs||[], { parseAttendance: !!this.settings.attendanceEnabled });
-      if(!incoming.length){ showToast('info','Sheet has no datasets yet','Push first to send data up'); return; }
-      await this.promptDiffAndApply(incoming, 'Pull from Google Sheet', 'pull');
-    }catch(e){ hideLoading(); showToast('error','Pull failed', e.message||String(e), 6000); }
-  },
   async clearAllData(){
-    if(!confirm('Delete ALL datasets permanently?\n\nThis does NOT touch your Google Sheet. Use Push to sync the empty state.')) return;
+    if(!confirm('Delete ALL datasets permanently?')) return;
     await DB.addBackup('before-clear',{ datasets:this.datasets, currentDatasetId:this.currentDatasetId });
     this.datasets=[];
     this.currentDatasetId=null;
