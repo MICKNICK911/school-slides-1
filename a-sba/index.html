@@ -500,6 +500,7 @@
 <input type="file" id="fileInputJson" accept=".json" style="display:none">
 <input type="file" id="bulkFileInputXlsx" accept=".xlsx,.xls" multiple style="display:none">
 <input type="file" id="bulkFileInputJson" accept=".json" multiple style="display:none">
+<input type="file" id="tableImportFileInput" accept=".xlsx,.xls,.json" style="display:none">
 
 <div id="onboardingModal" class="modal-overlay" style="display:none;">
   <div class="modal-content" style="max-width:540px;">
@@ -648,6 +649,58 @@
     <div class="modal-footer">
       <button class="btn btn-secondary" data-close><span data-ic="x"></span> Cancel</button>
       <button class="btn btn-primary" id="diffApplyBtn"><span data-ic="check"></span> Apply changes</button>
+    </div>
+  </div>
+</div>
+
+<div id="tableExportModal" class="modal-overlay" style="display:none;">
+  <div class="modal-content" style="max-width:520px;">
+    <div class="modal-header">
+      <h2 class="modal-title"><span data-ic="download"></span> Export table</h2>
+      <button class="close-modal" data-close><span data-ic="x"></span></button>
+    </div>
+    <div class="modal-body">
+      <p id="tableExportName" style="margin-bottom:14px;color:var(--muted);"></p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn btn-primary" id="tableExportXlsxBtn"><span data-ic="file-excel"></span> Export Excel</button>
+        <button class="btn btn-secondary" id="tableExportJsonBtn"><span data-ic="file-code"></span> Export JSON</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="tableImportModal" class="modal-overlay" style="display:none;">
+  <div class="modal-content" style="max-width:620px;">
+    <div class="modal-header">
+      <h2 class="modal-title"><span data-ic="download"></span> Import into table</h2>
+      <button class="close-modal" data-close><span data-ic="x"></span></button>
+    </div>
+    <div class="modal-body">
+      <p id="tableImportTargetName" style="font-weight:700;margin-bottom:14px;"></p>
+      <label for="tableImportSourceMode" style="display:block;font-weight:600;margin-bottom:6px;">Import source</label>
+      <select id="tableImportSourceMode" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:10px;background:var(--input-bg);color:var(--text);margin-bottom:14px;">
+        <option value="dataset">A stored dataset</option>
+        <option value="file">An Excel or JSON file</option>
+      </select>
+      <div id="tableImportDatasetSource">
+        <label for="tableImportDatasetSelect" style="display:block;font-weight:600;margin-bottom:6px;">Source dataset</label>
+        <select id="tableImportDatasetSelect" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:10px;background:var(--input-bg);color:var(--text);margin-bottom:14px;"></select>
+      </div>
+      <div id="tableImportFileSource" style="display:none;margin-bottom:14px;">
+        <button class="btn btn-secondary" id="tableImportChooseFileBtn" type="button"><span data-ic="folder"></span> Choose Excel or JSON file</button>
+        <span id="tableImportFileName" style="display:block;margin-top:8px;color:var(--muted);"></span>
+      </div>
+      <label for="tableImportTableSelect" style="display:block;font-weight:600;margin-bottom:6px;">Source table / worksheet</label>
+      <select id="tableImportTableSelect" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:10px;background:var(--input-bg);color:var(--text);margin-bottom:16px;"></select>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;">
+        <label style="display:flex;align-items:center;gap:8px;"><input id="tableImportRoster" type="checkbox" checked> Import roster (names, IDs, gender)</label>
+        <label style="display:flex;align-items:center;gap:8px;"><input id="tableImportMarks" type="checkbox" checked> Import marks matched by ID</label>
+      </div>
+      <p style="font-size:.84rem;color:var(--muted);margin-top:12px;">Review the selected source carefully. Imported data is applied only to the destination table.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" data-close>Cancel</button>
+      <button class="btn btn-primary" id="tableImportApplyBtn"><span data-ic="check"></span> Import selected data</button>
     </div>
   </div>
 </div>
@@ -1467,6 +1520,7 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeAllModals(); 
 
 const App={
   datasets:[], currentDatasetId:null, settings:{}, onboarded:false, _dirty:false, _idCounter:1,
+  _tableImportState:null, _tableExportId:null,
   currentView:'students',
   thresholds:{ attendancePct:80, academicDrop:10, academicImprove:10 },
 
@@ -1592,6 +1646,13 @@ const App={
     document.getElementById('fileInputJson').addEventListener('change',e=>this.handleImportFile(e,'json'));
     document.getElementById('bulkFileInputXlsx').addEventListener('change',e=>this.handleBulkImport(e,'xlsx'));
     document.getElementById('bulkFileInputJson').addEventListener('change',e=>this.handleBulkImport(e,'json'));
+    document.getElementById('tableImportSourceMode').addEventListener('change',()=>this.updateTableImportSourceUI());
+    document.getElementById('tableImportDatasetSelect').addEventListener('change',()=>this.updateTableImportTableOptions());
+    document.getElementById('tableImportChooseFileBtn').addEventListener('click',()=>document.getElementById('tableImportFileInput').click());
+    document.getElementById('tableImportFileInput').addEventListener('change',e=>this.handleTableImportFile(e));
+    document.getElementById('tableImportApplyBtn').addEventListener('click',()=>this.applyTableImport());
+    document.getElementById('tableExportXlsxBtn').addEventListener('click',()=>this.exportTableXlsx(this._tableExportId));
+    document.getElementById('tableExportJsonBtn').addEventListener('click',()=>this.exportTableJson(this._tableExportId));
     document.getElementById('btnTest').addEventListener('click',()=>this.testConnection());
     document.getElementById('btnSaveUrl').addEventListener('click',()=>this.saveSheetUrl());
     document.getElementById('btnDisconnect').addEventListener('click',()=>this.disconnectSheet());
@@ -2002,6 +2063,7 @@ const App={
     acts.appendChild(this.mkTableBtn('printer','Print',()=>this.printTable(t.id)));
     acts.appendChild(this.mkTableBtn('copy','Clone',()=>this.cloneTable(t.id)));
     acts.appendChild(this.mkTableBtn('download','Import into table',()=>this.openTableImport(t.id)));
+    acts.appendChild(this.mkTableBtn('download','Export table',()=>this.openTableExport(t.id)));
     acts.appendChild(this.mkTableBtn('edit','Edit',()=>title.focus()));
     acts.appendChild(this.mkTableBtn('trash','Delete',()=>this.deleteTable(t.id)));
     h.appendChild(left);h.appendChild(acts);
@@ -2009,6 +2071,7 @@ const App={
   },
   mkTableBtn(iconName,tip,onClick){
     const b=document.createElement('button');b.title=tip;b.type='button';
+    b.setAttribute('aria-label',tip);
     b.innerHTML=IC[iconName]||'';
     b.addEventListener('click',onClick);
     return b;
@@ -2315,20 +2378,100 @@ const App={
     undo._commit=()=>{};
     showUndoToast('Column "'+c.name+'" deleted', undo, 5000);
   },
-  async openTableImport(tid){
+  openTableExport(tid){
+    const table=this.findTable(tid); if(!table) return;
+    this._tableExportId=tid;
+    document.getElementById('tableExportName').textContent='Export only “'+table.name+'” as an Excel workbook or JSON file.';
+    document.getElementById('tableExportModal').style.display='flex';
+  },
+  exportTableXlsx(tid){
+    const table=this.findTable(tid), dataset=this.findDatasetByTable(tid); if(!table||!dataset) return;
+    if(typeof XLSX==='undefined'){ showToast('error','Library missing','Reload page'); return; }
+    const onlyTable=Object.assign({},dataset,{tables:[table],attendance:null,comments:{}});
+    const filename=sanitizeTabName(dataset.name+'-'+table.name)+'-'+today()+'.xlsx';
+    this.exportDatasetsToXlsx([onlyTable],filename);
+    closeAllModals();
+  },
+  exportTableJson(tid){
+    const table=this.findTable(tid), dataset=this.findDatasetByTable(tid); if(!table||!dataset) return;
+    const onlyDataset={id:dataset.id,name:dataset.name,term:dataset.term||'',tableCounter:dataset.tableCounter||1,tables:[table]};
+    const data={version:APP_VERSION,exportedAt:new Date().toISOString(),kind:'table',dataset:onlyDataset,tableId:table.id};
+    this.downloadJson('table-'+sanitizeTabName(dataset.name)+'-'+sanitizeTabName(table.name)+'-'+today()+'.json',data);
+    closeAllModals();
+  },
+  openTableImport(tid){
     const target=this.findTable(tid); if(!target) return;
-    const dsList=this.datasets.map((d,i)=>(i+1)+'. '+d.name+(d.term?' ('+d.term+')':'')).join('\n');
-    const pickDs=prompt('Import into "'+target.name+'"\n\nSource dataset:\n'+dsList+'\n\nEnter number:','1');
-    const srcDs=this.datasets[parseInt(pickDs,10)-1];
-    if(!srcDs){ showToast('warning','Invalid dataset'); return; }
-    const tblList=srcDs.tables.map((t,i)=>(i+1)+'. '+t.name).join('\n');
-    if(!tblList){ showToast('warning','Source has no tables'); return; }
-    const pickT=prompt('Source table:\n'+tblList+'\n\nEnter number:','1');
-    const srcTbl=srcDs.tables[parseInt(pickT,10)-1];
-    if(!srcTbl){ showToast('warning','Invalid table'); return; }
-    const doRoster=confirm('Import roster (names + IDs + gender)?\nOK=Yes  Cancel=No');
-    const doMarks=confirm('Import marks (matched by ID)?\nOK=Yes  Cancel=No');
-    if(!doRoster&&!doMarks) return;
+    this._tableImportState={targetId:tid,sourceDatasets:[]};
+    document.getElementById('tableImportTargetName').textContent='Destination table: '+target.name;
+    document.getElementById('tableImportSourceMode').value='dataset';
+    document.getElementById('tableImportRoster').checked=true;
+    document.getElementById('tableImportMarks').checked=true;
+    document.getElementById('tableImportFileName').textContent='';
+    const dsSelect=document.getElementById('tableImportDatasetSelect');
+    dsSelect.dataset.fileIndex='0';
+    dsSelect.innerHTML=this.datasets.map((d,i)=>'<option value="'+i+'">'+esc(d.name)+(d.term?' — '+esc(d.term):'')+'</option>').join('');
+    this.updateTableImportSourceUI();
+    document.getElementById('tableImportModal').style.display='flex';
+  },
+  updateTableImportSourceUI(){
+    if(!this._tableImportState) return;
+    const mode=document.getElementById('tableImportSourceMode').value;
+    document.getElementById('tableImportDatasetSource').style.display='block';
+    document.getElementById('tableImportFileSource').style.display=mode==='file'?'block':'none';
+    const dsSelect=document.getElementById('tableImportDatasetSelect');
+    if(mode==='file'){
+      const options=this._tableImportState.sourceDatasets||[];
+      dsSelect.innerHTML=options.map((d,i)=>'<option value="'+i+'">'+esc(d.name)+(d.term?' — '+esc(d.term):'')+'</option>').join('');
+    }else{
+      dsSelect.innerHTML=this.datasets.map((d,i)=>'<option value="'+i+'">'+esc(d.name)+(d.term?' — '+esc(d.term):'')+'</option>').join('');
+    }
+    this.updateTableImportTableOptions();
+  },
+  updateTableImportTableOptions(){
+    if(!this._tableImportState) return;
+    const mode=document.getElementById('tableImportSourceMode').value;
+    const dsSelect=document.getElementById('tableImportDatasetSelect');
+    const sources=mode==='file'?this._tableImportState.sourceDatasets:this.datasets;
+    const dataset=sources[parseInt(dsSelect.value||'0',10)];
+    const tableSelect=document.getElementById('tableImportTableSelect');
+    tableSelect.innerHTML=dataset&&dataset.tables&&dataset.tables.length?dataset.tables.map((t,i)=>'<option value="'+i+'">'+esc(t.name)+'</option>').join(''):'<option value="">No tables available</option>';
+    document.getElementById('tableImportApplyBtn').disabled=!(dataset&&dataset.tables&&dataset.tables.length);
+  },
+  async handleTableImportFile(e){
+    const file=e.target.files&&e.target.files[0]; if(!file) return;
+    const label=document.getElementById('tableImportFileName');
+    label.textContent='Reading '+file.name+'…';
+    try{
+      const ext=file.name.toLowerCase().split('.').pop();
+      let datasets;
+      if(ext==='json') datasets=await this.readJsonFile(file);
+      else if(ext==='xlsx'||ext==='xls') datasets=await this.readXlsxFile(file);
+      else throw new Error('Choose an Excel (.xlsx/.xls) or JSON file');
+      datasets=(datasets||[]).filter(ds=>ds&&Array.isArray(ds.tables)&&ds.tables.length);
+      if(!datasets.length) throw new Error('The selected file contains no tables to import');
+      this._tableImportState.sourceDatasets=datasets;
+      label.textContent=file.name+' — '+datasets.length+' dataset(s), '+datasets.reduce((n,d)=>n+d.tables.length,0)+' table(s)';
+      document.getElementById('tableImportDatasetSelect').value='0';
+      this.updateTableImportSourceUI();
+    }catch(err){
+      this._tableImportState.sourceDatasets=[];
+      label.textContent='';
+      this.updateTableImportTableOptions();
+      showToast('error','Could not read source file',err.message||String(err),6000);
+    }finally{ e.target.value=''; }
+  },
+  async applyTableImport(){
+    const state=this._tableImportState; if(!state) return;
+    const target=this.findTable(state.targetId); if(!target){ closeAllModals(); return; }
+    const mode=document.getElementById('tableImportSourceMode').value;
+    const dsIndex=parseInt(document.getElementById('tableImportDatasetSelect').value,10);
+    const srcDatasets=mode==='file'?state.sourceDatasets:this.datasets;
+    const srcDs=srcDatasets[dsIndex];
+    const srcTbl=srcDs&&srcDs.tables[parseInt(document.getElementById('tableImportTableSelect').value,10)];
+    if(!srcTbl){ showToast('warning','Choose a source table'); return; }
+    const doRoster=document.getElementById('tableImportRoster').checked;
+    const doMarks=document.getElementById('tableImportMarks').checked;
+    if(!doRoster&&!doMarks){ showToast('warning','Choose roster, marks, or both'); return; }
     const before=deepClone(target);
     let added=0, updated=0, skipped=0;
     const byId=new Map(target.students.map(s=>[s.id,s]));
@@ -2359,6 +2502,7 @@ const App={
     }
     updateTablePositions(target);
     this.markDirty(); this.renderAll(); await this.saveState();
+    closeAllModals();
     showToast('success','Import done',added+' added, '+updated+' marks updated, '+skipped+' skipped');
     const undo=async()=>{
       target.students=before.students;
@@ -3406,6 +3550,7 @@ const App={
   async readJsonFile(file){
     const text=await file.text();
     const data=JSON.parse(text);
+    if(data.kind==='table'&&data.dataset) return [this.normalizeJsonDataset(data.dataset)];
     if(data.kind==='all' && Array.isArray(data.datasets)) return data.datasets.map(ds=>this.normalizeJsonDataset(ds));
     if(data.kind==='dataset' && data.dataset) return [this.normalizeJsonDataset(data.dataset)];
     if(Array.isArray(data.resultDatasets)) return data.resultDatasets.map(ds=>this.normalizeJsonDataset(ds)).filter(Boolean);
