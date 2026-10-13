@@ -2206,8 +2206,8 @@ const App={
     await this.saveState();
     this.renderAll();
   },
-  async updateDatasetTerm(term){
-    const ds=this.getCurrentDataset(); if(!ds) return;
+  async updateDatasetTerm(term,datasetId=this.currentDatasetId){
+    const ds=this.datasets.find(d=>d.id===datasetId); if(!ds) return;
     const old=ds.term||'';
     ds.term=term||'';
     ds.tables.forEach(t=>{
@@ -2218,6 +2218,21 @@ const App={
     this.markDirty();
     await this.saveState();
     this.renderAll();
+    this.renderDatasetList();
+  },
+  async renameDataset(id){
+    const ds=this.datasets.find(d=>d.id===id); if(!ds) return;
+    const name=prompt('Dataset name:',ds.name||'');
+    if(name===null) return;
+    const next=name.trim();
+    if(!next){ showToast('warning','Name required','Enter a dataset name'); return; }
+    if(next===ds.name) return;
+    ds.name=next;
+    this.markDirty();
+    await this.saveState();
+    this.renderAll();
+    this.renderDatasetList();
+    showToast('success','Renamed',next);
   },
   async updateStudentCatMark(tid,idx,cid,val){
     const t=this.findTable(tid);
@@ -3092,11 +3107,19 @@ const App={
       it.className='bulk-list-item'+(d.id===this.currentDatasetId?' active':'');
       const totalStu=d.tables.reduce((s,t)=>s+t.students.length,0);
       it.innerHTML='<div><div style="font-weight:600;color:var(--primary);">'+IC.database+' '+esc(d.name)+'</div>'+
-        '<div style="font-size:0.85rem;color:var(--muted);">'+d.tables.length+' table(s), '+totalStu+' student(s)</div></div>'+
-        '<div style="display:flex;gap:8px;">'+
+        '<div style="font-size:0.85rem;color:var(--muted);">Term: '+esc(d.term||'Not set')+' · '+d.tables.length+' table(s), '+totalStu+' student(s)</div></div>'+
+        '<div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">'+
+          '<button class="btn btn-secondary" data-rename>Rename</button>'+
+          '<button class="btn btn-secondary" data-edit-term>Edit term</button>'+
           '<button class="btn btn-primary" data-switch>'+IC.exchange+' Switch</button>'+
           '<button class="btn btn-danger" data-delete>'+IC.trash+' Delete</button>'+
         '</div>';
+      it.querySelector('[data-rename]').addEventListener('click',e=>{ e.stopPropagation(); this.renameDataset(d.id); });
+      it.querySelector('[data-edit-term]').addEventListener('click',e=>{
+        e.stopPropagation();
+        const term=prompt('Dataset term:',d.term||'');
+        if(term!==null) this.updateDatasetTerm(term.trim(),d.id);
+      });
       it.querySelector('[data-switch]').addEventListener('click',e=>{ e.stopPropagation(); this.switchDataset(d.id); });
       it.querySelector('[data-delete]').addEventListener('click',e=>{ e.stopPropagation(); this.deleteDataset(d.id); });
       it.addEventListener('click',()=>this.switchDataset(d.id));
