@@ -1472,16 +1472,26 @@ const App={
     catch(e){ setFirebaseStatus('Offline — using this device'); }
     const legacyLocal=(()=>{ try{ const raw=localStorage.getItem('studentResultsData'); return raw?JSON.parse(raw):null; }catch(e){ return null; } })();
     const remoteDatasets=remoteData&&(remoteData.resultDatasets||remoteData.datasets);
-    if(Array.isArray(remoteDatasets)&&remoteDatasets.length){
+    const localTime=(stored&&stored.data&&Number(stored.data.lastUpdated))||0;
+    const localDirty=!!(stored&&stored.data&&stored.data.dirty);
+    const remoteTime=(remoteData&&Number(remoteData.lastUpdated))||0;
+    if(localDirty&&localTime>=remoteTime&&stored.data.datasets&&stored.data.datasets.length){
+      // Keep newer unsynced local work and let the normal save flow push it.
+      this.datasets=stored.data.datasets;
+      this.currentDatasetId=stored.data.currentDatasetId;
+      this._localUpdatedAt=localTime;
+      this._dirty=true;
+      this._cloudPending=true;
+    }else if(Array.isArray(remoteDatasets)&&remoteDatasets.length){
       this.datasets=remoteDatasets.map(ds=>this.normalizeJsonDataset(ds)).filter(Boolean);
       this.currentDatasetId=remoteData.currentDatasetId||this.datasets[0]?.id||null;
-      this._localUpdatedAt=remoteData.lastUpdated||0;
+      this._localUpdatedAt=remoteTime;
       this._dirty=false;
     }else if(stored&&stored.data&&stored.data.datasets&&stored.data.datasets.length){
       this.datasets=stored.data.datasets;
       this.currentDatasetId=stored.data.currentDatasetId;
       this._dirty=!!stored.data.dirty;
-      this._localUpdatedAt=stored.data.lastUpdated||0;
+      this._localUpdatedAt=localTime;
     }else if(legacyLocal&&(legacyLocal.resultDatasets||legacyLocal.datasets)){
       const legacyDatasets=legacyLocal.resultDatasets||legacyLocal.datasets;
       this.datasets=legacyDatasets.map(ds=>this.normalizeJsonDataset(ds)).filter(Boolean);
@@ -1839,7 +1849,14 @@ const App={
         version:APP_VERSION
       },{merge:true});
       if(this.firebaseUser&&this.firebaseUser.uid===uid){
-        if(this._localUpdatedAt<=payload.lastUpdated) this._cloudPending=false;
+        if(this._localUpdatedAt<=payload.lastUpdated){
+          this._cloudPending=false;
+          this._dirty=false;
+          await DB.setState({
+            datasets:this.datasets, currentDatasetId:this.currentDatasetId,
+            lastUpdated:this._localUpdatedAt, dirty:false
+          });
+        }
         setFirebaseStatus(this._cloudPending?'Changes pending':'Synced with Firebase');
         if(this._cloudPending) this.scheduleFirebaseSave();
       }
@@ -1955,10 +1972,11 @@ const App={
   },
   async saveState(){
     this.validateAll();
-    this._localUpdatedAt=Date.now();
+    const updatedAt=Date.now();
+    this._localUpdatedAt=updatedAt;
     await DB.setState({
       datasets:this.datasets, currentDatasetId:this.currentDatasetId,
-      lastUpdated:Date.now(), dirty:this._dirty
+      lastUpdated:updatedAt, dirty:this._dirty
     });
     if(this._cloudReady&&!this._cloudLoading){ this._cloudPending=true; this.scheduleFirebaseSave(); }
   },
