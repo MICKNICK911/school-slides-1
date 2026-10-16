@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#2563eb">
+<meta name="theme-color" content="#7A1F3D">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>Student Results Pro</title>
@@ -20,17 +20,18 @@
 <style>
   :root{
     color-scheme:light;
-    --primary:#2563eb; --primary-dark:#1d4ed8; --primary-light:#60a5fa;
-    --primary-soft:rgba(37,99,235,0.10);
-    --danger:#dc2626; --danger-dark:#b91c1c;
+    --primary:#7A1F3D; --primary-dark:#5B142B; --primary-light:#B84A69;
+    --primary-soft:rgba(122,31,61,0.10); --on-primary:#ffffff;
+    --accent:#E87524; --accent-dark:#DF762E;
+    --on-accent:#30180D; --on-warning:#1e293b; --danger:#C62828; --danger-dark:#A61B1B; --on-danger:#ffffff;
     --success:#16a34a; --success-dark:#15803d;
-    --warning:#eab308; --warning-dark:#ca8a04;
-    --info:#0ea5e9; --info-dark:#0284c7;
-    --body-bg-1:#eff6ff; --body-bg-2:#dbeafe; --body-bg-3:#e0e7ff;
+    --warning:#E87524; --warning-dark:#DF762E;
+    --info:#E87524; --info-dark:#DF762E;
+    --body-bg-1:#FFF8F2; --body-bg-2:#FCEFE5; --body-bg-3:#F6E8E7;
     --container-bg:rgba(255,255,255,0.96);
-    --container-border:rgba(37,99,235,0.15);
-    --card:#ffffff; --card-2:#f8fafc; --surface:#f1f5f9; --hover:#eff6ff;
-    --border:#e2e8f0; --border-2:#cbd5e1;
+    --container-border:rgba(122,31,61,0.15);
+    --card:#ffffff; --card-2:#FFFAF6; --surface:#F7F1EC; --hover:#FFF1E6;
+    --border:#E9DDD7; --border-2:#D8C8C0;
     --text:#0f172a; --muted:#64748b;
     --input-bg:#f8fafc; --input-focus-bg:#ffffff;
     --overlay-bg:rgba(15,23,42,0.55);
@@ -42,21 +43,22 @@
   }
   [data-theme="dark"]{
     color-scheme:dark;
-    --primary:#3b82f6; --primary-dark:#2563eb; --primary-light:#93c5fd;
-    --primary-soft:rgba(59,130,246,0.18);
-    --danger:#ef4444; --danger-dark:#dc2626;
+    --primary:#D4869C; --primary-dark:#C66A83; --primary-light:#E9A6B8;
+    --primary-soft:rgba(212,134,156,0.18); --on-primary:#26171C;
+    --accent:#F29A56; --accent-dark:#D9732E;
+    --on-accent:#30180D; --on-warning:#15101A; --danger:#F07171; --danger-dark:#D94A4A; --on-danger:#200808;
     --success:#22c55e; --success-dark:#16a34a;
-    --warning:#facc15; --warning-dark:#eab308;
-    --info:#38bdf8; --info-dark:#0ea5e9;
-    --body-bg-1:#020617; --body-bg-2:#0f172a; --body-bg-3:#1e293b;
-    --container-bg:rgba(15,23,42,0.92);
-    --container-border:rgba(59,130,246,0.20);
-    --card:#1e293b; --card-2:#0f172a; --surface:#334155; --hover:#334155;
-    --border:#334155; --border-2:#475569;
+    --warning:#F29A56; --warning-dark:#F7B078;
+    --info:#F29A56; --info-dark:#F7B078;
+    --body-bg-1:#1D1015; --body-bg-2:#28151D; --body-bg-3:#30201F;
+    --container-bg:rgba(35,22,27,0.96);
+    --container-border:rgba(212,134,156,0.20);
+    --card:#2A2023; --card-2:#21191C; --surface:#3B2D30; --hover:#493239;
+    --border:#49383D; --border-2:#604951;
     --text:#e2e8f0; --muted:#94a3b8;
-    --input-bg:#0f172a; --input-focus-bg:#1e293b;
-    --overlay-bg:rgba(2,6,23,0.78);
-    --toast-bg:#1e293b; --toast-text:#e2e8f0;
+    --input-bg:#21191C; --input-focus-bg:#302429;
+    --overlay-bg:rgba(18,9,13,0.82);
+    --toast-bg:#2A2023; --toast-text:#f4e9ec;
     --shadow-sm:0 1px 2px rgba(0,0,0,0.4);
     --shadow:0 4px 12px rgba(0,0,0,0.45);
     --shadow-lg:0 14px 40px rgba(0,0,0,0.55);
@@ -83,18 +85,18 @@
     flex-wrap:wrap;gap:15px}
   .header-left{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
   h1{color:var(--primary);font-size:1.9rem;display:flex;align-items:center;gap:12px;font-weight:800;letter-spacing:-.02em}
-  h1 .ic{color:var(--warning);width:1.1em;height:1.1em}
+  h1 .ic{color:var(--accent);width:1.1em;height:1.1em}
   .current-dataset{background:linear-gradient(135deg,var(--primary),var(--primary-dark));
-    color:#fff;padding:8px 22px;border-radius:40px;font-weight:600;font-size:.92rem;
+    color:var(--on-primary);padding:8px 22px;border-radius:40px;font-weight:600;font-size:.92rem;
     display:inline-flex;align-items:center;gap:10px;box-shadow:var(--shadow)}
   .header-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-  .sheet-status{display:flex;align-items:center;gap:10px;background:var(--card);
+  .sync-status{display:flex;align-items:center;gap:10px;background:var(--card);
     padding:8px 18px;border-radius:40px;box-shadow:var(--shadow);
     border:1px solid var(--border);font-weight:500;font-size:.88rem;color:var(--muted)}
-  .sheet-status .dot{width:10px;height:10px;border-radius:50%;background:#94a3b8;flex-shrink:0;
+  .sync-status .dot{width:10px;height:10px;border-radius:50%;background:#94a3b8;flex-shrink:0;
     box-shadow:0 0 0 3px transparent;transition:background .2s ease,box-shadow .2s ease}
-  .sheet-status.connected .dot{background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.2)}
-  .sheet-status.pending .dot{background:#f59e0b;box-shadow:0 0 0 3px rgba(245,158,11,.2)}
+  .sync-status.connected .dot{background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.2)}
+  .sync-status.pending .dot{background:#f59e0b;box-shadow:0 0 0 3px rgba(245,158,11,.2)}
   .icon-btn{background:var(--card);border:1px solid var(--border);color:var(--text);
     width:42px;height:42px;border-radius:12px;cursor:pointer;font-size:1.05rem;
     transition:var(--transition);display:inline-flex;align-items:center;justify-content:center}
@@ -127,27 +129,27 @@
   .btn:active{transform:translateY(0)}
   .btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
   .btn .ic{width:15px;height:15px}
-  .btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary-dark));border-color:transparent;color:#fff}
+  .btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary-dark));border-color:transparent;color:var(--on-primary)}
   .btn-primary:hover:not(:disabled){box-shadow:0 6px 18px var(--primary-soft)}
-  .btn-danger{background:linear-gradient(135deg,var(--danger),var(--danger-dark));border-color:transparent;color:#fff}
+  .btn-danger{background:linear-gradient(135deg,var(--danger),var(--danger-dark));border-color:transparent;color:var(--on-danger)}
   .btn-success{background:linear-gradient(135deg,var(--success),var(--success-dark));border-color:transparent;color:#fff}
-  .btn-warning{background:linear-gradient(135deg,var(--warning),var(--warning-dark));border-color:transparent;color:#1e293b}
-  .btn-info{background:linear-gradient(135deg,var(--info),var(--info-dark));border-color:transparent;color:#fff}
+  .btn-warning{background:linear-gradient(135deg,var(--warning),var(--warning-dark));border-color:transparent;color:var(--on-warning)}
+  .btn-info{background:linear-gradient(135deg,var(--info),var(--info-dark));border-color:transparent;color:var(--on-accent)}
   .btn-secondary{background:var(--card);color:var(--text)}
   .btn-secondary:hover:not(:disabled){background:var(--hover);border-color:var(--primary);color:var(--primary)}
-  .badge{background:#fff;color:var(--primary);border-radius:20px;padding:1px 8px;font-size:11px;font-weight:700;margin-left:4px;line-height:1.4}
+  .badge{background:#fff;color:#7A1F3D;border-radius:20px;padding:1px 8px;font-size:11px;font-weight:700;margin-left:4px;line-height:1.4}
   .table-container{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);
     overflow:hidden;margin-bottom:26px;border:1px solid var(--border);transition:box-shadow .2s ease,border-color .2s ease}
   .table-container:hover{box-shadow:var(--shadow-lg);border-color:var(--primary-light)}
   .table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
   .table-header{background:linear-gradient(135deg,var(--primary),var(--primary-dark));
-    color:#fff;padding:14px 22px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+    color:var(--on-primary);padding:14px 22px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
   .table-title{font-size:1.2rem;font-weight:700;padding:6px 14px;border-radius:12px;
     background:rgba(255,255,255,.15);cursor:text;outline:none;color:#fff;
-    transition:background .15s ease;min-width:80px;-webkit-user-select:text;user-select:text;caret-color:var(--warning)}
+    transition:background .15s ease;min-width:80px;-webkit-user-select:text;user-select:text;caret-color:var(--accent);color:var(--on-primary)}
   .table-title:focus{background:#fff;color:var(--text)}
   .table-actions{display:flex;gap:6px;flex-wrap:wrap}
-  .table-actions button{background:rgba(255,255,255,.18);border:none;color:#fff;
+  .table-actions button{background:rgba(255,255,255,.18);border:none;color:var(--on-primary);
     padding:8px 10px;border-radius:10px;font-size:.85rem;cursor:pointer;
     transition:var(--transition);display:inline-flex;align-items:center;justify-content:center;font-family:inherit}
   .table-actions button .ic{width:16px;height:16px}
@@ -202,11 +204,11 @@
   @keyframes popIn{from{transform:scale(.96);opacity:0}to{transform:scale(1);opacity:1}}
   .modal-content.wide{max-width:1000px}
   .modal-header{background:linear-gradient(135deg,var(--primary),var(--primary-dark));
-    color:#fff;padding:16px 22px;border-radius:22px 22px 0 0;
+    color:var(--on-primary);padding:16px 22px;border-radius:22px 22px 0 0;
     display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10}
   .modal-title{font-size:1.15rem;display:flex;align-items:center;gap:10px;font-weight:700}
   .modal-title .ic{width:20px;height:20px}
-  .close-modal{background:transparent;border:none;color:#fff;cursor:pointer;
+  .close-modal{background:transparent;border:none;color:var(--on-primary);cursor:pointer;
     padding:6px;border-radius:8px;transition:var(--transition);display:inline-flex;align-items:center;justify-content:center;font-family:inherit}
   .close-modal:hover{background:rgba(255,255,255,.2)}
   .close-modal .ic{width:20px;height:20px}
@@ -262,7 +264,7 @@
     padding:10px 18px;border-radius:12px;font-weight:600;font-size:.9rem;cursor:pointer;
     display:inline-flex;align-items:center;gap:8px;transition:var(--transition);font-family:inherit}
   .view-tab:hover{background:var(--hover);color:var(--primary);border-color:var(--primary)}
-  .view-tab.active{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;border-color:transparent;box-shadow:var(--shadow)}
+  .view-tab.active{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:var(--on-primary);border-color:transparent;box-shadow:var(--shadow)}
   .view-tab .ic{width:16px;height:16px}
   .att-toolbar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px}
   .att-title{font-size:1.15rem;font-weight:700;color:var(--primary)}
@@ -297,7 +299,7 @@
   .progress-subtabs{display:flex;gap:4px;margin-bottom:14px;flex-wrap:wrap}
   .progress-subtab{background:var(--card-2);border:1px solid var(--border);color:var(--muted);
     padding:6px 12px;border-radius:8px;font-weight:600;font-size:.82rem;cursor:pointer;font-family:inherit}
-  .progress-subtab.active{background:var(--primary);color:#fff;border-color:transparent}
+  .progress-subtab.active{background:var(--primary);color:var(--on-primary);border-color:transparent}
   .trend-up{color:var(--success);font-weight:700}
   .trend-down{color:var(--danger);font-weight:700}
   .trend-same{color:var(--muted)}
@@ -352,23 +354,6 @@
   .dup-choice{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;cursor:pointer;margin-top:6px;transition:var(--transition)}
   .dup-choice:hover{background:var(--hover)}
   .dup-choice input{width:auto;margin:0;accent-color:var(--primary)}
-  /* --- Report header blocks --- */
-  .srp-title-block{text-align:center;margin-bottom:18px;}
-  .srp-school{font-size:1.35rem;font-weight:800;color:var(--primary);letter-spacing:.5px;}
-  .srp-subtitle{font-size:.9rem;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:.5px;}
-  .srp-report-title{font-size:1rem;font-weight:700;color:var(--text);margin-top:10px;text-transform:uppercase;letter-spacing:1px;}
-  .srp-meta{display:grid;grid-template-columns:auto 1fr auto 1fr auto 1fr auto 1fr;gap:8px 14px;background:var(--card-2);border:1px solid var(--border);border-radius:12px;padding:12px 16px;margin-bottom:18px;font-size:.88rem;}
-  .srp-meta .lbl{color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.4px;font-size:.72rem;align-self:center;}
-  .srp-meta .val{color:var(--text);font-weight:600;align-self:center;}
-  .srp-meta .val.empty::after{content:"—";color:var(--muted);font-weight:400;}
-  .srp-actions{display:flex;gap:10px;justify-content:flex-end;margin-bottom:14px;flex-wrap:wrap;}
-  .srp-table{width:100%;border-collapse:collapse;font-size:.88rem;}
-  .srp-table th,.srp-table td{border:1px solid var(--border);padding:8px 6px;text-align:center;}
-  .srp-table th{background:var(--card-2);color:var(--muted);font-weight:700;font-size:.72rem;text-transform:uppercase;letter-spacing:.4px;}
-  .srp-table td.srp-name{text-align:left;}
-  .srp-table .srp-no{color:var(--muted);font-weight:600;width:40px;}
-  .srp-table .srp-total,.srp-table .srp-pos{font-weight:700;color:var(--primary);}
-  @media (max-width:700px){.srp-meta{grid-template-columns:auto 1fr;}}
   @media (max-width:700px){
     body{padding-top:max(10px, env(safe-area-inset-top));padding-bottom:max(10px, env(safe-area-inset-bottom));
       padding-left:max(10px, env(safe-area-inset-left));padding-right:max(10px, env(safe-area-inset-right))}
@@ -381,20 +366,20 @@
     .modal-header{border-radius:18px 18px 0 0}
     .kv-grid{grid-template-columns:1fr}
     .kv-grid .k{font-weight:600}
-    .sheet-status{font-size:.8rem;padding:6px 14px}
+    .sync-status{font-size:.8rem;padding:6px 14px}
   }
   @media print{
     :root{color-scheme:light;
       --text:#000;--muted:#444;--border:#999;--border-2:#999;
       --card:#fff;--card-2:#f5f5f5;--surface:#f5f5f5;--hover:#f0f0f0;
-      --primary:#0000cc;--primary-dark:#000088;--primary-light:#6666ff;
+      --primary:#7A1F3D;--primary-dark:#5B142B;--primary-light:#B84A69;
       --container-bg:#fff;--input-bg:#fff;--input-focus-bg:#fff;
       --body-bg-1:#fff;--body-bg-2:#fff;--body-bg-3:#fff;
-      --danger:#c00;--success:#080;--warning:#880;--info:#008;--overlay-bg:transparent}
+      --danger:#C62828;--success:#15803d;--warning:#E87524;--info:#E87524;--overlay-bg:transparent}
     body{background:#fff!important;color:#000!important}
     .container{background:#fff!important;box-shadow:none!important;border:1px solid #ccc;border-radius:0}
     .table-container{box-shadow:none!important;border:1px solid #ccc!important;border-radius:0}
-    .table-header{background:#2563eb!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .table-header{background:#7A1F3D!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
     .cat-config{background:#f5f5f5!important}
     th{background:#eee!important;color:#000!important;border-bottom:1px solid #999}
     td{border-bottom:1px solid #ddd;color:#000}
@@ -413,16 +398,55 @@
     .modal-overlay{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(15,23,42,.72)}
     [data-theme="dark"] .modal-overlay{background:rgba(2,6,23,.82)}
   }
-  .table-container,.table-scroll,.modal-content,.bulk-list-item{mask-image:-webkit-radial-gradient(white, black);-webkit-mask-image:-webkit-radial-gradient(white, black)}
+  .table-container,.table-scroll,.modal-content,.bulk-list-item{mask-image:radial-gradient(white, black);-webkit-mask-image:-webkit-radial-gradient(white, black)}
   .onb-att-opt{display:flex;align-items:center;gap:8px;padding:10px 14px;border:1px solid var(--border);
     border-radius:12px;background:var(--card-2);cursor:pointer;margin-bottom:8px;font-weight:500}
   .onb-att-opt:hover{border-color:var(--primary);background:var(--hover)}
   .onb-att-opt input{width:auto;margin:0;accent-color:var(--primary)}
+  /* --- Report header blocks --- */
+  .srp-title-block{text-align:center;margin-bottom:18px;}
+  .srp-school{font-size:1.35rem;font-weight:800;color:var(--primary);letter-spacing:.5px;}
+  .srp-subtitle{font-size:.9rem;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:.5px;}
+  .srp-report-title{font-size:1rem;font-weight:700;color:var(--text);margin-top:10px;text-transform:uppercase;letter-spacing:1px;}
+  .srp-meta{display:grid;grid-template-columns:auto 1fr auto 1fr auto 1fr auto 1fr;gap:8px 14px;background:var(--card-2);border:1px solid var(--border);border-radius:12px;padding:12px 16px;margin-bottom:18px;font-size:.88rem;}
+  .srp-meta .lbl{color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.4px;font-size:.72rem;align-self:center;}
+  .srp-meta .val{color:var(--text);font-weight:600;align-self:center;}
+  .srp-meta .val.empty::after{content:"—";color:var(--muted);font-weight:400;}
+  .srp-actions{display:flex;gap:10px;justify-content:flex-end;margin-bottom:14px;flex-wrap:wrap;}
+  .srp-table{width:100%;border-collapse:collapse;font-size:.88rem;}
+  .srp-table th,.srp-table td{border:1px solid var(--border);padding:8px 6px;text-align:center;}
+  .srp-table th{background:var(--card-2);color:var(--muted);font-weight:700;font-size:.72rem;text-transform:uppercase;letter-spacing:.4px;}
+  .srp-table td.srp-name{text-align:left;}
+  .srp-table .srp-no{color:var(--muted);font-weight:600;width:40px;}
+  .srp-table .srp-total,.srp-table .srp-pos{font-weight:700;color:var(--primary);}
 </style>
 </head>
 <body>
+<div id="authModal" class="modal-overlay" style="display:flex;z-index:4000;">
+  <div class="modal-content" style="max-width:440px;">
+    <div class="modal-header"><h2 class="modal-title"><span data-ic="key"></span> Results Pro account</h2></div>
+    <div class="modal-body">
+      <p id="authIntro" style="margin-bottom:16px;color:var(--muted);">Sign in to open your synced results.</p>
+      <label for="authEmail" style="display:block;font-weight:600;margin:10px 0 6px;">Email</label>
+      <input id="authEmail" type="email" autocomplete="username" required style="width:100%;padding:11px;border:1px solid var(--border);border-radius:10px;background:var(--input-bg);color:var(--text);">
+      <div id="authPasswordWrap">
+        <label for="authPassword" style="display:block;font-weight:600;margin:12px 0 6px;">Password</label>
+        <input id="authPassword" type="password" autocomplete="current-password" style="width:100%;padding:11px;border:1px solid var(--border);border-radius:10px;background:var(--input-bg);color:var(--text);">
+      </div>
+      <div id="authConfirmWrap" style="display:none;">
+        <label for="authConfirm" style="display:block;font-weight:600;margin:12px 0 6px;">Confirm password</label>
+        <input id="authConfirm" type="password" autocomplete="new-password" style="width:100%;padding:11px;border:1px solid var(--border);border-radius:10px;background:var(--input-bg);color:var(--text);">
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:18px;">
+        <button class="btn btn-primary" id="authSubmitBtn">Sign in</button>
+        <button class="btn btn-secondary" id="authModeBtn">Create account</button>
+        <button class="btn btn-secondary" id="authResetBtn">Reset password</button>
+      </div>
+    </div>
+  </div>
+</div>
 <div id="app">
-  <div id="mainApp">
+  <div id="mainApp" style="display:none;">
     <div class="container">
       <header>
         <div class="header-left">
@@ -436,8 +460,13 @@
           </span>
         </div>
         <div class="header-right">
-          <div class="sheet-status" id="sheetStatusPill" title="Cloud connection status">
-            <span class="dot"></span><span id="sheetStatusText">Offline — no Sheet connected</span>
+          <div id="firebaseUserInfo" style="display:none;align-items:center;gap:8px;font-size:.86rem;color:var(--muted);">
+            <span id="firebaseStatusText">Waiting for account</span>
+            <span id="firebaseUserEmail"></span>
+            <button id="logoutBtn" class="btn btn-secondary" style="padding:7px 10px;">Sign out</button>
+          </div>
+          <div class="sync-status" id="firebaseSyncStatusPill" title="Firebase database sync status">
+            <span class="dot"></span><span id="firebaseSyncStatusText">Waiting for Firebase</span>
           </div>
           <button id="themeBtn" class="icon-btn" title="Toggle theme" aria-label="Toggle theme">
             <span data-ic="moon"></span>
@@ -450,17 +479,21 @@
       <div class="controls-wrapper">
         <div class="button-group">
           <button id="addTableBtn" class="btn btn-primary">
-            <span data-ic="plus-circle"></span> Add Table
+            <span data-ic="plus-circle"></span> Add class
+          </button>
+          <button class="btn btn-secondary" id="importXlsxBtn">
+            <span data-ic="file-excel"></span> Import dataset (Excel)
+          </button>
+          <button class="btn btn-secondary" id="exportCurrentXlsxBtn">
+            <span data-ic="download"></span> Export current dataset
           </button>
           <div class="dropdown" id="fileDropdown">
             <button class="dropdown-toggle" id="fileDropdownToggle">
-              <span data-ic="file"></span> File <span data-ic="chevron-down" class="ic-sm"></span>
+              <span data-ic="wrench"></span> More <span data-ic="chevron-down" class="ic-sm"></span>
             </button>
             <div class="dropdown-menu" id="fileDropdownMenu">
-              <button id="importXlsxBtn"><span data-ic="file-excel"></span> Import Excel (.xlsx)</button>
               <button id="importJsonBtn"><span data-ic="file-code"></span> Import JSON (backup)</button>
               <hr>
-              <button id="exportCurrentXlsxBtn"><span data-ic="file-excel"></span> Export current dataset (xlsx)</button>
               <button id="exportAllXlsxBtn"><span data-ic="file-excel"></span> Export all datasets (xlsx)</button>
               <button id="exportCurrentJsonBtn"><span data-ic="download"></span> Export current dataset (json)</button>
               <button id="exportAllJsonBtn"><span data-ic="download"></span> Export all datasets (json)</button>
@@ -480,12 +513,6 @@
               <button id="setupGuideBtn"><span data-ic="book"></span> Setup guide</button>
             </div>
           </div>
-          <button id="pushBtn" class="btn btn-info" title="Push local data to Google Sheet">
-            <span data-ic="cloud-up"></span> Push <span class="badge" id="pushBadge" style="display:none;">!</span>
-          </button>
-          <button id="pullBtn" class="btn btn-secondary" title="Pull from Google Sheet">
-            <span data-ic="cloud-down"></span> Pull
-          </button>
         </div>
       </div>
       <div id="viewTabs" class="view-tabs" style="display:none;">
@@ -499,9 +526,9 @@
       <main id="tablesContainer">
         <div class="empty-state" id="emptyState">
           <span data-ic="database" class="ic-xl"></span>
-          <p>No tables yet. Click "Add Table" to begin.</p>
+          <p>No classes yet. Add a class or import an Excel file to get started.</p>
           <button id="initialAddTable" class="btn btn-primary">
-            <span data-ic="plus-circle"></span> Create First Table
+            <span data-ic="plus-circle"></span> Create first class
           </button>
         </div>
       </main>
@@ -526,11 +553,10 @@
       <h2 class="modal-title"><span data-ic="sparkles"></span> Welcome</h2>
     </div>
     <div class="modal-body">
-      <p style="margin-bottom:14px;">This app stores your results <b>on this device</b> (offline-first). You can optionally connect your own Google Sheet to back up and sync.</p>
+      <p style="margin-bottom:14px;">Your results are saved in your Firebase account and synced across your signed-in devices. The app also keeps a local copy for offline use.</p>
       <ul style="padding-left:22px;line-height:1.9;font-size:.92rem;">
-        <li>Works fully offline — nothing required to start.</li>
+        <li>Works offline and syncs changes to Firebase when connected.</li>
         <li>Import / export Excel files anytime.</li>
-        <li>Connect a Google Sheet in Settings to push/pull.</li>
       </ul>
       <div style="margin-top:18px;">
         <p style="font-weight:700;margin-bottom:8px;color:var(--primary);">Do you track attendance?</p>
@@ -543,11 +569,10 @@
           <span>No — hide attendance (can be enabled later in Settings)</span>
         </label>
       </div>
-      <p style="margin-top:14px;font-size:.85rem;color:var(--muted);">Since data lives on this device, use <b>Export</b> regularly as a backup.</p>
+      <p style="margin-top:14px;font-size:.85rem;color:var(--muted);">Use <b>Export</b> to create an additional backup file.</p>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-primary" id="onboardingLocalBtn"><span data-ic="check"></span> Start using locally</button>
-      <button class="btn btn-secondary" id="onboardingConnectBtn"><span data-ic="cloud-up"></span> Connect a Sheet</button>
+      <button class="btn btn-primary" id="onboardingLocalBtn"><span data-ic="check"></span> Continue</button>
     </div>
   </div>
 </div>
@@ -562,36 +587,6 @@
       <div class="settings-section">
         <h3><span data-ic="home"></span> School identity</h3>
         <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;"><input id="inpSchoolName" maxlength="120" placeholder="School name" style="flex:1;min-width:220px;padding:11px 14px;border:1px solid var(--border);border-radius:12px;background:var(--input-bg);color:var(--text);"><button class="btn btn-primary" id="btnSaveSchoolName"><span data-ic="save"></span> Save school name</button></div>
-      </div>
-      <div class="settings-section">
-        <h3><span data-ic="cloud-up"></span> Cloud connection</h3>
-        <div class="settings-form">
-          <div>
-            <label>Apps Script Web App URL</label>
-            <input id="inpUrl" placeholder="https://script.google.com/macros/s/.../exec" autocomplete="off" spellcheck="false">
-          </div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;">
-            <button class="btn btn-primary" id="btnTest"><span data-ic="link"></span> Test connection</button>
-            <button class="btn btn-success" id="btnSaveUrl"><span data-ic="save"></span> Save URL</button>
-            <button class="btn btn-danger" id="btnDisconnect" style="display:none;"><span data-ic="x"></span> Disconnect</button>
-          </div>
-        </div>
-        <div class="kv-grid" style="margin-top:20px;">
-          <div class="k">Last push</div><div id="kvLastPush">—</div>
-          <div class="k">Last pull</div><div id="kvLastPull">—</div>
-          <div class="k">Device ID</div><div><code id="kvDeviceId"></code></div>
-          <div class="k">Local datasets</div><div id="kvDatasetCount">0</div>
-        </div>
-      </div>
-      <div class="settings-section">
-        <h3><span data-ic="key"></span> Your secret token</h3>
-        <p style="font-size:.88rem;color:var(--muted);margin-bottom:10px;">Baked into the Apps Script snippet. Keep it private.</p>
-        <input id="inpSecret" readonly onclick="this.select()" style="width:100%;padding:11px 14px;border:1px solid var(--border);border-radius:12px;font-family:ui-monospace,monospace;font-size:.82rem;background:var(--input-bg);color:var(--text);">
-      </div>
-      <div class="settings-section">
-        <h3><span data-ic="code"></span> Apps Script snippet</h3>
-        <button class="btn btn-primary" id="btnCopySnippet"><span data-ic="copy"></span> Copy to clipboard</button>
-        <pre class="snippet" id="snippetBox"></pre>
       </div>
       <div class="settings-section">
         <h3><span data-ic="database"></span> Local data</h3>
@@ -609,7 +604,7 @@
           </label>
           <button class="btn btn-danger" id="btnWipeAttendance" style="display:none;"><span data-ic="trash"></span> Wipe attendance data</button>
         </div>
-        <p style="font-size:.85rem;color:var(--muted);">When off, the Attendance tab is hidden and attendance is not synced to the Google Sheet. Existing local data is kept.</p>
+        <p style="font-size:.85rem;color:var(--muted);">When off, the Attendance tab is hidden. Existing attendance data is kept.</p>
       </div>
       <div class="settings-section">
         <h3><span data-ic="bar-chart"></span> Analysis thresholds</h3>
@@ -629,7 +624,7 @@
       </div>
       <div class="settings-section">
         <h3><span data-ic="history"></span> Backups</h3>
-        <p style="font-size:.88rem;color:var(--muted);margin-bottom:10px;">Automatic backups are created before each Pull, Import, Restore, or Clear. Last 5 are kept.</p>
+        <p style="font-size:.88rem;color:var(--muted);margin-bottom:10px;">Automatic backups are created before each Import, Restore, or Clear. Last 5 are kept.</p>
         <div id="backupsList"></div>
       </div>
     </div>
@@ -644,16 +639,12 @@
     </div>
     <div class="modal-body">
       <ol style="padding-left:22px;line-height:1.9;font-size:.92rem;">
-        <li>Create a new Google Sheet (any name).</li>
-        <li>In the sheet, click <b>Extensions → Apps Script</b>.</li>
-        <li>Delete the sample code and paste the snippet from <b>Settings</b>. Click Save.</li>
-        <li>Click <b>Deploy → New deployment</b>. Type: <b>Web app</b>. Execute as: <b>Me</b>. Who has access: <b>Anyone</b>. Click Deploy.</li>
-        <li>Authorize when prompted (it's your own script, so accept).</li>
-        <li>Copy the <b>Web app URL</b> (ends in <code>/exec</code>) and paste it into Settings → Save URL → Test connection.</li>
-        <li>Done. Use <b>Push</b> to send your local data to the sheet, <b>Pull</b> to fetch from it.</li>
+        <li>Sign in with your Firebase account to load your saved results.</li>
+        <li>Changes save automatically to the database when you are online.</li>
+        <li>The header shows “Changes pending” while saving and “Synced with Firebase” after a successful save.</li>
+        <li>Sign in with the same account on another device to load the same data.</li>
+        <li>Use Excel or JSON export for a separate backup file.</li>
       </ol>
-      <p style="margin-top:16px;font-size:.85rem;color:var(--muted);">Your Web App URL is a secret. Anyone with it plus your secret token can read/write your sheet. Keep both private.</p>
-      <p style="margin-top:8px;font-size:.85rem;color:var(--muted);">If you edit the snippet later, use <b>Deploy → Manage deployments → Edit → New version</b> to keep the same URL.</p>
     </div>
     <div class="modal-footer">
       <button class="btn btn-primary" data-close>Got it</button>
@@ -795,13 +786,16 @@
 <div id="toastContainer" class="toast-container"></div>
 
 <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script>
 (function(){
 'use strict';
 
 const IC = {
-  brand:'<svg class="ic" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>',
   home:'<svg class="ic" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
+  brand:'<svg class="ic" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>',
   moon:'<svg class="ic" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>',
   sun:'<svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>',
   cog:'<svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 10v6M4.2 4.2l4.3 4.3m7 7l4.3 4.3M1 12h6m10 0h6M4.2 19.8l4.3-4.3m7-7l4.3-4.3"/></svg>',
@@ -866,11 +860,32 @@ function applyTheme(theme){
     btn.title=theme==='dark'?'Switch to light':'Switch to dark';
   }
   const meta=document.querySelector('meta[name="theme-color"]');
-  if(meta) meta.setAttribute('content',theme==='dark'?'#0f172a':'#2563eb');
+  if(meta) meta.setAttribute('content',theme==='dark'?'#1D1015':'#7A1F3D');
 }
 function toggleTheme(){ applyTheme(currentTheme()==='dark'?'light':'dark'); }
 
-const APP_VERSION='4.1.3';
+const APP_VERSION='4.2.0';
+const firebaseConfig={
+  apiKey:'AIzaSyCw1UnzkY4Eq_ImEnRDRFYmUMhSc95T-NU',
+  authDomain:'lesson-notes-2025.firebaseapp.com',
+  projectId:'lesson-notes-2025',
+  storageBucket:'lesson-notes-2025.firebasestorage.app',
+  messagingSenderId:'757231923808',
+  appId:'1:757231923808:web:3c72026662c8a296134905'
+};
+if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+const firebaseAuth=firebase.auth();
+const firebaseStore=firebase.firestore();
+firebaseStore.enablePersistence({synchronizeTabs:true}).catch(()=>{});
+let authMode='signin';
+function setFirebaseStatus(message){
+  const status=document.getElementById('firebaseStatusText');
+  const visible=document.getElementById('firebaseSyncStatusText');
+  const pill=document.getElementById('firebaseSyncStatusPill');
+  if(status) status.textContent=message;
+  if(visible) visible.textContent=message;
+  if(pill) pill.className='sync-status'+(message==='Synced with Firebase'?' connected':/pending|queued|retrying/i.test(message)?' pending':'');
+}
 const DEFAULT_CAT_COLUMNS=[
   {id:'cat1',name:'CAT1',maxScore:15},
   {id:'cat2',name:'CAT2',maxScore:20},
@@ -908,7 +923,6 @@ function suggestNextTerm(term){
   if(m) return 'Term '+(parseInt(m[1],10)+1);
   return term;
 }
-// FIX 1: strict calendar validation for dates
 function isValidISODate(s){
   if(!/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;
   const parts = s.split('-');
@@ -949,41 +963,6 @@ function parseAttendanceTabName(tabName){
   if(!m) return null;
   return { display: m[1].trim(), attId: m[2] };
 }
-
-/* ========== Shared report helpers ========== */
-// Short code: first 3 alphanumeric chars, uppercased. e.g. "Mathematics" → "MAT"
-function shortCode(name){
-  return String(name||'').replace(/[^A-Za-z0-9]/g,'').slice(0,3).toUpperCase() || '—';
-}
-// Infer grade from a dataset name: "Grade 5", "G5", "Primary 5", "P5", "Class 5", "Basic 4"
-function inferGrade(name){
-  if(!name) return '';
-  const m=String(name).match(/\b(grade|g|primary|p|class|basic)\s*(\d+)\b/i);
-  if(!m) return '';
-  const k=m[1].toLowerCase();
-  const long={grade:'Grade',primary:'Primary',class:'Class',basic:'Basic'};
-  const short={g:'G',p:'P'};
-  if(long[k]) return long[k]+' '+m[2];
-  if(short[k]) return short[k]+m[2];
-  return m[0];
-}
-// Infer year: "2024/2025", "2024-2025", or a lone "2024"
-function inferYear(name){
-  if(!name) return '';
-  const s=String(name);
-  let m=s.match(/(20\d{2})\s*[\/\-–]\s*(20\d{2})/);
-  if(m) return m[1]+'/'+m[2];
-  m=s.match(/\b(20\d{2})\b/);
-  if(m) return m[1];
-  return '';
-}
-function dsGrade(ds){ return (ds&&ds.grade)?ds.grade:(inferGrade((ds&&ds.name)||'')||''); }
-function dsYear(ds){
-  if(ds&&ds.year) return ds.year;
-  return inferYear((ds&&ds.name)||'')||inferYear((ds&&ds.term)||'')||'';
-}
-function dsTeacher(ds){ return (ds&&ds.classTeacher)?ds.classTeacher:''; }
-
 const SRP_REPORT_CSS = `
   .srp-title-block{text-align:center;margin-bottom:16px}
   .srp-school{font-size:20px;font-weight:800;color:#1d4ed8;letter-spacing:.5px}
@@ -993,6 +972,7 @@ const SRP_REPORT_CSS = `
   .srp-meta .lbl{color:#666;font-weight:700;text-transform:uppercase;font-size:10px;letter-spacing:.4px;align-self:center}
   .srp-meta .val{font-weight:600;align-self:center}
 `;
+
 
 function attendanceToRows(ds, schoolName){
   const att = ds.attendance || {};
@@ -1125,130 +1105,6 @@ const DB={
   async clearAll(){ await req(tx('state','readwrite').clear()); await req(tx('backups','readwrite').clear()); }
 };
 
-function buildAppsScriptSnippet(secret){
-  return `// === Student Results Pro — Apps Script backend ===
-// Paste into Extensions → Apps Script, then Deploy as Web app.
-// Execute as: Me. Who has access: Anyone. Copy the /exec URL back into the app.
-
-const SECRET = '${secret}';
-const META_TAB = '_meta';
-const LOG_TAB = '_log';
-const MAX_LOG_ROWS = 500;
-
-function doGet(e){ return handle(e.parameter); }
-function doPost(e){
-  try { return handle(JSON.parse(e.postData.contents)); }
-  catch(err){ return json({ok:false, error:'invalid json: '+err}); }
-}
-
-function handle(p){
-  try {
-    if (p.secret !== SECRET) return json({ok:false, error:'invalid secret'});
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    switch(p.action){
-      case 'ping': return json({ok:true, tabs: ss.getSheets().length});
-      case 'read': return json(Object.assign({ok:true}, readAll(ss)));
-      case 'write': return json(Object.assign({ok:true}, writeAll(ss, p.payload)));
-    }
-    return json({ok:false, error:'unknown action'});
-  } catch(err){ return json({ok:false, error:String(err)}); }
-}
-
-function json(o){
-  return ContentService.createTextOutput(JSON.stringify(o))
-    .setMimeType(ContentService.MimeType.JSON);
-}
-
-function ensureTab(ss, name){
-  var sh = ss.getSheetByName(name);
-  if (!sh) sh = ss.insertSheet(name);
-  return sh;
-}
-
-function readAll(ss){
-  var out = { meta: {}, tabs: [] };
-  var metaSheet = ss.getSheetByName(META_TAB);
-  if (metaSheet && metaSheet.getLastRow() >= 1){
-    var metaData = metaSheet.getRange(1, 1, metaSheet.getLastRow(), 2).getValues();
-    metaData.forEach(function(row){
-      if (row[0]) out.meta[String(row[0])] = String(row[1]);
-    });
-  }
-  ss.getSheets().forEach(function(sh){
-    var name = sh.getName();
-    if (name === META_TAB || name === LOG_TAB) return;
-    var last = sh.getLastRow();
-    if (last < 1) return;
-    var maxCols = Math.max(1, sh.getLastColumn());
-    var values = sh.getRange(1, 1, last, maxCols).getValues();
-    out.tabs.push({ name: name, rows: values });
-  });
-  return out;
-}
-
-function writeAll(ss, payload){
-  if (!payload) return { written: 0 };
-  var meta = payload.meta || {};
-  var tabs = payload.tabs || [];
-  var logEntries = payload.logEntries || [];
-
-  var metaSheet = ensureTab(ss, META_TAB);
-  metaSheet.clear();
-  var metaRows = Object.keys(meta).map(function(k){ return [k, meta[k]]; });
-  if (metaRows.length === 0) metaRows = [['version', '4.1.3']];
-  metaSheet.getRange(1, 1, metaRows.length, 2).setValues(metaRows);
-
-  var expected = {};
-  tabs.forEach(function(t){ expected[t.name] = true; });
-  ss.getSheets().forEach(function(sh){
-    var name = sh.getName();
-    if (name === META_TAB || name === LOG_TAB) return;
-    if (!expected[name]) ss.deleteSheet(sh);
-  });
-
-  tabs.forEach(function(t){
-    var sh = ensureTab(ss, t.name);
-    sh.clear();
-    if (t.rows && t.rows.length > 0){
-      var maxCols = Math.max.apply(null, t.rows.map(function(r){ return r.length; }));
-      var normalized = t.rows.map(function(r){
-        var row = r.slice();
-        while (row.length < maxCols) row.push('');
-        return row;
-      });
-      sh.getRange(1, 1, normalized.length, maxCols).setNumberFormat('@');
-      sh.getRange(1, 1, normalized.length, maxCols).setValues(normalized);
-    }
-  });
-
-  if (logEntries.length > 0){
-    var logSheet = ensureTab(ss, LOG_TAB);
-    if (logSheet.getLastRow() === 0) logSheet.appendRow(['Timestamp','Device','Action','Detail']);
-    logEntries.forEach(function(e){ logSheet.appendRow(e); });
-    var total = logSheet.getLastRow();
-    if (total > MAX_LOG_ROWS + 1) logSheet.deleteRows(2, total - MAX_LOG_ROWS - 1);
-  }
-
-  return { written: tabs.length };
-}
-`;
-}
-
-async function cloudFetch(action,payload){
-  const url=await DB.getSetting('sheetUrl','');
-  const secret=await DB.getSetting('secret','');
-  if(!url) throw new Error('Cloud not configured');
-  let res;
-  try{
-    res=await fetch(url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action,secret,...payload})});
-  }catch(e){throw new Error('Network error — check your internet connection')}
-  if(!res.ok) throw new Error('Server returned HTTP '+res.status);
-  let data;
-  try{ data=await res.json(); }catch(e){ throw new Error('Server response was not valid JSON') }
-  if(!data.ok) throw new Error(data.error||'Unknown error from Apps Script');
-  return data;
-}
-
 function tableToRows(tbl, ds, schoolName){
   const term=tbl.term||(ds&&ds.term)||'';
   const headers=['NAMES','ID','GENDER'];
@@ -1274,25 +1130,35 @@ function tableToRows(tbl, ds, schoolName){
   }
   return rows;
 }
-function buildTabsFromDatasets(datasets, attendanceEnabled, schoolName){
-  const tabs=[]; const seenTabs=new Map();
-  for(const ds of datasets){
-    for(const tbl of ds.tables){
-      const displayName=sanitizeTabName(`${ds.name} - ${tbl.name}`);
-      const dkey=displayName+'|'+tbl.id;
-      const dn=(seenTabs.get(dkey)||0)+1; seenTabs.set(dkey,dn);
-      const tabName=(dn>1?displayName+' ('+dn+')':displayName)+' — '+tbl.id;
-      tabs.push({ name:tabName, rows:tableToRows(tbl,ds,schoolName) });
-    }
-    if(attendanceEnabled && ds.attendance && ds.attendance.dates && ds.attendance.dates.length > 0){
-      const hasRoster = (ds.tables||[]).some(t=>(t.students||[]).some(s=>s.id));
-      if(hasRoster){
-        tabs.push({ name: buildAttendanceTabName(ds), rows: attendanceToRows(ds,schoolName) });
-      }
-    }
-  }
-  return tabs;
+function shortCode(name){
+  return String(name||'').replace(/[^A-Za-z0-9]/g,'').slice(0,3).toUpperCase() || '—';
 }
+function inferGrade(name){
+  if(!name) return '';
+  const m=String(name).match(/\b(grade|g|primary|p|class|basic)\s*(\d+)\b/i);
+  if(!m) return '';
+  const k=m[1].toLowerCase();
+  const long={grade:'Grade',primary:'Primary',class:'Class',basic:'Basic'};
+  const short={g:'G',p:'P'};
+  if(long[k]) return long[k]+' '+m[2];
+  if(short[k]) return short[k]+m[2];
+  return m[0];
+}
+function inferYear(name){
+  if(!name) return '';
+  const s=String(name);
+  let m=s.match(/(20\d{2})\s*[\/\-–]\s*(20\d{2})/);
+  if(m) return m[1]+'/'+m[2];
+  m=s.match(/\b(20\d{2})\b/);
+  if(m) return m[1];
+  return '';
+}
+function dsGrade(ds){ return (ds&&ds.grade)?ds.grade:(inferGrade((ds&&ds.name)||'')||''); }
+function dsYear(ds){
+  if(ds&&ds.year) return ds.year;
+  return inferYear((ds&&ds.name)||'')||inferYear((ds&&ds.term)||'')||'';
+}
+function dsTeacher(ds){ return (ds&&ds.classTeacher)?ds.classTeacher:''; }
 
 function buildMetaFromDatasets(datasets,currentDatasetId,schoolName){
   const meta={ version:APP_VERSION, currentDatasetId:currentDatasetId||'', generatedAt:new Date().toISOString() };
@@ -1404,11 +1270,6 @@ function buildDatasetsFromRaw(meta,tabs,opts){
       if(dc){ try{ dc.comments=JSON.parse(meta[k])||{}; }catch(e){} }
     }
   }
-  // Apply schoolName from meta if the local setting is blank
-  if(meta && meta.schoolName && (!App.settings.schoolName)){
-    DB.setSetting('schoolName', String(meta.schoolName));
-    App.settings.schoolName = String(meta.schoolName);
-  }
   for(const tab of tabs){
     if(parseAttendanceTabName(tab.name)) continue;
     const parsedName=parseTabName(tab.name);
@@ -1432,7 +1293,7 @@ function buildDatasetsFromRaw(meta,tabs,opts){
       for(const ds of datasetMap.values()){ if(ds.name===dsName){ found=ds; break; } }
       if(!found){
         const newId='ds-'+generateId();
-        found={ id:newId, name:dsName, term:'', grade:'', year:'', classTeacher:'', tableCounter:1, tables:[], comments:{}, attendance:{enabled:false,dates:[],records:{},comments:{}} };
+        found={ id:newId, name:dsName, term:'', tableCounter:1, tables:[], comments:{}, attendance:{enabled:false,dates:[],records:{},comments:{}} };
         datasetMap.set(newId,found);
       }
       targetDataset=found;
@@ -1591,10 +1452,10 @@ function diffTableContent(local,incoming){
 }
 
 function closeAllModals(){
-  document.querySelectorAll('.modal-overlay').forEach(m=>m.style.display='none');
+  document.querySelectorAll('.modal-overlay').forEach(m=>{ if(m.id!=='authModal') m.style.display='none'; });
   document.body.classList.remove('modal-open');
 }
-document.addEventListener('click',e=>{ if(e.target.classList.contains('modal-overlay')) e.target.style.display='none'; });
+document.addEventListener('click',e=>{ if(e.target.classList.contains('modal-overlay')&&e.target.id!=='authModal') e.target.style.display='none'; });
 document.addEventListener('click',e=>{ if(e.target.closest('[data-close]')){ const ov=e.target.closest('.modal-overlay'); if(ov) ov.style.display='none'; } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeAllModals(); });
 
@@ -1618,6 +1479,7 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeAllModals(); 
 
 const App={
   datasets:[], currentDatasetId:null, settings:{}, onboarded:false, _dirty:false, _idCounter:1,
+  firebaseUser:null, _loadedUid:null, _cloudLoading:false, _cloudReady:false, _cloudTimer:null, _cloudInterval:null, _onlineHandler:null, _cloudSyncing:false, _cloudPushing:null, _cloudPending:false, _localUpdatedAt:0, initialized:false,
   _tableImportState:null, _tableExportId:null,
   currentView:'students',
   thresholds:{ attendancePct:80, academicDrop:10, academicImprove:10 },
@@ -1632,10 +1494,15 @@ const App={
     await DB.setSetting('idCounter', this._idCounter);
     return id;
   },
+  async ensureStudentIds(){
+    for(const ds of this.datasets) for(const table of (ds.tables||[])) for(const student of (table.students||[])){
+      if(!student.id) student.id=await this.nextStudentId();
+    }
+  },
 
   async migrateToV4(){
     const ver=await DB.getSetting('version','');
-    if(ver==='4.0.0'||ver==='4.0.1'||ver==='4.1.0'||ver==='4.1.1'||ver==='4.1.2'||ver==='4.1.3') return false;
+    if(ver==='4.0.0'||ver==='4.0.1'||ver==='4.1.0'||ver==='4.1.1'||ver==='4.1.2') return false;
     let maxN=0;
     this.datasets.forEach(ds=>{
       (ds.tables||[]).forEach(t=>{
@@ -1663,21 +1530,21 @@ const App={
         }
       }
     }
-    await DB.setSetting('version','4.1.3');
-    this.settings.version='4.1.3';
+    await DB.setSetting('version','4.1.2');
+    this.settings.version='4.1.2';
     if(assigned>0) showToast('success','Updated','Migration complete — students now have IDs.');
     return true;
   },
 
   async init(){
+    this._cloudLoading=true;
     try{ await openDB(); }
     catch(e){
+      this._cloudLoading=false;
       document.getElementById('mainApp').innerHTML='<div class="container"><div class="empty-state">'+IC['alert-triangle']+'<h2>Storage unavailable</h2><p>'+esc(e.message||'Unknown error')+'</p><button class="btn btn-primary" onclick="location.reload()">Reload</button></div></div>';
       return;
     }
     try{ if(navigator.storage&&navigator.storage.persist) navigator.storage.persist(); }catch(e){}
-    if(!await DB.getSetting('secret','')) await DB.setSetting('secret',uuid());
-    if(!await DB.getSetting('deviceId','')) await DB.setSetting('deviceId',uuid());
     this.settings=await DB.allSettings();
     this.onboarded=await DB.getSetting('onboarded',false);
     this._idCounter=await DB.getSetting('idCounter',1)||1;
@@ -1688,13 +1555,50 @@ const App={
     const th=await DB.getSetting('thresholds', null);
     if(th) this.thresholds=Object.assign(this.thresholds, th);
     const stored=await DB.getState();
-    if(stored&&stored.data&&stored.data.datasets&&stored.data.datasets.length){
-      this.datasets=stored.data.datasets;
+    let remoteData=null, remoteReadFailed=false;
+    try{ remoteData=await this.readFirebaseData(this.firebaseUser.uid); }
+    catch(e){ remoteReadFailed=true; setFirebaseStatus('Offline — using this device'); }
+    const legacyLocal=(()=>{ try{ const raw=localStorage.getItem('studentResultsData'); return raw?JSON.parse(raw):null; }catch(e){ return null; } })();
+    const remoteDatasets=remoteData&&(remoteData.resultDatasets||remoteData.datasets);
+    const localDatasets=stored&&stored.data&&stored.data.datasets;
+    const hasLocal=Array.isArray(localDatasets)&&localDatasets.length>0;
+    const legacyDatasets=legacyLocal&&(legacyLocal.resultDatasets||legacyLocal.datasets);
+    const hasLegacy=Array.isArray(legacyDatasets)&&legacyDatasets.length>0;
+    const hasRemote=Array.isArray(remoteDatasets)&&remoteDatasets.length>0;
+    const localTime=(stored&&stored.data&&Number(stored.data.lastUpdated))||0;
+    const remoteTime=(remoteData&&Number(remoteData.lastUpdated))||0;
+    const localDirty=!!(stored&&stored.data&&stored.data.dirty);
+    // Only prompt when this device actually holds unsynced edits.
+    // Otherwise the cloud copy is authoritative and wins silently.
+    let chooseLocal=false;
+    if(hasRemote&&localDirty&&(hasLocal||hasLegacy)){
+      chooseLocal=!confirm('This device has unsynced changes, and the cloud also has data.\n\nChoose OK/Yes to replace this device’s data with the cloud copy. Choose Cancel/No to keep this device’s data and replace the cloud copy.');
+    }else if(!hasRemote&&(hasLocal||hasLegacy)){
+      chooseLocal=true;
+    }
+    if(!chooseLocal&&hasRemote){
+      if(remoteData.schoolName!==undefined){ this.settings.schoolName=remoteData.schoolName||''; await DB.setSetting('schoolName',this.settings.schoolName); }
+      this.datasets=remoteDatasets.map(ds=>this.normalizeJsonDataset(ds)).filter(Boolean);
+      this.currentDatasetId=remoteData.currentDatasetId||this.datasets[0]?.id||null;
+      this._localUpdatedAt=remoteTime;
+      this._dirty=false;
+      this._cloudPending=false;
+    }else if(hasLocal){
+      this.datasets=localDatasets;
       this.currentDatasetId=stored.data.currentDatasetId;
+      this._localUpdatedAt=localTime;
       this._dirty=!!stored.data.dirty;
+      this._cloudPending=this._dirty||!remoteReadFailed;
+    }else if(hasLegacy){
+      this.datasets=legacyDatasets.map(ds=>this.normalizeJsonDataset(ds)).filter(Boolean);
+      this.currentDatasetId=legacyLocal.currentDatasetId||this.datasets[0]?.id||null;
+      this._localUpdatedAt=Number(legacyLocal.lastUpdated)||0;
+      this._dirty=true;
+      this._cloudPending=!remoteReadFailed;
     }else{
       this.createDefaultDataset(false);
       this._dirty=false;
+      this._cloudPending=!remoteReadFailed;
     }
     let inferredTerms=false;
     for(const ds of this.datasets){
@@ -1711,16 +1615,21 @@ const App={
     if(inferredTerms) await this.saveState();
     this.renderAll();
     this.bindEvents();
-    this.refreshStatus();
+    this.initialized=true;
+    this._loadedUid=this.firebaseUser.uid;
     this.updateViewTabs();
+    // Persist the selected startup source locally without implicitly uploading it.
+    await DB.setState({datasets:this.datasets,currentDatasetId:this.currentDatasetId,lastUpdated:this._localUpdatedAt,dirty:this._dirty});
+    this._cloudLoading=false;
+    this._cloudReady=true;
+    this.startFirebaseSync();
+    if(this._cloudPending) await this.pushFirebaseData();
     if(!this.onboarded) document.getElementById('onboardingModal').style.display='flex';
   },
 
   bindEvents(){
     document.getElementById('settingsBtn').addEventListener('click',()=>this.openSettings());
     document.getElementById('themeBtn').addEventListener('click',()=>toggleTheme());
-    document.getElementById('pushBtn').addEventListener('click',()=>this.push());
-    document.getElementById('pullBtn').addEventListener('click',()=>this.pull());
     document.getElementById('addTableBtn').addEventListener('click',()=>this.addNewTable());
     const fdt=document.getElementById('fileDropdownToggle');
     const tdt=document.getElementById('toolsDropdownToggle');
@@ -1752,10 +1661,6 @@ const App={
     document.getElementById('tableImportApplyBtn').addEventListener('click',()=>this.applyTableImport());
     document.getElementById('tableExportXlsxBtn').addEventListener('click',()=>this.exportTableXlsx(this._tableExportId));
     document.getElementById('tableExportJsonBtn').addEventListener('click',()=>this.exportTableJson(this._tableExportId));
-    document.getElementById('btnTest').addEventListener('click',()=>this.testConnection());
-    document.getElementById('btnSaveUrl').addEventListener('click',()=>this.saveSheetUrl());
-    document.getElementById('btnDisconnect').addEventListener('click',()=>this.disconnectSheet());
-    document.getElementById('btnCopySnippet').addEventListener('click',()=>this.copySnippet());
     document.getElementById('btnExportAllQuick').addEventListener('click',()=>this.exportAllXlsx());
     document.getElementById('btnWipeLocal').addEventListener('click',()=>this.wipeLocal());
     document.getElementById('chkAttendance').addEventListener('change',e=>this.toggleAttendance(e.target.checked));
@@ -1764,14 +1669,13 @@ const App={
     document.getElementById('btnSaveSchoolName').addEventListener('click',()=>this.saveSchoolName());
     document.getElementById('saveDatasetDetailsBtn').addEventListener('click',()=>this.saveDatasetDetails());
     document.getElementById('btnDupScan').addEventListener('click',()=>this.runDuplicateScan());
-    document.getElementById('onboardingLocalBtn').addEventListener('click',()=>this.finishOnboarding(false));
-    document.getElementById('onboardingConnectBtn').addEventListener('click',()=>this.finishOnboarding(true));
+    document.getElementById('onboardingLocalBtn').addEventListener('click',()=>this.finishOnboarding());
     document.getElementById('createNewDatasetBtn').addEventListener('click',()=>this.createNewDataset());
     document.getElementById('tabStudents').addEventListener('click',()=>this.switchView('students'));
     document.getElementById('tabAttendance').addEventListener('click',()=>this.switchView('attendance'));
   },
 
-  async finishOnboarding(openSettings){
+  async finishOnboarding(){
     const sel=document.querySelector('input[name="attOnb"]:checked');
     const attOn = sel ? sel.value==='yes' : true;
     await DB.setSetting('attendanceEnabled', attOn);
@@ -1780,7 +1684,6 @@ const App={
     this.onboarded=true;
     document.getElementById('onboardingModal').style.display='none';
     this.updateViewTabs();
-    if(openSettings) this.openSettings();
   },
 
   updateViewTabs(){
@@ -1993,9 +1896,6 @@ const App={
     this.datasets.forEach(ds=>{
       if(!ds.tables) ds.tables=[];
       if(!ds.term) ds.term='';
-      if(ds.grade===undefined) ds.grade='';
-      if(ds.year===undefined) ds.year='';
-      if(ds.classTeacher===undefined) ds.classTeacher='';
       if(!ds.comments) ds.comments={};
       if(!ds.attendance) ds.attendance={enabled:false,dates:[],records:{},comments:{}};
       if(!ds.tableCounter||ds.tableCounter<1) ds.tableCounter=1;
@@ -2028,29 +1928,201 @@ const App={
       });
     });
   },
+  async readFirebaseData(uid){
+    const doc=await firebaseStore.collection('users').doc(uid).get();
+    return doc.exists?(doc.data().data||null):null;
+  },
+  firebasePayload(){
+    const now=Date.now();
+    return {resultDatasets:this.datasets,currentDatasetId:this.currentDatasetId,schoolName:this.settings.schoolName||'',lastUpdated:now};
+  },
+  scheduleFirebaseSave(){
+    if(!this.firebaseUser||!this._cloudReady||this._cloudLoading) return;
+    if(!this._cloudPending) return;
+    clearTimeout(this._cloudTimer);
+    setFirebaseStatus('Changes pending');
+    const payload=this.firebasePayload();
+    this._cloudTimer=setTimeout(()=>this.pushFirebaseData(payload),700);
+  },
+  async pushFirebaseData(payload=this.firebasePayload()){
+    if(!this.firebaseUser) return false;
+    if(!navigator.onLine){
+      this._cloudPending=true;
+      setFirebaseStatus('Offline — changes queued');
+      return false;
+    }
+
+    // Serialize writes: chain onto whatever is already in flight so two
+    // pushes can never overlap and land out of order on the server.
+    const prev=this._cloudPushing;
+    const run=(async()=>{
+      if(prev){ try{ await prev; }catch(e){} }
+      if(!this.firebaseUser) return false;
+      const uid=this.firebaseUser.uid;
+      await firebaseStore.collection('users').doc(uid).set({
+        data:payload,
+        lastUpdated:firebase.firestore.FieldValue.serverTimestamp(),
+        version:APP_VERSION
+      },{merge:true});
+      if(this.firebaseUser&&this.firebaseUser.uid===uid){
+        if(this._localUpdatedAt<=payload.lastUpdated){
+          this._cloudPending=false;
+          this._dirty=false;
+          await DB.setState({
+            datasets:this.datasets, currentDatasetId:this.currentDatasetId,
+            lastUpdated:this._localUpdatedAt, dirty:false
+          });
+        }
+        setFirebaseStatus(this._cloudPending?'Changes pending':'Synced with Firebase');
+      }
+      return true;
+    })();
+    this._cloudPushing=run;
+
+    let ok=false;
+    try{
+      ok=await run;
+    }catch(e){
+      console.error('Firebase save failed:',e);
+      this._cloudPending=true;
+      setFirebaseStatus('Offline — changes queued');
+      ok=false;
+    }finally{
+      if(this._cloudPushing===run) this._cloudPushing=null;
+      if(this._cloudPending&&this.firebaseUser) this.scheduleFirebaseSave();
+    }
+    return ok;
+  },
+  startFirebaseSync(){
+    clearInterval(this._cloudInterval);
+    this._cloudInterval=setInterval(()=>this.syncFirebase(),30000);
+    if(this._onlineHandler) window.removeEventListener('online',this._onlineHandler);
+    this._onlineHandler=()=>{
+      if(this._cloudPending) this.pushFirebaseData();
+      else this.syncFirebase();
+    };
+    window.addEventListener('online',this._onlineHandler);
+  },
+  async syncFirebase(){
+    if(!this.firebaseUser||this._cloudSyncing||!navigator.onLine) return;
+    this._cloudSyncing=true;
+    try{
+      const data=await this.readFirebaseData(this.firebaseUser.uid);
+      if(!data){ if(this._cloudPending) await this.pushFirebaseData(); return; }
+      const remoteTime=Number(data.lastUpdated)||0;
+      // Local pending edits always win — never let a remote pull discard unsynced work.
+      if(this._cloudPending){ await this.pushFirebaseData(); return; }
+      if(remoteTime>this._localUpdatedAt){
+        const list=data.resultDatasets||data.datasets||[];
+        this._cloudLoading=true;
+        this.datasets=list.map(ds=>this.normalizeJsonDataset(ds)).filter(Boolean);
+        await this.ensureStudentIds();
+        this.currentDatasetId=data.currentDatasetId||this.datasets[0]?.id||null;
+        if(!this.datasets.length) this.createDefaultDataset(false);
+        this.validateAll();
+        this._localUpdatedAt=remoteTime;
+        this._dirty=false;
+        await DB.setState({datasets:this.datasets,currentDatasetId:this.currentDatasetId,lastUpdated:remoteTime,dirty:false});
+        this._cloudLoading=false;
+        this.renderAll();
+        if(this.currentView==='attendance') this.renderAttendance();
+        setFirebaseStatus('Updated from another device');
+      }
+    }catch(e){
+      console.error('Firebase sync failed:',e);
+      setFirebaseStatus('Sync paused — retrying');
+    }finally{ this._cloudLoading=false; this._cloudSyncing=false; }
+  },
+  async handleFirebaseAuth(user){
+    const main=document.getElementById('mainApp');
+    const authModal=document.getElementById('authModal');
+    const userInfo=document.getElementById('firebaseUserInfo');
+    if(!user){
+      clearTimeout(this._cloudTimer); clearInterval(this._cloudInterval);
+      if(this._onlineHandler){ window.removeEventListener('online',this._onlineHandler); this._onlineHandler=null; }
+      this.firebaseUser=null;
+      this._cloudLoading=false;
+      this._cloudReady=false;
+      this._cloudSyncing=false;
+      this._cloudPushing=null;
+      if(main) main.style.display='none';
+      if(userInfo) userInfo.style.display='none';
+      if(authModal) authModal.style.display='flex';
+      return;
+    }
+    const changedAccount=this._loadedUid&&this._loadedUid!==user.uid;
+    this.firebaseUser=user;
+    if(authModal) authModal.style.display='none';
+    if(main) main.style.display='block';
+    if(userInfo) userInfo.style.display='flex';
+    const email=document.getElementById('firebaseUserEmail');
+    if(email) email.textContent=user.email||'';
+    try{
+      if(!this.initialized){ await this.init(); return; }
+      if(changedAccount){
+        this._cloudLoading=true;
+        let data=null;
+        try{ data=await this.readFirebaseData(user.uid); }
+        catch(e){ throw new Error('Could not load this account’s saved data. Check your connection and try signing in again.'); }
+        const list=data&&(data.resultDatasets||data.datasets);
+        if(data&&data.schoolName!==undefined){ this.settings.schoolName=data.schoolName||''; await DB.setSetting('schoolName',this.settings.schoolName); }
+        this.datasets=Array.isArray(list)?list.map(ds=>this.normalizeJsonDataset(ds)).filter(Boolean):[];
+        await this.ensureStudentIds();
+        this.currentDatasetId=(data&&data.currentDatasetId)||this.datasets[0]?.id||null;
+        if(!this.datasets.length) this.createDefaultDataset(false);
+        this._loadedUid=user.uid;
+        this._localUpdatedAt=(data&&Number(data.lastUpdated))||0;
+        this._cloudPending=!data;
+        this.validateAll();
+        await DB.setState({datasets:this.datasets,currentDatasetId:this.currentDatasetId,lastUpdated:this._localUpdatedAt,dirty:false});
+        this._cloudLoading=false;
+        this.renderAll();
+        if(this._cloudPending) this.scheduleFirebaseSave();
+      }
+      this._cloudReady=true;
+      setFirebaseStatus(this._cloudPending?'Changes pending':'Synced with Firebase');
+      this.startFirebaseSync();
+    }catch(e){
+      console.error(e);
+      showToast('error','Account data unavailable',e.message||'Could not load account data');
+      await firebaseAuth.signOut();
+    }finally{
+      // Always clear the gate — a thrown error must never leave sync permanently disabled.
+      this._cloudLoading=false;
+    }
+  },
+  async submitFirebaseAuth(){
+    const email=document.getElementById('authEmail').value.trim();
+    const password=document.getElementById('authPassword').value;
+    try{
+      if(authMode==='signup'){
+        if(password!==document.getElementById('authConfirm').value){ showToast('warning','Password mismatch','Enter the same password twice'); return; }
+        await firebaseAuth.createUserWithEmailAndPassword(email,password);
+      }else await firebaseAuth.signInWithEmailAndPassword(email,password);
+    }catch(e){ showToast('error',authMode==='signup'?'Registration failed':'Sign in failed',e.message||String(e),6000); }
+  },
+  async resetFirebasePassword(){
+    const email=document.getElementById('authEmail').value.trim();
+    if(!email){ showToast('warning','Email required','Enter your account email first'); return; }
+    try{ await firebaseAuth.sendPasswordResetEmail(email); showToast('success','Reset email sent','Check your inbox'); }
+    catch(e){ showToast('error','Reset failed',e.message||String(e),6000); }
+  },
   async saveState(){
     this.validateAll();
+    const updatedAt=Date.now();
+    this._localUpdatedAt=updatedAt;
     await DB.setState({
       datasets:this.datasets, currentDatasetId:this.currentDatasetId,
-      lastUpdated:Date.now(), dirty:this._dirty
+      lastUpdated:updatedAt, dirty:this._dirty
     });
-    this.refreshStatus();
-  },
-  refreshStatus(){
-    const pill=document.getElementById('sheetStatusPill');
-    const text=document.getElementById('sheetStatusText');
-    const cloud=!!(this.settings.sheetUrl||'');
-    if(!cloud){ pill.className='sheet-status'; text.textContent='Offline — no Sheet connected'; }
-    else if(this._dirty){ pill.className='sheet-status pending'; text.textContent='Unsynced changes'; }
-    else{ pill.className='sheet-status connected'; text.textContent='Sheet connected'; }
-    const badge=document.getElementById('pushBadge');
-    if(this._dirty) badge.style.display='inline-block';
-    else badge.style.display='none';
-    document.getElementById('pushBtn').disabled=!cloud;
-    document.getElementById('pullBtn').disabled=!cloud;
+    // Mark the cloud dirty regardless of whether a write is currently in flight,
+    // otherwise a change saved during a pull would never be uploaded.
+    if(this._cloudReady){
+      this._cloudPending=true;
+      if(!this._cloudLoading) this.scheduleFirebaseSave();
+    }
   },
   markDirty(){
-    if(this._dirty) return;
     this._dirty=true;
     this.saveState();
   },
@@ -2102,7 +2174,6 @@ const App={
         if(nt===null) return;
         this.updateDatasetTerm(nt.trim());
       };
-      // Dataset info pill (grade/year/teacher)
       let infoEl=document.getElementById('currentDatasetInfo');
       if(!infoEl){
         infoEl=document.createElement('span');
@@ -2131,7 +2202,7 @@ const App={
   renderTables(ds){
     const c=document.getElementById('tablesContainer');
     if(!ds||!ds.tables.length){
-      c.innerHTML='<div class="empty-state" id="emptyState">'+IC.database.replace('class="ic"','class="ic ic-xl"')+'<p>No tables yet. Click "Add Table" to begin.</p><button id="initialAddTable" class="btn btn-primary">'+IC['plus-circle']+' Create First Table</button></div>';
+      c.innerHTML='<div class="empty-state" id="emptyState">'+IC.database.replace('class="ic"','class="ic ic-xl"')+'<p>No classes yet. Add a class or import an Excel file to get started.</p><button id="initialAddTable" class="btn btn-primary">'+IC['plus-circle']+' Create first class</button></div>';
       document.getElementById('initialAddTable').addEventListener('click',()=>this.addNewTable());
       return;
     }
@@ -2528,8 +2599,8 @@ const App={
   },
   exportTableJson(tid){
     const table=this.findTable(tid), dataset=this.findDatasetByTable(tid); if(!table||!dataset) return;
-    const onlyDataset={id:dataset.id,name:dataset.name,term:dataset.term||'',grade:dataset.grade||'',year:dataset.year||'',classTeacher:dataset.classTeacher||'',tableCounter:dataset.tableCounter||1,tables:[table]};
-    const data={version:APP_VERSION,exportedAt:new Date().toISOString(),kind:'table',dataset:onlyDataset,tableId:table.id,schoolName:this.settings.schoolName||''};
+    const onlyDataset={id:dataset.id,name:dataset.name,term:dataset.term||'',tableCounter:dataset.tableCounter||1,tables:[table]};
+    const data={version:APP_VERSION,exportedAt:new Date().toISOString(),kind:'table',dataset:onlyDataset,tableId:table.id};
     this.downloadJson('table-'+sanitizeTabName(dataset.name)+'-'+sanitizeTabName(table.name)+'-'+today()+'.json',data);
     closeAllModals();
   },
@@ -2776,61 +2847,6 @@ const App={
     else if(this._statsTab==='attendance') this.renderAttStats(body);
     else if(this._statsTab==='class') this.renderClassReport(body);
   },
-
-  /* ===== Shared report header helpers ===== */
-  reportHeaderHTML(ds){
-    if(!ds) return '';
-    const school=this.settings.schoolName||'';
-    const term=ds.term||'';
-    return '<div class="srp-title-block">'+
-      (school?'<div class="srp-school">'+esc(school)+'</div>':'')+
-      '<div class="srp-subtitle">School Based Assessment</div>'+
-      '<div class="srp-report-title">'+esc(term||'Performance')+' Performance Review</div>'+
-    '</div>';
-  },
-  reportMetaHTML(ds, roster){
-    if(!ds) return '';
-    const r=roster||this.getRoster(ds);
-    const boys=r.filter(x=>x.gender==='M').length;
-    const girls=r.filter(x=>x.gender==='F').length;
-    const g=dsGrade(ds), y=dsYear(ds), t=dsTeacher(ds), term=ds.term||'';
-    const cell=(v)=>'<div class="val'+(v?'':' empty')+'">'+esc(v||'')+'</div>';
-    return '<div class="srp-meta">'+
-      '<div class="lbl">Grade</div>'+cell(g)+
-      '<div class="lbl">Term</div>'+cell(term)+
-      '<div class="lbl">Year</div>'+cell(y)+
-      '<div class="lbl">Class Teacher</div>'+cell(t)+
-      '<div class="lbl">No. on Roll</div><div class="val">'+r.length+'</div>'+
-      '<div class="lbl">Boys</div><div class="val">'+boys+'</div>'+
-      '<div class="lbl">Girls</div><div class="val">'+girls+'</div>'+
-      '<div class="lbl"></div><div class="val"></div>'+
-    '</div>';
-  },
-  reportHeaderPrintHTML(ds){
-    if(!ds) return '';
-    const school=this.settings.schoolName||'';
-    const term=ds.term||'';
-    const g=dsGrade(ds), y=dsYear(ds), t=dsTeacher(ds);
-    const roster=this.getRoster(ds);
-    const boys=roster.filter(x=>x.gender==='M').length;
-    const girls=roster.filter(x=>x.gender==='F').length;
-    const lv=(v)=>esc(v||'—');
-    return '<div class="srp-title-block">'+
-      (school?'<div class="srp-school">'+esc(school)+'</div>':'')+
-      '<div class="srp-subtitle">School Based Assessment</div>'+
-      '<div class="srp-report-title">'+esc(term||'Performance')+' Performance Review</div>'+
-    '</div>'+
-    '<div class="srp-meta">'+
-      '<div class="lbl">Grade</div><div class="val">'+lv(g)+'</div>'+
-      '<div class="lbl">Term</div><div class="val">'+lv(term)+'</div>'+
-      '<div class="lbl">Year</div><div class="val">'+lv(y)+'</div>'+
-      '<div class="lbl">Class Teacher</div><div class="val">'+lv(t)+'</div>'+
-      '<div class="lbl">No. on Roll</div><div class="val">'+roster.length+'</div>'+
-      '<div class="lbl">Boys</div><div class="val">'+boys+'</div>'+
-      '<div class="lbl">Girls</div><div class="val">'+girls+'</div>'+
-      '<div class="lbl"></div><div class="val"></div>'+
-    '</div>';
-  },
   reportMetaRows(ds){
     const roster=this.getRoster(ds);
     return {
@@ -2841,7 +2857,6 @@ const App={
       girls: roster.filter(x=>x.gender==='F').length
     };
   },
-
   buildStatsReportData(){
     const ds=this.getCurrentDataset(); if(!ds) return {ds:null,roster:[],stats:[],subjects:[]};
     const roster=this.getRoster(ds);
@@ -2869,6 +2884,65 @@ const App={
     return { ds, roster, stats, subjects };
   },
 
+  exportStatsDatasetXlsx(){
+    if(typeof XLSX==='undefined'){ showToast('error','Library missing','Reload page'); return; }
+    const r=this.buildStatsReportData();
+    if(!r.ds){ showToast('info','No data'); return; }
+    const meta=this.reportMetaRows(r.ds);
+    const header=['NO','NAME OF STUDENT',...r.subjects.map(s=>s.code),'TOTAL SCORE','POS'];
+    const rows=[
+      ['','',meta.schoolName],
+      ['','','SCHOOL BASED ASSESSMENT'],
+      ['','',(meta.term||'Performance')+' PERFORMANCE REVIEW'],
+      [],
+      ['GRADE',meta.grade,'','TERM',meta.term,'','YEAR',meta.year],
+      [],
+      ['CLASS TEACHER',meta.teacher,'','NO. ON ROLL',meta.roll,'','BOYS',meta.boys,'','GIRLS',meta.girls],
+      [],
+      header
+    ];
+    r.stats.forEach((s,i)=>{
+      rows.push([i+1, s.name, ...s.totals, s.overall, s.position]);
+    });
+    const ws=XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols']=[{wch:5},{wch:32},...r.subjects.map(()=>({wch:8})),{wch:12},{wch:6}];
+    const wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, (sanitizeTabName(r.ds.name).slice(0,31))||'Report');
+    const out=XLSX.write(wb,{bookType:'xlsx',type:'array'});
+    this.downloadBlob(sanitizeTabName(r.ds.name)+'-performance-'+today()+'.xlsx',
+      new Blob([out],{type:'application/octet-stream'}));
+    showToast('success','Exported','Performance report');
+  },
+
+  printStatsDataset(){
+    const r=this.buildStatsReportData();
+    if(!r.ds){ showToast('info','No data'); return; }
+    const w=window.open('','_blank'); if(!w) return;
+    let th='<th>NO</th><th>NAME OF STUDENT</th>';
+    r.subjects.forEach(s=>{ th+='<th>'+esc(s.code)+'</th>'; });
+    th+='<th>TOTAL SCORE</th><th>POS</th>';
+    let trs='';
+    r.stats.forEach((s,i)=>{
+      trs+='<tr><td>'+(i+1)+'</td><td style="text-align:left">'+esc(s.name)+'</td>';
+      s.totals.forEach(t=>{ trs+='<td>'+t+'</td>'; });
+      trs+='<td><b>'+s.overall+'</b></td><td><b>'+s.position+'</b></td></tr>';
+    });
+    const css='body{font-family:Arial,sans-serif;padding:24px;max-width:1100px;margin:0 auto;color:#111}'+
+      SRP_REPORT_CSS+
+      'table{width:100%;border-collapse:collapse;font-size:12px}'+
+      'th,td{border:1px solid #c5c9d6;padding:6px;text-align:center}'+
+      'th{background:#eff6ff;font-weight:700;font-size:10px;text-transform:uppercase;color:#1d4ed8}';
+    const html='<!DOCTYPE html><html><head><title>'+esc(r.ds.name)+'</title><style>'+css+'</style></head><body>'+
+      this.reportHeaderPrintHTML(r.ds)+
+      '<table><thead><tr>'+th+'</tr></thead><tbody>'+trs+'</tbody></table>'+
+      '</body></html>';
+    w.document.write(html); w.document.close(); w.onload=()=>w.print();
+  },
+
+  reportTitleHTML(ds){
+    const parts=[this.settings.schoolName||'', 'SCHOOL BASED ASSESSMENT', (ds.term||'').toUpperCase()+' PERFORMANCE REVIEW', 'GRADE: '+dsGrade(ds)+' · TERM: '+(ds.term||'')+' · YEAR: '+dsYear(ds), 'CLASS TEACHER: '+dsTeacher(ds)].filter(Boolean);
+    return '<div class="report-heading" style="text-align:center;margin:0 auto 18px;padding:12px;border-bottom:2px solid var(--primary);">'+parts.map((x,i)=>'<div style="'+(i===0?'font-size:1.3rem;font-weight:800;':'font-size:.92rem;font-weight:600;')+'">'+esc(x)+'</div>').join('')+'</div>';
+  },
   renderStatsDataset(body){
     const r=this.buildStatsReportData();
     if(!r.ds){ body.innerHTML='<p style="color:var(--muted)">No dataset.</p>'; return; }
@@ -2900,61 +2974,6 @@ const App={
     });
     document.getElementById('srpPrintBtn').addEventListener('click',()=>this.printStatsDataset());
     document.getElementById('srpExportBtn').addEventListener('click',()=>this.exportStatsDatasetXlsx());
-  },
-
-  printStatsDataset(){
-    const r=this.buildStatsReportData();
-    if(!r.ds){ showToast('info','No data'); return; }
-    const w=window.open('','_blank'); if(!w) return;
-    let th='<th>NO</th><th>NAME OF STUDENT</th>';
-    r.subjects.forEach(s=>{ th+='<th>'+esc(s.code)+'</th>'; });
-    th+='<th>TOTAL SCORE</th><th>POS</th>';
-    let trs='';
-    r.stats.forEach((s,i)=>{
-      trs+='<tr><td>'+(i+1)+'</td><td style="text-align:left">'+esc(s.name)+'</td>';
-      s.totals.forEach(t=>{ trs+='<td>'+t+'</td>'; });
-      trs+='<td><b>'+s.overall+'</b></td><td><b>'+s.position+'</b></td></tr>';
-    });
-    const css='body{font-family:Arial,sans-serif;padding:24px;max-width:1100px;margin:0 auto;color:#111}'+
-      SRP_REPORT_CSS+
-      'table{width:100%;border-collapse:collapse;font-size:12px}'+
-      'th,td{border:1px solid #c5c9d6;padding:6px;text-align:center}'+
-      'th{background:#eff6ff;font-weight:700;font-size:10px;text-transform:uppercase;color:#1d4ed8}';
-    const html='<!DOCTYPE html><html><head><title>'+esc(r.ds.name)+'</title><style>'+css+'</style></head><body>'+
-      this.reportHeaderPrintHTML(r.ds)+
-      '<table><thead><tr>'+th+'</tr></thead><tbody>'+trs+'</tbody></table>'+
-      '</body></html>';
-    w.document.write(html); w.document.close(); w.onload=()=>w.print();
-  },
-
-  exportStatsDatasetXlsx(){
-    if(typeof XLSX==='undefined'){ showToast('error','Library missing','Reload page'); return; }
-    const r=this.buildStatsReportData();
-    if(!r.ds){ showToast('info','No data'); return; }
-    const meta=this.reportMetaRows(r.ds);
-    const header=['NO','NAME OF STUDENT',...r.subjects.map(s=>s.code),'TOTAL SCORE','POS'];
-    const rows=[
-      ['','',meta.schoolName],
-      ['','','SCHOOL BASED ASSESSMENT'],
-      ['','',(meta.term||'Performance')+' PERFORMANCE REVIEW'],
-      [],
-      ['GRADE',meta.grade,'','TERM',meta.term,'','YEAR',meta.year],
-      [],
-      ['CLASS TEACHER',meta.teacher,'','NO. ON ROLL',meta.roll,'','BOYS',meta.boys,'','GIRLS',meta.girls],
-      [],
-      header
-    ];
-    r.stats.forEach((s,i)=>{
-      rows.push([i+1, s.name, ...s.totals, s.overall, s.position]);
-    });
-    const ws=XLSX.utils.aoa_to_sheet(rows);
-    ws['!cols']=[{wch:5},{wch:32},...r.subjects.map(()=>({wch:8})),{wch:12},{wch:6}];
-    const wb=XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, (sanitizeTabName(r.ds.name).slice(0,31))||'Report');
-    const out=XLSX.write(wb,{bookType:'xlsx',type:'array'});
-    this.downloadBlob(sanitizeTabName(r.ds.name)+'-performance-'+today()+'.xlsx',
-      new Blob([out],{type:'application/octet-stream'}));
-    showToast('success','Exported','Performance report');
   },
 
   renderProgress(body){
@@ -3578,7 +3597,7 @@ const App={
           '<button class="btn btn-primary" data-switch>'+IC.exchange+' Switch</button>'+
           '<button class="btn btn-danger" data-delete>'+IC.trash+' Delete</button>'+
         '</div>';
-      it.querySelector('[data-details]').addEventListener('click',e=>{ e.stopPropagation(); this.openDatasetDetails(d.id); });
+      it.querySelector('[data-details]').addEventListener('click',()=>this.openDatasetDetails(d.id));
       it.querySelector('[data-rename]').addEventListener('click',e=>{ e.stopPropagation(); this.renameDataset(d.id); });
       it.querySelector('[data-edit-term]').addEventListener('click',e=>{
         e.stopPropagation();
@@ -3599,25 +3618,16 @@ const App={
         '<li>Marks: <code>45/50</code>, <code>90%</code>, or plain numbers — all auto-rounded.</li>'+
         '<li>CAT columns are fully customizable — add, rename, change max.</li>'+
         '<li>Statistics and terminal reports on demand.</li>'+
-        '<li>Push/Pull sync to your own Google Sheet.</li>'+
-        '<li>Export/import via Excel or JSON backup anytime.</li>'+
+                '<li>Export/import via Excel or JSON backup anytime.</li>'+
       '</ul>'+
       '<h3 style="color:var(--primary);margin:20px 0 10px;">'+IC.edit+' Manual Excel Edits</h3>'+
-      '<p>You can open the exported xlsx (or your Google Sheet) in Excel, edit marks, add students, rename columns — then re-import or Pull. A diff preview will show exactly what changed before anything is applied.</p>';
+      '<p>You can open the exported xlsx in Excel, edit marks, add students, or rename columns, then re-import it. A diff preview shows what changed before anything is applied.</p>';
     document.getElementById('helpModal').style.display='flex';
   },
   async openSettings(){
     const s=await DB.allSettings();
     this.settings=s;
     document.getElementById('inpSchoolName').value=s.schoolName||'';
-    document.getElementById('inpUrl').value=s.sheetUrl||'';
-    document.getElementById('inpSecret').value=s.secret||'';
-    document.getElementById('kvLastPush').textContent=fmtTime(s.lastPush);
-    document.getElementById('kvLastPull').textContent=fmtTime(s.lastPull);
-    document.getElementById('kvDeviceId').textContent=s.deviceId||'—';
-    document.getElementById('kvDatasetCount').textContent=this.datasets.length;
-    document.getElementById('btnDisconnect').style.display=s.sheetUrl?'inline-flex':'none';
-    document.getElementById('snippetBox').textContent=buildAppsScriptSnippet(s.secret||'');
     const chk=document.getElementById('chkAttendance');
     if(chk) chk.checked=!!s.attendanceEnabled;
     const wipeAtt=document.getElementById('btnWipeAttendance');
@@ -3648,26 +3658,17 @@ const App={
   async saveSchoolName(){
     const name=document.getElementById('inpSchoolName').value.trim();
     await DB.setSetting('schoolName',name); this.settings.schoolName=name;
-    this.markDirty(); await this.saveState(); this.renderAll();
+    this.markDirty(); await this.saveState(); this.renderAll(); this.scheduleFirebaseSave();
     showToast('success','Saved','School name updated');
   },
   async saveDatasetDetails(){
     const id=document.getElementById('datasetDetailsId').value; const ds=this.datasets.find(d=>d.id===id); if(!ds) return;
-    ds.grade=document.getElementById('datasetGradeInput').value.trim();
-    ds.year=document.getElementById('datasetYearInput').value.trim();
-    ds.classTeacher=document.getElementById('datasetTeacherInput').value.trim();
-    this.markDirty(); await this.saveState();
-    this.renderDatasetList(); this.renderAll();
-    document.getElementById('datasetDetailsModal').style.display='none';
-    showToast('success','Saved','Dataset details updated');
+    ds.grade=document.getElementById('datasetGradeInput').value.trim(); ds.year=document.getElementById('datasetYearInput').value.trim(); ds.classTeacher=document.getElementById('datasetTeacherInput').value.trim();
+    this.markDirty(); await this.saveState(); this.renderDatasetList(); this.renderAll(); document.getElementById('datasetDetailsModal').style.display='none'; showToast('success','Saved','Dataset details updated');
   },
   openDatasetDetails(id){
     const ds=this.datasets.find(d=>d.id===id); if(!ds) return;
-    document.getElementById('datasetDetailsId').value=id;
-    document.getElementById('datasetGradeInput').value=dsGrade(ds);
-    document.getElementById('datasetYearInput').value=dsYear(ds);
-    document.getElementById('datasetTeacherInput').value=dsTeacher(ds);
-    document.getElementById('datasetDetailsModal').style.display='flex';
+    document.getElementById('datasetDetailsId').value=id; document.getElementById('datasetGradeInput').value=dsGrade(ds); document.getElementById('datasetYearInput').value=dsYear(ds); document.getElementById('datasetTeacherInput').value=dsTeacher(ds); document.getElementById('datasetDetailsModal').style.display='flex';
   },
   async saveThresholds(){
     this.thresholds.attendancePct=parseInt(document.getElementById('inpAttThreshold').value,10)||80;
@@ -3720,50 +3721,17 @@ const App={
     }catch(e){ showToast('error','Restore failed', e.message||String(e), 6000); }
     finally{ hideLoading(); }
   },
-  async saveSheetUrl(){
-    const v=document.getElementById('inpUrl').value.trim();
-    if(v && !/^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec$/.test(v)) showToast('warning','Check URL','It should end with /exec');
-    await DB.setSetting('sheetUrl', v);
-    this.settings.sheetUrl=v;
-    this.refreshStatus();
-    showToast('success','Saved','URL updated');
-    this.openSettings();
-  },
-  async testConnection(){
-    const v=document.getElementById('inpUrl').value.trim();
-    if(!v){ showToast('warning','Enter URL first'); return; }
-    await DB.setSetting('sheetUrl', v);
-    this.settings.sheetUrl=v;
-    const btn=document.getElementById('btnTest');
-    btn.disabled=true; btn.innerHTML='Testing...';
-    try{
-      const res=await cloudFetch('ping');
-      showToast('success','Connected',(res.tabs||0)+' tab(s) in sheet');
-      this.refreshStatus();
-      this.openSettings();
-    }catch(e){ showToast('error','Failed',e.message||String(e),6000); }
-    finally{ btn.disabled=false; btn.innerHTML=IC.link+' Test connection'; }
-  },
-  async disconnectSheet(){
-    if(!confirm('Disconnect cloud? Local data is kept.')) return;
-    await DB.setSetting('sheetUrl','');
-    this.settings.sheetUrl='';
-    this.refreshStatus();
-    this.openSettings();
-    showToast('info','Disconnected');
-  },
-  async copySnippet(){
-    const txt=document.getElementById('snippetBox').textContent;
-    try{ await navigator.clipboard.writeText(txt); showToast('success','Copied'); }
-    catch(e){ showToast('warning','Select and copy manually'); }
-  },
   async wipeLocal(){
-    if(!confirm('Permanently delete ALL local data? Cloud Sheet is unaffected.')) return;
+    if(!confirm('Permanently delete ALL local data? Cloud copy is unaffected.')) return;
     await DB.addBackup('before-wipe',{ datasets:this.datasets, currentDatasetId:this.currentDatasetId });
     await DB.clearAll();
+    this.datasets=[];
+    this.currentDatasetId=null;
     this.createDefaultDataset(false);
-    this._dirty=true;
-    await this.saveState();
+    // Write directly — do NOT call saveState(), which would schedule a cloud push
+    // and replace the remote copy with the empty reset.
+    await DB.setState({datasets:this.datasets,currentDatasetId:this.currentDatasetId,lastUpdated:this._localUpdatedAt,dirty:false});
+    this._dirty=false;
     this.renderAll();
     if(this.currentView==='attendance') this.renderAttendance();
     showToast('info','Local data wiped');
@@ -3772,7 +3740,7 @@ const App={
   exportCurrentXlsx(){
     if(typeof XLSX==='undefined'){ showToast('error','Library missing','Reload page'); return; }
     const ds=this.getCurrentDataset(); if(!ds){ showToast('info','No data'); return; }
-    this.exportDatasetsToXlsx([ds], sanitizeTabName(ds.name)+'-'+today()+'.xlsx');
+    this.exportDatasetsToXlsx([ds], shortCode(ds.name)+'-'+sanitizeTabName(ds.term||ds.name)+'-'+today()+'.xlsx');
   },
   exportAllXlsx(){
     if(typeof XLSX==='undefined'){ showToast('error','Library missing','Reload page'); return; }
@@ -3781,8 +3749,8 @@ const App={
   },
   exportDatasetsToXlsx(datasets,filename){
     const wb=XLSX.utils.book_new();
-    const schoolName = this.settings.schoolName||'';
-    const meta=buildMetaFromDatasets(datasets, this.currentDatasetId, schoolName);
+    const meta=buildMetaFromDatasets(datasets, this.currentDatasetId, this.settings.schoolName||'');
+
     meta.currentDatasetId=this.currentDatasetId||'';
     const metaRows=[['key','value']];
     for(const k of Object.keys(meta)) metaRows.push([k, meta[k]]);
@@ -3790,7 +3758,7 @@ const App={
     const usedNames=new Set(['_meta']);
     for(const ds of datasets){
       for(const tbl of ds.tables){
-        const displayName=sanitizeTabName(ds.name+' - '+tbl.name);
+          const displayName=sanitizeTabName(ds.name+' - '+tbl.name);
         const idPart=' — '+tbl.id;
         let unique=(displayName.slice(0,Math.max(1,31-idPart.length))+idPart).slice(0,31);
         let n=2;
@@ -3799,7 +3767,7 @@ const App={
           unique=(displayName.slice(0,Math.max(1,31-sfx.length))+sfx).slice(0,31); n++;
         }
         usedNames.add(unique);
-        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(tableToRows(tbl,ds,schoolName)), unique);
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(tableToRows(tbl,ds,this.settings.schoolName||'')), unique);
       }
       if(this.settings.attendanceEnabled && ds.attendance && ds.attendance.dates && ds.attendance.dates.length){
         const suffix = attendanceTabSuffix(ds.id);
@@ -3811,7 +3779,7 @@ const App={
           n++;
         }
         usedNames.add(aname);
-        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(attendanceToRows(ds,schoolName)), aname);
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(attendanceToRows(ds,this.settings.schoolName||'')), aname);
       }
     }
     const out=XLSX.write(wb,{bookType:'xlsx',type:'array'});
@@ -3897,19 +3865,20 @@ const App={
     const text=await file.text();
     const data=JSON.parse(text);
     if(data.schoolName!==undefined){ await DB.setSetting('schoolName',data.schoolName||''); this.settings.schoolName=data.schoolName||''; }
-    if(data.kind==='table'&&data.dataset) return [this.normalizeJsonDataset(data.dataset)];
-    if(data.kind==='all' && Array.isArray(data.datasets)) return data.datasets.map(ds=>this.normalizeJsonDataset(ds));
-    if(data.kind==='dataset' && data.dataset) return [this.normalizeJsonDataset(data.dataset)];
-    if(Array.isArray(data.resultDatasets)) return data.resultDatasets.map(ds=>this.normalizeJsonDataset(ds)).filter(Boolean);
-    if(Array.isArray(data)) return data.map(ds=>this.normalizeJsonDataset(ds)).filter(Boolean);
-    if(data.id && data.tables) return [this.normalizeJsonDataset(data)];
+    // stripAttendance=true only on file import — cloud reads must never discard attendance.
+    if(data.kind==='table'&&data.dataset) return [this.normalizeJsonDataset(data.dataset, true)];
+    if(data.kind==='all' && Array.isArray(data.datasets)) return data.datasets.map(ds=>this.normalizeJsonDataset(ds, true));
+    if(data.kind==='dataset' && data.dataset) return [this.normalizeJsonDataset(data.dataset, true)];
+    if(Array.isArray(data.resultDatasets)) return data.resultDatasets.map(ds=>this.normalizeJsonDataset(ds, true)).filter(Boolean);
+    if(Array.isArray(data)) return data.map(ds=>this.normalizeJsonDataset(ds, true)).filter(Boolean);
+    if(data.id && data.tables) return [this.normalizeJsonDataset(data, true)];
     throw new Error('Unrecognized JSON structure');
   },
-  normalizeJsonDataset(ds){
+  normalizeJsonDataset(ds, stripAttendance){
     const datasetName=String(ds.name||'Imported').trim();
     const inferredTerm=/^term\s*\d+$/i.test(datasetName)?datasetName:'';
     const out={ id:ds.id||('ds-'+generateId()), name:datasetName, term:ds.term||inferredTerm, grade:ds.grade||'', year:ds.year||'', classTeacher:ds.classTeacher||'', tableCounter:ds.tableCounter||1, tables:[], comments:ds.comments||{}, attendance:ds.attendance||{enabled:false,dates:[],records:{},comments:{}} };
-    if(!this.settings.attendanceEnabled){
+    if(stripAttendance && !this.settings.attendanceEnabled){
       out.attendance = {enabled:false,dates:[],records:{},comments:{}};
     }
     (ds.tables||[]).forEach(t=>{
@@ -4044,8 +4013,7 @@ const App={
       if(!this.datasets.find(d=>d.id===this.currentDatasetId)) this.currentDatasetId=(this.datasets[0] && this.datasets[0].id) || null;
       if(this.currentDatasetId==null && this.datasets.length) this.currentDatasetId=this.datasets[0].id;
       this.validateAll();
-      if(source==='pull' && mode!=='merge') this._dirty=false;
-      else this._dirty=true;
+      this._dirty=true;
       await this.saveState();
       this.renderAll();
       if(this.currentView==='attendance') this.renderAttendance();
@@ -4053,43 +4021,8 @@ const App={
     }catch(e){ showToast('error','Apply failed', e.message||String(e), 6000); }
     finally{ hideLoading(); }
   },
-  async push(){
-    const url=this.settings.sheetUrl||'';
-    if(!url){ showToast('warning','Connect a Sheet first'); return; }
-    const ok=confirm('Push to Google Sheet?\n\nThis will REPLACE the entire sheet contents with your local data:\n• '+this.datasets.length+' dataset(s)\n• '+this.datasets.reduce((s,d)=>s+d.tables.length,0)+' table(s)\n• '+this.datasets.reduce((s,d)=>s+d.tables.reduce((x,t)=>x+t.students.length,0),0)+' student(s)\n'+(this.settings.attendanceEnabled?'• Attendance data where present\n':'')+'\nAny manual edits, and ANY other tabs in that spreadsheet, will be lost.\n\nContinue?');
-    if(!ok) return;
-    showLoading('Pushing to Sheet...');
-    try{
-      const meta=buildMetaFromDatasets(this.datasets, this.currentDatasetId, this.settings.schoolName||'');
-      const tabs=buildTabsFromDatasets(this.datasets, this.settings.attendanceEnabled, this.settings.schoolName||'');
-      const logEntries=[[ new Date().toISOString(), this.settings.deviceId||'unknown', 'Push', this.datasets.length+' datasets, '+tabs.length+' tabs' ]];
-      const res=await cloudFetch('write', { payload:{ meta, tabs, logEntries } });
-      await DB.setSetting('lastPush', Date.now());
-      this.settings.lastPush=Date.now();
-      this._dirty=false;
-      await this.saveState();
-      showToast('success','Pushed',(res.written||tabs.length)+' tab(s) written');
-    }catch(e){ showToast('error','Push failed', e.message||String(e), 6000); }
-    finally{ hideLoading(); }
-  },
-  async pull(){
-    const url=this.settings.sheetUrl||'';
-    if(!url){ showToast('warning','Connect a Sheet first'); return; }
-    showLoading('Reading from Sheet...');
-    try{
-      const res=await cloudFetch('read');
-      hideLoading();
-      const incoming=buildDatasetsFromRaw(res.meta||{}, res.tabs||[], { parseAttendance: !!this.settings.attendanceEnabled });
-      if(res.meta&&res.meta.schoolName!==undefined){
-        this.settings.schoolName=res.meta.schoolName||'';
-        await DB.setSetting('schoolName',this.settings.schoolName);
-      }
-      if(!incoming.length){ showToast('info','Sheet has no datasets yet','Push first to send data up'); return; }
-      await this.promptDiffAndApply(incoming, 'Pull from Google Sheet', 'pull');
-    }catch(e){ hideLoading(); showToast('error','Pull failed', e.message||String(e), 6000); }
-  },
   async clearAllData(){
-    if(!confirm('Delete ALL datasets permanently?\n\nThis does NOT touch your Google Sheet. Use Push to sync the empty state.')) return;
+    if(!confirm('Delete ALL datasets permanently?')) return;
     await DB.addBackup('before-clear',{ datasets:this.datasets, currentDatasetId:this.currentDatasetId });
     this.datasets=[];
     this.currentDatasetId=null;
@@ -4106,7 +4039,22 @@ window.app=App;
 document.addEventListener('DOMContentLoaded',()=>{
   renderAllIcons();
   applyTheme(currentTheme());
-  App.init();
+  document.getElementById('authSubmitBtn').addEventListener('click',()=>App.submitFirebaseAuth());
+  document.getElementById('authModeBtn').addEventListener('click',()=>{
+    authMode=authMode==='signup'?'signin':'signup';
+    document.getElementById('authConfirmWrap').style.display=authMode==='signup'?'block':'none';
+    document.getElementById('authPassword').autocomplete=authMode==='signup'?'new-password':'current-password';
+    document.getElementById('authSubmitBtn').textContent=authMode==='signup'?'Create account':'Sign in';
+    document.getElementById('authModeBtn').textContent=authMode==='signup'?'Back to sign in':'Create account';
+    document.getElementById('authIntro').textContent=authMode==='signup'?'Create an account to save and sync your results.':'Sign in to open your synced results.';
+  });
+  document.getElementById('authResetBtn').addEventListener('click',()=>App.resetFirebasePassword());
+  document.getElementById('logoutBtn').addEventListener('click',async()=>{
+    if(App._cloudPending){ const saved=await App.pushFirebaseData(); if(!saved){ showToast('warning','Not signed out','Your changes are still waiting to sync. Try again when online.'); return; } }
+    await firebaseAuth.signOut();
+  });
+  document.getElementById('authPassword').addEventListener('keydown',e=>{ if(e.key==='Enter') App.submitFirebaseAuth(); });
+  firebaseAuth.onAuthStateChanged(user=>App.handleFirebaseAuth(user));
 });
 })();
 </script>
