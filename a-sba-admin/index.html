@@ -923,7 +923,6 @@ function suggestNextTerm(term){
   if(m) return 'Term '+(parseInt(m[1],10)+1);
   return term;
 }
-// FIX 1: strict calendar validation for dates
 function isValidISODate(s){
   if(!/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;
   const parts = s.split('-');
@@ -1480,7 +1479,7 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeAllModals(); 
 
 const App={
   datasets:[], currentDatasetId:null, settings:{}, onboarded:false, _dirty:false, _idCounter:1,
-  firebaseUser:null, _loadedUid:null, _cloudLoading:false, _cloudReady:false, _cloudTimer:null, _cloudInterval:null, _onlineHandler:null, _cloudSyncing:false, _cloudPending:false, _localUpdatedAt:0, initialized:false,
+  firebaseUser:null, _loadedUid:null, _cloudLoading:false, _cloudReady:false, _cloudTimer:null, _cloudInterval:null, _onlineHandler:null, _cloudSyncing:false, _cloudPushing:null, _cloudPending:false, _localUpdatedAt:0, initialized:false,
   _tableImportState:null, _tableExportId:null,
   currentView:'students',
   thresholds:{ attendancePct:80, academicDrop:10, academicImprove:10 },
@@ -1541,6 +1540,7 @@ const App={
     this._cloudLoading=true;
     try{ await openDB(); }
     catch(e){
+      this._cloudLoading=false;
       document.getElementById('mainApp').innerHTML='<div class="container"><div class="empty-state">'+IC['alert-triangle']+'<h2>Storage unavailable</h2><p>'+esc(e.message||'Unknown error')+'</p><button class="btn btn-primary" onclick="location.reload()">Reload</button></div></div>';
       return;
     }
@@ -1567,9 +1567,12 @@ const App={
     const hasRemote=Array.isArray(remoteDatasets)&&remoteDatasets.length>0;
     const localTime=(stored&&stored.data&&Number(stored.data.lastUpdated))||0;
     const remoteTime=(remoteData&&Number(remoteData.lastUpdated))||0;
+    const localDirty=!!(stored&&stored.data&&stored.data.dirty);
+    // Only prompt when this device actually holds unsynced edits.
+    // Otherwise the cloud copy is authoritative and wins silently.
     let chooseLocal=false;
-    if(hasRemote&&(hasLocal||hasLegacy)){
-      chooseLocal=!confirm('Cloud data is available, and this device also has saved data.\n\nChoose OK/Yes to replace this device’s data with the cloud copy. Choose Cancel/No to keep this device’s data and replace the cloud copy.');
+    if(hasRemote&&localDirty&&(hasLocal||hasLegacy)){
+      chooseLocal=!confirm('This device has unsynced changes, and the cloud also has data.\n\nChoose OK/Yes to replace this device’s data with the cloud copy. Choose Cancel/No to keep this device’s data and replace the cloud copy.');
     }else if(!hasRemote&&(hasLocal||hasLegacy)){
       chooseLocal=true;
     }
@@ -1585,7 +1588,7 @@ const App={
       this.currentDatasetId=stored.data.currentDatasetId;
       this._localUpdatedAt=localTime;
       this._dirty=!!stored.data.dirty;
-      this._cloudPending=!remoteReadFailed;
+      this._cloudPending=this._dirty||!remoteReadFailed;
     }else if(hasLegacy){
       this.datasets=legacyDatasets.map(ds=>this.normalizeJsonDataset(ds)).filter(Boolean);
       this.currentDatasetId=legacyLocal.currentDatasetId||this.datasets[0]?.id||null;
@@ -1797,7 +1800,6 @@ const App={
     const att=this.ensureAttendance(ds);
     const d=prompt('Date (YYYY-MM-DD):', today());
     if(!d) return;
-    // FIX 1: strict calendar validation
     if(!isValidISODate(d)){ showToast('warning','Invalid date','Enter a real date (YYYY-MM-DD)'); return; }
     if(att.dates.includes(d)){ showToast('warning','Duplicate','That date already exists'); return; }
     att.dates.push(d);
@@ -1936,6 +1938,7 @@ const App={
   },
   scheduleFirebaseSave(){
     if(!this.firebaseUser||!this._cloudReady||this._cloudLoading) return;
+    if(!this._cloudPending) return;
     clearTimeout(this._cloudTimer);
     setFirebaseStatus('Changes pending');
     const payload=this.firebasePayload();
@@ -1948,7 +1951,13 @@ const App={
       setFirebaseStatus('Offline — changes queued');
       return false;
     }
-    try{
+
+    // Serialize writes: chain onto whatever is already in flight so two
+    // pushes can never overlap and land out of order on the server.
+    const prev=this._cloudPushing;
+    const run=(async()=>{
+      if(prev){ try{ await prev; }catch(e){} }
+      if(!this.firebaseUser) return false;
       const uid=this.firebaseUser.uid;
       await firebaseStore.collection('users').doc(uid).set({
         data:payload,
@@ -1965,23 +1974,31 @@ const App={
           });
         }
         setFirebaseStatus(this._cloudPending?'Changes pending':'Synced with Firebase');
-        if(this._cloudPending) this.scheduleFirebaseSave();
       }
       return true;
+    })();
+    this._cloudPushing=run;
+
+    let ok=false;
+    try{
+      ok=await run;
     }catch(e){
       console.error('Firebase save failed:',e);
       this._cloudPending=true;
       setFirebaseStatus('Offline — changes queued');
-      return false;
+      ok=false;
+    }finally{
+      if(this._cloudPushing===run) this._cloudPushing=null;
+      if(this._cloudPending&&this.firebaseUser) this.scheduleFirebaseSave();
     }
+    return ok;
   },
   startFirebaseSync(){
     clearInterval(this._cloudInterval);
     this._cloudInterval=setInterval(()=>this.syncFirebase(),30000);
     if(this._onlineHandler) window.removeEventListener('online',this._onlineHandler);
     this._onlineHandler=()=>{
-      if(this._cloudNeedsReconcile) this.syncFirebase();
-      else if(this._cloudPending) this.pushFirebaseData();
+      if(this._cloudPending) this.pushFirebaseData();
       else this.syncFirebase();
     };
     window.addEventListener('online',this._onlineHandler);
@@ -1993,7 +2010,8 @@ const App={
       const data=await this.readFirebaseData(this.firebaseUser.uid);
       if(!data){ if(this._cloudPending) await this.pushFirebaseData(); return; }
       const remoteTime=Number(data.lastUpdated)||0;
-      if(this._cloudPending&&this._localUpdatedAt>=remoteTime){ await this.pushFirebaseData(); return; }
+      // Local pending edits always win — never let a remote pull discard unsynced work.
+      if(this._cloudPending){ await this.pushFirebaseData(); return; }
       if(remoteTime>this._localUpdatedAt){
         const list=data.resultDatasets||data.datasets||[];
         this._cloudLoading=true;
@@ -2003,6 +2021,7 @@ const App={
         if(!this.datasets.length) this.createDefaultDataset(false);
         this.validateAll();
         this._localUpdatedAt=remoteTime;
+        this._dirty=false;
         await DB.setState({datasets:this.datasets,currentDatasetId:this.currentDatasetId,lastUpdated:remoteTime,dirty:false});
         this._cloudLoading=false;
         this.renderAll();
@@ -2020,7 +2039,12 @@ const App={
     const userInfo=document.getElementById('firebaseUserInfo');
     if(!user){
       clearTimeout(this._cloudTimer); clearInterval(this._cloudInterval);
+      if(this._onlineHandler){ window.removeEventListener('online',this._onlineHandler); this._onlineHandler=null; }
       this.firebaseUser=null;
+      this._cloudLoading=false;
+      this._cloudReady=false;
+      this._cloudSyncing=false;
+      this._cloudPushing=null;
       if(main) main.style.display='none';
       if(userInfo) userInfo.style.display='none';
       if(authModal) authModal.style.display='flex';
@@ -2055,12 +2079,16 @@ const App={
         this.renderAll();
         if(this._cloudPending) this.scheduleFirebaseSave();
       }
-      setFirebaseStatus('Synced with Firebase');
+      this._cloudReady=true;
+      setFirebaseStatus(this._cloudPending?'Changes pending':'Synced with Firebase');
       this.startFirebaseSync();
     }catch(e){
       console.error(e);
       showToast('error','Account data unavailable',e.message||'Could not load account data');
       await firebaseAuth.signOut();
+    }finally{
+      // Always clear the gate — a thrown error must never leave sync permanently disabled.
+      this._cloudLoading=false;
     }
   },
   async submitFirebaseAuth(){
@@ -2087,10 +2115,14 @@ const App={
       datasets:this.datasets, currentDatasetId:this.currentDatasetId,
       lastUpdated:updatedAt, dirty:this._dirty
     });
-    if(this._cloudReady&&!this._cloudLoading){ this._cloudPending=true; this.scheduleFirebaseSave(); }
+    // Mark the cloud dirty regardless of whether a write is currently in flight,
+    // otherwise a change saved during a pull would never be uploaded.
+    if(this._cloudReady){
+      this._cloudPending=true;
+      if(!this._cloudLoading) this.scheduleFirebaseSave();
+    }
   },
   markDirty(){
-    if(this._dirty) return;
     this._dirty=true;
     this.saveState();
   },
@@ -2142,7 +2174,6 @@ const App={
         if(nt===null) return;
         this.updateDatasetTerm(nt.trim());
       };
-      // Dataset info pill (grade/year/teacher)
       let infoEl=document.getElementById('currentDatasetInfo');
       if(!infoEl){
         infoEl=document.createElement('span');
@@ -3417,8 +3448,6 @@ const App={
         if(!picked) return;
         const keepIdx=parseInt(picked.value,10);
         let renamed=0;
-        // FIX 3: don't duplicate attendance records for shared IDs — only the kept student retains
-        // the shared attendance record; others get a fresh, empty record
         for(let i=0;i<item.arr.length;i++){
           if(i!==keepIdx){
             const loser=item.arr[i];
@@ -3693,12 +3722,16 @@ const App={
     finally{ hideLoading(); }
   },
   async wipeLocal(){
-    if(!confirm('Permanently delete ALL local data? Cloud Sheet is unaffected.')) return;
+    if(!confirm('Permanently delete ALL local data? Cloud copy is unaffected.')) return;
     await DB.addBackup('before-wipe',{ datasets:this.datasets, currentDatasetId:this.currentDatasetId });
     await DB.clearAll();
+    this.datasets=[];
+    this.currentDatasetId=null;
     this.createDefaultDataset(false);
-    this._dirty=true;
-    await this.saveState();
+    // Write directly — do NOT call saveState(), which would schedule a cloud push
+    // and replace the remote copy with the empty reset.
+    await DB.setState({datasets:this.datasets,currentDatasetId:this.currentDatasetId,lastUpdated:this._localUpdatedAt,dirty:false});
+    this._dirty=false;
     this.renderAll();
     if(this.currentView==='attendance') this.renderAttendance();
     showToast('info','Local data wiped');
@@ -3826,27 +3859,26 @@ const App={
       const rows=XLSX.utils.sheet_to_json(wb.Sheets[name],{header:1,defval:''});
       if(rows.length) tabs.push({ name, rows });
     }
-    // FIX 2: skip attendance parsing on import when the feature is disabled
     return buildDatasetsFromRaw(meta, tabs, { parseAttendance: !!this.settings.attendanceEnabled });
   },
   async readJsonFile(file){
     const text=await file.text();
     const data=JSON.parse(text);
     if(data.schoolName!==undefined){ await DB.setSetting('schoolName',data.schoolName||''); this.settings.schoolName=data.schoolName||''; }
-    if(data.kind==='table'&&data.dataset) return [this.normalizeJsonDataset(data.dataset)];
-    if(data.kind==='all' && Array.isArray(data.datasets)) return data.datasets.map(ds=>this.normalizeJsonDataset(ds));
-    if(data.kind==='dataset' && data.dataset) return [this.normalizeJsonDataset(data.dataset)];
-    if(Array.isArray(data.resultDatasets)) return data.resultDatasets.map(ds=>this.normalizeJsonDataset(ds)).filter(Boolean);
-    if(Array.isArray(data)) return data.map(ds=>this.normalizeJsonDataset(ds)).filter(Boolean);
-    if(data.id && data.tables) return [this.normalizeJsonDataset(data)];
+    // stripAttendance=true only on file import — cloud reads must never discard attendance.
+    if(data.kind==='table'&&data.dataset) return [this.normalizeJsonDataset(data.dataset, true)];
+    if(data.kind==='all' && Array.isArray(data.datasets)) return data.datasets.map(ds=>this.normalizeJsonDataset(ds, true));
+    if(data.kind==='dataset' && data.dataset) return [this.normalizeJsonDataset(data.dataset, true)];
+    if(Array.isArray(data.resultDatasets)) return data.resultDatasets.map(ds=>this.normalizeJsonDataset(ds, true)).filter(Boolean);
+    if(Array.isArray(data)) return data.map(ds=>this.normalizeJsonDataset(ds, true)).filter(Boolean);
+    if(data.id && data.tables) return [this.normalizeJsonDataset(data, true)];
     throw new Error('Unrecognized JSON structure');
   },
-  normalizeJsonDataset(ds){
+  normalizeJsonDataset(ds, stripAttendance){
     const datasetName=String(ds.name||'Imported').trim();
     const inferredTerm=/^term\s*\d+$/i.test(datasetName)?datasetName:'';
     const out={ id:ds.id||('ds-'+generateId()), name:datasetName, term:ds.term||inferredTerm, grade:ds.grade||'', year:ds.year||'', classTeacher:ds.classTeacher||'', tableCounter:ds.tableCounter||1, tables:[], comments:ds.comments||{}, attendance:ds.attendance||{enabled:false,dates:[],records:{},comments:{}} };
-    // FIX 2: if attendance is disabled, strip attendance from imported dataset
-    if(!this.settings.attendanceEnabled){
+    if(stripAttendance && !this.settings.attendanceEnabled){
       out.attendance = {enabled:false,dates:[],records:{},comments:{}};
     }
     (ds.tables||[]).forEach(t=>{
@@ -3964,7 +3996,6 @@ const App={
     try{
       await DB.addBackup(source||'apply',{ datasets:this.datasets, currentDatasetId:this.currentDatasetId });
       await DB.pruneBackups(5);
-      // FIX 2: strip incoming attendance when the feature is off — never store hidden data
       if(!this.settings.attendanceEnabled){
         incomingDatasets = incomingDatasets.map(ds => Object.assign({}, ds, {
           attendance: { enabled:false, dates:[], records:{}, comments:{} }
