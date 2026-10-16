@@ -435,6 +435,7 @@
       <header>
         <div class="header-left">
           <h1><span data-ic="brand"></span> Results Pro</h1>
+          <span id="currentSchoolIndicator" class="current-dataset" style="display:none;"><span data-ic="home"></span> <span id="currentSchoolName"></span></span>
           <span id="currentDatasetIndicator" class="current-dataset" style="display:none;">
             <span data-ic="database"></span> <span id="currentDatasetName">Default</span>
           </span>
@@ -567,6 +568,10 @@
       <button class="close-modal" data-close><span data-ic="x"></span></button>
     </div>
     <div class="modal-body">
+      <div class="settings-section">
+        <h3><span data-ic="home"></span> School identity</h3>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;"><input id="inpSchoolName" maxlength="120" placeholder="School name" style="flex:1;min-width:220px;padding:11px 14px;border:1px solid var(--border);border-radius:12px;background:var(--input-bg);color:var(--text);"><button class="btn btn-primary" id="btnSaveSchoolName"><span data-ic="save"></span> Save school name</button></div>
+      </div>
       <div class="settings-section">
         <h3><span data-ic="database"></span> Local data</h3>
         <div style="display:flex;gap:10px;flex-wrap:wrap;">
@@ -724,6 +729,18 @@
       <button class="close-modal" data-close><span data-ic="x"></span></button>
     </div>
     <div class="modal-body"><div id="helpContainer"></div></div>
+  </div>
+</div>
+
+<div id="datasetDetailsModal" class="modal-overlay" style="display:none;">
+  <div class="modal-content">
+    <div class="modal-header"><h2 class="modal-title">Dataset details</h2><button class="close-modal" data-close><span data-ic="x"></span></button></div>
+    <div class="modal-body"><input type="hidden" id="datasetDetailsId"><div class="settings-form">
+      <label>Grade</label><input id="datasetGradeInput" maxlength="60" placeholder="e.g. Grade 5">
+      <label>Academic year</label><input id="datasetYearInput" maxlength="40" placeholder="e.g. 2025/2026">
+      <label>Class teacher</label><input id="datasetTeacherInput" maxlength="120" placeholder="Teacher name">
+      <button class="btn btn-primary" id="saveDatasetDetailsBtn"><span data-ic="save"></span> Save details</button>
+    </div></div>
   </div>
 </div>
 
@@ -930,12 +947,16 @@ function parseAttendanceTabName(tabName){
   if(!m) return null;
   return { display: m[1].trim(), attId: m[2] };
 }
-function attendanceToRows(ds){
+function attendanceToRows(ds, schoolName){
   const att = ds.attendance || {};
   const dates = att.dates || [];
   const records = att.records || {};
   const rows = [
-    ['Term: ' + (ds.term || '')],
+    [schoolName||''],
+    ['SCHOOL BASED ASSESSMENT'],
+    [(ds.term||'').toUpperCase()+' PERFORMANCE REVIEW'],
+    ['GRADE: '+dsGrade(ds),'TERM: '+(ds.term||''),'YEAR: '+dsYear(ds)],
+    ['CLASS TEACHER: '+dsTeacher(ds)],
     ['Class: ' + ds.name],
     [],
     ['STUDENT','ID', ...dates, 'PRESENT', '%']
@@ -961,7 +982,7 @@ function attendanceToRows(ds){
 function parseAttendanceRows(rows){
   if(!rows || rows.length < 1) return null;
   let headerIdx = -1;
-  for(let i=0; i<Math.min(rows.length, 6); i++){
+  for(let i=0; i<Math.min(rows.length, 12); i++){
     const h = (rows[i]||[]).map(v=>String(v||'').trim().toUpperCase());
     if(h[0]==='STUDENT' && h[1]==='ID'){ headerIdx = i; break; }
   }
@@ -1056,13 +1077,18 @@ const DB={
   async clearAll(){ await req(tx('state','readwrite').clear()); await req(tx('backups','readwrite').clear()); }
 };
 
-function tableToRows(tbl){
+function tableToRows(tbl, ds, schoolName){
   const term=tbl.term||'';
   const headers=['NAMES','ID','GENDER'];
   for(const c of tbl.catColumns) headers.push(`${c.name} (${c.maxScore})`);
   headers.push('CAT TOTAL','EXAM (50)','TOTAL','POSITION');
+  ds=ds||{};
   const rows=[
-    ['Term: '+(term||'')],
+    [schoolName||''],
+    ['SCHOOL BASED ASSESSMENT'],
+    [(term||'').toUpperCase()+' PERFORMANCE REVIEW'],
+    ['GRADE: '+dsGrade(ds),'TERM: '+(term||''),'YEAR: '+dsYear(ds)],
+    ['CLASS TEACHER: '+dsTeacher(ds)],
     ['Subject: '+(tbl.name||'')],
     [],
     headers
@@ -1075,13 +1101,21 @@ function tableToRows(tbl){
   }
   return rows;
 }
-function buildMetaFromDatasets(datasets,currentDatasetId){
+function shortCode(name){ return String(name||'').trim().split(/\s+/).map(x=>x[0]||'').join('').slice(0,8).toUpperCase(); }
+function inferGrade(name){ const m=String(name||'').match(/\b(?:grade|class|form)\s*([0-9]+[a-z]?)\b/i); return m ? 'Grade '+m[1] : ''; }
+function inferYear(name){ const m=String(name||'').match(/\b(20\d{2})\s*[/-]\s*(20\d{2})\b/); return m ? m[1]+'/'+m[2] : ''; }
+function dsGrade(ds){ return String(ds&&ds.grade||inferGrade(ds&&ds.name)||'').trim(); }
+function dsYear(ds){ return String(ds&&ds.year||inferYear(ds&&ds.name)||'').trim(); }
+function dsTeacher(ds){ return String(ds&&ds.classTeacher||'').trim(); }
+
+function buildMetaFromDatasets(datasets,currentDatasetId,schoolName){
   const meta={ version:APP_VERSION, currentDatasetId:currentDatasetId||'', generatedAt:new Date().toISOString() };
+  meta.schoolName=schoolName||'';
   const cur=datasets.find(d=>d.id===currentDatasetId);
   if(cur) meta.currentTerm=cur.term||'';
   for(const ds of datasets){
     const slim={
-      id:ds.id, name:ds.name, term:ds.term||'', tableCounter:ds.tableCounter,
+      id:ds.id, name:ds.name, term:ds.term||'', grade:ds.grade||'', year:ds.year||'', classTeacher:ds.classTeacher||'', tableCounter:ds.tableCounter,
       tables:ds.tables.map(t=>({ id:t.id, name:t.name, term:t.term||'', termOverridden:!!t.termOverridden, catColumns:t.catColumns.map(c=>({id:c.id,name:c.name,maxScore:c.maxScore})) }))
     };
     meta['dataset:'+ds.id]=JSON.stringify(slim);
@@ -1125,7 +1159,7 @@ function matchCatColumns(incoming,metaCats){
 function parseTabRows(rows,metaTableDef){
   if(!rows||rows.length<1) return null;
   let headerRowIdx=0;
-  for(let i=0;i<Math.min(rows.length,6);i++){
+  for(let i=0;i<Math.min(rows.length,12);i++){
     const cells=(rows[i]||[]).map(v=>String(v||'').trim().toUpperCase());
     if(cells.includes('NAMES')||cells[0]==='NAMES'){ headerRowIdx=i; break; }
   }
@@ -1176,7 +1210,7 @@ function buildDatasetsFromRaw(meta,tabs,opts){
   }
   const datasetMap=new Map();
   for(const ds of datasetDefs){
-    datasetMap.set(ds.id,{ id:ds.id, name:ds.name, term:ds.term||'', tableCounter:ds.tableCounter||1, tables:[], comments:{}, attendance:{enabled:false,dates:[],records:{},comments:{}} });
+    datasetMap.set(ds.id,{ id:ds.id, name:ds.name, term:ds.term||'', grade:ds.grade||'', year:ds.year||'', classTeacher:ds.classTeacher||'', tableCounter:ds.tableCounter||1, tables:[], comments:{}, attendance:{enabled:false,dates:[],records:{},comments:{}} });
   }
   for(const k of Object.keys(meta||{})){
     if(k.startsWith('comments:')){
@@ -1431,6 +1465,7 @@ const App={
     let assigned=0;
     for(const ds of this.datasets){
       if(!ds.term) ds.term='';
+      if(ds.grade===undefined) ds.grade=''; if(ds.year===undefined) ds.year=''; if(ds.classTeacher===undefined) ds.classTeacher='';
       if(!ds.comments) ds.comments={};
       if(!ds.attendance) ds.attendance={ enabled:false, dates:[], records:{}, comments:{} };
       for(const t of (ds.tables||[])){
@@ -1471,6 +1506,7 @@ const App={
     try{ remoteData=await this.readFirebaseData(this.firebaseUser.uid); }
     catch(e){ setFirebaseStatus('Offline — using this device'); }
     const legacyLocal=(()=>{ try{ const raw=localStorage.getItem('studentResultsData'); return raw?JSON.parse(raw):null; }catch(e){ return null; } })();
+    if(remoteData&&remoteData.schoolName!==undefined){ this.settings.schoolName=remoteData.schoolName||''; await DB.setSetting('schoolName',this.settings.schoolName); }
     const remoteDatasets=remoteData&&(remoteData.resultDatasets||remoteData.datasets);
     const localTime=(stored&&stored.data&&Number(stored.data.lastUpdated))||0;
     const localDirty=!!(stored&&stored.data&&stored.data.dirty);
@@ -1565,6 +1601,8 @@ const App={
     document.getElementById('chkAttendance').addEventListener('change',e=>this.toggleAttendance(e.target.checked));
     document.getElementById('btnWipeAttendance').addEventListener('click',()=>this.wipeAttendanceData());
     document.getElementById('btnSaveThresholds').addEventListener('click',()=>this.saveThresholds());
+    document.getElementById('btnSaveSchoolName').addEventListener('click',()=>this.saveSchoolName());
+    document.getElementById('saveDatasetDetailsBtn').addEventListener('click',()=>this.saveDatasetDetails());
     document.getElementById('btnDupScan').addEventListener('click',()=>this.runDuplicateScan());
     document.getElementById('onboardingLocalBtn').addEventListener('click',()=>this.finishOnboarding());
     document.getElementById('createNewDatasetBtn').addEventListener('click',()=>this.createNewDataset());
@@ -1775,7 +1813,7 @@ const App={
 
   createDefaultDataset(save=true){
     const id=generateId();
-    this.datasets=[{ id, name:'My Dataset', term:'', tables:[], tableCounter:1, comments:{}, attendance:{enabled:false,dates:[],records:{},comments:{}} }];
+    this.datasets=[{ id, name:'My Dataset', term:'', grade:'', year:'', classTeacher:'', tables:[], tableCounter:1, comments:{}, attendance:{enabled:false,dates:[],records:{},comments:{}} }];
     this.currentDatasetId=id;
     if(save) this.saveState();
   },
@@ -1825,7 +1863,7 @@ const App={
   },
   firebasePayload(){
     const now=Date.now();
-    return {resultDatasets:this.datasets,currentDatasetId:this.currentDatasetId,lastUpdated:now};
+    return {resultDatasets:this.datasets,currentDatasetId:this.currentDatasetId,schoolName:this.settings.schoolName||'',lastUpdated:now};
   },
   scheduleFirebaseSave(){
     if(!this.firebaseUser||!this._cloudReady||this._cloudLoading) return;
@@ -1933,6 +1971,7 @@ const App={
         try{ data=await this.readFirebaseData(user.uid); }
         catch(e){ throw new Error('Could not load this account’s saved data. Check your connection and try signing in again.'); }
         const list=data&&(data.resultDatasets||data.datasets);
+        if(data&&data.schoolName!==undefined){ this.settings.schoolName=data.schoolName||''; await DB.setSetting('schoolName',this.settings.schoolName); }
         this.datasets=Array.isArray(list)?list.map(ds=>this.normalizeJsonDataset(ds)).filter(Boolean):[];
         await this.ensureStudentIds();
         this.currentDatasetId=(data&&data.currentDatasetId)||this.datasets[0]?.id||null;
@@ -2018,6 +2057,9 @@ const App={
 
   renderAll(){
     const ds=this.getCurrentDataset();
+    const school=this.settings.schoolName||'';
+    document.getElementById('currentSchoolName').textContent=school;
+    document.getElementById('currentSchoolIndicator').style.display=school?'inline-flex':'none';
     document.getElementById('currentDatasetName').textContent=ds?ds.name:'';
     document.getElementById('currentDatasetIndicator').style.display=ds?'inline-flex':'none';
     const termEl=document.getElementById('currentTermIndicator');
@@ -2615,10 +2657,10 @@ const App={
         updateTablePositions(nt);
         tables.push(nt);
       }
-      newDs={ id, name, term:finalTerm, tableCounter:tables.length+1, tables, comments:{}, attendance:{enabled:false,dates:[],records:{},comments:{}} };
+      newDs={ id, name, term:finalTerm, grade:src.grade||'', year:src.year||'', classTeacher:src.classTeacher||'', tableCounter:tables.length+1, tables, comments:{}, attendance:{enabled:false,dates:[],records:{},comments:{}} };
     }else{
       const id=generateId();
-      newDs={ id, name, term:term||'', tables:[], tableCounter:1, comments:{}, attendance:{enabled:false,dates:[],records:{},comments:{}} };
+      newDs={ id, name, term:term||'', grade:'', year:'', classTeacher:'', tables:[], tableCounter:1, comments:{}, attendance:{enabled:false,dates:[],records:{},comments:{}} };
     }
     this.datasets.push(newDs);
     this.currentDatasetId=newDs.id;
@@ -2683,6 +2725,31 @@ const App={
     else if(this._statsTab==='attendance') this.renderAttStats(body);
     else if(this._statsTab==='class') this.renderClassReport(body);
   },
+  buildStatsReportData(){
+    const ds=this.getCurrentDataset(); if(!ds) return {ds:null,stats:[]};
+    const byId=new Map();
+    ds.tables.forEach(t=>t.students.forEach(s=>{ const key=s.id||s.name; if(!byId.has(key)) byId.set(key,{id:s.id,name:s.name,totals:[]}); const e=byId.get(key); e.name=s.name; e.totals.push({table:t.name,total:s.total}); }));
+    const stats=Array.from(byId.values()).map(e=>{ const totals=ds.tables.map(t=>{const hit=e.totals.find(x=>x.table===t.name);return hit?hit.total:0;}); return {id:e.id,name:e.name,totals,overall:totals.reduce((a,b)=>a+b,0)}; }).sort((a,b)=>b.overall-a.overall);
+    let pos=1,prev=null; stats.forEach((x,i)=>{if(prev!==null&&x.overall===prev)x.position=pos;else{x.position=i+1;pos=x.position;}prev=x.overall;});
+    return {ds,stats};
+  },
+  exportStatsDatasetXlsx(){
+    const {ds,stats}=this.buildStatsReportData(); if(!ds)return;
+    const rows=[[this.settings.schoolName||''],['SCHOOL BASED ASSESSMENT'],[(ds.term||'').toUpperCase()+' PERFORMANCE REVIEW'],['GRADE: '+dsGrade(ds),'TERM: '+(ds.term||''),'YEAR: '+dsYear(ds)],['CLASS TEACHER: '+dsTeacher(ds)],[],['NAMES','ID',...ds.tables.map(t=>t.name),'TOTAL','POSITION']];
+    stats.forEach(x=>rows.push([x.name,x.id||'',...x.totals,x.overall,x.position]));
+    const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),'This Dataset');
+    const out=XLSX.write(wb,{bookType:'xlsx',type:'array'}); this.downloadBlob(shortCode(ds.name)+'-'+sanitizeTabName(ds.term||ds.name)+'-report-'+today()+'.xlsx',new Blob([out],{type:'application/octet-stream'}));
+  },
+  printStatsDataset(){
+    const el=document.querySelector('#statsBody'); if(!el) return;
+    const w=window.open('','_blank'); if(!w)return;
+    const ds=this.getCurrentDataset();
+    w.document.write('<!doctype html><html><head><title>'+esc(ds&&ds.name||'Dataset report')+'</title><style>body{font:14px Arial;padding:24px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #bbb;padding:7px;text-align:center}</style></head><body>'+el.innerHTML.replace(/<div[^>]*>\s*<button[\s\S]*?<\/div>/,'')+'</body></html>'); w.document.close(); w.onload=()=>w.print();
+  },
+  reportTitleHTML(ds){
+    const parts=[this.settings.schoolName||'', 'SCHOOL BASED ASSESSMENT', (ds.term||'').toUpperCase()+' PERFORMANCE REVIEW', 'GRADE: '+dsGrade(ds)+' · TERM: '+(ds.term||'')+' · YEAR: '+dsYear(ds), 'CLASS TEACHER: '+dsTeacher(ds)].filter(Boolean);
+    return '<div class="report-heading" style="text-align:center;margin:0 auto 18px;padding:12px;border-bottom:2px solid var(--primary);">'+parts.map((x,i)=>'<div style="'+(i===0?'font-size:1.3rem;font-weight:800;':'font-size:.92rem;font-weight:600;')+'">'+esc(x)+'</div>').join('')+'</div>';
+  },
   renderStatsDataset(body){
     const ds=this.getCurrentDataset();
     const byId=new Map();
@@ -2704,7 +2771,7 @@ const App={
     }).sort((a,b)=>b.overall-a.overall);
     let pos=1,prev=null;
     stats.forEach((s,i)=>{ if(prev!==null&&s.overall===prev) s.position=pos; else{ pos=i+1; s.position=pos; } prev=s.overall; });
-    let html='<table class="stats-table"><thead><tr><th>NAMES</th><th>ID</th>';
+    let html=this.reportTitleHTML(ds)+'<div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:10px;"><button class="btn btn-secondary" id="statsDatasetPrint">Print</button><button class="btn btn-primary" id="statsDatasetExport">Export XLSX</button></div><table class="stats-table"><thead><tr><th>NAMES</th><th>ID</th>';
     ds.tables.forEach(t=>{ html+='<th>'+esc(t.name)+'</th>'; });
     html+='<th>TOTAL</th><th>POSITION</th></tr></thead><tbody>';
     stats.forEach(s=>{
@@ -2714,6 +2781,8 @@ const App={
     });
     html+='</tbody></table>';
     body.innerHTML=html;
+    document.getElementById('statsDatasetPrint').addEventListener('click',()=>this.printStatsDataset());
+    document.getElementById('statsDatasetExport').addEventListener('click',()=>this.exportStatsDatasetXlsx());
     body.querySelectorAll('.clickable-name').forEach(el=>{
       el.addEventListener('click',()=>{
         document.getElementById('statisticsModal').style.display='none';
@@ -2978,6 +3047,7 @@ const App={
     html+='</select>';
     const name=students.get(this._progStudentId);
     const subjects=[...new Set(selected.flatMap(ds=>ds.tables.map(t=>t.name)))];
+    html+=this.reportTitleHTML(selected[0]||this.getCurrentDataset());
     html+='<div style="text-align:center;margin-bottom:12px;"><h2 style="color:var(--primary)">Terminal Report Card</h2>';
     html+='<p><b>'+esc(name)+'</b> · '+esc(this._progStudentId)+'</p>';
     html+='<p style="color:var(--muted);font-size:.88rem;">'+selected.map(d=>d.term||d.name).join(', ')+'</p></div>';
@@ -3088,7 +3158,7 @@ const App={
       byId.get(k).scores[t.name]=s.total;
       byId.get(k).name=s.name;
     }));
-    let html='<div style="text-align:center;margin-bottom:12px;"><h3 style="color:var(--primary)">'+esc(ds.name)+(ds.term?' — '+esc(ds.term):'')+'</h3></div>';
+    let html=this.reportTitleHTML(ds)+'<div style="text-align:center;margin-bottom:12px;"><h3 style="color:var(--primary)">'+esc(ds.name)+(ds.term?' — '+esc(ds.term):'')+'</h3></div>';
     html+='<table class="stats-table"><thead><tr><th>NAME</th><th>ID</th>';
     ds.tables.forEach(t=>html+='<th>'+esc(t.name)+'</th>');
     html+='<th>TOTAL</th></tr></thead><tbody>';
@@ -3239,7 +3309,7 @@ const App={
     });
     const overall=getRemarks(grand,cnt*100);
     c.innerHTML=
-      '<div style="text-align:center;margin-bottom:20px;">'+
+      this.reportTitleHTML(ds)+'<div style="text-align:center;margin-bottom:20px;">'+
         '<h2 style="color:var(--primary);">'+IC['file-text']+' Terminal Report</h2>'+
         '<h3 style="color:var(--primary-dark);">'+esc(name)+'</h3>'+
         (term?'<p><b>Term:</b> '+esc(term)+'</p>':'')+
@@ -3263,7 +3333,7 @@ const App={
   },
   printTerminalReport(name,term,comments,rows,grand,overall){
     const w=window.open('','_blank');
-    w.document.write('<!DOCTYPE html><html><head><title>Terminal Report — '+esc(name)+'</title><style>body{font-family:Arial;padding:24px;max-width:800px;margin:0 auto}.header{text-align:center;border-bottom:3px solid #7A1F3D;padding-bottom:16px;margin-bottom:20px}table{width:100%;border-collapse:collapse;margin-top:16px}th,td{border:1px solid #ccc;padding:8px;text-align:center}th{background:#FFF8F2;color:#7A1F3D}.remarks-excellent{color:#16a34a;font-weight:700}.remarks-very-good{color:#0d9488;font-weight:700}.remarks-good{color:#0891b2;font-weight:700}.remarks-pass{color:#ca8a04;font-weight:700}.remarks-fail{color:#dc2626;font-weight:700}.comments{margin-top:20px;padding:16px;background:#f8fafc;border-radius:8px}.sig{margin-top:40px;display:flex;justify-content:space-between}</style></head><body><div class="header"><h1>Terminal Report</h1><h2>'+esc(name)+'</h2>'+(term?'<p><b>Term:</b> '+esc(term)+'</p>':'')+'<p>'+new Date().toLocaleString()+'</p></div><table><thead><tr><th>SUBJECT</th><th>CAT TOTAL</th><th>EXAM</th><th>SUBJECT TOTAL</th><th>REMARKS</th></tr></thead><tbody>'+rows+'<tr style="font-weight:bold;background:#f5f5f5"><td colspan="3">GRAND TOTAL</td><td>'+grand+'</td><td>'+overall.text+'</td></tr></tbody></table><div class="comments"><h3>Teacher Comments:</h3><p>'+esc(comments||'No comments.')+'</p></div><div class="sig"><div>School Stamp: _______________</div><div>Signature: _______________</div></div></body></html>');
+    w.document.write('<!DOCTYPE html><html><head><title>Terminal Report — '+esc(name)+'</title><style>body{font-family:Arial;padding:24px;max-width:800px;margin:0 auto}.header{text-align:center;border-bottom:3px solid #7A1F3D;padding-bottom:16px;margin-bottom:20px}table{width:100%;border-collapse:collapse;margin-top:16px}th,td{border:1px solid #ccc;padding:8px;text-align:center}th{background:#FFF8F2;color:#7A1F3D}.remarks-excellent{color:#16a34a;font-weight:700}.remarks-very-good{color:#0d9488;font-weight:700}.remarks-good{color:#0891b2;font-weight:700}.remarks-pass{color:#ca8a04;font-weight:700}.remarks-fail{color:#dc2626;font-weight:700}.comments{margin-top:20px;padding:16px;background:#f8fafc;border-radius:8px}.sig{margin-top:40px;display:flex;justify-content:space-between}</style></head><body>'+this.reportTitleHTML(this.getCurrentDataset())+'<div class="header"><h1>Terminal Report</h1><h2>'+esc(name)+'</h2>'+(term?'<p><b>Term:</b> '+esc(term)+'</p>':'')+'<p>'+new Date().toLocaleString()+'</p></div><table><thead><tr><th>SUBJECT</th><th>CAT TOTAL</th><th>EXAM</th><th>SUBJECT TOTAL</th><th>REMARKS</th></tr></thead><tbody>'+rows+'<tr style="font-weight:bold;background:#f5f5f5"><td colspan="3">GRAND TOTAL</td><td>'+grand+'</td><td>'+overall.text+'</td></tr></tbody></table><div class="comments"><h3>Teacher Comments:</h3><p>'+esc(comments||'No comments.')+'</p></div><div class="sig"><div>School Stamp: _______________</div><div>Signature: _______________</div></div></body></html>');
     w.document.close();
     w.onload=()=>w.print();
   },
@@ -3278,7 +3348,7 @@ const App={
       let cc='';t.catColumns.forEach(c=>{cc+='<td>'+(s.catMarks[c.id]||0)+'</td>'});
       rows+='<tr><td>'+esc(s.name)+'</td>'+cc+'<td>'+s.catTotal+'</td><td>'+s.exam+'</td><td>'+s.total+'</td><td>'+s.position+'</td></tr>';
     });
-    w.document.write('<!DOCTYPE html><html><head><title>'+esc(t.name)+'</title><style>body{font-family:Arial;padding:24px}table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border:1px solid #ccc;padding:8px;text-align:center}th{background:#FFF8F2;color:#7A1F3D}.header{text-align:center;border-bottom:3px solid #7A1F3D;padding-bottom:12px}</style></head><body><div class="header"><h1>'+esc(t.name)+'</h1><p>'+(term?'Term: '+esc(term)+'<br>':'')+'Student Results</p></div><table><thead><tr><th>NAMES</th>'+ch+'<th>CAT TOTAL</th><th>EXAM</th><th>TOTAL</th><th>POS</th></tr></thead><tbody>'+rows+'</tbody></table><p>Generated: '+new Date().toLocaleString()+'</p></body></html>');
+    w.document.write('<!DOCTYPE html><html><head><title>'+esc(t.name)+'</title><style>body{font-family:Arial;padding:24px}table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border:1px solid #ccc;padding:8px;text-align:center}th{background:#FFF8F2;color:#7A1F3D}.header{text-align:center;border-bottom:3px solid #7A1F3D;padding-bottom:12px}</style></head><body>'+this.reportTitleHTML(ds)+'<div class="header"><h1>'+esc(t.name)+'</h1><p>'+(term?'Term: '+esc(term)+'<br>':'')+'Student Results</p></div><table><thead><tr><th>NAMES</th>'+ch+'<th>CAT TOTAL</th><th>EXAM</th><th>TOTAL</th><th>POS</th></tr></thead><tbody>'+rows+'</tbody></table><p>Generated: '+new Date().toLocaleString()+'</p></body></html>');
     w.document.close();
     w.onload=()=>w.print();
   },
@@ -3292,13 +3362,15 @@ const App={
       it.className='bulk-list-item'+(d.id===this.currentDatasetId?' active':'');
       const totalStu=d.tables.reduce((s,t)=>s+t.students.length,0);
       it.innerHTML='<div><div style="font-weight:600;color:var(--primary);">'+IC.database+' '+esc(d.name)+'</div>'+
-        '<div style="font-size:0.85rem;color:var(--muted);">Term: '+esc(d.term||'Not set')+' · '+d.tables.length+' table(s), '+totalStu+' student(s)</div></div>'+
+        '<div style="font-size:0.85rem;color:var(--muted);">Term: '+esc(d.term||'Not set')+' · Grade: '+esc(dsGrade(d)||'Not set')+' · Year: '+esc(dsYear(d)||'Not set')+' · Teacher: '+esc(dsTeacher(d)||'Not set')+' · '+d.tables.length+' table(s), '+totalStu+' student(s)</div></div>'+
         '<div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">'+
+          '<button class="btn btn-secondary" data-details>Edit details</button>'+
           '<button class="btn btn-secondary" data-rename>Rename</button>'+
           '<button class="btn btn-secondary" data-edit-term>Edit term</button>'+
           '<button class="btn btn-primary" data-switch>'+IC.exchange+' Switch</button>'+
           '<button class="btn btn-danger" data-delete>'+IC.trash+' Delete</button>'+
         '</div>';
+      it.querySelector('[data-details]').addEventListener('click',()=>this.openDatasetDetails(d.id));
       it.querySelector('[data-rename]').addEventListener('click',e=>{ e.stopPropagation(); this.renameDataset(d.id); });
       it.querySelector('[data-edit-term]').addEventListener('click',e=>{
         e.stopPropagation();
@@ -3328,6 +3400,7 @@ const App={
   async openSettings(){
     const s=await DB.allSettings();
     this.settings=s;
+    document.getElementById('inpSchoolName').value=s.schoolName||'';
     const chk=document.getElementById('chkAttendance');
     if(chk) chk.checked=!!s.attendanceEnabled;
     const wipeAtt=document.getElementById('btnWipeAttendance');
@@ -3354,6 +3427,21 @@ const App={
     this.markDirty(); await this.saveState();
     if(this.currentView==='attendance') this.renderAttendance();
     showToast('info','Attendance wiped');
+  },
+  async saveSchoolName(){
+    const name=document.getElementById('inpSchoolName').value.trim();
+    await DB.setSetting('schoolName',name); this.settings.schoolName=name;
+    this.markDirty(); await this.saveState(); this.renderAll(); this.scheduleFirebaseSave();
+    showToast('success','Saved','School name updated');
+  },
+  async saveDatasetDetails(){
+    const id=document.getElementById('datasetDetailsId').value; const ds=this.datasets.find(d=>d.id===id); if(!ds) return;
+    ds.grade=document.getElementById('datasetGradeInput').value.trim(); ds.year=document.getElementById('datasetYearInput').value.trim(); ds.classTeacher=document.getElementById('datasetTeacherInput').value.trim();
+    this.markDirty(); await this.saveState(); this.renderDatasetList(); this.renderAll(); document.getElementById('datasetDetailsModal').style.display='none'; showToast('success','Saved','Dataset details updated');
+  },
+  openDatasetDetails(id){
+    const ds=this.datasets.find(d=>d.id===id); if(!ds) return;
+    document.getElementById('datasetDetailsId').value=id; document.getElementById('datasetGradeInput').value=dsGrade(ds); document.getElementById('datasetYearInput').value=dsYear(ds); document.getElementById('datasetTeacherInput').value=dsTeacher(ds); document.getElementById('datasetDetailsModal').style.display='flex';
   },
   async saveThresholds(){
     this.thresholds.attendancePct=parseInt(document.getElementById('inpAttThreshold').value,10)||80;
@@ -3421,7 +3509,7 @@ const App={
   exportCurrentXlsx(){
     if(typeof XLSX==='undefined'){ showToast('error','Library missing','Reload page'); return; }
     const ds=this.getCurrentDataset(); if(!ds){ showToast('info','No data'); return; }
-    this.exportDatasetsToXlsx([ds], sanitizeTabName(ds.name)+'-'+today()+'.xlsx');
+    this.exportDatasetsToXlsx([ds], shortCode(ds.name)+'-'+sanitizeTabName(ds.term||ds.name)+'-'+today()+'.xlsx');
   },
   exportAllXlsx(){
     if(typeof XLSX==='undefined'){ showToast('error','Library missing','Reload page'); return; }
@@ -3430,7 +3518,8 @@ const App={
   },
   exportDatasetsToXlsx(datasets,filename){
     const wb=XLSX.utils.book_new();
-    const meta=buildMetaFromDatasets(datasets, this.currentDatasetId);
+    const meta=buildMetaFromDatasets(datasets, this.currentDatasetId, this.settings.schoolName||'');
+
     meta.currentDatasetId=this.currentDatasetId||'';
     const metaRows=[['key','value']];
     for(const k of Object.keys(meta)) metaRows.push([k, meta[k]]);
@@ -3438,7 +3527,7 @@ const App={
     const usedNames=new Set(['_meta']);
     for(const ds of datasets){
       for(const tbl of ds.tables){
-        const displayName=sanitizeTabName(ds.name+' - '+tbl.name);
+          const displayName=sanitizeTabName(ds.name+' - '+tbl.name);
         const idPart=' — '+tbl.id;
         let unique=(displayName.slice(0,Math.max(1,31-idPart.length))+idPart).slice(0,31);
         let n=2;
@@ -3447,7 +3536,7 @@ const App={
           unique=(displayName.slice(0,Math.max(1,31-sfx.length))+sfx).slice(0,31); n++;
         }
         usedNames.add(unique);
-        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(tableToRows(tbl)), unique);
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(tableToRows(tbl,ds,this.settings.schoolName||'')), unique);
       }
       if(this.settings.attendanceEnabled && ds.attendance && ds.attendance.dates && ds.attendance.dates.length){
         const suffix = attendanceTabSuffix(ds.id);
@@ -3459,7 +3548,7 @@ const App={
           n++;
         }
         usedNames.add(aname);
-        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(attendanceToRows(ds)), aname);
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(attendanceToRows(ds,this.settings.schoolName||'')), aname);
       }
     }
     const out=XLSX.write(wb,{bookType:'xlsx',type:'array'});
@@ -3468,12 +3557,12 @@ const App={
   },
   exportCurrentJson(){
     const ds=this.getCurrentDataset(); if(!ds){ showToast('info','No data'); return; }
-    const data={ version:APP_VERSION, exportedAt:new Date().toISOString(), kind:'dataset', dataset:ds };
+    const data={ version:APP_VERSION, exportedAt:new Date().toISOString(), kind:'dataset', dataset:ds, schoolName:this.settings.schoolName||'' };
     this.downloadJson('dataset-'+sanitizeTabName(ds.name)+'-'+today()+'.json', data);
   },
   exportAllJson(){
     if(!this.datasets.length){ showToast('info','No data'); return; }
-    const data={ version:APP_VERSION, exportedAt:new Date().toISOString(), kind:'all', datasets:this.datasets, currentDatasetId:this.currentDatasetId };
+    const data={ version:APP_VERSION, exportedAt:new Date().toISOString(), kind:'all', datasets:this.datasets, currentDatasetId:this.currentDatasetId, schoolName:this.settings.schoolName||'' };
     this.downloadJson('all-datasets-'+today()+'.json', data);
   },
   downloadJson(name,data){ this.downloadBlob(name, new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); showToast('success','Exported',name); },
@@ -3545,6 +3634,7 @@ const App={
   async readJsonFile(file){
     const text=await file.text();
     const data=JSON.parse(text);
+    if(data.schoolName!==undefined){ await DB.setSetting('schoolName',data.schoolName||''); this.settings.schoolName=data.schoolName||''; }
     if(data.kind==='table'&&data.dataset) return [this.normalizeJsonDataset(data.dataset)];
     if(data.kind==='all' && Array.isArray(data.datasets)) return data.datasets.map(ds=>this.normalizeJsonDataset(ds));
     if(data.kind==='dataset' && data.dataset) return [this.normalizeJsonDataset(data.dataset)];
@@ -3556,7 +3646,7 @@ const App={
   normalizeJsonDataset(ds){
     const datasetName=String(ds.name||'Imported').trim();
     const inferredTerm=/^term\s*\d+$/i.test(datasetName)?datasetName:'';
-    const out={ id:ds.id||('ds-'+generateId()), name:datasetName, term:ds.term||inferredTerm, tableCounter:ds.tableCounter||1, tables:[], comments:ds.comments||{}, attendance:ds.attendance||{enabled:false,dates:[],records:{},comments:{}} };
+    const out={ id:ds.id||('ds-'+generateId()), name:datasetName, term:ds.term||inferredTerm, grade:ds.grade||'', year:ds.year||'', classTeacher:ds.classTeacher||'', tableCounter:ds.tableCounter||1, tables:[], comments:ds.comments||{}, attendance:ds.attendance||{enabled:false,dates:[],records:{},comments:{}} };
     // FIX 2: if attendance is disabled, strip attendance from imported dataset
     if(!this.settings.attendanceEnabled){
       out.attendance = {enabled:false,dates:[],records:{},comments:{}};
