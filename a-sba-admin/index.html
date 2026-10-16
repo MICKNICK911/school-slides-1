@@ -403,6 +403,22 @@
     border-radius:12px;background:var(--card-2);cursor:pointer;margin-bottom:8px;font-weight:500}
   .onb-att-opt:hover{border-color:var(--primary);background:var(--hover)}
   .onb-att-opt input{width:auto;margin:0;accent-color:var(--primary)}
+  /* --- Report header blocks --- */
+  .srp-title-block{text-align:center;margin-bottom:18px;}
+  .srp-school{font-size:1.35rem;font-weight:800;color:var(--primary);letter-spacing:.5px;}
+  .srp-subtitle{font-size:.9rem;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:.5px;}
+  .srp-report-title{font-size:1rem;font-weight:700;color:var(--text);margin-top:10px;text-transform:uppercase;letter-spacing:1px;}
+  .srp-meta{display:grid;grid-template-columns:auto 1fr auto 1fr auto 1fr auto 1fr;gap:8px 14px;background:var(--card-2);border:1px solid var(--border);border-radius:12px;padding:12px 16px;margin-bottom:18px;font-size:.88rem;}
+  .srp-meta .lbl{color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.4px;font-size:.72rem;align-self:center;}
+  .srp-meta .val{color:var(--text);font-weight:600;align-self:center;}
+  .srp-meta .val.empty::after{content:"—";color:var(--muted);font-weight:400;}
+  .srp-actions{display:flex;gap:10px;justify-content:flex-end;margin-bottom:14px;flex-wrap:wrap;}
+  .srp-table{width:100%;border-collapse:collapse;font-size:.88rem;}
+  .srp-table th,.srp-table td{border:1px solid var(--border);padding:8px 6px;text-align:center;}
+  .srp-table th{background:var(--card-2);color:var(--muted);font-weight:700;font-size:.72rem;text-transform:uppercase;letter-spacing:.4px;}
+  .srp-table td.srp-name{text-align:left;}
+  .srp-table .srp-no{color:var(--muted);font-weight:600;width:40px;}
+  .srp-table .srp-total,.srp-table .srp-pos{font-weight:700;color:var(--primary);}
 </style>
 </head>
 <body>
@@ -778,6 +794,7 @@
 'use strict';
 
 const IC = {
+  home:'<svg class="ic" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
   brand:'<svg class="ic" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>',
   moon:'<svg class="ic" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>',
   sun:'<svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>',
@@ -947,17 +964,29 @@ function parseAttendanceTabName(tabName){
   if(!m) return null;
   return { display: m[1].trim(), attId: m[2] };
 }
+const SRP_REPORT_CSS = `
+  .srp-title-block{text-align:center;margin-bottom:16px}
+  .srp-school{font-size:20px;font-weight:800;color:#1d4ed8;letter-spacing:.5px}
+  .srp-subtitle{font-size:12px;color:#555;margin-top:2px;text-transform:uppercase;letter-spacing:.5px}
+  .srp-report-title{font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-top:8px}
+  .srp-meta{display:grid;grid-template-columns:auto 1fr auto 1fr auto 1fr auto 1fr;gap:6px 14px;background:#f5f7ff;border:1px solid #d0d7ea;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:12px}
+  .srp-meta .lbl{color:#666;font-weight:700;text-transform:uppercase;font-size:10px;letter-spacing:.4px;align-self:center}
+  .srp-meta .val{font-weight:600;align-self:center}
+`;
+
+
 function attendanceToRows(ds, schoolName){
   const att = ds.attendance || {};
   const dates = att.dates || [];
   const records = att.records || {};
   const rows = [
-    [schoolName||''],
-    ['SCHOOL BASED ASSESSMENT'],
-    [(ds.term||'').toUpperCase()+' PERFORMANCE REVIEW'],
-    ['GRADE: '+dsGrade(ds),'TERM: '+(ds.term||''),'YEAR: '+dsYear(ds)],
-    ['CLASS TEACHER: '+dsTeacher(ds)],
-    ['Class: ' + ds.name],
+    ['', '', schoolName||''],
+    ['', '', 'SCHOOL BASED ASSESSMENT'],
+    ['', '', (ds.term||'').toUpperCase()+' ATTENDANCE REGISTER'],
+    [],
+    ['GRADE', dsGrade(ds), '', 'TERM', ds.term||'', '', 'YEAR', dsYear(ds)],
+    [],
+    ['CLASS TEACHER', dsTeacher(ds), '', 'CLASS', ds.name],
     [],
     ['STUDENT','ID', ...dates, 'PRESENT', '%']
   ];
@@ -1078,18 +1107,19 @@ const DB={
 };
 
 function tableToRows(tbl, ds, schoolName){
-  const term=tbl.term||'';
+  const term=tbl.term||(ds&&ds.term)||'';
   const headers=['NAMES','ID','GENDER'];
   for(const c of tbl.catColumns) headers.push(`${c.name} (${c.maxScore})`);
   headers.push('CAT TOTAL','EXAM (50)','TOTAL','POSITION');
   ds=ds||{};
   const rows=[
-    [schoolName||''],
-    ['SCHOOL BASED ASSESSMENT'],
-    [(term||'').toUpperCase()+' PERFORMANCE REVIEW'],
-    ['GRADE: '+dsGrade(ds),'TERM: '+(term||''),'YEAR: '+dsYear(ds)],
-    ['CLASS TEACHER: '+dsTeacher(ds)],
-    ['Subject: '+(tbl.name||'')],
+    ['', '', schoolName||''],
+    ['', '', 'SCHOOL BASED ASSESSMENT'],
+    ['', '', (term||'').toUpperCase()+' PERFORMANCE REVIEW'],
+    [],
+    ['GRADE', dsGrade(ds), '', 'TERM', term, '', 'YEAR', dsYear(ds)],
+    [],
+    ['CLASS TEACHER', dsTeacher(ds), '', 'SUBJECT', tbl.name||''],
     [],
     headers
   ];
@@ -1101,12 +1131,35 @@ function tableToRows(tbl, ds, schoolName){
   }
   return rows;
 }
-function shortCode(name){ return String(name||'').trim().split(/\s+/).map(x=>x[0]||'').join('').slice(0,8).toUpperCase(); }
-function inferGrade(name){ const m=String(name||'').match(/\b(?:grade|class|form)\s*([0-9]+[a-z]?)\b/i); return m ? 'Grade '+m[1] : ''; }
-function inferYear(name){ const m=String(name||'').match(/\b(20\d{2})\s*[/-]\s*(20\d{2})\b/); return m ? m[1]+'/'+m[2] : ''; }
-function dsGrade(ds){ return String(ds&&ds.grade||inferGrade(ds&&ds.name)||'').trim(); }
-function dsYear(ds){ return String(ds&&ds.year||inferYear(ds&&ds.name)||'').trim(); }
-function dsTeacher(ds){ return String(ds&&ds.classTeacher||'').trim(); }
+function shortCode(name){
+  return String(name||'').replace(/[^A-Za-z0-9]/g,'').slice(0,3).toUpperCase() || '—';
+}
+function inferGrade(name){
+  if(!name) return '';
+  const m=String(name).match(/\b(grade|g|primary|p|class|basic)\s*(\d+)\b/i);
+  if(!m) return '';
+  const k=m[1].toLowerCase();
+  const long={grade:'Grade',primary:'Primary',class:'Class',basic:'Basic'};
+  const short={g:'G',p:'P'};
+  if(long[k]) return long[k]+' '+m[2];
+  if(short[k]) return short[k]+m[2];
+  return m[0];
+}
+function inferYear(name){
+  if(!name) return '';
+  const s=String(name);
+  let m=s.match(/(20\d{2})\s*[\/\-–]\s*(20\d{2})/);
+  if(m) return m[1]+'/'+m[2];
+  m=s.match(/\b(20\d{2})\b/);
+  if(m) return m[1];
+  return '';
+}
+function dsGrade(ds){ return (ds&&ds.grade)?ds.grade:(inferGrade((ds&&ds.name)||'')||''); }
+function dsYear(ds){
+  if(ds&&ds.year) return ds.year;
+  return inferYear((ds&&ds.name)||'')||inferYear((ds&&ds.term)||'')||'';
+}
+function dsTeacher(ds){ return (ds&&ds.classTeacher)?ds.classTeacher:''; }
 
 function buildMetaFromDatasets(datasets,currentDatasetId,schoolName){
   const meta={ version:APP_VERSION, currentDatasetId:currentDatasetId||'', generatedAt:new Date().toISOString() };
@@ -1787,9 +1840,16 @@ const App={
     const att=this.ensureAttendance(ds);
     const roster=this.getRoster(ds);
     const dates=att.dates||[];
+    const meta=this.reportMetaRows(ds);
+    const school=this.settings.schoolName||'';
     const rows=[
-      ['Term: '+(ds.term||'')],
-      ['Class: '+ds.name],
+      ['', '', school],
+      ['', '', 'SCHOOL BASED ASSESSMENT'],
+      ['', '', (meta.term||'').toUpperCase()+' ATTENDANCE REGISTER'],
+      [],
+      ['GRADE', meta.grade, '', 'TERM', meta.term, '', 'YEAR', meta.year],
+      [],
+      ['CLASS TEACHER', meta.teacher, '', 'NO. ON ROLL', meta.roll, '', 'BOYS', meta.boys, '', 'GIRLS', meta.girls],
       [],
       ['STUDENT','ID',...dates,'PRESENT','%']
     ];
@@ -2072,8 +2132,29 @@ const App={
         if(nt===null) return;
         this.updateDatasetTerm(nt.trim());
       };
+      // Dataset info pill (grade/year/teacher)
+      let infoEl=document.getElementById('currentDatasetInfo');
+      if(!infoEl){
+        infoEl=document.createElement('span');
+        infoEl.id='currentDatasetInfo';
+        infoEl.className='current-dataset';
+        infoEl.style.cursor='pointer';
+        infoEl.title='Click to edit dataset details';
+        termEl.parentNode.insertBefore(infoEl, termEl.nextSibling);
+        infoEl.addEventListener('click',()=>this.openDatasetDetails(this.currentDatasetId));
+      }
+      const g=dsGrade(ds), y=dsYear(ds), t=dsTeacher(ds);
+      const parts=[g,y,t].filter(Boolean);
+      if(parts.length){
+        infoEl.style.display='inline-flex';
+        infoEl.textContent=parts.join(' · ');
+      }else{
+        infoEl.style.display='none';
+      }
     }else{
       termEl.style.display='none';
+      const infoEl=document.getElementById('currentDatasetInfo');
+      if(infoEl) infoEl.style.display='none';
     }
     this.renderTables(ds);
   },
@@ -2725,71 +2806,135 @@ const App={
     else if(this._statsTab==='attendance') this.renderAttStats(body);
     else if(this._statsTab==='class') this.renderClassReport(body);
   },
+  reportMetaRows(ds){
+    const roster=this.getRoster(ds);
+    return {
+      schoolName: this.settings.schoolName||'',
+      grade: dsGrade(ds), term: ds.term||'', year: dsYear(ds),
+      teacher: dsTeacher(ds), roll: roster.length,
+      boys: roster.filter(x=>x.gender==='M').length,
+      girls: roster.filter(x=>x.gender==='F').length
+    };
+  },
   buildStatsReportData(){
-    const ds=this.getCurrentDataset(); if(!ds) return {ds:null,stats:[]};
+    const ds=this.getCurrentDataset(); if(!ds) return {ds:null,roster:[],stats:[],subjects:[]};
+    const roster=this.getRoster(ds);
     const byId=new Map();
-    ds.tables.forEach(t=>t.students.forEach(s=>{ const key=s.id||s.name; if(!byId.has(key)) byId.set(key,{id:s.id,name:s.name,totals:[]}); const e=byId.get(key); e.name=s.name; e.totals.push({table:t.name,total:s.total}); }));
-    const stats=Array.from(byId.values()).map(e=>{ const totals=ds.tables.map(t=>{const hit=e.totals.find(x=>x.table===t.name);return hit?hit.total:0;}); return {id:e.id,name:e.name,totals,overall:totals.reduce((a,b)=>a+b,0)}; }).sort((a,b)=>b.overall-a.overall);
-    let pos=1,prev=null; stats.forEach((x,i)=>{if(prev!==null&&x.overall===prev)x.position=pos;else{x.position=i+1;pos=x.position;}prev=x.overall;});
-    return {ds,stats};
+    ds.tables.forEach(t=>t.students.forEach(s=>{
+      const key=s.id||s.name;
+      if(!byId.has(key)) byId.set(key,{id:s.id,name:s.name,totals:[]});
+      const e=byId.get(key); e.name=s.name;
+      e.totals.push({tableId:t.id,total:s.total});
+    }));
+    const stats=Array.from(byId.values()).map(e=>{
+      const totals=ds.tables.map(t=>{
+        const hit=e.totals.find(x=>x.tableId===t.id);
+        return hit?hit.total:0;
+      });
+      return {id:e.id,name:e.name,totals,overall:totals.reduce((a,b)=>a+b,0)};
+    }).sort((a,b)=>b.overall-a.overall);
+    let pos=1,prev=null;
+    stats.forEach((s,i)=>{
+      if(prev!==null&&s.overall===prev) s.position=pos;
+      else{ pos=i+1; s.position=pos; }
+      prev=s.overall;
+    });
+    const subjects=ds.tables.map(t=>({name:t.name, code:shortCode(t.name)}));
+    return { ds, roster, stats, subjects };
   },
+
   exportStatsDatasetXlsx(){
-    const {ds,stats}=this.buildStatsReportData(); if(!ds)return;
-    const rows=[[this.settings.schoolName||''],['SCHOOL BASED ASSESSMENT'],[(ds.term||'').toUpperCase()+' PERFORMANCE REVIEW'],['GRADE: '+dsGrade(ds),'TERM: '+(ds.term||''),'YEAR: '+dsYear(ds)],['CLASS TEACHER: '+dsTeacher(ds)],[],['NAMES','ID',...ds.tables.map(t=>t.name),'TOTAL','POSITION']];
-    stats.forEach(x=>rows.push([x.name,x.id||'',...x.totals,x.overall,x.position]));
-    const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),'This Dataset');
-    const out=XLSX.write(wb,{bookType:'xlsx',type:'array'}); this.downloadBlob(shortCode(ds.name)+'-'+sanitizeTabName(ds.term||ds.name)+'-report-'+today()+'.xlsx',new Blob([out],{type:'application/octet-stream'}));
+    if(typeof XLSX==='undefined'){ showToast('error','Library missing','Reload page'); return; }
+    const r=this.buildStatsReportData();
+    if(!r.ds){ showToast('info','No data'); return; }
+    const meta=this.reportMetaRows(r.ds);
+    const header=['NO','NAME OF STUDENT',...r.subjects.map(s=>s.code),'TOTAL SCORE','POS'];
+    const rows=[
+      ['','',meta.schoolName],
+      ['','','SCHOOL BASED ASSESSMENT'],
+      ['','',(meta.term||'Performance')+' PERFORMANCE REVIEW'],
+      [],
+      ['GRADE',meta.grade,'','TERM',meta.term,'','YEAR',meta.year],
+      [],
+      ['CLASS TEACHER',meta.teacher,'','NO. ON ROLL',meta.roll,'','BOYS',meta.boys,'','GIRLS',meta.girls],
+      [],
+      header
+    ];
+    r.stats.forEach((s,i)=>{
+      rows.push([i+1, s.name, ...s.totals, s.overall, s.position]);
+    });
+    const ws=XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols']=[{wch:5},{wch:32},...r.subjects.map(()=>({wch:8})),{wch:12},{wch:6}];
+    const wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, (sanitizeTabName(r.ds.name).slice(0,31))||'Report');
+    const out=XLSX.write(wb,{bookType:'xlsx',type:'array'});
+    this.downloadBlob(sanitizeTabName(r.ds.name)+'-performance-'+today()+'.xlsx',
+      new Blob([out],{type:'application/octet-stream'}));
+    showToast('success','Exported','Performance report');
   },
+
   printStatsDataset(){
-    const el=document.querySelector('#statsBody'); if(!el) return;
-    const w=window.open('','_blank'); if(!w)return;
-    const ds=this.getCurrentDataset();
-    w.document.write('<!doctype html><html><head><title>'+esc(ds&&ds.name||'Dataset report')+'</title><style>body{font:14px Arial;padding:24px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #bbb;padding:7px;text-align:center}</style></head><body>'+el.innerHTML.replace(/<div[^>]*>\s*<button[\s\S]*?<\/div>/,'')+'</body></html>'); w.document.close(); w.onload=()=>w.print();
+    const r=this.buildStatsReportData();
+    if(!r.ds){ showToast('info','No data'); return; }
+    const w=window.open('','_blank'); if(!w) return;
+    let th='<th>NO</th><th>NAME OF STUDENT</th>';
+    r.subjects.forEach(s=>{ th+='<th>'+esc(s.code)+'</th>'; });
+    th+='<th>TOTAL SCORE</th><th>POS</th>';
+    let trs='';
+    r.stats.forEach((s,i)=>{
+      trs+='<tr><td>'+(i+1)+'</td><td style="text-align:left">'+esc(s.name)+'</td>';
+      s.totals.forEach(t=>{ trs+='<td>'+t+'</td>'; });
+      trs+='<td><b>'+s.overall+'</b></td><td><b>'+s.position+'</b></td></tr>';
+    });
+    const css='body{font-family:Arial,sans-serif;padding:24px;max-width:1100px;margin:0 auto;color:#111}'+
+      SRP_REPORT_CSS+
+      'table{width:100%;border-collapse:collapse;font-size:12px}'+
+      'th,td{border:1px solid #c5c9d6;padding:6px;text-align:center}'+
+      'th{background:#eff6ff;font-weight:700;font-size:10px;text-transform:uppercase;color:#1d4ed8}';
+    const html='<!DOCTYPE html><html><head><title>'+esc(r.ds.name)+'</title><style>'+css+'</style></head><body>'+
+      this.reportHeaderPrintHTML(r.ds)+
+      '<table><thead><tr>'+th+'</tr></thead><tbody>'+trs+'</tbody></table>'+
+      '</body></html>';
+    w.document.write(html); w.document.close(); w.onload=()=>w.print();
   },
+
   reportTitleHTML(ds){
     const parts=[this.settings.schoolName||'', 'SCHOOL BASED ASSESSMENT', (ds.term||'').toUpperCase()+' PERFORMANCE REVIEW', 'GRADE: '+dsGrade(ds)+' · TERM: '+(ds.term||'')+' · YEAR: '+dsYear(ds), 'CLASS TEACHER: '+dsTeacher(ds)].filter(Boolean);
     return '<div class="report-heading" style="text-align:center;margin:0 auto 18px;padding:12px;border-bottom:2px solid var(--primary);">'+parts.map((x,i)=>'<div style="'+(i===0?'font-size:1.3rem;font-weight:800;':'font-size:.92rem;font-weight:600;')+'">'+esc(x)+'</div>').join('')+'</div>';
   },
   renderStatsDataset(body){
-    const ds=this.getCurrentDataset();
-    const byId=new Map();
-    ds.tables.forEach(t=>{
-      t.students.forEach(s=>{
-        const key=s.id||s.name;
-        if(!byId.has(key)) byId.set(key,{id:s.id,name:s.name,totals:[]});
-        const e=byId.get(key);
-        e.name=s.name;
-        e.totals.push({table:t.name,total:s.total});
-      });
+    const r=this.buildStatsReportData();
+    if(!r.ds){ body.innerHTML='<p style="color:var(--muted)">No dataset.</p>'; return; }
+    const {ds,stats,subjects}=r;
+
+    let tableHTML='<table class="srp-table"><thead><tr><th>NO</th><th>NAME OF STUDENT</th>';
+    subjects.forEach(s=>{ tableHTML+='<th>'+esc(s.code)+'</th>'; });
+    tableHTML+='<th>TOTAL SCORE</th><th>POS</th></tr></thead><tbody>';
+    stats.forEach((s,i)=>{
+      tableHTML+='<tr><td class="srp-no">'+(i+1)+'</td>'+
+        '<td class="srp-name"><span class="clickable-name" data-name="'+esc(s.name)+'">'+esc(s.name)+'</span></td>';
+      s.totals.forEach(t=>{ tableHTML+='<td>'+t+'</td>'; });
+      tableHTML+='<td class="srp-total">'+s.overall+'</td><td class="srp-pos">'+s.position+'</td></tr>';
     });
-    const stats=Array.from(byId.values()).map(e=>{
-      const totals=ds.tables.map(t=>{
-        const hit=e.totals.find(x=>x.table===t.name);
-        return hit?hit.total:0;
-      });
-      return { id:e.id, name:e.name, totals, overall:totals.reduce((a,b)=>a+b,0) };
-    }).sort((a,b)=>b.overall-a.overall);
-    let pos=1,prev=null;
-    stats.forEach((s,i)=>{ if(prev!==null&&s.overall===prev) s.position=pos; else{ pos=i+1; s.position=pos; } prev=s.overall; });
-    let html=this.reportTitleHTML(ds)+'<div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:10px;"><button class="btn btn-secondary" id="statsDatasetPrint">Print</button><button class="btn btn-primary" id="statsDatasetExport">Export XLSX</button></div><table class="stats-table"><thead><tr><th>NAMES</th><th>ID</th>';
-    ds.tables.forEach(t=>{ html+='<th>'+esc(t.name)+'</th>'; });
-    html+='<th>TOTAL</th><th>POSITION</th></tr></thead><tbody>';
-    stats.forEach(s=>{
-      html+='<tr><td><span class="clickable-name" data-name="'+esc(s.name)+'">'+esc(s.name)+'</span></td><td style="font-size:.8rem;color:var(--muted)">'+esc(s.id||'')+'</td>';
-      s.totals.forEach(tot=>{ html+='<td>'+tot+'</td>'; });
-      html+='<td><b>'+s.overall+'</b></td><td>'+s.position+'</td></tr>';
-    });
-    html+='</tbody></table>';
-    body.innerHTML=html;
-    document.getElementById('statsDatasetPrint').addEventListener('click',()=>this.printStatsDataset());
-    document.getElementById('statsDatasetExport').addEventListener('click',()=>this.exportStatsDatasetXlsx());
+    tableHTML+='</tbody></table>';
+
+    const actions='<div class="srp-actions">'+
+      '<button class="btn btn-info" id="srpPrintBtn">'+IC.printer+' Print</button>'+
+      '<button class="btn btn-primary" id="srpExportBtn">'+IC['file-excel']+' Export to Excel</button>'+
+    '</div>';
+
+    body.innerHTML=this.reportHeaderHTML(ds)+this.reportMetaHTML(ds, r.roster)+actions+tableHTML;
+
     body.querySelectorAll('.clickable-name').forEach(el=>{
       el.addEventListener('click',()=>{
         document.getElementById('statisticsModal').style.display='none';
         this.showTerminalReport(el.dataset.name);
       });
     });
+    document.getElementById('srpPrintBtn').addEventListener('click',()=>this.printStatsDataset());
+    document.getElementById('srpExportBtn').addEventListener('click',()=>this.exportStatsDatasetXlsx());
   },
+
   renderProgress(body){
     const current=this.getCurrentDataset();
     if(!this._progSelected){
@@ -3042,13 +3187,14 @@ const App={
     const list=Array.from(students.entries()).sort((a,b)=>a[1].localeCompare(b[1]));
     if(!list.length){ body.innerHTML='<p style="color:var(--muted)">No students.</p>'; return; }
     if(!this._progStudentId||!students.has(this._progStudentId)) this._progStudentId=list[0][0];
+    const curDs=this.getCurrentDataset();
     let html='<select id="rcSelect" style="margin-bottom:12px;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--input-bg);color:var(--text);">';
     list.forEach(([id,name])=>{ html+='<option value="'+esc(id)+'"'+(id===this._progStudentId?' selected':'')+'>'+esc(name)+' — '+esc(id)+'</option>'; });
     html+='</select>';
     const name=students.get(this._progStudentId);
     const subjects=[...new Set(selected.flatMap(ds=>ds.tables.map(t=>t.name)))];
-    html+=this.reportTitleHTML(selected[0]||this.getCurrentDataset());
-    html+='<div style="text-align:center;margin-bottom:12px;"><h2 style="color:var(--primary)">Terminal Report Card</h2>';
+    html+=this.reportHeaderHTML(curDs);
+    html+='<div style="text-align:center;margin-bottom:12px;"><h2 style="color:var(--primary)">Student Report Card</h2>';
     html+='<p><b>'+esc(name)+'</b> · '+esc(this._progStudentId)+'</p>';
     html+='<p style="color:var(--muted);font-size:.88rem;">'+selected.map(d=>d.term||d.name).join(', ')+'</p></div>';
     html+='<table class="stats-table"><thead><tr><th>SUBJECT</th>';
@@ -3086,7 +3232,6 @@ const App={
       }
     }
     html+='</tbody></table>';
-    const curDs=this.getCurrentDataset();
     if(!curDs.comments) curDs.comments={};
     const existing=curDs.comments[this._progStudentId]||'';
     html+='<div style="margin-top:16px;"><h3 style="color:var(--primary);font-size:.95rem;">Teacher Comments</h3>';
@@ -3107,7 +3252,11 @@ const App={
     });
     document.getElementById('rcPrint').addEventListener('click',()=>{
       const w=window.open('','_blank');
-      w.document.write('<!DOCTYPE html><html><head><title>Report Card</title><style>body{font-family:Arial;padding:24px;max-width:800px;margin:0 auto}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ccc;padding:8px;text-align:center}th{background:#FFF8F2}</style></head><body>'+
+      const css='body{font-family:Arial;padding:24px;max-width:800px;margin:0 auto}'+
+        'table{width:100%;border-collapse:collapse}th,td{border:1px solid #ccc;padding:8px;text-align:center}th{background:#eff6ff}'+
+        SRP_REPORT_CSS;
+      w.document.write('<!DOCTYPE html><html><head><title>Report Card</title><style>'+css+'</style></head><body>'+
+        this.reportHeaderPrintHTML(curDs)+
         document.getElementById('progBody').innerHTML.replace(/<select[\s\S]*?<\/select>/,'').replace(/<button[\s\S]*?<\/button>/g,'').replace(/<textarea[\s\S]*?<\/textarea>/,'')+
         '<p><b>Comments:</b> '+esc(document.getElementById('rcComments').value||'None')+'</p></body></html>');
       w.document.close(); w.onload=()=>w.print();
@@ -3158,7 +3307,8 @@ const App={
       byId.get(k).scores[t.name]=s.total;
       byId.get(k).name=s.name;
     }));
-    let html=this.reportTitleHTML(ds)+'<div style="text-align:center;margin-bottom:12px;"><h3 style="color:var(--primary)">'+esc(ds.name)+(ds.term?' — '+esc(ds.term):'')+'</h3></div>';
+    let html=this.reportHeaderHTML(ds);
+    html+='<div style="text-align:center;margin-bottom:12px;"><h3 style="color:var(--primary)">'+esc(ds.name)+(ds.term?' — '+esc(ds.term):'')+'</h3></div>';
     html+='<table class="stats-table"><thead><tr><th>NAME</th><th>ID</th>';
     ds.tables.forEach(t=>html+='<th>'+esc(t.name)+'</th>');
     html+='<th>TOTAL</th></tr></thead><tbody>';
@@ -3173,7 +3323,13 @@ const App={
     body.innerHTML=html;
     document.getElementById('classReportPrint').addEventListener('click',()=>{
       const w=window.open('','_blank');
-      w.document.write('<!DOCTYPE html><html><head><title>Class Report</title><style>body{font-family:Arial;padding:24px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ccc;padding:6px;text-align:center}th{background:#FFF8F2}</style></head><body>'+body.innerHTML.replace(/<button[\s\S]*?<\/button>/,'')+'</body></html>');
+      const css='body{font-family:Arial;padding:24px}'+
+        'table{width:100%;border-collapse:collapse}th,td{border:1px solid #ccc;padding:6px;text-align:center}th{background:#eff6ff}'+
+        SRP_REPORT_CSS;
+      w.document.write('<!DOCTYPE html><html><head><title>Class Report</title><style>'+css+'</style></head><body>'+
+        this.reportHeaderPrintHTML(ds)+
+        body.innerHTML.replace(/<button[\s\S]*?<\/button>/,'')+
+        '</body></html>');
       w.document.close(); w.onload=()=>w.print();
     });
   },
@@ -3309,7 +3465,8 @@ const App={
     });
     const overall=getRemarks(grand,cnt*100);
     c.innerHTML=
-      this.reportTitleHTML(ds)+'<div style="text-align:center;margin-bottom:20px;">'+
+      this.reportHeaderHTML(ds)+
+      '<div style="text-align:center;margin-bottom:20px;">'+
         '<h2 style="color:var(--primary);">'+IC['file-text']+' Terminal Report</h2>'+
         '<h3 style="color:var(--primary-dark);">'+esc(name)+'</h3>'+
         (term?'<p><b>Term:</b> '+esc(term)+'</p>':'')+
@@ -3328,12 +3485,32 @@ const App={
     document.getElementById('terminalReportModal').style.display='flex';
     document.getElementById('reportPrintBtn').addEventListener('click',()=>{
       const comments=document.getElementById('reportComments').value;
-      this.printTerminalReport(name, term, comments, rows, grand, overall);
+      this.printTerminalReport(name, term, comments, rows, grand, overall, ds);
     });
   },
-  printTerminalReport(name,term,comments,rows,grand,overall){
-    const w=window.open('','_blank');
-    w.document.write('<!DOCTYPE html><html><head><title>Terminal Report — '+esc(name)+'</title><style>body{font-family:Arial;padding:24px;max-width:800px;margin:0 auto}.header{text-align:center;border-bottom:3px solid #7A1F3D;padding-bottom:16px;margin-bottom:20px}table{width:100%;border-collapse:collapse;margin-top:16px}th,td{border:1px solid #ccc;padding:8px;text-align:center}th{background:#FFF8F2;color:#7A1F3D}.remarks-excellent{color:#16a34a;font-weight:700}.remarks-very-good{color:#0d9488;font-weight:700}.remarks-good{color:#0891b2;font-weight:700}.remarks-pass{color:#ca8a04;font-weight:700}.remarks-fail{color:#dc2626;font-weight:700}.comments{margin-top:20px;padding:16px;background:#f8fafc;border-radius:8px}.sig{margin-top:40px;display:flex;justify-content:space-between}</style></head><body>'+this.reportTitleHTML(this.getCurrentDataset())+'<div class="header"><h1>Terminal Report</h1><h2>'+esc(name)+'</h2>'+(term?'<p><b>Term:</b> '+esc(term)+'</p>':'')+'<p>'+new Date().toLocaleString()+'</p></div><table><thead><tr><th>SUBJECT</th><th>CAT TOTAL</th><th>EXAM</th><th>SUBJECT TOTAL</th><th>REMARKS</th></tr></thead><tbody>'+rows+'<tr style="font-weight:bold;background:#f5f5f5"><td colspan="3">GRAND TOTAL</td><td>'+grand+'</td><td>'+overall.text+'</td></tr></tbody></table><div class="comments"><h3>Teacher Comments:</h3><p>'+esc(comments||'No comments.')+'</p></div><div class="sig"><div>School Stamp: _______________</div><div>Signature: _______________</div></div></body></html>');
+  printTerminalReport(name,term,comments,rows,grand,overall,ds){
+    const w=window.open('','_blank'); if(!w) return;
+    const css='body{font-family:Arial;padding:24px;max-width:800px;margin:0 auto}'+
+      '.header{text-align:center;padding-bottom:16px;margin-bottom:20px}'+
+      'table{width:100%;border-collapse:collapse;margin-top:16px}'+
+      'th,td{border:1px solid #ccc;padding:8px;text-align:center}'+
+      'th{background:#eff6ff;color:#1d4ed8}'+
+      '.remarks-excellent{color:#16a34a;font-weight:700}.remarks-very-good{color:#0d9488;font-weight:700}'+
+      '.remarks-good{color:#0891b2;font-weight:700}.remarks-pass{color:#ca8a04;font-weight:700}'+
+      '.remarks-fail{color:#dc2626;font-weight:700}'+
+      '.comments{margin-top:20px;padding:16px;background:#f8fafc;border-radius:8px}'+
+      '.sig{margin-top:40px;display:flex;justify-content:space-between}'+
+      SRP_REPORT_CSS;
+    const headerHTML = ds ? this.reportHeaderPrintHTML(ds) : '';
+    w.document.write('<!DOCTYPE html><html><head><title>Terminal Report — '+esc(name)+'</title><style>'+css+'</style></head><body>'+
+      headerHTML+
+      '<div class="header"><h1>Terminal Report</h1><h2>'+esc(name)+'</h2>'+(term?'<p><b>Term:</b> '+esc(term)+'</p>':'')+'<p>'+new Date().toLocaleString()+'</p></div>'+
+      '<table><thead><tr><th>SUBJECT</th><th>CAT TOTAL</th><th>EXAM</th><th>SUBJECT TOTAL</th><th>REMARKS</th></tr></thead><tbody>'+
+      rows+'<tr style="font-weight:bold;background:#f5f5f5"><td colspan="3">GRAND TOTAL</td><td>'+grand+'</td><td>'+overall.text+'</td></tr>'+
+      '</tbody></table>'+
+      '<div class="comments"><h3>Teacher Comments:</h3><p>'+esc(comments||'No comments.')+'</p></div>'+
+      '<div class="sig"><div>School Stamp: _______________</div><div>Signature: _______________</div></div>'+
+      '</body></html>');
     w.document.close();
     w.onload=()=>w.print();
   },
@@ -3348,7 +3525,18 @@ const App={
       let cc='';t.catColumns.forEach(c=>{cc+='<td>'+(s.catMarks[c.id]||0)+'</td>'});
       rows+='<tr><td>'+esc(s.name)+'</td>'+cc+'<td>'+s.catTotal+'</td><td>'+s.exam+'</td><td>'+s.total+'</td><td>'+s.position+'</td></tr>';
     });
-    w.document.write('<!DOCTYPE html><html><head><title>'+esc(t.name)+'</title><style>body{font-family:Arial;padding:24px}table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border:1px solid #ccc;padding:8px;text-align:center}th{background:#FFF8F2;color:#7A1F3D}.header{text-align:center;border-bottom:3px solid #7A1F3D;padding-bottom:12px}</style></head><body>'+this.reportTitleHTML(ds)+'<div class="header"><h1>'+esc(t.name)+'</h1><p>'+(term?'Term: '+esc(term)+'<br>':'')+'Student Results</p></div><table><thead><tr><th>NAMES</th>'+ch+'<th>CAT TOTAL</th><th>EXAM</th><th>TOTAL</th><th>POS</th></tr></thead><tbody>'+rows+'</tbody></table><p>Generated: '+new Date().toLocaleString()+'</p></body></html>');
+    const css='body{font-family:Arial;padding:24px}'+
+      'table{width:100%;border-collapse:collapse;margin-top:12px}'+
+      'th,td{border:1px solid #ccc;padding:8px;text-align:center}'+
+      'th{background:#eff6ff;color:#1d4ed8}'+
+      '.header{text-align:center;padding-bottom:12px}'+
+      SRP_REPORT_CSS;
+    const headerHTML = ds ? this.reportHeaderPrintHTML(ds) : '';
+    w.document.write('<!DOCTYPE html><html><head><title>'+esc(t.name)+'</title><style>'+css+'</style></head><body>'+
+      headerHTML+
+      '<div class="header"><h1>'+esc(t.name)+'</h1><p>'+(term?'Term: '+esc(term)+'<br>':'')+'Student Results</p></div>'+
+      '<table><thead><tr><th>NAMES</th>'+ch+'<th>CAT TOTAL</th><th>EXAM</th><th>TOTAL</th><th>POS</th></tr></thead><tbody>'+rows+'</tbody></table>'+
+      '<p>Generated: '+new Date().toLocaleString()+'</p></body></html>');
     w.document.close();
     w.onload=()=>w.print();
   },
