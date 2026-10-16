@@ -1555,40 +1555,47 @@ const App={
     const th=await DB.getSetting('thresholds', null);
     if(th) this.thresholds=Object.assign(this.thresholds, th);
     const stored=await DB.getState();
-    let remoteData=null;
+    let remoteData=null, remoteReadFailed=false;
     try{ remoteData=await this.readFirebaseData(this.firebaseUser.uid); }
-    catch(e){ setFirebaseStatus('Offline — using this device'); }
+    catch(e){ remoteReadFailed=true; setFirebaseStatus('Offline — using this device'); }
     const legacyLocal=(()=>{ try{ const raw=localStorage.getItem('studentResultsData'); return raw?JSON.parse(raw):null; }catch(e){ return null; } })();
-    if(remoteData&&remoteData.schoolName!==undefined){ this.settings.schoolName=remoteData.schoolName||''; await DB.setSetting('schoolName',this.settings.schoolName); }
     const remoteDatasets=remoteData&&(remoteData.resultDatasets||remoteData.datasets);
+    const localDatasets=stored&&stored.data&&stored.data.datasets;
+    const hasLocal=Array.isArray(localDatasets)&&localDatasets.length>0;
+    const legacyDatasets=legacyLocal&&(legacyLocal.resultDatasets||legacyLocal.datasets);
+    const hasLegacy=Array.isArray(legacyDatasets)&&legacyDatasets.length>0;
+    const hasRemote=Array.isArray(remoteDatasets)&&remoteDatasets.length>0;
     const localTime=(stored&&stored.data&&Number(stored.data.lastUpdated))||0;
-    const localDirty=!!(stored&&stored.data&&stored.data.dirty);
     const remoteTime=(remoteData&&Number(remoteData.lastUpdated))||0;
-    if(localDirty&&localTime>=remoteTime&&stored.data.datasets&&stored.data.datasets.length){
-      // Keep newer unsynced local work and let the normal save flow push it.
-      this.datasets=stored.data.datasets;
-      this.currentDatasetId=stored.data.currentDatasetId;
-      this._localUpdatedAt=localTime;
-      this._dirty=true;
-      this._cloudPending=true;
-    }else if(Array.isArray(remoteDatasets)&&remoteDatasets.length){
+    let chooseLocal=false;
+    if(hasRemote&&(hasLocal||hasLegacy)){
+      chooseLocal=!confirm('Cloud data is available, and this device also has saved data.\n\nChoose OK/Yes to replace this device’s data with the cloud copy. Choose Cancel/No to keep this device’s data and replace the cloud copy.');
+    }else if(!hasRemote&&(hasLocal||hasLegacy)){
+      chooseLocal=true;
+    }
+    if(!chooseLocal&&hasRemote){
+      if(remoteData.schoolName!==undefined){ this.settings.schoolName=remoteData.schoolName||''; await DB.setSetting('schoolName',this.settings.schoolName); }
       this.datasets=remoteDatasets.map(ds=>this.normalizeJsonDataset(ds)).filter(Boolean);
       this.currentDatasetId=remoteData.currentDatasetId||this.datasets[0]?.id||null;
       this._localUpdatedAt=remoteTime;
       this._dirty=false;
-    }else if(stored&&stored.data&&stored.data.datasets&&stored.data.datasets.length){
-      this.datasets=stored.data.datasets;
+      this._cloudPending=false;
+    }else if(hasLocal){
+      this.datasets=localDatasets;
       this.currentDatasetId=stored.data.currentDatasetId;
-      this._dirty=!!stored.data.dirty;
       this._localUpdatedAt=localTime;
-    }else if(legacyLocal&&(legacyLocal.resultDatasets||legacyLocal.datasets)){
-      const legacyDatasets=legacyLocal.resultDatasets||legacyLocal.datasets;
+      this._dirty=!!stored.data.dirty;
+      this._cloudPending=!remoteReadFailed;
+    }else if(hasLegacy){
       this.datasets=legacyDatasets.map(ds=>this.normalizeJsonDataset(ds)).filter(Boolean);
       this.currentDatasetId=legacyLocal.currentDatasetId||this.datasets[0]?.id||null;
-      this._localUpdatedAt=legacyLocal.lastUpdated||0;
+      this._localUpdatedAt=Number(legacyLocal.lastUpdated)||0;
+      this._dirty=true;
+      this._cloudPending=!remoteReadFailed;
     }else{
       this.createDefaultDataset(false);
       this._dirty=false;
+      this._cloudPending=!remoteReadFailed;
     }
     let inferredTerms=false;
     for(const ds of this.datasets){
@@ -1607,11 +1614,13 @@ const App={
     this.bindEvents();
     this.initialized=true;
     this._loadedUid=this.firebaseUser.uid;
+    this.updateViewTabs();
+    // Persist the selected startup source locally without implicitly uploading it.
+    await DB.setState({datasets:this.datasets,currentDatasetId:this.currentDatasetId,lastUpdated:this._localUpdatedAt,dirty:this._dirty});
     this._cloudLoading=false;
     this._cloudReady=true;
-    this.updateViewTabs();
-    await this.saveState();
     this.startFirebaseSync();
+    if(this._cloudPending) await this.pushFirebaseData();
     if(!this.onboarded) document.getElementById('onboardingModal').style.display='flex';
   },
 
@@ -1971,7 +1980,8 @@ const App={
     this._cloudInterval=setInterval(()=>this.syncFirebase(),30000);
     if(this._onlineHandler) window.removeEventListener('online',this._onlineHandler);
     this._onlineHandler=()=>{
-      if(this._cloudPending) this.pushFirebaseData();
+      if(this._cloudNeedsReconcile) this.syncFirebase();
+      else if(this._cloudPending) this.pushFirebaseData();
       else this.syncFirebase();
     };
     window.addEventListener('online',this._onlineHandler);
